@@ -3861,6 +3861,7 @@ function leaveRoomState() {
 }
 function exitShop() {
   const r = curRoom; if (!r) return;
+  if (r.id.startsWith('cbi_')) { cbExit(); return; }
   const door = DOORS.find(d => d.shop === r.id);
   leaveRoomState();
   teleport(door.x, door.y + 34, Math.PI / 2); setZone(false); Sound.play('door');
@@ -4250,6 +4251,7 @@ function discovery() {
   lastTown = t; lastRegion = rg;
 }
 function respawnPoint(x, y) {
+  { const ch = cbHomeRespawn(x, y); if (ch) return ch; }
   { const zr = zoneRespawn(x, y); if (zr) return zr; }
   if (inConn(x)) { const c = connAt(x), w = WAYS.find(q => q.id === 'c_' + c.id); if (w && P.ways.includes(w.id)) return { x: w.x, y: w.y + 70, name: `the ${w.name} waystone` }; const e = x - c.Z.x < c.Z.w / 2 ? c.inA : c.inB; return { x: e.x, y: e.y, name: `the edge of ${c.name}` }; }
   const known = WAYS.filter(w => P.ways.includes(w.id) && w.id !== 'forge');
@@ -5725,7 +5727,7 @@ function moveInput() {
 function pushOut(o) {
   if (o.x > 10000) {
     if (o.x < 15000) for (const q of DPILLARS) circlePush(o, q.x, q.y, q.r);
-    else if (o.x < 28000) { const r = roomAt(o.x); if (r) { rectPush(o, r.counter); for (const q of r.obst) circlePush(o, q.x, q.y, q.r); } }
+    else if (o.x < 28000) { const r = roomAt(o.x, o.y); if (r) { rectPush(o, r.counter); for (const q of r.obst) circlePush(o, q.x, q.y, q.r); } }
     else {
       const cx = Math.floor(o.x / TCELL), cy = Math.floor(o.y / TCELL);
       for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { const c = TGRID.get(gkey(cx + i, cy + j)); if (c) for (const t of c) circlePush(o, t.x, t.y, t.r * 0.5); }
@@ -5766,7 +5768,7 @@ function rectPush(o, h) {
 // ================= gameplay =================
 let now = 0;
 const inTown = (x, y) => (x >= 15000 && x < 28000) || !!townAt(x, y);
-const areaOf = (x, y) => inDungeon(x) ? 'Sunken Forge' : (x >= 15000 && x < 28000) ? (roomAt(x) ? SHOPS[roomAt(x).id].name : 'Indoors') : (townAt(x, y) || regionAt(x, y)).name;
+const areaOf = (x, y) => inDungeon(x) ? 'Sunken Forge' : (x >= 15000 && x < 28000) ? (roomAt(x, y) ? SHOPS[roomAt(x, y).id].name : 'Indoors') : (townAt(x, y) || regionAt(x, y)).name;
 
 function nearestMob(range, filter) {
   let best = null, bd = range;
@@ -5936,7 +5938,7 @@ function interactTarget() {
     for (const d of DOORS) consider('door', d, d.x, d.y, 70);
     for (const w of WAYS) consider('waystone', w, w.x, w.y, 90);
     for (const t of TREASURES) if (!P.found.includes(t.id)) consider('treasure', t, t.x, t.y, 70);
-    ghConsider(consider); raidConsider(consider); festConsider(consider); mqConsider(consider); cbConsider(consider);
+    ghConsider(consider); raidConsider(consider); festConsider(consider); mqConsider(consider); cbConsider(consider); nmConsider(consider);
     for (const v of VILLAGERS) consider('villager', v, v.x, v.y, 70);
     if (typeof AV !== 'undefined') for (const a of AV.values()) if (a.h.g.visible && !a.ghost) consider('player', a, a.x, a.y, 75);
   } else if (curRoom) { consider('exit', curRoom.exit, curRoom.exit.x, curRoom.exit.y, 80); consider('keeper', curRoom.keeper, curRoom.keeper.x, curRoom.keeper.y, 140); }
@@ -5947,7 +5949,7 @@ function labelFor(t) {
   if (!t) return canLight() ? 'Light fire' : '—';
   { const hl = homeLabel(t); if (hl) return hl; }
   if (t.kind === 'dentry') return 'Dungeon'; if (t.kind === 'dexit') return 'Leave';
-  if (t.kind === 'cbdoor') return cbLabel(t.obj); if (t.kind === 'citizen') return 'Talk';
+  if (t.kind === 'cbdoor') return cbLabel(t.obj); if (t.kind === 'citizen') return 'Talk'; if (t.kind === 'nmstall') return 'Night market';
   if (t.kind === 'gexit') return 'Leave hall'; if (t.kind === 'rexit') return 'Leave raid'; if (t.kind === 'mqexit') return 'Leave'; if (t.kind === 'mqstall') return 'Stall'; if (t.kind === 'mqboard') return 'Hall prices'; if (t.kind === 'fstall') return 'Festival'; if (t.kind === 'fdeco') { const F = festNow(); return F ? F.act : 'Look'; } if (t.kind === 'gbank') return 'Guild bank'; if (t.kind === 'gboard') return 'Guild';
   switch (t.kind) {
     case 'skin': return `Skin ${t.obj.d.name.toLowerCase()}`;
@@ -5963,8 +5965,8 @@ function labelFor(t) {
     case 'npc': return 'Talk';
     case 'player': return t.obj.name;
     case 'door': return 'Enter shop';
-    case 'exit': return 'Leave shop';
-    case 'keeper': return 'Trade';
+    case 'exit': return curRoom && curRoom.id.startsWith('cbi_') ? 'Leave' : 'Leave shop';
+    case 'keeper': return String(t.obj.shop).startsWith('cbi_') ? 'Talk' : 'Trade';
     case 'waystone': return 'Waystone';
     case 'treasure': return 'Open chest';
     case 'villager': return t.obj.mk ? 'Market' : t.obj.gmaster ? 'Guilds' : t.obj.kq ? 'Kingdom Quests' : t.obj.sail ? 'Sail' : t.obj.agent ? 'Land & seeds' : t.obj.guild ? 'Guild' : t.obj.auction ? 'Auction' : t.obj.barber ? 'Barber' : 'Talk';
@@ -5989,7 +5991,7 @@ function interact() {
   if (P.mounted && ['anvil', 'loom', 'brew', 'herb', 'chop', 'mine', 'fish', 'skin', 'fire', 'furnace', 'door', 'chest', 'treasure'].includes(t.kind)) dismount(true);
   if (t.kind === 'dentry') { openFarm({ type: 'dungeon', D: t.obj }); return; }
   if (t.kind === 'dexit') { leaveDungeon(t.obj); return; }
-  if (t.kind === 'cbdoor') { cbOpen(t.obj); return; } if (t.kind === 'citizen') { citizenTalk(t.obj); return; }
+  if (t.kind === 'cbdoor') { cbDoor(t.obj); return; } if (t.kind === 'nmstall') { nmCard(t.obj); return; } if (t.kind === 'citizen') { citizenTalk(t.obj); return; }
   if (t.kind === 'mqexit') { mqLeave(); return; } if (t.kind === 'mqstall') { openStall(t.obj); return; } if (t.kind === 'mqboard') { openHallBoard(t.obj); return; }
   if (t.kind === 'villager' && t.obj.mk) { talkTo(t.obj); openWarden(t.obj); return; }
   if (t.kind === 'fstall') { openFest(); return; } if (t.kind === 'fdeco') { festAct(); return; }
@@ -6010,7 +6012,7 @@ function interact() {
   if (t.kind === 'player') { openPlayerMenu(t.obj); return; }
   if (t.kind === 'door') { enterShop(t.obj); return; }
   if (t.kind === 'exit') { exitShop(); return; }
-  if (t.kind === 'keeper') { openShop(t.obj.shop); return; }
+  if (t.kind === 'keeper') { if (String(t.obj.shop).startsWith('cbi_')) { cbKeeper(); return; } openShop(t.obj.shop); return; }
   if (t.kind === 'waystone') { if (!P.ways.includes(t.obj.id)) { P.ways.push(t.obj.id); save(); } openPanel(wayPanel); return; }
   if (t.kind === 'treasure') { openTreasure(t.obj); return; }
   if (t.kind === 'villager') questEvent('talk', t.obj.name);
@@ -8347,14 +8349,35 @@ Object.assign(KEEPER_LOOK, {
   tidetrader: { shirt: 0x3a6a8a, hat: 'tricorn', hatC: 0x3a2a1a, beard: 0xefefef, skin: 0xc89070 }, shellsmith: { shirt: 0x2aa8c0, robe: true, hair: 0x1a1a2a, skin: 0xa87050 },
   saltydog: { shirt: 0x5a3a22, apron: 0xefe6d2, hat: 'hood', hatC: 0x7a1a1a, skin: 0xd8a888 }, corsairs: { shirt: 0x7a1a1a, hat: 'tricorn', hatC: 0x1a1a22, cape: 0x2a3550, hair: 0x3a1a0a },
 });
-const ROOMS = Object.keys(SHOPS).map((id, i) => ({ id, i, x: IX + i * 490, y: IY, w: 440, h: 340 }));
+// city buildings you can walk into: one room for each kind of building (the people inside change with the house)
+Object.assign(SHOPS, {
+  cbi_home: { name: 'A townhouse', keeper: 'Resident', role: 'Townsfolk', theme: 'home', greet: '', stock: [] },
+  cbi_rent: { name: 'Your city house', keeper: 'Housekeeper Mott', role: 'Keeps the place tidy', theme: 'home', greet: '', stock: [] },
+  cbi_temple: { name: 'The temple', keeper: 'Priest', role: 'Blessings and alms', theme: 'temple', greet: '', stock: [] },
+  cbi_hall: { name: 'The town hall', keeper: 'Clerk', role: 'Records and rents', theme: 'hall', greet: '', stock: [] },
+  cbi_post: { name: 'The post office', keeper: 'Postmaster', role: 'Mail and parcels', theme: 'post', greet: '', stock: [] },
+  cbi_smithy: { name: 'The smithy', keeper: 'Smith', role: 'Furnace and anvil', theme: 'smith', greet: '', stock: [] },
+  cbi_weaver: { name: 'The weaver’s workshop', keeper: 'Weaver', role: 'Loom and wheel', theme: 'cloth', greet: '', stock: [] },
+  cbi_kitchen: { name: 'The bakehouse kitchen', keeper: 'Baker', role: 'Hearth, oven, mill and dairy', theme: 'tavern', greet: '', stock: [] },
+  cbi_alchemy: { name: 'The alchemist’s lab', keeper: 'Alchemist', role: 'Cauldron', theme: 'alchemy', greet: '', stock: [] },
+  cbi_inn: { name: 'The inn', keeper: 'Innkeeper', role: 'Beds and hot food', theme: 'tavern', greet: '', stock: [] },
+});
+Object.assign(KEEPER_LOOK, {
+  cbi_home: { shirt: 0x7a5a3a, apron: 0xd8cfb8, hair: 0x6a3a1a }, cbi_rent: { shirt: 0x3a4a6a, apron: 0xefe6d2, hair: 0xd8d0c0 },
+  cbi_temple: { shirt: 0xefe6d2, robe: true, hat: 'hood', hatC: 0xd9ab3a, beard: 0xd8d0c0 }, cbi_hall: { shirt: 0x2a3a5a, cape: 0x8a3b2e, hair: 0x2a2a2a },
+  cbi_post: { shirt: 0x8a2a1e, hat: 'hood', hatC: 0x3a2a1a }, cbi_smithy: { shirt: 0x5a3a2a, apron: 0x3a2a1a, beard: 0x5a3a1a, skin: 0xd8a888 },
+  cbi_weaver: { shirt: 0x9a6ad8, hair: 0x1a1a1a }, cbi_kitchen: { shirt: 0xe8dcc8, apron: 0xefe6d2, hat: 'hood', hatC: 0xf4f4f4 },
+  cbi_alchemy: { shirt: 0x3a6a3a, robe: true, hat: 'hood', hatC: 0x2a4a2a, beard: 0xefefef }, cbi_inn: { shirt: 0xa0522d, apron: 0xefe6d2, beard: 0x6b3a22 },
+});
+const ROOMS_ROW1 = Object.keys(SHOPS).findIndex(k => k.startsWith('cbi_'));   // shops before this stay in the first row of rooms
+const ROOMS = Object.keys(SHOPS).map((id, i) => ({ id, i, x: IX + (ROOMS_ROW1 >= 0 && i >= ROOMS_ROW1 ? i - ROOMS_ROW1 : i) * 490, y: IY + (ROOMS_ROW1 >= 0 && i >= ROOMS_ROW1 ? 700 : 0), w: 440, h: 340 }));
 ROOMS.forEach(r => {
   r.exit = { x: r.x + r.w / 2, y: r.y + r.h - 22 };
   r.counter = { x: r.x + r.w * 0.26, y: r.y + 90, w: r.w * 0.48, h: 34 };
   r.keeper = { x: r.x + r.w / 2, y: r.y + 55, r: 14, name: SHOPS[r.id].keeper, shop: r.id };
   r.obst = [];
 });
-const roomAt = x => ROOMS.find(r => x > r.x - 20 && x < r.x + r.w + 20) || null;
+const roomAt = (x, y) => ROOMS.find(r => x > r.x - 20 && x < r.x + r.w + 20 && (y == null || (y > r.y - 250 && y < r.y + r.h + 250))) || null;
 const THEME = {
   wood: { floor: 0x7a5a3a, wall: 0xb89a70, rug: 0x7b3d2e }, smith: { floor: 0x5a534c, wall: 0x7a6a5a, rug: 0x3a2a1a },
   cloth: { floor: 0x8a6a4a, wall: 0xd8cfb8, rug: 0x2d4f8c }, alchemy: { floor: 0x4a4a3a, wall: 0x6a7a5a, rug: 0x3a6a3a },
@@ -8406,6 +8429,7 @@ function buildRoom(r) {
   placeAt(g, r.x + r.w / 2, r.y + r.h / 2); shadowAll(g); scene.add(g);
   const kp = buildVillager(KEEPER_LOOK[r.id]); placeAt(kp.g, r.keeper.x, r.keeper.y); scene.add(kp.g); r.keeper.model = kp; r.keeper.plate = makePlate();
 }
+Object.assign(THEME, { home: { floor: 0x8a6a4a, wall: 0xd8c8a8, rug: 0x7b3d2e }, temple: { floor: 0xc8c0b0, wall: 0xefe8dc, rug: 0xc0392b }, hall: { floor: 0x6a5a4a, wall: 0xc8bca8, rug: 0x2a4a9a }, post: { floor: 0x7a5a3a, wall: 0xd8c098, rug: 0xc0392b } });
 ROOMS.forEach(buildRoom);
 const indoorLight = new T.PointLight(0xffd9a0, 0, 26, 1.6); scene.add(indoorLight);
 // Market Wardens: the way into each city's Merchants' Quarter
@@ -13718,7 +13742,7 @@ function xCard() {
   $('xClose').addEventListener('click', () => { if (xMode === 'pb' && PB && !PB.over) { pbForfeit(); return; } el.hidden = true; });
   el.addEventListener('click', e => { if (e.target === el && !(PB && !PB.over)) el.hidden = true; const b = e.target.closest('button'); if (!b || b.disabled) return; const d = b.dataset;
     if (d.fc != null) festClaim(+d.fc); else if (d.fb) festBuy(d.fb); else if (d.feid) festEid(); else if (d.pbm != null) pbMove(+d.pbm); else if (d.pbs != null) pbSwap(+d.pbs); else if (d.pbx) pbForfeit(); else if (d.pbt != null) pbStartTamer(+d.pbt); else if (d.pbclose) el.hidden = true;
-    else if (d.cb) cbAction(d);
+    else if (d.cb) cbAction(d); else if (d.cr) cbRentAct(d.cr); else if (d.nm) nmBuy(d.nm);
     else if (d.we) { el.hidden = true; mqEnter(MQ.wCity); }
     else if (d.mb || d.mr || d.mn || d.mc || d.mw || d.mp || d.mt != null || d.ms || d.mx) Promise.resolve(mqAction(d)).then(() => { if (xMode === 'mq') renderMQ(); }); });
   for (const ev of ['keydown', 'keyup']) el.addEventListener(ev, e => { if (e.target && e.target.tagName === 'INPUT') e.stopPropagation(); });
@@ -14712,7 +14736,7 @@ function cbBless() {
 }
 // ----- the building card -----
 const CB_BENCH = { oven: 'Kitchen oven', mill: 'Mill', dairy: 'Dairy', spin: 'Spinning wheel' }, CB_FEE = 10;
-function cbLabel(h) { const u = h.cb.use; return u === 'home' ? (cbNeeds(h.cb.city)[h.cb.id] && !nbState().done.includes(h.cb.id) ? 'Help' : 'Knock') : u === 'temple' ? 'Temple' : u === 'hall' ? 'Town hall' : u === 'post' ? 'Post office' : u === 'smithy' ? 'Smithy' : u === 'weaver' ? 'Workshop' : u === 'kitchen' ? 'Kitchen' : u === 'alchemy' ? 'Lab' : u === 'inn' ? 'Inn' : 'Enter'; }
+function cbLabel(h) { const u = h.cb.use; if (u === 'rent') return cbMine(h) ? 'Home' : 'For rent'; return u === 'home' ? (cbNeeds(h.cb.city)[h.cb.id] && !nbState().done.includes(h.cb.id) ? 'Help' : 'Knock') : u === 'temple' ? 'Temple' : u === 'hall' ? 'Town hall' : u === 'post' ? 'Post office' : u === 'smithy' ? 'Smithy' : u === 'weaver' ? 'Workshop' : u === 'kitchen' ? 'Kitchen' : u === 'alchemy' ? 'Lab' : u === 'inn' ? 'Inn' : 'Enter'; }
 function cbOpen(h) { if (PB && !PB.over) { say('Finish your pet battle first.', 'warn'); return; } CL.sel = h; const el = xCard(); el.hidden = false; xMode = 'cb'; renderCB(); }
 function renderCB() {
   const el = $('xCard'); if (!el || el.hidden || xMode !== 'cb' || !CL.sel) return;
@@ -14736,7 +14760,9 @@ function renderCB() {
     x += `<p class="hint">Help neighbours, take writs at the bounty board and hunt nearby to raise it. Neighbours helped today: ${S0.done.filter(k => k.startsWith(cb.city + '_')).length}.</p>`;
     const dir = plan.lots.filter(q => q.cb.use !== 'home').map(q => CB_USES[q.cb.use].name);
     x += `<h3 class="eh">City directory</h3><p class="hint">${dir.join(' · ')}. Coloured roofs on your map mark them.</p>`;
-    x += `<div class="icbtns">${fbtn('Town records', 'data-cb="records"', true, 'go')}</div>`;
+    const mine = P.cityHome && Date.now() < P.cityHome.until && P.cityHome.city === cb.city ? plan.lots.find(q => q.cb.id === P.cityHome.id) : null;
+    x += `<p class="hint">${mine ? `You rent a house here, paid for ${Math.ceil((P.cityHome.until - Date.now()) / 864e5)} more days.` : `Two houses in ${esc(town)} are for rent by the week (green signs). A bed, your bank chest, and you wake there after a fall.`}</p>`;
+    x += `<div class="icbtns">${fbtn('Town records', 'data-cb="records"', true, 'go')}${mine ? fbtn('Your house', 'data-cb="myhouse"') : ''}</div>`;
   } else if (cb.use === 'post') {
     x += `<p>Parcels, letters and a very tired clerk. Your mail, and anything your bag couldn’t hold, waits here.</p><div class="icbtns">${fbtn('Open mail', 'data-cb="mail"', true, 'go')}</div>`;
   } else if (cb.use === 'inn') {
@@ -14749,10 +14775,11 @@ function renderCB() {
   $('xBody').innerHTML = x;
 }
 function cbAction(d) {
-  const h = CL.sel; if (!h || Date.now() - (CL.actT || 0) < 350) return; CL.actT = Date.now(); const cb = h.cb, a = d.cb, spot = { x: cb.door.x, y: cb.door.y };
+  const h = CL.sel; if (!h || Date.now() - (CL.actT || 0) < 350) return; CL.actT = Date.now(); const cb = h.cb, a = d.cb, spot = curRoom ? { x: P.x, y: P.y - 30 } : { x: cb.door.x, y: cb.door.y };
   if (a === 'help') { cbHelp(h); renderCB(); return; }
   if (a === 'bless') { cbBless(); renderCB(); return; }
   if (a === 'alms') { if (P.money < 1000 * CU) return; P.money -= 1000 * CU; repGain(cb.city, 60); say('The priest smiles. “The town thanks you.”', 'good'); save(); renderCB(); return; }
+  if (a === 'myhouse') { const ch = P.cityHome, hh = ch && CITYPLANS[ch.city] && CITYPLANS[ch.city].lots.find(q => q.cb.id === ch.id); if (hh) cbRentCard(hh); return; }
   if (a === 'records') { $('xCard').hidden = true; openJournal(); setJTab('towns'); return; }
   if (a === 'mail') { $('xCard').hidden = true; socTab = 'mail'; openPanel($('socialPanel')); renderSocialPanel(); return; }
   if (a === 'rest') { if (P.money < 45 * CU) return; P.money -= 45 * CU; P.hp = P.maxHp; P.hunger = 100; say('You sleep soundly at the inn. Fully restored.', 'good'); Sound.play('heal'); save(); $('xCard').hidden = true; return; }
@@ -14777,7 +14804,7 @@ function cbPlates(dt) {
     for (const h of plan.lots) {
       const d = h.cb.door, dist = Math.hypot(d.x - P.x, d.y - P.y), need = needs[h.cb.id] && !done.includes(h.cb.id);
       if (need && dist < 520) list.push([dist, h, `❗ ${h.cb.res}`, 'corpse']);
-      else if (h.cb.use !== 'home' && dist < 340) list.push([dist, h, CB_USES[h.cb.use].name, 'shop']);
+      else if (h.cb.use !== 'home' && dist < 340) list.push([dist, h, h.cb.use === 'rent' && cbMine(h) ? 'Your house' : CB_USES[h.cb.use].name, h.cb.use === 'rent' && cbMine(h) ? 'way' : 'shop']);
     }
   }
   list.sort((a, b) => a[0] - b[0]);
@@ -14809,7 +14836,7 @@ function camOccl(dist, dt) {
 function cityTick(dt) {
   const plan = curRoom ? null : cbCityOf(P.x);
   if (plan !== CL.cur) { CL.cur = plan; if (plan) cbEnsure(plan); }
-  cbWalkTick(dt); cbPlates(dt);
+  cbWalkTick(dt); cbPlates(dt); nmTick();
 }
 // ----- the gates of the old town sites: closed oak doors between the gate towers -----
 (function gateDoors() {
@@ -14826,8 +14853,209 @@ function cityTick(dt) {
 })();
 ACH.push({ id: 'goodneighbour', name: 'Good Neighbour', desc: 'Help 25 neighbours who asked for a hand at their door.', title: 'the Good Neighbour', test: () => (P.nb && P.nb.total || 0) >= 25 });
 
+// ================= Living cities (part 3): inside the buildings, houses to rent, and the night market =================
+// Every city building has a room behind its door: the resident at home, the priest, the clerk, the smith.
+// Two houses in each city are for rent by the week: a bed that fills rested XP, your bank chest, and you
+// wake up there after a fall nearby. After dark, lantern stalls open in each city's square.
+CB_USES.rent = { name: 'House for rent', sign: 0x5ad06a };
+// two houses per city are to let
+for (const id in CITYPLANS) {
+  const homes = CITYPLANS[id].lots.filter(h => h.cb.use === 'home'), r = rng(i32(CITYPLANS[id].R.x) + 77);
+  for (let k = 0; k < 2 && homes.length > 6; k++) { const h = homes.splice(Math.floor(r() * homes.length), 1)[0]; h.cb.use = 'rent'; }
+}
+const cbRentPrice = city => Math.round((MK_CITIES[city] ? MK_CITIES[city][1] : 3) * 1.5 * 1e6);   // bronze a week (1 silver = 1,000,000 bronze)
+const cbMine = h => !!(P.cityHome && P.cityHome.id === h.cb.id && Date.now() < P.cityHome.until);
+const CB_TITLE = { smithy: 'Smith', weaver: 'Weaver', kitchen: 'Baker', alchemy: 'Alchemist', temple: 'Priest', hall: 'Clerk', post: 'Postmaster', inn: 'Innkeeper' };
+// ----- walking in and out -----
+function cbEnter(h) {
+  const room = ROOMS.find(q => q.id === 'cbi_' + (h.cb.use === 'rent' ? 'rent' : h.cb.use)); if (!room) { cbOpen(h); return; }
+  dismount(true);
+  const d = h.cb.door, out = { n: [0, -16], s: [0, 16], e: [16, 0], w: [-16, 0] }[h.cb.face], sh = SHOPS[room.id];
+  const first = (h.cb.res || 'Someone').split(' ')[0];
+  sh.keeper = h.cb.use === 'home' ? h.cb.res : h.cb.use === 'rent' ? 'Housekeeper Mott' : `${CB_TITLE[h.cb.use]} ${first}`; room.keeper.name = sh.keeper;
+  sh.name = h.cb.use === 'home' ? `${h.cb.res}’s home` : h.cb.use === 'rent' ? (cbMine(h) ? 'Your city house' : 'A house for rent') : CB_USES[h.cb.use].name;
+  CL.inside = { h, out: { x: d.x + out[0], y: d.y + out[1] }, f: Math.atan2(out[1], out[0]) };
+  P.outside = { x: d.x + out[0], y: d.y + out[1] };
+  teleport(room.exit.x, room.exit.y - 60, -Math.PI / 2);
+  curRoom = room; setZone('indoor'); Sound.play('door');
+  indoorLight.position.set((room.x + room.w / 2) * S, 2.9, (room.y + room.h / 2 + 20) * S); indoorLight.intensity = 1.4;
+  showBanner(sh.name, h.cb.use === 'home' ? `${FAC[h.cb.city] ? FAC[h.cb.city].name : ''} · tap ${first} to talk` : `${sh.keeper} · ${sh.role}`);
+}
+function cbExit() {
+  const o = CL.inside; leaveRoomState(); CL.inside = null;
+  if (o) teleport(o.out.x, o.out.y, o.f); setZone(false); Sound.play('door');
+}
+function cbKeeper() { const o = CL.inside; if (!o) return; if (o.h.cb.use === 'rent' && cbMine(o.h)) { cbRentCard(o.h); return; } cbOpen(o.h); }
+function cbDoor(h) {   // what happens when you tap a city door
+  if (h.cb.use === 'rent' && !cbMine(h)) { cbRentCard(h); return; }
+  cbEnter(h);
+}
+// ----- renting a house -----
+function cbRentCard(h) { CL.sel = h; const el = xCard(); el.hidden = false; xMode = 'cbrent'; renderRent(); }
+function renderRent() {
+  const el = $('xCard'); if (!el || el.hidden || xMode !== 'cbrent' || !CL.sel) return;
+  const h = CL.sel, c = h.cb.city, town = FAC[c] ? FAC[c].name : c, mine = cbMine(h), price = cbRentPrice(c), ch = P.cityHome, other = ch && Date.now() < ch.until && ch.id !== h.cb.id;
+  let x = `<div class="ichead"><span class="icic" style="border-color:#5ad06a;font-size:28px;display:flex;align-items:center;justify-content:center">🏡</span><div><b style="color:#5ad06a">${mine ? 'Your city house' : 'House for rent'}</b><div class="hint">${esc(town)}</div></div></div>`;
+  x += `<p class="hint">A furnished house of your own in ${esc(town)}: a soft bed that fills your rested XP, your bank chest by the door, and after a fall nearby you wake up here instead of at the waystone.</p>`;
+  if (mine) {
+    const left = ch.until - Date.now(), d = Math.floor(left / 864e5), hh = Math.floor(left % 864e5 / 36e5), slept = Date.now() < (ch.slept || 0) + 60 * 60e3;
+    x += `<p>Rent paid for <b>${d} days ${hh} hours</b>.</p>`;
+    x += row('', 'Sleep', slept ? 'You slept here less than an hour ago.' : 'Full health and hunger, and a good night’s rested XP', fbtn('Sleep', 'data-cr="sleep"', !slept, 'go'));
+    x += row('', 'Bank chest', 'Your bank, from the comfort of home', fbtn('Open', 'data-cr="bank"'));
+    x += row('', 'Pay another week', moneyText(price), fbtn('Pay', 'data-cr="rent"', P.money >= price));
+    x += row('', 'Move out', 'Hand back the key. Rent already paid is not returned.', fbtn('Move out', 'data-cr="out"'));
+    if (!curRoom) x += `<div class="icbtns">${fbtn('Go inside', 'data-cr="in"', true, 'go')}</div>`;
+  } else {
+    x += row('', 'Rent for a week', `${moneyText(price)} · then renew from the house or the town hall`, fbtn('Rent', 'data-cr="rent"', P.money >= price, 'go'));
+    if (other) x += `<p class="hint">You rent a house in ${esc(FAC[ch.city] ? FAC[ch.city].name : ch.city)}. Renting this one hands that key back.</p>`;
+  }
+  $('xBody').innerHTML = x;
+}
+function cbRentAct(a) {
+  const h = CL.sel; if (!h || Date.now() - (CL.actT || 0) < 350) return; CL.actT = Date.now();
+  const c = h.cb.city, price = cbRentPrice(c);
+  if (a === 'rent') {
+    if (P.money < price) { say('Not enough money for the rent.', 'warn'); return; }
+    P.money -= price;
+    const base = cbMine(h) ? P.cityHome.until : Date.now();
+    P.cityHome = { id: h.cb.id, city: c, until: base + 7 * 864e5, slept: cbMine(h) ? P.cityHome.slept : 0 };
+    showBanner('Your city house', `${FAC[c] ? FAC[c].name : c} · paid for 7 more days`); Sound.play('coin'); save(); renderRent(); return;
+  }
+  if (a === 'sleep') {
+    if (!cbMine(h) || Date.now() < (P.cityHome.slept || 0) + 60 * 60e3) return;
+    P.cityHome.slept = Date.now(); P.hp = P.maxHp; P.hunger = 100; addRested(3, 0.1);
+    say('You sleep in your own bed. Rested and restored.', 'good'); Sound.play('heal'); save(); renderRent(); return;
+  }
+  if (a === 'bank') { $('xCard').hidden = true; openPanel(bankPanel); return; }
+  if (a === 'out') { P.cityHome = null; say('You hand back the key.', 'warn'); save(); $('xCard').hidden = true; return; }
+  if (a === 'in') { $('xCard').hidden = true; cbEnter(h); }
+}
+// after a fall in a city where you rent, you wake at home
+function cbHomeRespawn(x, y) {
+  const ch = P.cityHome; if (!ch || Date.now() >= ch.until) return null;
+  const plan = CITYPLANS[ch.city], h = plan && plan.lots.find(q => q.cb.id === ch.id); if (!h) return null;
+  if (cbCityOf(x) !== plan) return null;
+  return { x: h.cb.door.x, y: h.cb.door.y, name: 'your city house' };
+}
+// ----- furniture for the rooms -----
+(function roomDecor() {
+  for (const r of ROOMS) {
+    if (!r.id.startsWith('cbi_')) continue;
+    const kind = r.id.slice(4), A = cbAcc(), L = cbAcc(), F = { ox: (r.x + r.w / 2) * S, oz: (r.y + r.h / 2) * S, rot: 0 }, W = r.w * S, D = r.h * S;
+    const B = (t, x, y, z, sx, sy, sz, c, ry, rx) => cbPut(A, CBT[t], F, x, y, z, sx, sy, sz, c, ry, rx), Lg = (t, x, y, z, sx, sy, sz, c) => cbPut(L, CBT[t], F, x, y, z, sx, sy, sz, c);
+    const ob = (x, z, rad) => r.obst.push({ x: r.x + (x + W / 2) / S, y: r.y + (z + D / 2) / S, r: rad });
+    if (kind === 'home' || kind === 'rent') {
+      // a bed, a table with stools, a fireplace and a bookshelf
+      B('box', -W / 2 + 1.3, 0.3, D / 2 - 1.6, 1.6, 0.6, 2.2, 0x6b4a2c); B('box', -W / 2 + 1.3, 0.66, D / 2 - 1.6, 1.5, 0.14, 2.1, kind === 'rent' ? 0x2a4a8a : 0x8a3b2e); B('box', -W / 2 + 1.3, 0.78, D / 2 - 0.75, 1.2, 0.16, 0.42, 0xf4f0e4); ob(-W / 2 + 1.3, D / 2 - 1.6, 34);
+      B('cyl', W / 2 - 2.0, 0.78, 0.6, 1.4, 0.08, 1.4, 0x7a5a3a); B('cyl', W / 2 - 2.0, 0.39, 0.6, 0.2, 0.78, 0.2, 0x5a3f28); for (const [dx, dz] of [[-0.9, 0], [0.9, 0], [0, 0.9]]) B('cyl', W / 2 - 2.0 + dx, 0.25, 0.6 + dz, 0.4, 0.5, 0.4, 0x6b4a2c); ob(W / 2 - 2.0, 0.6, 34);
+      B('box', W / 2 - 0.4, 1.0, -0.6, 0.6, 2.0, 1.8, 0x7a756e); Lg('box', W / 2 - 0.68, 0.45, -0.6, 0.06, 0.55, 0.9, 0xff8a2a); ob(W / 2 - 0.4, -0.6, 22);
+      B('box', -W / 2 + 0.3, 1.1, -0.2, 0.4, 2.2, 1.6, 0x5a3f28); for (let k = 0; k < 3; k++) for (let q = 0; q < 5; q++) B('box', -W / 2 + 0.45, 0.55 + k * 0.6, -0.8 + q * 0.3, 0.18, 0.4, 0.2, [0x8a3b2e, 0x2d4f8c, 0x3a6a3a, 0xd9ab3a, 0x5a3a6a][(k + q) % 5]);
+      B('box', 0, 0.01, 0.9, W * 0.35, 0.02, D * 0.3, kind === 'rent' ? 0x2a4a8a : 0x7b3d2e);
+      if (kind === 'rent') { B('box', 1.2, 0.35, D / 2 - 0.7, 1.0, 0.7, 0.6, 0x6b4a2c); B('box', 1.2, 0.72, D / 2 - 0.7, 1.04, 0.06, 0.64, 0xd9ab3a); ob(1.2, D / 2 - 0.7, 22); }
+    } else if (kind === 'temple') {
+      // an altar of candles, rows of benches and a window of coloured light
+      B('box', 0, 0.5, -D / 2 + 1.6, 2.6, 1.0, 0.9, 0xe8e0d0); for (let k = 0; k < 7; k++) { B('cyl', -1.1 + k * 0.37, 1.12, -D / 2 + 1.5, 0.08, 0.24, 0.08, 0xf4f0e0); Lg('box', -1.1 + k * 0.37, 1.28, -D / 2 + 1.5, 0.05, 0.08, 0.05, 0xffc86a); }
+      for (let k = 0; k < 3; k++) for (const s of [-1, 1]) { B('box', s * 1.6, 0.42, 0.2 + k * 1.3, 2.2, 0.1, 0.5, 0x6b4a2c); B('box', s * 1.6, 0.7, 0.42 + k * 1.3, 2.2, 0.5, 0.08, 0x6b4a2c); ob(s * 1.6, 0.25 + k * 1.3, 24); }
+      Lg('plane', 0, 2.3, -D / 2 + 0.17, 1.6, 1.2, 1, 0x7fd4ff); Lg('plane', -2.4, 2.3, -D / 2 + 0.17, 0.8, 1.0, 1, 0xff8aa0); Lg('plane', 2.4, 2.3, -D / 2 + 0.17, 0.8, 1.0, 1, 0xffd23a);
+    } else if (kind === 'hall') {
+      // a long council table, banners of the town and a map on the wall
+      B('box', 0, 0.78, 0.8, 3.2, 0.1, 1.1, 0x5a3a22); for (const s of [-1, 1]) B('box', s * 1.4, 0.38, 0.8, 0.12, 0.76, 0.9, 0x4e3624); ob(0, 0.8, 50);
+      for (const s of [-1, 1]) B('box', s * (W / 2 - 1.2), 2.0, -D / 2 + 0.2, 0.9, 2.0, 0.04, 0x2a4a9a);
+      B('box', 0, 2.1, -D / 2 + 0.18, 2.2, 1.3, 0.04, 0xd8c89a); B('box', -0.4, 2.2, -D / 2 + 0.2, 0.6, 0.5, 0.02, 0x6aa84a); B('box', 0.5, 1.9, -D / 2 + 0.2, 0.5, 0.4, 0.02, 0x3c7ea0);
+    } else if (kind === 'post') {
+      // parcels stacked high and a wall of pigeonholes
+      for (let k = 0; k < 6; k++) B('box', -W / 2 + 1.0 + (k % 3) * 0.6, 0.3 + Math.floor(k / 3) * 0.55, D / 2 - 1.2, 0.5, 0.5, 0.5, [0x9a7a4a, 0xb8946a, 0x8a6a44][k % 3]); ob(-W / 2 + 1.6, D / 2 - 1.2, 34);
+      for (let k = 0; k < 4; k++) for (let q = 0; q < 6; q++) B('box', W / 2 - 0.25, 1.0 + k * 0.4, -1.0 + q * 0.4, 0.2, 0.34, 0.34, (k + q) % 3 ? 0x6b4a2c : 0xe8dcc8);
+      B('box', W / 2 - 1.6, 0.55, D / 2 - 1.2, 0.6, 1.1, 0.5, 0xc0392b);
+    } else if (kind === 'kitchen') {
+      B('box', -W / 2 + 1.0, 0.7, -D / 2 + 1.0, 1.6, 1.4, 1.3, 0x8a6a4a); B('dome', -W / 2 + 1.0, 1.4, -D / 2 + 1.0, 1.4, 0.8, 1.1, 0xb8946a); Lg('plane', -W / 2 + 1.0, 0.7, -D / 2 + 1.66, 0.6, 0.4, 1, 0xff8a2a); ob(-W / 2 + 1.0, -D / 2 + 1.0, 36);
+      for (let k = 0; k < 5; k++) B('cyl', -0.8 + k * 0.4, 1.12, -D / 2 + 0.35, 0.3, 0.12, 0.3, 0xd9b36a);
+    } else if (kind === 'inn') {
+      for (let k = 0; k < 3; k++) { B('box', -W / 2 + 0.9, 1.2 + k * 0.7, -D / 2 + 0.3, 1.2, 0.08, 0.4, 0x5a3f28); for (let q = 0; q < 4; q++) B('cyl', -W / 2 + 0.5 + q * 0.27, 1.36 + k * 0.7, -D / 2 + 0.3, 0.14, 0.24, 0.14, [0x8a3b2e, 0x3a6a3a, 0xd9ab3a][q % 3]); }
+    }
+    if (A.p.length) { const m = cbMesh(A, CL.walkMat || (CL.walkMat = new T.MeshToonMaterial({ vertexColors: true, gradientMap: TOON_GRAD })), true); scene.add(m); }
+    if (L.p.length) { const lm = new T.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, emissive: 0xffc86a, emissiveIntensity: 0.5, flatShading: true }); scene.add(cbMesh(L, lm, false)); }
+  }
+})();
+// ----- the night market: lantern stalls in every city's square from dusk to dawn -----
+const NM_KINDS = [
+  { id: 'food', name: 'Lantern cook', icon: '🍢', col: 0xe8603a, blurb: 'Hot food straight off the grill, cheaper than any inn.', pool: ['stew', 'pie', 'bread', 'trout', 'salmon', 'tuna', 'meat', 'spiced_kebab', 'hot_mead', 'cinder_stew', 'swordfish', 'coconut'], k: 0.6, n: 5 },
+  { id: 'herb', name: 'Night herbalist', icon: '🌿', col: 0x6ad87a, blurb: 'Potions brewed by moonlight, and herbs that only open after dark.', pool: ['hp_potion', 'mana_potion', 'big_potion', 'elixir_swift', 'elixir_iron', 'elixir_might', 'sunpetal', 'mireroot', 'frostbloom', 'emberthorn', 'witch_brew', 'tide_tonic'], k: 0.7, n: 3 },
+  { id: 'curio', name: 'Curio dealer', icon: '🔮', col: 0x9b5cff, blurb: 'Odd things from odd places. Don’t ask where.', pool: ['enh_stone', 'mystery_sack', 'sapphire', 'ruby', 'emerald', 'topaz', 'amethyst', 'pearl', 'magma_core', 'gold_ore'], k: 0.85, n: 1 },
+  { id: 'trader', name: 'Travelling trader', icon: '🐪', col: 0xd9ab3a, blurb: 'Goods carried in from the other cities of the realm.', pool: null, k: 0.9, n: 2 },
+];
+const NM_GOODS = { varrow: ['iron_bar', 'bread', 'cheese', 'wool'], highcairn: ['frost_pelt', 'pine_logs', 'hot_mead', 'frostbloom'], mirewatch: ['mireroot', 'bog_slime', 'eel', 'lurker_moss'], sunspire: ['spiced_kebab', 'gold_ore', 'emberthorn', 'scorpion_chitin'], cinderhold: ['obsidian_shard', 'ember_hide', 'magma_core', 'fire_ward'], coralport: ['pearl', 'coral_shard', 'sea_silk', 'coconut'] };
+const nmNight = () => Math.floor((now + 100) / DAY_LEN);
+const nmOpen = () => CL.forceNight || dayLight < 0.42;
+function nmOffers(city, kind) {
+  let seed = nmNight() * 977 + city.length * 31 + kind.id.length * 7; for (const ch of city + kind.id) seed = (seed * 33 + ch.charCodeAt(0)) | 0;
+  const r = rng(seed), pool = (kind.pool || Object.keys(NM_GOODS).filter(c => c !== city).flatMap(c => NM_GOODS[c])).filter(id => ITEMS[id] && valueOf(id) > 0), out = [];
+  while (out.length < 4 && pool.length) out.push(pool.splice(Math.floor(r() * pool.length), 1)[0]);
+  return out;
+}
+const nmPrice = (id, kind) => Math.max(CU, Math.round(priceBuy(id) * kind.k));
+function nmState() { P.nm = P.nm || { night: -1, bought: {} }; if (P.nm.night !== nmNight()) { P.nm.night = nmNight(); P.nm.bought = {}; } return P.nm; }
+function nmBuild(plan) {
+  if (plan.nm) return plan.nm;
+  const w = WAYS.find(q => q.id === plan.id); plan.nm = { stalls: [], grp: null }; if (!w) return plan.nm;
+  const r = rng(i32(w.x) + 5), taken = [];
+  const bad = (x, y) => houseNear(x, y).some(h => x > h.x - 60 && x < h.x + h.w + 60 && y > h.y - 60 && y < h.y + h.h + 60) || blocks.some(b => x > b.x - 50 && x < b.x + b.w + 50 && y > b.y - 50 && y < b.y + b.h + 50)
+    || obst.some(o => Math.hypot(o.x - x, o.y - y) < (o.r || 10) + 55) || [].concat(DOORS, VILLAGERS, BANKS, stations, BOARDS, WAYS, taken).some(o => o && Math.hypot(o.x - x, o.y - y) < 120) || (plan.z && tileAt(plan.z, x, y) !== KT.floor);
+  for (const kind of NM_KINDS) {
+    let spot = null; for (let t = 0; t < 120 && !spot; t++) { const a = r() * 6.28, d = 170 + r() * 260, x = w.x + Math.cos(a) * d, y = w.y + Math.sin(a) * d; if (!bad(x, y)) spot = { x, y, f: Math.atan2(w.y - y, w.x - x) }; }
+    if (!spot) continue; taken.push(spot);
+    plan.nm.stalls.push(Object.assign(spot, { kind }));
+  }
+  const A = cbAcc(), L = cbAcc(), grp = new T.Group();
+  for (const s of plan.nm.stalls) {
+    const F = { ox: s.x * S, oz: s.y * S, rot: Math.PI / 2 - s.f };   // the counter faces the square
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) cbPut(A, CBT.box, F, sx * 0.95, 1.15, sz * 0.7, 0.1, 2.3, 0.1, 0x5a3f28);
+    cbPut(A, CBT.box, F, 0, 0.45, 0.45, 2.1, 0.9, 0.5, 0x6b4a2c); cbPut(A, CBT.slopes, F, 0, 2.3, 0, 2.5, 0.6, 1.9, s.kind.col);
+    for (let k = 0; k < 5; k++) cbPut(A, CBT.box, F, -0.8 + k * 0.4, 0.98, 0.45, 0.22, 0.16, 0.22, [0xd9442a, 0xe8c34a, 0x6aa84f, 0x9b5cff, 0xefe6d2][(k + s.kind.id.length) % 5]);
+    for (const sx of [-1, 1]) cbPut(L, CBT.box, F, sx * 1.05, 2.05, 0.75, 0.22, 0.28, 0.22, 0xffb347);
+    const m = cbWalkerModel(r, plan.style); m.g.position.set(s.x * S - Math.cos(s.f) * 0.75, 0, s.y * S - Math.sin(s.f) * 0.75); m.g.rotation.y = heading(s.f); grp.add(m.g);
+    s.vx = s.x - Math.cos(s.f) * 30; s.vy = s.y - Math.sin(s.f) * 30; s.cx = s.x + Math.cos(s.f) * 40; s.cy = s.y + Math.sin(s.f) * 40;
+    s.o = { x: s.x, y: s.y, r: 0, kind: 'nmstall' }; obst.push(s.o);
+  }
+  // strings of lanterns between the stalls
+  const ss = plan.nm.stalls;
+  for (let i = 0; i + 1 < ss.length; i++) { const a = ss[i], b = ss[i + 1], n = Math.max(2, Math.floor(Math.hypot(b.x - a.x, b.y - a.y) / 40)); for (let k = 1; k < n; k++) { const t = k / n, x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t, sag = Math.sin(t * Math.PI) * 0.6; cbPut(L, CBT.box, { ox: x * S, oz: y * S, rot: 0 }, 0, 2.9 - sag, 0, 0.16, 0.2, 0.16, [0xffb347, 0xff6a5a, 0x7fd4ff, 0x9aff7a][k % 4]); } }
+  grp.add(cbMesh(A, CL.walkMat || (CL.walkMat = new T.MeshToonMaterial({ vertexColors: true, gradientMap: TOON_GRAD })), true));
+  const lm = new T.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, emissive: 0xffb347, emissiveIntensity: 0.9, flatShading: true }); grp.add(cbMesh(L, lm, false));
+  grp.visible = false; scene.add(grp); plan.nm.grp = grp;
+  return plan.nm;
+}
+function nmTick() {
+  const plan = CL.cur, open = !!plan && nmOpen();
+  for (const id in CITYPLANS) { const nm = CITYPLANS[id].nm; if (nm && nm.grp) nm.grp.visible = open && CITYPLANS[id] === plan; }
+  if (!plan) return;
+  const nm = nmBuild(plan);
+  for (const s of nm.stalls) s.o.r = open ? 34 : 0;
+  if (open && CL.nmShown !== plan.id + nmNight()) { CL.nmShown = plan.id + nmNight(); if (nm.stalls.length) showBanner('Night market', 'Lantern stalls are open in the square until dawn'); }
+}
+function nmCard(s) { CL.nmSel = s; const el = xCard(); el.hidden = false; xMode = 'nm'; renderNM(); }
+function renderNM() {
+  const el = $('xCard'); if (!el || el.hidden || xMode !== 'nm' || !CL.nmSel || !CL.cur) return;
+  const s = CL.nmSel, K = s.kind, city = CL.cur.id, St = nmState();
+  let x = `<div class="ichead"><span class="icic" style="border-color:#${K.col.toString(16).padStart(6, '0')};font-size:28px;display:flex;align-items:center;justify-content:center">${K.icon}</span><div><b>${K.name}</b><div class="hint">Night market · ${esc(FAC[city] ? FAC[city].name : city)}</div></div></div><p class="hint">${K.blurb} New goods every night.</p>`;
+  x += nmOffers(city, K).map(id => { const key = K.id + ':' + id, left = K.n - (St.bought[key] || 0), pr = nmPrice(id, K); return row(icon(id), nameHtml(id), `${moneyText(pr)} · ${left > 0 ? `${left} left tonight` : 'sold out for you tonight'}`, fbtn('Buy', `data-nm="${id}"`, left > 0 && P.money >= pr, 'go')); }).join('');
+  $('xBody').innerHTML = x;
+}
+function nmBuy(id) {
+  const s = CL.nmSel, plan = CL.cur; if (!s || !plan || !nmOpen() || Date.now() - (CL.actT || 0) < 300) return; CL.actT = Date.now();
+  const K = s.kind; if (!nmOffers(plan.id, K).includes(id)) return;
+  const St = nmState(), key = K.id + ':' + id, pr = nmPrice(id, K);
+  if ((St.bought[key] || 0) >= K.n || P.money < pr) return;
+  if (!bagFits([id])) { say('Your bag is full.', 'warn'); return; }
+  P.money -= pr; addItem(id); noteBought(id); St.bought[key] = (St.bought[key] || 0) + 1; Sound.play('coin'); save(); renderNM();
+}
+function nmConsider(consider) {
+  const plan = CL.cur; if (!plan || !plan.nm || !nmOpen()) return;
+  for (const s of plan.nm.stalls) consider('nmstall', s, s.cx, s.cy, 70);
+}
+
 if (P.home) farmTick();   // after everything the farm needs is declared (a growing crop used to crash the reload)
-window.__dbg = { cbBuild, cbAcc, cbWalkerModel, CL, CITYPLANS, CB_USES, cbOpen, renderCB, cbAction, cbNeeds, cbHelp, cbEnsure, cityTick, camOccl, cbConsider, cbCityOf, nbState, blessFx, cbLabel, houseNear, cbHeight, CH_Z, CO_Z, get xMode() { return xMode; }, MQ, MQ_Z, MK_TRADES, MK_CITIES, tradeOf, ahAllowed, mkFloor, mkCeil, mkRent, mqEnter, mqLeave, mqStalls, mqSections, openStall, openHallBoard, renderMQ, mqAction, mkSimMine, openWarden, useReins, inArcade, SPELL_FX, SP_THEME, spellShow, fxIceSpikes, fxRain, fxBeam, fxBolt, heroVoice, musicTick, Sound, profHas, isArtisan, peaceOn, peacefulFor, AROAD, aroad, aroadEvent, aroadCheck, aroadTracker, renderProf, openProf, PROFS, profState, mLv, addMastery, set crPath(v) { crPath = v; }, set crProfs(v) { crProfs = v; }, get crTab() { return crTab; }, renderTracker, updateTutorial, FESTS, festNow, festState, festEvent, festClaim, festBuy, festAct, festEid, openFest, festDecor, get FDECOR() { return FDECOR; }, ramadanNow, PSTAT, TAMERS, pbStart, pbStartTamer, pbMove, pbSwap, pbForfeit, get PB() { return PB; }, petUnit, typeK, pbTeamMine, petBattleHtml, buildPet, FACTIONS, FAC, repOf, repRankOf, repDiscount, repGain, repOnKill, factionAt, writTake, writClaim, repBuy, renderRepBox, repHtml, set curBoard(v) { curBoard = v; }, shopFac, priceBuy, ordersHtml, coAction, loadOrders, get CO() { return CO; }, get COMINE() { return COMINE; }, ALL_RECIPES, recipeOf, RAID, R_Z, RC, KF, inRaid, raidEnter, raidLeave, raidThink, raidBossDown, raidLooted, get RAIDM() { return RAIDM; }, ARENA2, instOf, arenaState, arenaStart, arenaEnd, arenaSave, arenaFoes, arenaResult, arenaBest, seasonKey, get AR() { return AR; }, ratedDuelEnd, gladiatorProfile, dfLaunch, ACH, dfNoteHit, dfFlush, dfOnKill, dfTick, G, get DF() { return DF; }, set DF(v) { DF = v; }, GH_Z, GH_PTS, inGuildHall, roomKey, guildLv, guildLvOf, guildFx, guildXpK, createGuild, joinGuild, leaveGuild, guildSub, guildFlush, gxpAdd, guildHtml, guildClick, loadGuildMembers, guildMemberAct, bankMoveG, ghEnter, ghLeave, ghBuild, finderHtml, finderClick, dfQueue, dfCancel, dfGoNow, dfStart, dfEnd, dfOnGo, dfRemote, dfPickGroup, dfTakenK, roleFx, dfHealPulse, openFinder, openGuildPanel, lootAdd, lootMailTake, lootMailTakeAll, lootMailPrune, lootMailTick, LOOT_TTL, NET, AV, makeAvatar, avatarSet, dropAvatar, onPeers, onSocial, onChat, myPresence, openPlayerMenu, renderNetCard, get ncMode() { return ncMode; }, set ncMode(v) { ncMode = v; }, openTrade, get TRADE() { return TRADE; }, tradeSetOffer, tradeAccept, tradeCheck, closeTrade, get DUEL() { return DUEL; }, startDuel, startGhostDuel, endDuel, duelHit, duelSave, joinGroup, leaveGroup, groupXpK, chatLine, openChat, sendMail, takeMail, get MAILBOX() { return MAILBOX; }, myProfile, profilePush, loadShadows, placeShadows, visitHome, endVisit, renderSocialPanel, playerMarketHtml, marketAction, loadMarket, netInit, followDir, rebuildLook, KQ_Z, KQC, kqWindow, kqNext, kqStart, kqEnd, kqTick, get KQ() { return KQ; }, kqHtml, CARD_SETS, CARD_OF, cardFx, addCard, cardsHtml, cardBonus, GEM_FX, SOCKETS, socketGem, unsocketGem, gemFx, socketsHtml, saveOutfit, wearOutfit, outfitsHtml, openItemCard, closeItemCard, renderItemCard, get icId() { return icId; }, doEnhance, set icCharm(v) { icCharm = v; }, startInspect, endInspect, get inspOpen() { return inspOpen; }, statsHtml, spendStat, autoStats, resetStats, statFx, statFree, statEarned, statPts, ensureItem, enhOf, itemLevel, qualityOf, QUALITY, licTier, licBonus, LIC_TIERS, bestiaryHtml, titleText, equipGear, unequipGear, recalcStats, damage, noteBought, boughtOf, ownOf, spendOwn, get gfxLost() { return gfxLost; }, set gfxLost(v) { gfxLost = v; }, FPSW, fpsWatch, WEAK_DEVICE, fogK, get fogFar0() { return fogFar0; }, OUTLINE, SK_OUTLINE, MOBS, giveGift, FRIENDS, FRIEND_NAMES, frState, heartsOf, friendCount, addFriendPts, friendTalk, openFriend, renderFriend, get friendSel() { return friendSel; }, setJTab, renderSocial, sendLetter, dayBonus, dayXpMult, COMFORTS, comfortPts, buildComfort, HOMEPETS, petHomeAnimal, sleepCd, restCap, COMF_MAX, RECIPES, SHOPS, valueOf, priceSell, priceSellAny, shopSold, stallPrice, sellK, priceBuy, get shopId() { return shopId; }, set shopId(v) { shopId = v; }, LOOK_PRICE, get renderer() { return renderer; }, scene, camera, CLASSES, CLASS_SPELLS, EVO_SPELLS, STYLE, openCreator, closeCreator, crDone, crCancel, crCost, applyLook, randomLook, cleanName, get crLook() { return crLook; }, set crLook(v) { crLook = v; }, get crOpen() { return crOpen; }, get hero() { return hero; }, crPreview, renderCreator, LOOK_OPTS, LOOK_DEF, CR_PRESETS, plateName,  dlState, dlRefresh, dailyEvent, openDaily, renderDaily, updateDailyChip, SET, applySettings, renderSettings, petLv, mountLv, petGain, petTreat, petFetch, petK, get petObj() { return petObj; }, spawnPet, mountUp, JWL, NPC, RIFT, interact, questEvent, storyTick, questTargets, openJournal, renderJournal, CHAPTERS, QUESTS, questNpcName, lootChest, zoneWalk, DUNGEONS, enterDungeon, leaveDungeon, dungeonAt, resetDungeonZ, dungeonTick, dState, DROOM, get chest() { return chest; }, ahListings, ahTick, mkt, mktPrice, ahHot, npcBid, curBid, openAH, renderAH, ahState, get ahPanel() { return ahPanel; }, newOrder, deliverOrder, ordersTick, repRank, OTIERS, ITEMS, PROFS, profState, mLv, perk, profSpec, addMastery, genOrders, openProf, renderProf, M_AT, masteryOk, stallTick, get profPanel() { return profPanel; }, HOME_Z, HPLOTS, HOME, CROPS, ANIMALS, DISHES, FARM_ST, QUAL, openFarm, renderFarm, farmTick, travelHome, HV, startMeal, mealFx, craftOut, rollQuality, refreshPlot, get farmCtx() { return farmCtx; }, get farmPanel() { return farmPanel; }, get now() { return now; }, BOOK, TRIALS, killXpMult, gainClassXp, gainXp, equipSpell, spellPool, spellbookHtml, get bookSel() { return bookSel; }, set bookSel(v) { bookSel = v; }, buildSpells, mapWhere, renderWorld, renderHere, get mapTab() { return mapTab; }, set mapTab(v) { mapTab = v; }, addRested, restCap, nextTrial, trialLocked, blocks, SPAWN, NPC, WK, get WW() { return WW; }, get WH() { return WH; }, get SEA_Y() { return SEA_Y; }, save, load, HC_Z, MW_Z, SS_Z, TUTZ, TUT, TUT_STEPS, tutS, finishTutorial, ALLZ, TOWNZ, RARES, WORLD_BOSS, RIFT, rareWin, bossWin, updateEvents, evTick, renderEvents, quickPotion, uiScale, get UIK() { return UIK; }, grantLoot, MOUNTS, LEGENDS, get eventsPanel() { return $('eventsPanel'); }, teleport, ZROADS, killMob, boss2Think, updateVents: typeof updateVents === "function" ? updateVents : null, openShop, EMBER, TIDE, ZONES, zoneAt, tileAt, zoneWalk, KT, CINDER, CORAL, VENTS, ZBRIDGES, ASHCONN, TIDE_DOCK, E_THRONE, T_ARENA, sail, lootChest, get chestObj() { return chest; }, regionAt, connAt, respawnPoint, SIGNS, CONNS, passCheck, BORDERS_V, GATES, CITY, CORE, useGate, BANKS, bankMove, get bankPanel() { return bankPanel; }, allies, spawnAllies, mountUp, dismount, sail, ISLE, LAIR, HERBS, BOARDS, renderBounties, fillBounties, ACH, get bountyPanel() { return bountyPanel; }, openCraft, coinParts, moneyText, addMoney, enterShop, exitShop, buy, sell, openShop, ROOMS, DOORS, WAYS, TREASURES, openTreasure, drink, openSack, renderMap, get curRoom() { return curRoom; }, spawnPet, VILLAGERS, talkTo, interactTarget, SHOPS, PETS, openPanel, get mapPanel() { return mapPanel; }, get wayPanel() { return wayPanel; }, REGIONS, TOWNS, fishSpots, rocks, trees, obst, houses, pushOut, evolve, renderClass, CLASS_DROPS, spawnChest, hurtPlayer, classLv, talentTiers, get spells() { return SPELLS; }, get chest() { return chest; }, PATHS, CL_AT, renderGear, questEvent, openQuest, questButton, setClass, P, mobs, PORTALS, travel, interact, castSpell, SPELLS, dodge, equipGear, unequipGear, lootChest, afterGear, openCraft, stations, RECIPES, killMob, telegraph };
+window.__dbg = { cbEnter, cbExit, cbDoor, cbRentCard, cbRentAct, cbHomeRespawn, nmOffers, nmBuy, nmCard, nmBuild, nmTick, nmState, get curRoom2() { return curRoom; }, respawnPoint, cbBuild, cbAcc, cbWalkerModel, CL, CITYPLANS, CB_USES, cbOpen, renderCB, cbAction, cbNeeds, cbHelp, cbEnsure, cityTick, camOccl, cbConsider, cbCityOf, nbState, blessFx, cbLabel, houseNear, cbHeight, CH_Z, CO_Z, get xMode() { return xMode; }, MQ, MQ_Z, MK_TRADES, MK_CITIES, tradeOf, ahAllowed, mkFloor, mkCeil, mkRent, mqEnter, mqLeave, mqStalls, mqSections, openStall, openHallBoard, renderMQ, mqAction, mkSimMine, openWarden, useReins, inArcade, SPELL_FX, SP_THEME, spellShow, fxIceSpikes, fxRain, fxBeam, fxBolt, heroVoice, musicTick, Sound, profHas, isArtisan, peaceOn, peacefulFor, AROAD, aroad, aroadEvent, aroadCheck, aroadTracker, renderProf, openProf, PROFS, profState, mLv, addMastery, set crPath(v) { crPath = v; }, set crProfs(v) { crProfs = v; }, get crTab() { return crTab; }, renderTracker, updateTutorial, FESTS, festNow, festState, festEvent, festClaim, festBuy, festAct, festEid, openFest, festDecor, get FDECOR() { return FDECOR; }, ramadanNow, PSTAT, TAMERS, pbStart, pbStartTamer, pbMove, pbSwap, pbForfeit, get PB() { return PB; }, petUnit, typeK, pbTeamMine, petBattleHtml, buildPet, FACTIONS, FAC, repOf, repRankOf, repDiscount, repGain, repOnKill, factionAt, writTake, writClaim, repBuy, renderRepBox, repHtml, set curBoard(v) { curBoard = v; }, shopFac, priceBuy, ordersHtml, coAction, loadOrders, get CO() { return CO; }, get COMINE() { return COMINE; }, ALL_RECIPES, recipeOf, RAID, R_Z, RC, KF, inRaid, raidEnter, raidLeave, raidThink, raidBossDown, raidLooted, get RAIDM() { return RAIDM; }, ARENA2, instOf, arenaState, arenaStart, arenaEnd, arenaSave, arenaFoes, arenaResult, arenaBest, seasonKey, get AR() { return AR; }, ratedDuelEnd, gladiatorProfile, dfLaunch, ACH, dfNoteHit, dfFlush, dfOnKill, dfTick, G, get DF() { return DF; }, set DF(v) { DF = v; }, GH_Z, GH_PTS, inGuildHall, roomKey, guildLv, guildLvOf, guildFx, guildXpK, createGuild, joinGuild, leaveGuild, guildSub, guildFlush, gxpAdd, guildHtml, guildClick, loadGuildMembers, guildMemberAct, bankMoveG, ghEnter, ghLeave, ghBuild, finderHtml, finderClick, dfQueue, dfCancel, dfGoNow, dfStart, dfEnd, dfOnGo, dfRemote, dfPickGroup, dfTakenK, roleFx, dfHealPulse, openFinder, openGuildPanel, lootAdd, lootMailTake, lootMailTakeAll, lootMailPrune, lootMailTick, LOOT_TTL, NET, AV, makeAvatar, avatarSet, dropAvatar, onPeers, onSocial, onChat, myPresence, openPlayerMenu, renderNetCard, get ncMode() { return ncMode; }, set ncMode(v) { ncMode = v; }, openTrade, get TRADE() { return TRADE; }, tradeSetOffer, tradeAccept, tradeCheck, closeTrade, get DUEL() { return DUEL; }, startDuel, startGhostDuel, endDuel, duelHit, duelSave, joinGroup, leaveGroup, groupXpK, chatLine, openChat, sendMail, takeMail, get MAILBOX() { return MAILBOX; }, myProfile, profilePush, loadShadows, placeShadows, visitHome, endVisit, renderSocialPanel, playerMarketHtml, marketAction, loadMarket, netInit, followDir, rebuildLook, KQ_Z, KQC, kqWindow, kqNext, kqStart, kqEnd, kqTick, get KQ() { return KQ; }, kqHtml, CARD_SETS, CARD_OF, cardFx, addCard, cardsHtml, cardBonus, GEM_FX, SOCKETS, socketGem, unsocketGem, gemFx, socketsHtml, saveOutfit, wearOutfit, outfitsHtml, openItemCard, closeItemCard, renderItemCard, get icId() { return icId; }, doEnhance, set icCharm(v) { icCharm = v; }, startInspect, endInspect, get inspOpen() { return inspOpen; }, statsHtml, spendStat, autoStats, resetStats, statFx, statFree, statEarned, statPts, ensureItem, enhOf, itemLevel, qualityOf, QUALITY, licTier, licBonus, LIC_TIERS, bestiaryHtml, titleText, equipGear, unequipGear, recalcStats, damage, noteBought, boughtOf, ownOf, spendOwn, get gfxLost() { return gfxLost; }, set gfxLost(v) { gfxLost = v; }, FPSW, fpsWatch, WEAK_DEVICE, fogK, get fogFar0() { return fogFar0; }, OUTLINE, SK_OUTLINE, MOBS, giveGift, FRIENDS, FRIEND_NAMES, frState, heartsOf, friendCount, addFriendPts, friendTalk, openFriend, renderFriend, get friendSel() { return friendSel; }, setJTab, renderSocial, sendLetter, dayBonus, dayXpMult, COMFORTS, comfortPts, buildComfort, HOMEPETS, petHomeAnimal, sleepCd, restCap, COMF_MAX, RECIPES, SHOPS, valueOf, priceSell, priceSellAny, shopSold, stallPrice, sellK, priceBuy, get shopId() { return shopId; }, set shopId(v) { shopId = v; }, LOOK_PRICE, get renderer() { return renderer; }, scene, camera, CLASSES, CLASS_SPELLS, EVO_SPELLS, STYLE, openCreator, closeCreator, crDone, crCancel, crCost, applyLook, randomLook, cleanName, get crLook() { return crLook; }, set crLook(v) { crLook = v; }, get crOpen() { return crOpen; }, get hero() { return hero; }, crPreview, renderCreator, LOOK_OPTS, LOOK_DEF, CR_PRESETS, plateName,  dlState, dlRefresh, dailyEvent, openDaily, renderDaily, updateDailyChip, SET, applySettings, renderSettings, petLv, mountLv, petGain, petTreat, petFetch, petK, get petObj() { return petObj; }, spawnPet, mountUp, JWL, NPC, RIFT, interact, questEvent, storyTick, questTargets, openJournal, renderJournal, CHAPTERS, QUESTS, questNpcName, lootChest, zoneWalk, DUNGEONS, enterDungeon, leaveDungeon, dungeonAt, resetDungeonZ, dungeonTick, dState, DROOM, get chest() { return chest; }, ahListings, ahTick, mkt, mktPrice, ahHot, npcBid, curBid, openAH, renderAH, ahState, get ahPanel() { return ahPanel; }, newOrder, deliverOrder, ordersTick, repRank, OTIERS, ITEMS, PROFS, profState, mLv, perk, profSpec, addMastery, genOrders, openProf, renderProf, M_AT, masteryOk, stallTick, get profPanel() { return profPanel; }, HOME_Z, HPLOTS, HOME, CROPS, ANIMALS, DISHES, FARM_ST, QUAL, openFarm, renderFarm, farmTick, travelHome, HV, startMeal, mealFx, craftOut, rollQuality, refreshPlot, get farmCtx() { return farmCtx; }, get farmPanel() { return farmPanel; }, get now() { return now; }, BOOK, TRIALS, killXpMult, gainClassXp, gainXp, equipSpell, spellPool, spellbookHtml, get bookSel() { return bookSel; }, set bookSel(v) { bookSel = v; }, buildSpells, mapWhere, renderWorld, renderHere, get mapTab() { return mapTab; }, set mapTab(v) { mapTab = v; }, addRested, restCap, nextTrial, trialLocked, blocks, SPAWN, NPC, WK, get WW() { return WW; }, get WH() { return WH; }, get SEA_Y() { return SEA_Y; }, save, load, HC_Z, MW_Z, SS_Z, TUTZ, TUT, TUT_STEPS, tutS, finishTutorial, ALLZ, TOWNZ, RARES, WORLD_BOSS, RIFT, rareWin, bossWin, updateEvents, evTick, renderEvents, quickPotion, uiScale, get UIK() { return UIK; }, grantLoot, MOUNTS, LEGENDS, get eventsPanel() { return $('eventsPanel'); }, teleport, ZROADS, killMob, boss2Think, updateVents: typeof updateVents === "function" ? updateVents : null, openShop, EMBER, TIDE, ZONES, zoneAt, tileAt, zoneWalk, KT, CINDER, CORAL, VENTS, ZBRIDGES, ASHCONN, TIDE_DOCK, E_THRONE, T_ARENA, sail, lootChest, get chestObj() { return chest; }, regionAt, connAt, respawnPoint, SIGNS, CONNS, passCheck, BORDERS_V, GATES, CITY, CORE, useGate, BANKS, bankMove, get bankPanel() { return bankPanel; }, allies, spawnAllies, mountUp, dismount, sail, ISLE, LAIR, HERBS, BOARDS, renderBounties, fillBounties, ACH, get bountyPanel() { return bountyPanel; }, openCraft, coinParts, moneyText, addMoney, enterShop, exitShop, buy, sell, openShop, ROOMS, DOORS, WAYS, TREASURES, openTreasure, drink, openSack, renderMap, get curRoom() { return curRoom; }, spawnPet, VILLAGERS, talkTo, interactTarget, SHOPS, PETS, openPanel, get mapPanel() { return mapPanel; }, get wayPanel() { return wayPanel; }, REGIONS, TOWNS, fishSpots, rocks, trees, obst, houses, pushOut, evolve, renderClass, CLASS_DROPS, spawnChest, hurtPlayer, classLv, talentTiers, get spells() { return SPELLS; }, get chest() { return chest; }, PATHS, CL_AT, renderGear, questEvent, openQuest, questButton, setClass, P, mobs, PORTALS, travel, interact, castSpell, SPELLS, dodge, equipGear, unequipGear, lootChest, afterGear, openCraft, stations, RECIPES, killMob, telegraph };
 } // boot
 })();
 </script>

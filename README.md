@@ -8,7 +8,7 @@ A mobile-first 3D fantasy MMORPG that runs in any web browser, phones included. 
 
 - **Two ways to play.** Adventurers fight, clear dungeons and raids, and follow a 75-quest story. Artisans craft, gather, farm and trade. They level up through their professions, and monsters leave them alone unless they strike first. Anyone can practise any number of professions.
 - **Six classes** (Warrior, Mage, Priest, Rogue, Ranger, Druid), each with evolution paths. All 66 spells have their own effects and sounds.
-- **Real cities.** Seven cities, each a walled map of its own with a street grid lined with two- and three-storey buildings you can use: homes where neighbours ask for help each day, a temple, a town hall, a post office, and workshops for smithing, tailoring, cooking and brewing. Townsfolk walk the streets and lamps light up at night.
+- **Real cities.** Seven cities, each a walled map of its own with a street grid lined with two- and three-storey buildings you can use: homes where neighbours ask for help each day, a temple, a town hall, a post office, and workshops for smithing, tailoring, cooking and brewing. Every door opens onto a room inside. Two houses in each city can be rented by the week (a bed, your bank chest, and you wake there after a fall). After dark, a lantern-lit night market opens in each city's square. Townsfolk walk the streets and lamps light up at night.
 - **A living world.** Seven cities, open regions, five dungeons, the Ember Throne raid, world bosses, weekday festivals, and seasonal festivals (Harvest Fair, Lantern Nights for Ramadan with Eid gifts, Winter Feast).
 - **Economy.**
   - The Merchants' Quarter: player stalls, with a hall per trade in every city, price floors and ceilings, and townsfolk shoppers.
