@@ -4,7 +4,30 @@ sys.path.insert(0, '/tmp/kit')
 from beast import Beast, lin, normals
 SRC = '/mnt/user-data/uploads/AshenHollow/Assets/AshenHollow/Resources/AH/Models/Web/mDiablous.glb'
 OUT = sys.argv[1] if len(sys.argv) > 1 else '/tmp/imp/mImp.glb'
-b = Beast(SRC); g = b.g; j = g.j
+from gl import GLB
+KL, KA, KW = 0.62, 0.85, 0.6
+def rig(src, dst):
+    gg = GLB(src); jj = gg.j; gg.dedupe_anims()
+    k = {}
+    for s_ in ('l', 'r'):
+        k['shin_' + s_] = KL; k['foot_' + s_] = KL; k['lower_arm_' + s_] = KA; k['palm_' + s_] = KA; k['wing_inner_' + s_] = KW; k['wing_outer_' + s_] = KW
+    idx = {i: k[n['name']] for i, n in enumerate(jj['nodes']) if n.get('name') in k}
+    for i, f in idx.items():
+        if 'translation' in jj['nodes'][i]: jj['nodes'][i]['translation'] = [x * f for x in jj['nodes'][i]['translation']]
+    done = set()
+    for a in jj.get('animations', []):
+        for c in a['channels']:
+            if c['target']['path'] == 'translation' and c['target']['node'] in idx:
+                o = a['samplers'][c['sampler']]['output']
+                if o in done: continue
+                done.add(o); gg.setacc(o, (gg.acc(o) * idx[c['target']['node']]).astype(np.float32))
+    W, _ = gg.world(); sk = jj['skins'][0]
+    IBM = gg.acc(sk['inverseBindMatrices']).reshape(-1, 4, 4).transpose(0, 2, 1)
+    Bm = W[sk['joints'][0]] @ IBM[0]
+    NI = np.stack([np.linalg.inv(W[ji]) @ Bm for ji in sk['joints']]).transpose(0, 2, 1).reshape(-1, 16).astype(np.float32)
+    ia = sk['inverseBindMatrices']; gg.setacc(ia, NI); gg.save(dst)
+RIG = '/tmp/imp/rig.glb'; rig(SRC, RIG)
+b = Beast(RIG); g = b.g; j = g.j
 orig = b.prims[0]; oP = orig['P']; oI = g.acc(orig['p']['indices']).reshape(-1, 3).astype(int); oJ = orig['J']; oW = orig['W']
 JI = {n: k for k, n in enumerate(b.jn)}
 J = {k: np.array(v) for k, v in b.J.items()}
@@ -94,7 +117,8 @@ def mat(name, hexc, rough=0.75, metal=0.0, emis=None, ds=False):
     if emis is not None: m['emissiveFactor'] = lin(emis)
     if ds: m['doubleSided'] = True
     MATS.append(m); return len(MATS) - 1
-M_SKIN = mat('imp_skin', 0xb8321f, 0.62)
+M_SKIN = mat('imp_skin', 0xffffff, 0.6)
+RED = np.array(lin(0xb42e1c)); BELLY = np.array(lin(0xd98a5a)); DEEP = np.array(lin(0x3c0c08))
 M_DARK = mat('imp_dark', 0x3a0f0b, 0.7)
 M_HORN = mat('imp_horn', 0x2a1c16, 0.55)
 M_BONE = mat('imp_bone', 0xe9dcbc, 0.45)
@@ -104,12 +128,14 @@ M_LEATH = mat('imp_leather', 0x3b2a20, 0.85)
 M_GOLD = mat('imp_gold', 0xd4a640, 0.35, 0.85)
 M_MOUTH = mat('imp_mouth', 0x1c0404, 0.9)
 PARTS = []  # dict(P, F, Jk, Wk, mat, C)
-def add(V, F, w, m, shade=None, smooth=True):
+def add(V, F, w, m, shade=None, smooth=True, post=None):
     V = np.asarray(V, float); F = np.asarray(F, int).reshape(-1, 3)
     if not smooth: V = V[F.reshape(-1)]; F = np.arange(len(V)).reshape(-1, 3)
     Jk, Wk = w(V) if callable(w) else w
     if not smooth and not callable(w): pass
-    C = np.ones(len(V)) if shade is None else np.clip(shade(V), 0.05, 1.2)
+    C = np.ones(len(V)) if shade is None else np.clip(shade(V), 0.0, 1.3)
+    if C.ndim == 1: C = np.repeat(C[:, None], 3, 1) * (RED if m == M_SKIN else 1.0)
+    if post is not None: V = post(V)
     PARTS.append(dict(P=V, F=F, J=Jk, W=Wk, m=m, C=C))
 
 def loft(rings, cap0=None, cap1=None):
@@ -174,8 +200,8 @@ prof = np.array([  # y, half width, centre z, front depth, back depth
     [-1.7, 1.15, -0.10, 1.00, 1.00],
     [-1.0, 1.42, -0.05, 1.15, 1.10],
     [-0.2, 1.38, 0.05, 1.30, 1.05],
-    [0.6, 1.22, 0.18, 1.42, 0.98],
-    [1.4, 1.30, 0.22, 1.30, 1.00],
+    [0.6, 1.30, 0.25, 1.70, 0.98],
+    [1.4, 1.34, 0.25, 1.48, 1.00],
     [2.3, 1.72, 0.12, 1.22, 1.15],
     [3.1, 2.02, -0.05, 1.10, 1.20],
     [3.65, 1.65, -0.18, 0.92, 1.05],
@@ -208,7 +234,13 @@ def torso_shade(P):  # lighter belly, darker back, painted-in muscle lines
     pec = np.exp(-((y - (2.05 - 0.18 * np.abs(x))) / 0.16) ** 2) * sstep(0.15, 0.5, np.abs(x)) * sstep(1.7, 1.2, np.abs(x))
     abs_ = (np.exp(-((y - 1.25) / 0.09) ** 2) + np.exp(-((y - 0.6) / 0.09) ** 2) + np.exp(-((y - -0.05) / 0.09) ** 2)) * sstep(0.85, 0.5, np.abs(x)) * 0.7
     mid = np.exp(-(x / 0.09) ** 2) * sstep(-0.4, 0.2, y) * sstep(3.3, 2.6, y)
-    return c - 0.32 * front * np.clip(pec + abs_ + mid, 0, 1)
+    c = c - 0.32 * front * np.clip(pec + abs_ + mid, 0, 1)
+    bel = sstep(0.4, 1.0, z) * sstep(2.4, 1.4, y) * sstep(-1.4, -0.4, y) * sstep(1.2, 0.5, np.abs(x)) * 0.35
+    back = sstep(-0.2, -0.7, z) * sstep(-1.0, 0.0, y)
+    stripe = back * sstep(0.55, 0.85, np.sin(y * 4.2 + np.abs(x) * 1.6)) * sstep(0.2, 0.6, np.abs(x))
+    col = RED[None] * (1 - bel[:, None]) + BELLY[None] * bel[:, None]
+    col = col * (1 - stripe[:, None] * 0.75) + DEEP[None] * stripe[:, None] * 0.75
+    return col * c[:, None]
 add(V, F, torso_w, M_SKIN, torso_shade)
 
 # ---- head ----
@@ -297,10 +329,14 @@ for s, sx in (('l', 1), ('r', -1)):
     def armw(P, nm=nm, sx=sx):
         Jk, Wk = skin(P, nm, 0.28)
         return Jk, Wk
-    add(V, F, armw, M_SKIN, lambda P, sx=sx: 0.95 - 0.40 * sstep(4.4, 6.6, P[:, 0] * sx))
+    def armshade(P, sx=sx, la=la, pa=pa, ua=ua):
+        x = P[:, 0] * sx; top = sstep(0.0, 0.4, P[:, 1] - ua[1] + 0.1)
+        st = top * sstep(0.6, 0.9, np.sin(x * 4.5)) * sstep(1.9, 2.4, x) * sstep(la[0] * sx + 0.6, la[0] * sx, x)
+        return (0.95 - 0.5 * sstep(la[0] * sx + 0.4, pa[0] * sx, x)) * (1 - 0.55 * st)
+    add(V, F, armw, M_SKIN, armshade)
     # bracer with a gold rim
-    bp = cr([la + [sx * 0.75, 0, 0], la + [sx * 1.55, 0.1, 0.05], la + [sx * 2.15, 0.2, 0.15]], 5)
-    V, F = tube(bp, [0.55, 0.54, 0.50, 0.45, 0.42], 12, up=(0, 0, 1), squash=0.92, cap0=False, cap1=False); add(V, F, lambda P, s=s: rigid(P, 'lower_arm_' + s), M_LEATH)
+    fa = pa - la; bp = cr([la + fa * 0.30, la + fa * 0.58, la + fa * 0.84], 5)
+    V, F = tube(bp, [0.54, 0.52, 0.48, 0.44, 0.41], 12, up=(0, 0, 1), squash=0.92, cap0=False, cap1=False); add(V, F, lambda P, s=s: rigid(P, 'lower_arm_' + s), M_LEATH)
     for q, rr in ((bp[0], 0.57), (bp[-1], 0.44)):
         V, F = tube(np.array([q - (bp[1] - bp[0]) * 0.12, q + (bp[1] - bp[0]) * 0.12]), [rr, rr], 12, up=(0, 0, 1), squash=0.92); add(V, F, lambda P, s=s: rigid(P, 'lower_arm_' + s), M_GOLD)
     # elbow spike and shoulder spikes
@@ -314,10 +350,10 @@ for s, sx in (('l', 1), ('r', -1)):
         fp = cr([k0, k0 + [sx * 0.45, -0.02, dz * 0.15], k0 + [sx * 0.85, -0.18, dz * 0.2], k0 + [sx * 1.05, -0.38, dz * 0.25]], 6)
         V, F = tube(fp, [0.15, 0.15, 0.13, 0.12, 0.11, 0.10], 7, cap0=True, cap1=True); add(V, F, lambda P, s=s: rigid(P, 'fingers_' + s), M_SKIN, lambda P: np.full(len(P), 0.45))
         tip = fp[-1]; V, F = cone(tip, tip + [sx * 0.25, -0.38, 0.0], 0.09, 5, bend=[sx * 0.06, 0, 0]); add(V, F, lambda P, s=s: rigid(P, 'fingers_' + s), M_BONE)
-    th = J['thumb_' + s]
+    th = pa + [sx * 0.3, 0.0, 0.35]
     tp = cr([th - [sx * 0.15, 0, 0.1], th + [sx * 0.15, -0.08, 0.3], th + [sx * 0.35, -0.18, 0.62]], 5)
-    V, F = tube(tp, [0.16, 0.15, 0.14, 0.12, 0.11], 7); add(V, F, lambda P, s=s: rigid(P, 'thumb_' + s), M_SKIN, lambda P: np.full(len(P), 0.45))
-    V, F = cone(tp[-1], tp[-1] + [sx * 0.1, -0.3, 0.2], 0.08, 5); add(V, F, lambda P, s=s: rigid(P, 'thumb_' + s), M_BONE)
+    V, F = tube(tp, [0.16, 0.15, 0.14, 0.12, 0.11], 7); add(V, F, lambda P, s=s: rigid(P, 'palm_' + s), M_SKIN, lambda P: np.full(len(P), 0.45))
+    V, F = cone(tp[-1], tp[-1] + [sx * 0.1, -0.3, 0.2], 0.08, 5); add(V, F, lambda P, s=s: rigid(P, 'palm_' + s), M_BONE)
 
 # ---- legs ----
 for s, sx in (('l', 1), ('r', -1)):
@@ -328,7 +364,7 @@ for s, sx in (('l', 1), ('r', -1)):
     def lprof(i, a, t=t): # calf bulges at the back
         return 1 + 0.18 * max(0, -np.cos(a)) * np.exp(-((t[i] - 0.63) / 0.1) ** 2) + 0.06 * np.cos(2 * a)
     V, F = tube(path, rad, 12, up=(0, 0, 1), prof=lambda i, a: 1 + 0.16 * max(0, np.sin(a)) * np.exp(-((t[i] - 0.63) / 0.1) ** 2), cap0=False, cap1=True)
-    add(V, F, lambda P, s=s: skin(P, ['pelvis', 'thigh_' + s, 'shin_' + s, 'foot_' + s], 0.32), M_SKIN, lambda P: 0.95 - 0.45 * sstep(-6.0, -9.0, P[:, 1]))
+    add(V, F, lambda P, s=s: skin(P, ['pelvis', 'thigh_' + s, 'shin_' + s, 'foot_' + s], 0.32), M_SKIN, lambda P, sh=sh, ft=ft: (0.95 - 0.5 * sstep(sh[1], ft[1], P[:, 1])) * (1 - 0.5 * sstep(0.6, 0.9, np.sin(P[:, 1] * 4.0)) * sstep(sh[1] + 0.3, sh[1] + 0.8, P[:, 1]) * sstep(0.1, 0.5, (P[:, 0] * sx - sh[0] * sx))))
     # knee spike
     # foot: heel to ball, then three clawed toes
     fp = cr([ft + [0, -0.35, -0.55], ft + [0, -0.5, 0.0], to + [0, -0.05, -0.1], to + [0, -0.08, 0.35]], 5)
@@ -343,7 +379,7 @@ for s, sx in (('l', 1), ('r', -1)):
     hp = ft + [0, -0.3, -0.8]; V, F = cone(hp, hp + [0, 0.1, -0.45], 0.12, 5); add(V, F, lambda P, s=s: rigid(P, 'foot_' + s), M_HORN)
 
 # ---- tail with a spade tip ----
-tctrl = [[0, -0.6, -0.6], [0, -1.4, -1.6], [0, -2.8, -2.5], [0.35, -4.3, -3.0], [0.95, -5.5, -2.6], [1.45, -6.1, -1.8]]
+tctrl = [[0, -0.6, -0.6], [0, -1.2, -1.5], [0, -2.1, -2.3], [0.3, -3.1, -2.8], [0.8, -3.8, -2.6], [1.25, -4.1, -2.0]]
 path = cr(tctrl, 16); t = np.linspace(0, 1, 16)
 V, F = tube(path, 0.42 * (1 - t) ** 0.8 + 0.08, 8, cap0=False, cap1=True)
 add(V, F, lambda P: rigid(P, 'pelvis'), M_SKIN, lambda P: 0.8 - 0.25 * sstep(-2, -6, P[:, 1]))
@@ -367,7 +403,7 @@ V, F = ell([0, by + 0.05, 1.22], np.array([0.30, 0.28, 0.1]), 10, 6); add(V, F, 
 V, F = cone([0, by + 0.05, 1.28], [0, by + 0.05, 1.45], 0.1, 5); add(V, F, lambda P: rigid(P, 'pelvis'), M_BONE)
 for front in (1, -1):
     rows = []
-    for i, y in enumerate(np.linspace(by - 0.1, -3.3, 6)):
+    for i, y in enumerate(np.linspace(by - 0.1, -2.7, 6)):
         f = i / 5; hw = 0.62 - 0.12 * f
         z0 = front * (1.25 + 0.10 * f) - 0.05
         row = [[x, y + (0.12 * f * (1 - (x / hw) ** 2) if i == 5 else 0) * -1, z0 + front * 0.05 * (1 - (x / hw) ** 2)] for x in np.linspace(-hw, hw, 5)]
@@ -388,18 +424,19 @@ for front in (1, -1):
 for s, sx in (('l', 1), ('r', -1)):
     side = [ti for ti in oI if (oP[ti][:, 0].mean() * sx > 0.3) and b.infl(orig, ['wing_'])[ti].max() > 0.2]
     X = lambda p: np.array([p[0] * sx, p[1], p[2]])
+    WRJ = J['wing_root_' + s]; wpost = lambda P, WRJ=WRJ: WRJ + (P - WRJ) * KW
     S = X([0.95, 3.1, -1.4]); El = X([1.55, 6.9, -2.45]); Wr = X([1.85, 9.75, -2.95])
     tips = [X([4.95, 0.1, -2.2]), X([4.7, -4.5, -2.0]), X([4.05, -8.1, -1.8]), X([2.55, -7.0, -2.9])]
     inner = X([1.85, -3.0, -3.05])
     # leading arm bone and fingers
     arm = cr([S, El, Wr], 7); V, F = tube(arm, np.linspace(0.30, 0.20, 7), 8)
-    add(V, F, lambda P, side=side: transfer(P, side), M_DARK, lambda P: np.full(len(P), 1.0))
-    V, F = cone(Wr, Wr + X([0.25, 0.65, 0.35]), 0.16, 6, bend=X([0.05, 0.1, -0.1])); add(V, F, lambda P, side=side: transfer(P, side), M_BONE)
+    add(V, F, lambda P, side=side: transfer(P, side), M_DARK, lambda P: np.full(len(P), 1.0), post=wpost)
+    V, F = cone(Wr, Wr + X([0.25, 0.65, 0.35]), 0.16, 6, bend=X([0.05, 0.1, -0.1])); add(V, F, lambda P, side=side: transfer(P, side), M_BONE, post=wpost)
     fingers = []
     for tp in tips:
         mid = Wr + (tp - Wr) * 0.5 + X([0.35, 0, -0.15]); fp = cr([Wr, mid, tp], 9); fingers.append(fp)
         V, F = tube(fp, np.linspace(0.16, 0.05, 9), 6)
-        add(V, F, lambda P, side=side: transfer(P, side), M_DARK)
+        add(V, F, lambda P, side=side: transfer(P, side), M_DARK, post=wpost)
     # membrane: rows from the wrist out to a scalloped trailing edge
     edge = []
     def scal(a, c, n=4, depth=0.22):
@@ -424,14 +461,14 @@ for s, sx in (('l', 1), ('r', -1)):
         for k in range(n - 1):
             a = 1 + r * n + k; b_ = a + 1; c = a + n + 1; d = a + n; F += [[a, d, c], [a, c, b_]]
     V = np.array(V); F = orient(V, np.array(F), lambda c, sx=sx: c - np.array([sx * 3.0, 0, 1.5]))
-    add(V, F, lambda P, side=side: transfer(P, side), M_WING, lambda P: 0.75 + 0.35 * np.clip(np.linalg.norm(P - Wr, axis=1) / 14, 0, 1))
+    add(V, F, lambda P, side=side: transfer(P, side), M_WING, lambda P: 0.75 + 0.35 * np.clip(np.linalg.norm(P - Wr, axis=1) / 14, 0, 1), post=wpost)
 
 # ---------------- write ----------------
 mi = orig['m']; prims = []
 for pt in PARTS:
     Pw = pt['P']; Pb = (np.c_[Pw, np.ones(len(Pw))] @ b.Bi.T)[:, :3]; I = pt['F'].reshape(-1)
     Nn = normals(Pb, I)
-    C = np.c_[np.repeat(pt['C'][:, None], 3, 1), np.ones(len(Pw))].astype(np.float32)
+    C = np.c_[pt['C'], np.ones(len(Pw))].astype(np.float32)
     Jk = pt['J'].astype(np.uint16); Wk = pt['W'].astype(np.float32)
     prims.append(dict(m=pt['m'], P=Pb.astype(np.float32), N=Nn.astype(np.float32), C=C, J=Jk, W=Wk, I=I.astype(np.uint32)))
 # merge by material (fewer draw calls)

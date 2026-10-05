@@ -2697,7 +2697,7 @@
   },
   "imp": {
    "path": "Web/mImp",
-   "size": 1.25,
+   "size": 1.1,
    "long": false,
    "idle": "Idle",
    "walk": "Walk",
@@ -2711,7 +2711,7 @@
   },
   "magmaimp": {
    "path": "Web/mImp",
-   "size": 1.25,
+   "size": 1.1,
    "long": false,
    "idle": "Idle",
    "walk": "Walk",
@@ -2725,7 +2725,7 @@
   },
   "m_imp": {
    "path": "Web/mImp",
-   "size": 1.25,
+   "size": 1.1,
    "long": false,
    "idle": "Idle",
    "walk": "Walk",
@@ -2739,7 +2739,7 @@
   },
   "riftling": {
    "path": "Web/mImp",
-   "size": 1.3,
+   "size": 1.15,
    "long": false,
    "idle": "Idle",
    "walk": "Walk",
@@ -2754,7 +2754,7 @@
   },
   "h_rift": {
    "path": "Web/mImp",
-   "size": 1.3,
+   "size": 1.15,
    "long": false,
    "idle": "Idle",
    "walk": "Walk",
