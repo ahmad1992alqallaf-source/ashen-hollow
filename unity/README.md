@@ -381,6 +381,8 @@ For iPhone you need a Mac with Xcode.
 - 'Phoenix on fire update' by NORBERTO-3D (sketchfab.com/norberto3d), CC-BY 4.0. The scorpion, the pteranodon, the
   grim reaper and the skeleton mage are free downloads without licence notes in their files; check their pages
   before release.
+- 'Hellish imp 01' (the imps, Magma imps and Riftlings) by GAMEBR0VIP (sketchfab.com/GAMEBR0VIP), CC-BY 4.0; reduced, given a
+  loincloth and rigged to the Quaternius humanoid animations for Ashen Hollow.
 - 'Sea Serpent' by Sammy The Citipati (sketchfab.com/SammyTheCitipati), CC-BY 4.0.
 - 'Sea Turtle' by Eloi (sketchfab.com/Eloiart), CC-BY 4.0. 'Frog MONSTER' (Warren toad) by samuco
   (sketchfab.com/samueldc42), CC-BY 4.0. 'Animated Crab rigged FREE' (shore crab) by TwilightFox (sketchfab.com/twilightfox),
