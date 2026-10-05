@@ -76,6 +76,7 @@ public class AHMob : MonoBehaviour
         else m.model = AHModel.Spawn(go.transform, beastPath ?? t.model, size, byLen, wolf ? game.wolfYawFix : (m.yawOff = sk != null ? (float)AHJson.N(sk, "yaw", 0) : 0f), out m.anim, sk != null ? AHJson.A(sk, "split") : null);
         if (sk != null)
         {
+            if (AHJson.Has(sk, "tex")) SkinTex(m.model, sk);   // models that arrive without their textures (FBX): put them on
             Tint(m.model, t.id, sk);
             if (AHJson.B(sk, "golem")) GolemSkin(m.model, t.id);
             if (AHJson.S(sk, "rig") == "serpent") m.model.AddComponent<AHSerpentRig>();   // bones moved in code
@@ -198,6 +199,34 @@ public class AHMob : MonoBehaviour
         }
     }
 
+    // "tex": { "<part of a material or mesh name>": "<Resources/AH/Models path without _base>" } -> a lit material
+    // from <path>_base (colour), <path>_normal and <path>_emis when they exist
+    static readonly System.Collections.Generic.Dictionary<string, Material> texMats = new System.Collections.Generic.Dictionary<string, Material>();
+    static void SkinTex(GameObject model, object sk)
+    {
+        var tex = AHJson.O(sk, "tex") as System.Collections.Generic.Dictionary<string, object>; if (tex == null) return;
+        foreach (var r in model.GetComponentsInChildren<Renderer>(true))
+        {
+            var mats = r.sharedMaterials;
+            for (int i = 0; i < mats.Length; i++)
+            {
+                string mn = (mats[i] != null ? mats[i].name : "") + " " + r.name;
+                foreach (var kv in tex) if (mn.IndexOf(kv.Key, System.StringComparison.OrdinalIgnoreCase) >= 0) { mats[i] = TexMat((string)kv.Value); break; }
+            }
+            r.sharedMaterials = mats;
+        }
+    }
+    static Material TexMat(string path)
+    {
+        Material m; if (texMats.TryGetValue(path, out m) && m != null) return m;
+        m = new Material(Shader.Find("Universal Render Pipeline/Lit")) { name = "tex_" + path }; m.enableInstancing = true;
+        var b = Resources.Load<Texture2D>("AH/Models/" + path + "_base"); if (b != null) m.SetTexture("_BaseMap", b);
+        m.SetColor("_BaseColor", Color.white); m.SetFloat("_Smoothness", 0.3f); m.SetFloat("_Metallic", 0f);
+        var n = Resources.Load<Texture2D>("AH/Models/" + path + "_normal"); if (n != null) { m.SetTexture("_BumpMap", n); m.EnableKeyword("_NORMALMAP"); }
+        var e = Resources.Load<Texture2D>("AH/Models/" + path + "_emis"); if (e != null) { m.SetTexture("_EmissionMap", e); m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", new Color(2f, 1.4f, 0.6f)); }
+        texMats[path] = m; return m;
+    }
+
     // web: a skinned beast is tinted toward its colour (tintAs, or the beast's own tint), 55% of the way
     static void Tint(GameObject model, string id, object sk)
     {
@@ -280,6 +309,7 @@ public class AHMob : MonoBehaviour
         g.OnKill(type.id);
         AHSpark.Burst(transform.position + Vector3.up * 0.6f, new Color(0.9f, 0.85f, 0.75f, 0.7f), 18, 2f, 0.7f, 0.2f, 1.2f);
         if (by != null) AHLoot.OnKill(g, this, by);
+        if (by != null) AHTreasure.OnKill(g, this, by);
         AHDungeon.OnMobDown(g, this);
     }
 

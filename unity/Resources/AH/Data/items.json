@@ -10065,6 +10065,18 @@
    "icon": "reins",
    "c": "#d9ab3a",
    "reins": "gladiator"
+  },
+  "fossil_map": {
+   "name": "Treasure map: Fossil Lands",
+   "icon": "cloth",
+   "c": "#c9a24a",
+   "note": "Read it in the Fossil Lands: an X appears. Dig there for treasure (1 in 100 finds a Fossilized raptor)."
+  },
+  "reins_fossilraptor": {
+   "name": "Reins: Fossilized raptor",
+   "icon": "reins",
+   "c": "#e8dcc0",
+   "reins": "fossilraptor"
   }
  },
  "QUALITY": {

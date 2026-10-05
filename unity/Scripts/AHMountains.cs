@@ -108,6 +108,38 @@ public static class AHMountains
                 foreach (var kv in list) Place(lite[0] != null ? lite : prefabs, lite[0] != null ? liteW : width, kv.Key, kv.Value);
                 r.enabled = false; nb += list.Count;
             }
+        // white snow cones left standing on hills that were not grey (Whitepine's green and grey ridges): each becomes a
+        // snow cap on the crag that replaced its hill, or a snowy crag of its own
+        int ns = 0;
+        if (root != null)
+            foreach (var r in world.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                if (!r.enabled || r.name.StartsWith("AH_")) continue;
+                var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null || mf.sharedMesh.subMeshCount != 1 || mf.sharedMesh.GetIndexCount(0) > 130) continue;
+                var cb = r.bounds; Color cc = Colour(r.sharedMaterial); float lum = (cc.r + cc.g + cc.b) / 3f;
+                if (lum < 0.85f || Mathf.Abs(cc.r - cc.b) > 0.06f || cb.size.y < 1.5f || Mathf.Min(cb.size.x, cb.size.z) < 0.5f * cb.size.y && cb.size.y > 6f) continue;
+                Transform best = null; Bounds bb = default; float bd = float.MaxValue;
+                foreach (Transform m in root)
+                {
+                    if (m.name != "Mountain") continue; var mr = m.GetComponentInChildren<Renderer>(); if (mr == null) continue;
+                    var mb = mr.bounds; float d = new Vector2(mb.center.x - cb.center.x, mb.center.z - cb.center.z).magnitude;
+                    if (d < Mathf.Max(mb.extents.x, mb.extents.z) * 0.7f && cb.center.y > mb.center.y && d < bd) { bd = d; best = m; bb = mb; }
+                }
+                if (best != null)
+                {
+                    float top = Mathf.Max(bb.max.y, cb.max.y), f = Mathf.Clamp((top - cb.min.y) / Mathf.Max(1f, top - bb.min.y) + 0.08f, 0.22f, 0.5f);
+                    var snow = Object.Instantiate(best.gameObject, root, false).transform; snow.name = "Snowcap";
+                    float lift = top - bb.max.y;   // the old cone stood taller than the new crag: raise the whole crag to meet it
+                    if (lift > 0f) { best.localScale = new Vector3(best.localScale.x, best.localScale.y * (top - bb.min.y) / Mathf.Max(1f, bb.size.y), best.localScale.z); }
+                    snow.localScale = new Vector3(best.localScale.x * f * 1.06f, best.localScale.y * f, best.localScale.z * f * 1.06f);
+                    snow.position = best.position + Vector3.up * (best.localScale.y * (1f - f) + 0.05f);
+                    var sm = SnowMat(best.GetComponentInChildren<Renderer>().sharedMaterial);
+                    foreach (var r2 in snow.GetComponentsInChildren<Renderer>(true)) r2.sharedMaterial = sm;
+                }
+                else Place(prefabs, width, cb, new Color(0.72f, 0.74f, 0.76f));
+                r.enabled = false; ns++;
+            }
+        if (ns > 0) Debug.Log("Ashen Hollow: " + ns + " snow cones made snow caps");
         if (n + nb > 0) Debug.Log("Ashen Hollow: " + (n + nb) + " mountains reshaped" + (nb > 0 ? " (" + nb + " from the batch)" : ""));
     }
 

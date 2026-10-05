@@ -3238,6 +3238,48 @@
    "noTint": true,
    "rig": "serpent",
    "flip": true
+  },
+  "grull": {
+   "path": "Demon/mDemon",
+   "long": false,
+   "idle": "Idle1",
+   "walk": "Walk1",
+   "move": "Run1",
+   "attack": [
+    "Punch1",
+    "Punch2",
+    "Throw"
+   ],
+   "hit": "Spasm",
+   "death": "Death",
+   "moveRate": 0.9,
+   "tex": {
+    "Ball": "Demon/ball",
+    "Demon": "Demon/demon",
+    "": "Demon/demon"
+   },
+   "size": 3.0
+  },
+  "pyraxis": {
+   "path": "Demon/mDemon",
+   "long": false,
+   "idle": "Idle1",
+   "walk": "Walk1",
+   "move": "Run1",
+   "attack": [
+    "Punch3",
+    "Shoot1",
+    "Telepathic"
+   ],
+   "hit": "Spasm",
+   "death": "Death",
+   "moveRate": 0.9,
+   "tex": {
+    "Ball": "Demon/ball",
+    "Demon": "Demon/demon",
+    "": "Demon/demon"
+   },
+   "size": 3.0
   }
  }
 }

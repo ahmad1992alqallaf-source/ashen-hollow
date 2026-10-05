@@ -365,6 +365,28 @@ For iPhone you need a Mac with Xcode.
 - Very quick taps and clicks on buttons now always count.
 - Grass shows properly when the project's ambient occlusion is on.
 
+## Maps, wider lands and treasure (October update)
+- **The map (M, or Map in the menu)** is drawn as an inked, watercoloured parchment map of the land you are in, in that
+  land's own colours, in a frame with a compass. It marks you, the roads out (with where they lead), dungeon doors,
+  waystones, boards, found treasure and a treasure X.
+- **The world map** (World map button, or Next on the map): the whole realm as a hand-drawn map, with a pin where you
+  are. Lands you have not walked in yet lie under fog; the side shows which lands suit your level.
+  The art is made by `tools/mkworld.py` and `tools/mkui.py` (Resources/AH/UI).
+- **New land discovered**: the first visit to each land pays some XP and silver. Deeds: Explorer (10 lands),
+  Cartographer (20).
+- **Wider lands**: the wild lands are laid out wider than the web game drew them (Hollow Meadow 1.5x, Silkwood 1.3x,
+  Sunscar 1.3x, Dragonscale 1.4x, Frostfang 1.2x, Kingsvale 1.15x, Duskmire 1.1x): everything keeps its size, the
+  ground stretches and the woods get a second tree for every one. `AHGame.spreadK` holds the sizes;
+  "Test: Toggle Wider Areas" shows a land as it was.
+- **Danger warning**: walking into a land far above your level shows a warning.
+- **Fossil Lands treasure maps**: beasts there drop old maps (bosses often), and your first visit gives you one. Read it
+  in the Fossil Lands (tap it twice in the bag): a red X with a pale light appears, also on your map. Dig there for
+  silver, gems, bones, potions, cards and sometimes another map. One dig in a hundred gives the reins of the
+  **Fossilized raptor** mount. Deeds: X Marks the Spot (5 digs), Bone Rider.
+- **Bosses**: Forgemaster Grull and Pyraxis are the rigged demon from the "Demon Horror Creature with Weapon" Unity
+  package you supplied (Resources/AH/Models/Demon). The regular imps are the Hellish imp.
+- **Cities**: the old web awnings and porches baked into each city's big model are trimmed away inside the rebuilt lots.
+
 ## Credits
 - Heroes (Knight, Mage, Rogue, Barbarian): KayKit Adventurers by Kay Lousberg, CC0.
 - City buildings, walls, towers and props: KayKit Medieval Hexagon Pack by Kay Lousberg (www.kaylousberg.com), CC0.
@@ -381,6 +403,8 @@ For iPhone you need a Mac with Xcode.
 - 'Phoenix on fire update' by NORBERTO-3D (sketchfab.com/norberto3d), CC-BY 4.0. The scorpion, the pteranodon, the
   grim reaper and the skeleton mage are free downloads without licence notes in their files; check their pages
   before release.
+- 'Demon Horror Creature with Weapon' (Grull and Pyraxis): from the Unity package you supplied; check its licence before
+  release (it is not in the public repository).
 - 'Hellish imp 01' (the imps, Magma imps and Riftlings) by GAMEBR0VIP (sketchfab.com/GAMEBR0VIP), CC-BY 4.0; reduced, given a
   loincloth and rigged to the Quaternius humanoid animations for Ashen Hollow.
 - 'Sea Serpent' by Sammy The Citipati (sketchfab.com/SammyTheCitipati), CC-BY 4.0.

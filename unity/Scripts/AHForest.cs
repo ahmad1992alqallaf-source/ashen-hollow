@@ -74,6 +74,21 @@ public static class AHForest
             AHModel.SetShadows(go.gameObject);
             Trees.Add(tr);
         }
+        // a spread-out area keeps its woods thick: a second tree near each one
+        if (AHGame.Spread > 1.12f)
+        {
+            int orig = Trees.Count;
+            for (int i = 0; i < orig; i++)
+            {
+                var src = Trees[i]; float ang = (float)rnd.NextDouble() * 6.283f, dist = 2.6f + (float)rnd.NextDouble() * 2.6f * AHGame.Spread;
+                Vector3 p = src.pos + new Vector3(Mathf.Cos(ang), 0f, Mathf.Sin(ang)) * dist;
+                if (!g.InArea(p) || g.Blocked(p, 1.2f)) continue;
+                bool near = false; foreach (var t2 in Trees) { Vector3 dd = t2.pos - p; dd.y = 0; if (dd.sqrMagnitude < 4f) { near = true; break; } } if (near) continue;
+                var go = Object.Instantiate(src.go.gameObject, root, false).transform; go.name = src.go.name;
+                go.position = p; go.rotation = Quaternion.Euler(0f, (float)rnd.NextDouble() * 360f, 0f); go.localScale = src.go.localScale * (0.8f + (float)rnd.NextDouble() * 0.3f);
+                Trees.Add(new Tree { go = go, crown = Part(go.gameObject, "Crown") != null ? Part(go.gameObject, "Crown").transform : null, trunk = Part(go.gameObject, "Trunk") != null ? Part(go.gameObject, "Trunk").transform : null, pos = p, phase = (float)rnd.NextDouble() * 6.28f, sway = 0.6f + (float)rnd.NextDouble() * 0.8f });
+            }
+        }
         root.gameObject.AddComponent<AHForestWind>();
 
         // the trees you can chop: each finds its new tree

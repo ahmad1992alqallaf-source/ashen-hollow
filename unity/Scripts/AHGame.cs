@@ -90,6 +90,7 @@ public class AHGame : MonoBehaviour
         if (data.dayLength > 0) dayLength = data.dayLength;
 
         // the area itself: ground, trees, mountains, houses and water
+        Spread = 1f;
         GameObject wp = Resources.Load<GameObject>(AreaPath + AreaId + "_world_kk");   // a city with its old houses cut out for the detailed buildings
         if (wp == null) wp = Resources.Load<GameObject>(AreaPath + AreaId + "_world");
         if (wp == null) Debug.LogError("Ashen Hollow: the " + AreaId + " model did not import. Is the glTFast package installed?");
@@ -99,6 +100,9 @@ public class AHGame : MonoBehaviour
             world.name = data.region;
             Transform mx = FindDeep(world, "AH_MARK_X"), mz = FindDeep(world, "AH_MARK_Z");
             if (mx != null && mz != null) { ax = (mx.position - world.position) / 100f; az = (mz.position - world.position) / 100f; }
+            // the wild lands are laid out wider than the web game drew them (everything keeps its size, the gaps grow)
+            Spread = SpreadOf(AreaId);
+            if (Spread != 1f) { ax *= Spread; az *= Spread; SpreadWorld(Spread); }
             modelYaw = -Mathf.Atan2(az.x, az.z) * Mathf.Rad2Deg;
             SetupWorldRenderers();
             AHCity.Outskirts(this, world);   // land beyond a city's walls, so gates don't open onto nothing
@@ -107,7 +111,12 @@ public class AHGame : MonoBehaviour
 
         // things you bump into
         foreach (var c in data.circles) { cPos.Add(W(c.x, c.z)); cRad.Add(c.r * 0.8f); }
-        foreach (var b in data.boxes) rects.Add(MapRect(b.x, b.z, b.w, b.h));
+        foreach (var b in data.boxes)
+        {
+            var rr = MapRect(b.x, b.z, b.w, b.h);   // a wall or house keeps its own size when the land is spread
+            if (Spread != 1f) { var c = rr.center; rr.size /= Spread; rr.center = c; }
+            rects.Add(rr);
+        }
         foreach (var w in data.water)
         {
             Vector3 c = W(w.x, w.z);
@@ -126,6 +135,7 @@ public class AHGame : MonoBehaviour
         AHMountains.Setup(this, world); // craggy rock mountains instead of the plain cones
         AHTents.Setup(this, world);     // striped pavilions and ridge tents instead of the pyramids
         AHScenery.Setup(this, world);   // wooden footbridges and broken stone columns
+        AHTreasure.Setup(this);         // the Fossil Lands treasure X (and the explorer's map on your first visit)
 
         SetupLightAndSky();
         SetupCamera();
@@ -172,7 +182,7 @@ public class AHGame : MonoBehaviour
         AHComp.SpawnAllies(this);
         grass = AHGrass.Create(this);
         if (saved == "") ui.OpenCreator();
-        else ui.Banner(data.region, AreaSub());
+        else { ui.Banner(data.region, AreaSub()); DangerCheck(); Discover(); }
         camTarget = player.transform.position;
         travelLock = Time.time + 1.5f;
         if (arriving)
@@ -321,6 +331,30 @@ public class AHGame : MonoBehaviour
     bool leaving;
 
     // the banner's second line: levels and what lives here (web REGIONS blurb, or a road's 'a long road on foot')
+    // the lands you have walked in (the world map shows the rest in fog); a first visit pays a little
+    public static bool Seen(string id) { return ("," + PlayerPrefs.GetString("ah_seen", "") + ",").Contains("," + id + ","); }
+    public static int SeenCount { get { string s = PlayerPrefs.GetString("ah_seen", ""); return s == "" ? 0 : s.Split(',').Length; } }
+    void Discover()
+    {
+        if (Seen(AreaId) || AHDungeon.IsDungeon(AreaId)) return;
+        string s = PlayerPrefs.GetString("ah_seen", ""); PlayerPrefs.SetString("ah_seen", s == "" ? AreaId : s + "," + AreaId); PlayerPrefs.Save();
+        if (SeenCount <= 1) return;   // where you start does not count
+        int xp = 40 + player.level * 12; long silver = (300 + player.level * 40) * AHDB.CU;
+        player.GainXp(xp); player.bag.money += silver; player.bag.Touch(); MarkDirty();
+        ui.Toast("New land discovered: " + data.region + " · +" + xp + " XP, " + AHItems.MoneyText(silver), 3.5f);
+    }
+
+    // arriving somewhere far above your level: a plain warning (the web game let you walk in and die)
+    void DangerCheck()
+    {
+        string lv = "";
+        var r = AHDB.List("world", "REGIONS"); if (r != null) foreach (var o in r) if (AHJson.S(o, "id") == AreaId) lv = AHJson.S(o, "lv", "");
+        var c = AHDB.List("world", "CONNS"); if (lv == "" && c != null) foreach (var o in c) if (AHJson.S(o, "id") == AreaId) lv = AHJson.S(o, "lv", "");
+        if (lv == "" || lv == "safe" || lv == "any") return;
+        int min; if (!int.TryParse(lv.Replace("–", "-").Split('-')[0], out min)) return;
+        if (min > player.level + 3) ui.Toast("Danger: these lands are for level " + min + " and up. You are level " + player.level + ". Stay near the way back.", 4.5f);
+    }
+
     public string AreaSub()
     {
         var r = AHDB.List("world", "REGIONS");
@@ -488,6 +522,46 @@ public class AHGame : MonoBehaviour
             var li = lg.AddComponent<Light>(); li.type = LightType.Point; li.color = new Color(1f, 0.82f, 0.6f); li.range = 13f; li.intensity = 2.2f; li.shadows = LightShadows.None;
         }
         UpdateDay();
+    }
+
+    // how much wider each area is laid out than the web game's map (1 = as drawn): sizes from about 100 to 180 metres
+    public static float Spread = 1f;
+    static readonly Dictionary<string, float> spreadK = new Dictionary<string, float> {
+        { "meadow", 1.5f }, { "silkwood", 1.3f }, { "frost", 1.2f }, { "mire", 1.1f }, { "vale", 1.15f }, { "sands", 1.3f }, { "isle", 1.4f } };
+    public static bool NoSpread;   // editor test: the areas as the web game drew them
+    public static float SpreadOf(string id) { float k; return !NoSpread && spreadK.TryGetValue(id, out k) ? k : 1f; }
+    // move every piece of the area's model out from the middle by k (pieces keep their size); ground, water and the
+    // batched border peaks stretch with it
+    void SpreadWorld(float k)
+    {
+        Vector3 wp = world.position; int moved = 0;
+        System.Action<Transform> visit = null;
+        visit = c =>
+        {
+            string n = c.name;
+            if (n.StartsWith("AH_MARK")) return;
+            if (n.StartsWith("AH_GROUND") || n.StartsWith("AH_WATER") || n.StartsWith("AH_INST"))
+            {
+                // stretch along the world's own axes (the ground is drawn lying in its node's x-y plane, turned flat)
+                var hold = new GameObject(n + " (spread)").transform; hold.SetParent(world, false);
+                hold.position = wp; hold.rotation = Quaternion.identity; hold.localScale = Vector3.one;
+                c.SetParent(hold, true); hold.localScale = new Vector3(k, 1f, k);
+                var gr = c.GetComponent<Renderer>(); Debug.Log("Ashen Hollow: stretched " + n + (gr != null ? " to " + gr.bounds.size.ToString("0") : "") + " parent " + (c.parent != null ? c.parent.name : "-") + " static " + c.gameObject.isStatic);
+                return;
+            }
+            var rs = c.GetComponentsInChildren<Renderer>(true); if (rs.Length == 0) return;
+            Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+            if (c.childCount > 0 && (Mathf.Max(b.size.x, b.size.z) > 40f || c == world))
+            {
+                // a group of many things (or the whole area): spread its parts one by one
+                var kids = new List<Transform>(); foreach (Transform cc in c) kids.Add(cc);
+                foreach (var cc in kids) visit(cc);
+                return;
+            }
+            Vector3 d = b.center - wp; d.y = 0f; c.position += d * (k - 1f); moved++;
+        };
+        visit(world);
+        Debug.Log("Ashen Hollow: " + AreaId + " laid out " + k.ToString("0.00") + "x wider (" + moved + " pieces moved)");
     }
 
     public Rect MapRect(float x, float z, float w, float h)

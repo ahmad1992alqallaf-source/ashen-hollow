@@ -139,6 +139,13 @@
    "speed": 2.15,
    "rare": true,
    "blurb": "A great bird of living flame, reborn from its own ashes. The fastest mount in the realm."
+  },
+  "fossilraptor": {
+   "name": "Fossilized raptor",
+   "price": 0,
+   "speed": 2.0,
+   "rare": true,
+   "blurb": "An old island raptor of bare bone, dug up in the Fossil Lands and walking again. One treasure dig in a hundred."
   }
  },
  "MERCS": {
@@ -196,7 +203,8 @@
   "emberlizard": 0.69,
   "voidwing": 0.64,
   "gladiator": 0.64,
-  "phoenix": 1.05
+  "phoenix": 1.05,
+  "fossilraptor": 0.52
  },
  "PET_FLY": [
   "owl",

@@ -523,7 +523,7 @@ public static class AHMenu
     }
 
     // a monster stood a few metres in front of you, alive (breathing, idling) but harmless; again for the next one
-    static readonly string[] showIds = { "imp", "magmaimp", "troll", "f_hrimgar", "f_glacius", "lurker", "mirehulk", "bogmother", "w_bogking", "w_rotfang", "sandqueen", "thalassa", "voidmaw", "m_ignis" };
+    static readonly string[] showIds = { "grull", "pyraxis", "imp", "magmaimp", "troll", "f_hrimgar", "f_glacius", "lurker", "mirehulk", "bogmother", "w_bogking", "w_rotfang", "sandqueen", "thalassa", "voidmaw", "m_ignis" };
     static int showAt; static GameObject showGo;
     [MenuItem("Ashen Hollow/Test: Display Monster Here")]
     static void ShowMonster()
@@ -748,5 +748,206 @@ public static class AHMenu
         AssetDatabase.CreateAsset(new Material(sh), path);
         return true;
     }
-}
 
+    // ---------- every building and tent in every area: in-place pictures, and a list of any old block shapes left ----------
+    static readonly string[] sweepAreas = { "mill", "silkwood", "mire", "vale", "city", "frost", "hc_city", "sands", "ss_city", "mw_city", "isle", "tide", "co_city", "ember", "ch_city", "fossil", "ashfall", "causeway", "fenwick", "kingsroad", "scorchwind", "whitepine", "meadow" };
+    static readonly string[] sweepTowns = { "city", "hc_city", "ss_city", "mw_city", "co_city", "ch_city", "vale", "kingsroad", "ember", "frost", "sands", "tide", "meadow" };
+    static string[] sweepList = sweepAreas;
+    static int sweepAt = -1; static double sweepT; static bool sweepShot;
+    [MenuItem("Ashen Hollow/Test: Building Sweep (towns)")]
+    static void BuildingSweepTowns() { sweepList = sweepTowns; StartSweep(); }
+    [MenuItem("Ashen Hollow/Test: Building Sweep (all areas)")]
+    static void BuildingSweep()
+    {
+        if (!Application.isPlaying || AHGame.I == null) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        sweepList = sweepAreas; StartSweep();
+    }
+    static void StartSweep()
+    {
+        if (!Application.isPlaying || AHGame.I == null) return;
+        System.IO.File.WriteAllText("HeroShots/builds_all.txt", "");
+        sweepAt = 0; sweepShot = false; EditorApplication.update -= SweepTick; EditorApplication.update += SweepTick; TravelTo(sweepList[0]); sweepT = EditorApplication.timeSinceStartup;
+    }
+    [MenuItem("Ashen Hollow/Test: Building Shots Here")]
+    static void BuildingShotsHere() { if (Application.isPlaying && AHGame.I != null) BuildingShots(AHGame.I); }
+    static void SweepTick()
+    {
+        if (!Application.isPlaying) { EditorApplication.update -= SweepTick; sweepAt = -1; return; }
+        var g = AHGame.I; double now = EditorApplication.timeSinceStartup;
+        if (g == null || g.World == null || AHGame.AreaId != sweepList[sweepAt]) { sweepT = now; return; }
+        if (!sweepShot && now - sweepT > 7.0) { sweepShot = true; BuildingShots(g); sweepT = now; return; }
+        if (sweepShot && now - sweepT > 1.0)
+        {
+            sweepAt++; sweepShot = false;
+            if (sweepAt >= sweepList.Length) { EditorApplication.update -= SweepTick; sweepAt = -1; Debug.Log("Ashen Hollow: building sweep done"); return; }
+            TravelTo(sweepList[sweepAt]); sweepT = now;
+        }
+    }
+    static void BuildingShots(AHGame g)
+    {
+        string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
+        var news = new System.Collections.Generic.List<Transform>();
+        foreach (var gr in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+        {
+            var t = gr.transform; string n = t.name;
+            if (n == "City buildings") { foreach (Transform c in t) if (c.name.StartsWith("Townhouse_") || c.name.StartsWith("Building_")) news.Add(c); }
+            else if (n == "Stalls and wells" || n == "Tents") { foreach (Transform c in t) if (c.GetComponentInChildren<Renderer>() != null && c.name != "Street lamp") news.Add(c); }
+            else if (n == "Castle" || n == "Palace" || n == "Windmill" || n == "Statue" || n == "Bank vault" || n == "Homestead") news.Add(t);
+        }
+        // old shapes still drawn: tall, house-sized things in the area's own model, grouped where they touch
+        var boxes = new System.Collections.Generic.List<Bounds>(); var tris = new System.Collections.Generic.List<int>();
+        if (g.World != null)
+            foreach (var r in g.World.GetComponentsInChildren<Renderer>(false))
+            {
+                if (!r.enabled || r.forceRenderingOff || r.name.StartsWith("AH_")) continue;
+                var b = r.bounds; float foot = Mathf.Max(b.size.x, b.size.z);
+                if (b.size.y < 1.6f || foot < 1.6f || foot > 26f || b.size.y > 20f) continue;
+                var mf = r.GetComponent<MeshFilter>(); int tc = 0; if (mf != null && mf.sharedMesh != null) for (int k = 0; k < mf.sharedMesh.subMeshCount; k++) tc += (int)(mf.sharedMesh.GetIndexCount(k) / 3);
+                bool merged = false;
+                for (int i = 0; i < boxes.Count; i++) { var e = boxes[i]; e.Expand(new Vector3(1.0f, 0f, 1.0f)); if (e.Intersects(b)) { var m = boxes[i]; m.Encapsulate(b); boxes[i] = m; tris[i] += tc; merged = true; break; } }
+                if (!merged) { boxes.Add(b); tris.Add(tc); }
+            }
+        var sb = new System.Text.StringBuilder(); sb.AppendLine("== " + AHGame.AreaId + "  new: " + news.Count + "  old shapes: " + boxes.Count);
+        for (int i = 0; i < news.Count; i++) { var p = g.ToWeb(news[i].position); sb.AppendLine(string.Format(System.Globalization.CultureInfo.InvariantCulture, "  N{0}\t{1}\t{2:0},{3:0}", i, news[i].name, p.x, p.y)); }
+        for (int i = 0; i < boxes.Count; i++) { var p = g.ToWeb(boxes[i].center); sb.AppendLine(string.Format(System.Globalization.CultureInfo.InvariantCulture, "  O{0}\t{1:0.0}x{2:0.0}x{3:0.0}\t{4} tris\t{5:0},{6:0}", i, boxes[i].size.x, boxes[i].size.y, boxes[i].size.z, tris[i], p.x, p.y)); }
+        System.IO.File.AppendAllText(System.IO.Path.Combine(dir, "builds_all.txt"), sb.ToString());
+        var nb = new System.Collections.Generic.List<Bounds>(); var nf = new System.Collections.Generic.List<Vector3>();
+        foreach (var t in news) { var rs = t.GetComponentsInChildren<Renderer>(); Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); nb.Add(b); nf.Add(t.forward); }
+        Vector3 mid = g.W(g.data.spawn.x, g.data.spawn.z);
+        var of = new System.Collections.Generic.List<Vector3>(); foreach (var b in boxes) { var d = mid - b.center; d.y = 0; of.Add(d.sqrMagnitude > 0.01f ? d.normalized : Vector3.forward); }
+        for (int k = 0; k * 30 < nb.Count; k++) PlaceSheet(dir, "build_" + AHGame.AreaId + "_new" + (k > 0 ? "_" + k : ""), nb.GetRange(k * 30, Mathf.Min(30, nb.Count - k * 30)), nf.GetRange(k * 30, Mathf.Min(30, nb.Count - k * 30)), g);
+        if (boxes.Count > 0) PlaceSheet(dir, "build_" + AHGame.AreaId + "_old", boxes, of, g);
+        Debug.Log("Ashen Hollow: buildings " + AHGame.AreaId + " new " + news.Count + " old " + boxes.Count);
+    }
+    // pictures of things where they stand (with their surroundings), up to 30 to a sheet
+    static void PlaceSheet(string dir, string name, System.Collections.Generic.List<Bounds> bs, System.Collections.Generic.List<Vector3> fwd, AHGame g)
+    {
+        const int S = 300; int n = Mathf.Min(30, bs.Count), cols = Mathf.Min(6, n), rows = (n + cols - 1) / cols;
+        var sheet = new Texture2D(S * cols, S * rows, TextureFormat.RGB24, false);
+        var go = new GameObject("PlaceCam"); var cam = go.AddComponent<Camera>(); cam.fieldOfView = 45f; cam.nearClipPlane = 0.1f; cam.farClipPlane = 400f;
+        if (g.cam != null) { cam.clearFlags = g.cam.clearFlags; cam.backgroundColor = g.cam.backgroundColor; }
+        var rt = new RenderTexture(S, S, 24); cam.targetTexture = rt; var tex = new Texture2D(S, S, TextureFormat.RGB24, false);
+        bool fog = RenderSettings.fog; RenderSettings.fog = false;
+        for (int i = 0; i < n; i++)
+        {
+            var b = bs[i]; float size = Mathf.Max(b.size.x, b.size.y, b.size.z);
+            var f = fwd[i]; f.y = 0; if (f.sqrMagnitude < 0.01f) f = Vector3.forward; f.Normalize();
+            Vector3 d = (f * 0.75f + Vector3.Cross(Vector3.up, f) * 0.35f + Vector3.up * 0.8f).normalized;
+            go.transform.position = b.center + d * (size * 1.25f + 3f); go.transform.LookAt(b.center);
+            cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, S, S), 0, 0); tex.Apply(); RenderTexture.active = null;
+            sheet.SetPixels((i % cols) * S, (rows - 1 - i / cols) * S, S, S, tex.GetPixels());
+        }
+        RenderSettings.fog = fog; sheet.Apply();
+        System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, name + ".png"), sheet.EncodeToPNG());
+        cam.targetTexture = null; Object.DestroyImmediate(go); Object.Destroy(rt); Object.Destroy(tex); Object.Destroy(sheet);
+    }
+
+    // what stands just around each shop building (to find stray flat pieces)
+    [MenuItem("Ashen Hollow/Test: Around Buildings List")]
+    static void ThingsAround()
+    {
+        if (!Application.isPlaying || AHGame.I == null) return;
+        var sb = new System.Text.StringBuilder(); var seen = new System.Collections.Generic.HashSet<Renderer>();
+        var all = new System.Collections.Generic.List<Renderer>();
+        foreach (var gr in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects()) all.AddRange(gr.GetComponentsInChildren<Renderer>(false));
+        // every flat sheet in the scene (a few triangles, thin, at least a metre across)
+        foreach (var r in all)
+        {
+            if (!r.enabled || r is SkinnedMeshRenderer || r is ParticleSystemRenderer || r.name.StartsWith("AH_") || r.name == "Outskirts") continue;
+            var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null) continue; var mesh = mf.sharedMesh;
+            int tc = 0; for (int k = 0; k < mesh.subMeshCount; k++) tc += (int)(mesh.GetIndexCount(k) / 3);
+            var rb = r.bounds; float big = Mathf.Max(rb.size.x, rb.size.z, rb.size.y);
+            var ls = Vector3.Scale(mesh.bounds.size, r.transform.lossyScale); float thin = Mathf.Min(Mathf.Abs(ls.x), Mathf.Abs(ls.y), Mathf.Abs(ls.z));
+            if (tc > 24 || big < 1.0f || thin > 0.12f) continue;
+            string path = r.name; for (var t = r.transform.parent; t != null; t = t.parent) path = t.name + "/" + path;
+            var m = r.sharedMaterial; Color c = Color.white; if (m != null) { if (m.HasProperty("baseColorFactor")) c = m.GetColor("baseColorFactor"); else if (m.HasProperty("_BaseColor")) c = m.GetColor("_BaseColor"); }
+            sb.AppendLine(string.Format(System.Globalization.CultureInfo.InvariantCulture, "FLAT {0}	{1} tris	{2:0.00}x{3:0.00}x{4:0.00}	mesh {5}	mat {6}	col {7:0.00},{8:0.00},{9:0.00}", path, tc, rb.size.x, rb.size.y, rb.size.z, mesh.name, m != null ? m.name : "-", c.r, c.g, c.b));
+        }
+        var cb = GameObject.Find("City buildings"); if (cb == null) { System.IO.File.WriteAllText("HeroShots/around_" + AHGame.AreaId + ".txt", sb.ToString()); return; }
+        foreach (Transform b in cb.transform)
+        {
+            if (!b.name.StartsWith("Building_")) continue;
+            var rs = b.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) continue; Bounds bb = rs[0].bounds; foreach (var r in rs) bb.Encapsulate(r.bounds); bb.Expand(new Vector3(5f, 2f, 5f));
+            foreach (var r in all)
+            {
+                if (!r.enabled || seen.Contains(r) || r is SkinnedMeshRenderer || r is ParticleSystemRenderer) continue;
+                var rb = r.bounds; if (!bb.Intersects(rb)) continue;
+                float big = Mathf.Max(rb.size.x, rb.size.z); if (big < 0.6f || big > 30f || r.name.StartsWith("AH_") || r.name == "Outskirts" || r.transform.IsChildOf(b)) continue;
+                if (r.transform.root.name == "City buildings" && r.transform.parent != null && r.transform.parent.name.StartsWith("Townhouse_")) continue;
+                var m = r.sharedMaterial; Color c = Color.white; if (m != null) { if (m.HasProperty("baseColorFactor")) c = m.GetColor("baseColorFactor"); else if (m.HasProperty("_BaseColor")) c = m.GetColor("_BaseColor"); }
+                seen.Add(r);
+                string path = r.name; for (var t = r.transform.parent; t != null; t = t.parent) path = t.name + "/" + path;
+                sb.AppendLine(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}\tnear {1}\t{2:0.00}x{3:0.00}x{4:0.00}\tcol {5:0.00},{6:0.00},{7:0.00}\tmat {8}", path, b.name, rb.size.x, rb.size.y, rb.size.z, c.r, c.g, c.b, m != null ? m.name : "-"));
+            }
+        }
+        System.IO.File.WriteAllText("HeroShots/around_" + AHGame.AreaId + ".txt", sb.ToString());
+        Debug.Log("Ashen Hollow: things around buildings listed " + seen.Count);
+    }
+
+    [MenuItem("Ashen Hollow/Test: Give Fossil Treasure Maps")]
+    static void GiveTreasureMaps()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        g.player.bag.Add(AHTreasure.MapId, 3); g.player.bag.Touch(); g.ui.Toast("Test: 3 treasure maps");
+    }
+    [MenuItem("Ashen Hollow/Test: Go To Treasure X")]
+    static void GoToX()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        foreach (var s in AHGather.Spots) if (s.name == "Dig for treasure") { g.player.transform.position = g.Resolve(s.pos + Vector3.right * 1.5f, 0.3f); g.ui.Toast("Test: at the X"); return; }
+        g.ui.Toast("Test: no X here (read a map in the Fossil Lands)");
+    }
+
+    [MenuItem("Ashen Hollow/Test: Toggle Wider Areas")]
+    static void ToggleSpread()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null) return;
+        AHGame.NoSpread = !AHGame.NoSpread; Debug.Log("Ashen Hollow: wider areas " + (AHGame.NoSpread ? "off" : "on"));
+        TravelTo(AHGame.AreaId);
+    }
+    [MenuItem("Ashen Hollow/Test: Map Picture")]
+    static void MapPicture()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null) return;
+        g.ui.OpenMap();
+    }
+
+    // the wider areas: an overview sheet and the inked map of each, into HeroShots/area_<id>.png and map_<id>.png
+    static readonly string[] viewAreas = { "silkwood", "frost", "mire", "vale", "sands", "isle", "fossil", "ember", "tide", "city", "meadow" };
+    static int viewAt = -1; static double viewT; static int viewStep;
+    [MenuItem("Ashen Hollow/Test: Map Sweep (lands)")]
+    static void MapSweep()
+    {
+        if (!Application.isPlaying || AHGame.I == null) return;
+        viewAt = 0; viewStep = 0; EditorApplication.update -= ViewTick; EditorApplication.update += ViewTick; TravelTo(viewAreas[0]); viewT = EditorApplication.timeSinceStartup;
+    }
+    static void ViewTick()
+    {
+        if (!Application.isPlaying) { EditorApplication.update -= ViewTick; viewAt = -1; return; }
+        var g = AHGame.I; double now = EditorApplication.timeSinceStartup;
+        if (g == null || g.World == null || AHGame.AreaId != viewAreas[viewAt]) { viewT = now; return; }
+        if (viewStep == 0 && now - viewT > 7.0) { viewStep = 1; AreaShots(); g.ui.OpenMap(); viewT = now; return; }
+        if (viewStep == 1 && now - viewT > 2.0)
+        {
+            viewStep = 2; var t = g.ui.MapTexture;
+            if (t != null) { var c = new Texture2D(t.width, t.height, TextureFormat.RGB24, false); var px = t.GetPixels(); if (g.ui.MapFlipped) { int n = t.width; var f = new Color[px.Length]; for (int y = 0; y < n; y++) for (int x = 0; x < n; x++) f[y * n + x] = px[y * n + (n - 1 - x)]; px = f; } c.SetPixels(px); c.Apply(); System.IO.File.WriteAllBytes("HeroShots/map_" + AHGame.AreaId + ".png", c.EncodeToPNG()); Object.Destroy(c); }
+            g.ui.ShowWork(false); viewT = now; return;
+        }
+        if (viewStep == 2 && now - viewT > 0.5)
+        {
+            viewAt++; viewStep = 0;
+            if (viewAt >= viewAreas.Length) { EditorApplication.update -= ViewTick; viewAt = -1; Debug.Log("Ashen Hollow: map sweep done"); return; }
+            TravelTo(viewAreas[viewAt]); viewT = now;
+        }
+    }
+
+    // in the Fossil Lands: read a map, walk to the X and dig (the result shows as a banner and in the Console)
+    [MenuItem("Ashen Hollow/Test: Fossil Treasure Run")]
+    static void TreasureRun()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        if (AHGame.AreaId != "fossil") { TravelTo("fossil"); Debug.Log("Ashen Hollow: run this again once in the Fossil Lands"); return; }
+        g.player.bag.Add(AHTreasure.MapId, 1); AHTreasure.Read(g);
+        foreach (var s in AHGather.Spots) if (s.name == "Dig for treasure") { g.player.transform.position = g.Resolve(s.pos + Vector3.right * 1.5f, 0.3f); if (s.use != null) s.use(); return; }
+    }
+}

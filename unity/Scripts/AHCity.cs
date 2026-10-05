@@ -97,8 +97,49 @@ public static class AHCity
             Props(root, m, col, centre, dir.normalized, lotAxes, Swapped);
             Swapped++;
         }
+        CutLots(g, world, list);
         Debug.Log("Ashen Hollow: " + Swapped + " of " + list.Count + " city buildings rebuilt");
         Walls(g, world, col, root);
+    }
+
+    // the web city's big merged mesh (walls and all) still held the old houses' awnings and porches inside the lots:
+    // drop its small low triangles that stand inside a rebuilt lot
+    static void CutLots(AHGame g, Transform world, List<object> list)
+    {
+        var rects = new List<Rect>();
+        foreach (var o in list)
+        {
+            float cx = (float)AHJson.N(o, "cx"), cz = (float)AHJson.N(o, "cz"), w = (float)AHJson.N(o, "w"), d = (float)AHJson.N(o, "d");
+            rects.Add(new Rect(cx - w / 2f - 0.9f, cz - d / 2f - 0.9f, w + 1.8f, d + 1.8f));
+        }
+        int cut = 0; float top = world.position.y + 5f;
+        foreach (var r in world.GetComponentsInChildren<MeshRenderer>(true))
+        {
+            if (!r.enabled || r.name.StartsWith("AH_")) continue;
+            var b = r.bounds; if (b.size.y <= 16f && Mathf.Max(b.size.x, b.size.z) <= 30f) continue;   // the lots' own pieces were hidden already
+            var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null) continue;
+            var m = mf.sharedMesh; if (!m.isReadable) { Debug.Log("Ashen Hollow: " + r.name + " cannot be trimmed (not readable)"); continue; }
+            var v = m.vertices; var tf = r.transform; var wv = new Vector2[v.Length]; var wp = new Vector3[v.Length];
+            for (int i = 0; i < v.Length; i++) { wp[i] = tf.TransformPoint(v[i]); wv[i] = g.ToWeb(wp[i]); }
+            Mesh nm = null;
+            for (int sIdx = 0; sIdx < m.subMeshCount; sIdx++)
+            {
+                var t = m.GetTriangles(sIdx); var keep = new List<int>(t.Length); bool changed = false;
+                for (int k = 0; k < t.Length; k += 3)
+                {
+                    Vector3 a0 = wp[t[k]], a1 = wp[t[k + 1]], a2 = wp[t[k + 2]];
+                    float span = Mathf.Max(Vector3.Distance(a0, a1), Vector3.Distance(a1, a2), Vector3.Distance(a2, a0));
+                    Vector2 c = (wv[t[k]] + wv[t[k + 1]] + wv[t[k + 2]]) / 3f;
+                    bool inside = false;
+                    if (span < 6f && Mathf.Max(a0.y, a1.y, a2.y) < top) foreach (var R in rects) if (R.Contains(c)) { inside = true; break; }
+                    if (inside) { changed = true; cut++; continue; }
+                    keep.Add(t[k]); keep.Add(t[k + 1]); keep.Add(t[k + 2]);
+                }
+                if (changed) { if (nm == null) nm = Object.Instantiate(m); nm.SetTriangles(keep, sIdx); }
+            }
+            if (nm != null) mf.sharedMesh = nm;
+        }
+        if (cut > 0) Debug.Log("Ashen Hollow: " + cut + " old awning and porch triangles trimmed from the city mesh");
     }
 
     // ---------- shop booths and wells ----------
