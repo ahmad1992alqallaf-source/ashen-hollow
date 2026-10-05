@@ -308,6 +308,19 @@ recipes and professions, with the web game's rules.
   baked into the city models (including the simpler ball-headed ones) are hidden, the real townsfolk walk instead.
 - Test helpers: *Dump Old Shapes* lists every untouched old piece in the area (HeroShots/shapes_<area>.txt), and
   *Go To Next Landmark* also visits ships, statues, castles and palaces.
+- **Fossil Lands:** the rib cages are half-buried skeletons (a knobbly spine, curved ribs sinking into the sand, a few
+  broken) and the great skull has a domed cranium, deep eye sockets, teeth and two sweeping horns; the near-black
+  trees and rock spires are dark moss and weathered stone. **Dragonscale Isle** stands out of the sea again (the sea lay
+  over the whole island) and the dragon's nest is woven branches and bones on straw.
+- **Your homestead:** farm buildings with plank walls, gabled roofs, framed doors and shuttered windows; fields with
+  earth ridges and plank edging; crops of real leaves (grain with seed heads, root tufts, cabbages, berry bushes,
+  ribbed pumpkins, flowers); rigged cows, pigs, sheep and goats that walk and graze (from Quaternius animals, CC0);
+  chickens and ducks with feathers and combs; a real market stall, the cat on its cushion and the dog by its kennel.
+- **Lighter for phones:** every sphere and capsule made in code uses about a fifth of the triangles, gear pieces share
+  materials, the townsfolk models are simplified to 40% (they look the same at game distance), and figures far down
+  the street stop drawing. In Varrow the scene went from about 1.57 million to 0.86 million triangles.
+- Test helpers: *Farm Showcase* (one of everything the farm builds on a sheet) and *Count Draw Load* (triangles,
+  renderers and materials in the area, into HeroShots/stats_<area>.txt).
 - **Sound:** effects, music that follows where you are and what you do, and ambience, all synthesized (Menu → Sound).
 - Cave walls, cliffs, deep water and lava in Emberreach, Tidewake, the Fossil Lands and the cities now block your way as in the web game.
 - Test helpers in the menu: *Go To Next Townsperson*, *Go To Next Work Spot*, *Take Next Way Out*, *Give Potions* (also enhancement stones), *Give Meals*, *Give Money*, *Level Up +10*, *Go To Waystone or Treasure*, *Go To Bounty Board*, *Go To Next Shop*, *Finish Quest Objectives*, *Make It Day/Night*, *Give Cosmetics*, *Next Cosmetic Look*, *Hero Snapshots* (front/side/back pictures of the hero into a HeroShots folder), *Cast Pose Snapshots* (every casting animation on one sheet), *Open Spellbook*, *Beast and Mount Parade* and *Townsfolk Snapshots* (contact sheets of every new animal, mount and townsperson), *Ride Next Mount*, *Next Pet*, *Travel (test)* to jump to any area, and *Dungeons (test)* (enter any dungeon, go to the boss or a dungeon door, defeat the nearest beast, clear the seals).
