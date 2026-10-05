@@ -1,4 +1,4 @@
-// Ashen Hollow: lighter shapes for phones. Unity's built-in sphere is 768 triangles and its capsule 832; the game uses
+// Ashen Hollow: lighter shapes for phones (and the shown-monster helper used by the editor tests).
 // thousands of little balls (lamp curls, flower heads, berries, rivets, gear knobs), so every sphere and capsule made
 // in code is swapped for one of about 160 triangles that looks the same at game distance. AHCull stops drawing the
 // rigged townsfolk and beasts far down the street (past where the fog hides them anyway).

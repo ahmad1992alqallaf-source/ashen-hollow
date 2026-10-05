@@ -2070,7 +2070,7 @@
    "moveRate": 1.6
   },
   "grull": {
-   "file": "mDiablous",
+   "file": "mImp",
    "size": 3,
    "idle": "Idle",
    "move": "Run",
@@ -2696,7 +2696,7 @@
    "moveRate": 0.9
   },
   "imp": {
-   "path": "Web/mDiablous",
+   "path": "Web/mImp",
    "size": 1.25,
    "long": false,
    "idle": "Idle",
@@ -2710,7 +2710,7 @@
    "moveRate": 1.0
   },
   "magmaimp": {
-   "path": "Web/mDiablous",
+   "path": "Web/mImp",
    "size": 1.25,
    "long": false,
    "idle": "Idle",
@@ -2724,7 +2724,7 @@
    "moveRate": 1.0
   },
   "m_imp": {
-   "path": "Web/mDiablous",
+   "path": "Web/mImp",
    "size": 1.25,
    "long": false,
    "idle": "Idle",
@@ -2738,7 +2738,7 @@
    "moveRate": 1.0
   },
   "riftling": {
-   "path": "Web/mDiablous",
+   "path": "Web/mImp",
    "size": 1.3,
    "long": false,
    "idle": "Idle",
@@ -2753,7 +2753,7 @@
    "tintAs": 5909146
   },
   "h_rift": {
-   "path": "Web/mDiablous",
+   "path": "Web/mImp",
    "size": 1.3,
    "long": false,
    "idle": "Idle",
