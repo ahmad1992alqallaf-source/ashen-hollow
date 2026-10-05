@@ -1,0 +1,689 @@
+// Ashen Hollow: one menu item that makes the materials and a ready-to-play scene
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+
+[InitializeOnLoad]
+public static class AHMenu
+{
+    // new shaders get their material in Resources/AH/Materials by themselves (no need to run the setup again)
+    static AHMenu()
+    {
+        EditorApplication.delayCall += () =>
+        {
+            string matDir = Root() + "/Resources/AH/Materials";
+            if (!AssetDatabase.IsValidFolder(matDir)) return;
+            foreach (var n in new[] { "Water", "Sky", "Fx", "Grass", "Ghost", "Ground", "Spark" })
+                if (AssetDatabase.LoadAssetAtPath<Material>(matDir + "/" + n + ".mat") == null && Shader.Find("AshenHollow/" + n) != null) MakeMat("AshenHollow/" + n, matDir + "/" + n + ".mat");
+            AssetDatabase.SaveAssets();
+        };
+    }
+
+    // the AshenHollow folder, wherever it was put inside Assets
+    static string Root()
+    {
+        foreach (var guid in AssetDatabase.FindAssets("AHGame t:MonoScript"))
+        {
+            string p = AssetDatabase.GUIDToAssetPath(guid);
+            if (p.EndsWith("/Scripts/AHGame.cs")) return p.Substring(0, p.Length - "/Scripts/AHGame.cs".Length);
+        }
+        return "Assets/AshenHollow";
+    }
+
+    [MenuItem("Ashen Hollow/Set Up Meadow Scene")]
+    public static void Setup()
+    {
+        string root = Root(), ah = root + "/Resources/AH", matDir = ah + "/Materials";
+        if (!AssetDatabase.IsValidFolder(matDir)) AssetDatabase.CreateFolder(ah, "Materials");
+        bool ok = MakeMat("AshenHollow/Water", matDir + "/Water.mat");
+        ok &= MakeMat("AshenHollow/Sky", matDir + "/Sky.mat");
+        ok &= MakeMat("AshenHollow/Fx", matDir + "/Fx.mat");
+        ok &= MakeMat("AshenHollow/Grass", matDir + "/Grass.mat");
+        ok &= MakeMat("AshenHollow/Ghost", matDir + "/Ghost.mat");
+        ok &= MakeMat("AshenHollow/Ground", matDir + "/Ground.mat");
+        ok &= MakeMat("AshenHollow/Spark", matDir + "/Spark.mat");
+        AssetDatabase.SaveAssets();
+        if (Resources.Load<GameObject>("AH/Areas/meadow_world") == null && Resources.Load<GameObject>("AH/meadow_world") == null)
+        {
+            EditorUtility.DisplayDialog("Ashen Hollow", "The meadow model has not imported. Install the glTFast package first (Window > Package Manager > + > Install package by name > com.unity.cloud.gltfast), wait for it to finish, then run this again.", "OK");
+            return;
+        }
+        string scenePath = root + "/AshenMeadow.unity";
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+        var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        new GameObject("Ashen Hollow").AddComponent<AHGame>();
+        EditorSceneManager.SaveScene(scene, scenePath);
+        EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(scenePath, true) };
+        EditorUtility.DisplayDialog("Ashen Hollow", ok ? "Hollow Meadow is ready. Press Play." : "The scene is ready, but a shader did not compile. Check the Console.", "OK");
+    }
+
+    [MenuItem("Ashen Hollow/Reset Saved Progress")]
+    public static void ResetProgress()
+    {
+        if (!EditorUtility.DisplayDialog("Ashen Hollow", "Clear the saved hero (class, level, gold, bag, gear, quests, dungeons and auction house)? This cannot be undone.", "Clear it", "Cancel")) return;
+        AHSave.Clear();
+        EditorUtility.DisplayDialog("Ashen Hollow", "Saved hero cleared (class, level, gold, bag, gear and quests). You will start fresh on the next Play.", "OK");
+    }
+
+    // testing helpers: only in the editor, only while playing
+    [MenuItem("Ashen Hollow/Test: Give 3 Wolf Pelts")]
+    public static void GivePelts()
+    {
+        if (!Application.isPlaying || AHGame.I == null || AHGame.I.player == null) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        AHGame.I.player.bag.Add("wolf_pelt", 3);
+        if (AHGame.I.ui != null) AHGame.I.ui.Toast("+3 Wolf Pelt (test)");
+    }
+
+    // fills in the current quest's objectives, as if you had done them (gathering and crafting arrive in step 7)
+    [MenuItem("Ashen Hollow/Test: Finish Quest Objectives")]
+    public static void FinishObjectives()
+    {
+        if (!Application.isPlaying || AHGame.I == null || AHGame.I.player == null) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        var g = AHGame.I; var log = g.quests; var q = log.Current;
+        if (q == null || log.state != "active") { g.ui.Toast("No active quest (accept one from Captain Mara first)."); return; }
+        foreach (var o in q.obj) log.Event(o.t, o.id, o.n, g);
+    }
+
+    // puts the hero next to each townsperson in turn (Captain Mara first)
+    static int npcVisit;
+    [MenuItem("Ashen Hollow/Test: Go To Next Townsperson")]
+    public static void GoToNpc()
+    {
+        if (!Application.isPlaying || AHGame.I == null || AHGame.I.player == null || AHNpc.All.Count == 0) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        var n = AHNpc.All[npcVisit++ % AHNpc.All.Count];
+        var p = AHGame.I.player.transform;
+        p.position = n.transform.position + n.transform.forward * 1.6f;
+        p.rotation = AHGame.I.Face(n.transform.position - p.position);
+        AHGame.I.ui.Toast("Test: next to " + n.npcName);
+    }
+
+    // puts the hero by one spot of each kind in turn: tree, copper, tin, herb, fishing, campfire, furnace, anvil, loom...
+    static int spotVisit;
+    [MenuItem("Ashen Hollow/Test: Cycle House Tier")]
+    public static void CycleHouseTier()
+    {
+        if (!Application.isPlaying || AHGame.I == null || AHGame.I.player == null || AHGame.I.player.home == null) return;
+        var H = AHGame.I.player.home; H.tier = H.tier % 3 + 1;
+        var v = Object.FindAnyObjectByType<AHHomeView>(); if (v != null) v.Refresh();
+        AHGame.I.ui.Toast("Test: house tier " + H.tier);
+    }
+
+    [MenuItem("Ashen Hollow/Test: Dump Old Shapes")]
+    public static void DumpShapes()
+    {
+        if (!Application.isPlaying || AHGame.I == null || AHGame.I.World == null) return;
+        var sb = new System.Text.StringBuilder(); int n = 0;
+        foreach (var r in AHGame.I.World.GetComponentsInChildren<Renderer>(false))
+        {
+            if (!r.enabled || r.name.StartsWith("AH_GROUND") || r.name.StartsWith("AH_WATER")) continue;
+            var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null) continue;
+            var m = mf.sharedMesh; long tris = 0; for (int k = 0; k < m.subMeshCount; k++) tris += m.GetIndexCount(k) / 3;
+            var b = r.bounds; var mat = r.sharedMaterial; Color c = Color.white;
+            if (mat != null) { if (mat.HasProperty("baseColorFactor")) c = mat.GetColor("baseColorFactor"); else if (mat.HasProperty("_BaseColor")) c = mat.GetColor("_BaseColor"); }
+            var path = r.transform.parent != null ? r.transform.parent.name + "/" + r.name : r.name;
+            sb.AppendLine(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}\t{1:0.0}\t{2:0.0}\t{3:0.0}\t{4:0.00}\t{5:0.00}\t{6:0.00}\t{7}\t{8}\t{9:0.00},{10:0.00},{11:0.00}", path, b.center.x, b.center.y, b.center.z, b.size.x, b.size.y, b.size.z, tris, m.subMeshCount, c.r, c.g, c.b));
+            n++;
+        }
+        System.IO.Directory.CreateDirectory("HeroShots");
+        System.IO.File.WriteAllText("HeroShots/shapes_" + AHGame.AreaId + ".txt", sb.ToString());
+        AHGame.I.ui.Toast("Test: " + n + " old shapes listed");
+        Debug.Log("Shapes dumped " + AHGame.AreaId + " " + n);
+    }
+
+    [MenuItem("Ashen Hollow/Test: Go To Next Landmark")]
+    public static void GoToLandmark()
+    {
+        if (!Application.isPlaying || AHGame.I == null || AHGame.I.player == null) return;
+        var list = new System.Collections.Generic.List<Transform>();
+        foreach (var n in new[] { "Bridges", "Ruins", "Crystals", "Palms", "Cacti", "Bones", "Coral", "Graves", "Tents", "Ships" }) { var r = GameObject.Find(n); if (r != null) foreach (Transform c in r.transform) list.Add(c); }
+        foreach (var gr in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects()) { var go = gr.transform; if (go.name == "Castle" || go.name == "Palace" || go.name == "Windmill" || go.name == "Statue") list.Add(go); }
+        if (list.Count == 0) { AHGame.I.ui.Toast("Test: no landmarks here"); return; }
+        var t = list[landVisit++ % list.Count]; var p = AHGame.I.player.transform;
+        // stand a few metres in front of it, between it and the camera, so the camera looks straight at it
+        Vector3 f = AHGame.I.cam != null ? AHGame.I.cam.transform.forward : Vector3.forward; f.y = 0; if (f.sqrMagnitude < 0.01f) f = Vector3.forward; f.Normalize();
+        bool big = t.name == "Castle" || t.name == "Palace";
+        p.position = AHGame.I.Resolve(big ? t.position + t.forward * 22f : t.position - f * (t.name == "ship" ? 14f : 5f), 0.3f); p.rotation = AHGame.I.Face(t.position - p.position);
+        AHGame.I.ui.Toast("Test: at " + t.name);
+    }
+    static int landVisit;
+
+    // six views of the whole area from above its edges and centre, into HeroShots/area_<id>.png (a 3x2 sheet)
+    [MenuItem("Ashen Hollow/Test: Area Overview Shots")]
+    static void AreaShots()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.data == null || g.data.bounds == null) return;
+        string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
+        var b = g.data.bounds; float cx = (b.x0 + b.x1) / 2f, cz = (b.z0 + b.z1) / 2f, w = b.x1 - b.x0, d = b.z1 - b.z0;
+        Vector3 C = g.W(cx, cz); float span = Mathf.Max(w, d);
+        var eyes = new[] { g.W(b.x0 + w * 0.15f, b.z0 + d * 0.15f), g.W(b.x1 - w * 0.15f, b.z0 + d * 0.15f), g.W(b.x1 - w * 0.15f, b.z1 - d * 0.15f), g.W(b.x0 + w * 0.15f, b.z1 - d * 0.15f), g.W(cx, b.z0 + d * 0.05f), g.W(cx, b.z1 - d * 0.05f) };
+        const int W = 640, H = 360;
+        var sheet = new Texture2D(W * 3, H * 2, TextureFormat.RGB24, false);
+        var go = new GameObject("AreaCam"); var cam = go.AddComponent<Camera>(); cam.fieldOfView = 55f; cam.farClipPlane = 600f;
+        if (g.cam != null) { cam.clearFlags = g.cam.clearFlags; cam.backgroundColor = g.cam.backgroundColor; }
+        var rt = new RenderTexture(W, H, 24); cam.targetTexture = rt; var tex = new Texture2D(W, H, TextureFormat.RGB24, false);
+        bool fog = RenderSettings.fog; RenderSettings.fog = false;
+        for (int i = 0; i < 6; i++)
+        {
+            Vector3 e = eyes[i] + Vector3.up * Mathf.Clamp(span * 0.12f, 10f, 40f);
+            go.transform.position = e; go.transform.LookAt(Vector3.Lerp(e, C, 0.6f) - Vector3.up * 0f + (C - e).normalized * 5f);
+            go.transform.LookAt(new Vector3(C.x, 0f, C.z));
+            cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, W, H), 0, 0); tex.Apply(); RenderTexture.active = null;
+            sheet.SetPixels((i % 3) * W, (1 - i / 3) * H, W, H, tex.GetPixels());
+        }
+        RenderSettings.fog = fog;
+        sheet.Apply();
+        System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, "area_" + AHGame.AreaId + ".png"), sheet.EncodeToPNG());
+        cam.targetTexture = null; Object.DestroyImmediate(rt); Object.DestroyImmediate(go);
+        Debug.Log("Area overview " + AHGame.AreaId);
+    }
+
+    [MenuItem("Ashen Hollow/Test: Go To Next Work Spot")]
+    public static void GoToSpot()
+    {
+        if (!Application.isPlaying || AHGame.I == null || AHGame.I.player == null || AHGather.Spots.Count == 0) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        var pick = new System.Collections.Generic.List<AHSpot>(); var seen = new System.Collections.Generic.HashSet<string>();
+        foreach (var sp in AHGather.Spots) if (seen.Add(sp.kind + sp.type + (sp.kind == "use" ? sp.name : ""))) pick.Add(sp);
+        var s = pick[spotVisit++ % pick.Count];
+        var p = AHGame.I.player.transform;
+        Vector3 d = p.position - s.pos; d.y = 0; if (d.sqrMagnitude < 0.01f) d = Vector3.forward;
+        p.position = s.pos + d.normalized * Mathf.Max(0.6f, Mathf.Min(s.reach * 0.6f, s.r + 0.7f));
+        p.rotation = AHGame.I.Face(s.pos - p.position);
+        AHGame.I.ui.Toast("Test: at " + s.name + " (" + s.kind + ")");
+    }
+
+    // walks the hero up to the next way out of this area (the road to the next region); keep walking forward to cross
+    static readonly System.Collections.Generic.HashSet<string> exitSeen = new System.Collections.Generic.HashSet<string>();
+    [MenuItem("Ashen Hollow/Test: Take Next Way Out")]
+    public static void GoToExit()
+    {
+        var g = AHGame.I;
+        if (!Application.isPlaying || g == null || g.player == null || g.data.exits == null || g.data.exits.Length == 0) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        // onward: the first open road to somewhere this test has not been yet, else the first open road
+        exitSeen.Add(AHGame.AreaId);
+        AHExit e = null;
+        foreach (var c in g.data.exits) if (e == null && !exitSeen.Contains(c.to) && Resources.Load<TextAsset>("AH/Areas/" + c.to) != null) e = c;
+        foreach (var c in g.data.exits) if (e == null && Resources.Load<TextAsset>("AH/Areas/" + c.to) != null) e = c;
+        if (e == null) e = g.data.exits[0];
+        Vector3 at = e.r > 0f ? g.W(e.x, e.z) : g.W((e.x0 + e.x1) / 2f, (e.z0 + e.z1) / 2f);
+        Vector3 from = g.W((g.data.bounds.x0 + g.data.bounds.x1) / 2f, (g.data.bounds.z0 + g.data.bounds.z1) / 2f);
+        Vector3 dir = at - from; dir.y = 0; dir.Normalize();
+        var p = g.player.transform;
+        p.position = at - dir * (e.r > 0f ? 1.5f : 0f);   // inside the way out: the game should take you through at once
+        p.rotation = g.Face(dir);
+        g.ui.Toast("Test: stepping onto the way to " + e.to + ".");
+    }
+
+    [MenuItem("Ashen Hollow/Test: Give Potions")]
+    public static void GivePotions()
+    {
+        if (!Application.isPlaying || AHGame.I == null || AHGame.I.player == null) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        var b = AHGame.I.player.bag;
+        b.Add("hp_potion", 3); b.Add("mana_potion", 2); b.Add("elixir_might", 1); b.Add("elixir_swift", 1); b.Add("enh_stone", 12); b.Add("lucky_charm", 1); b.Add("ruby", 2); b.Add("sapphire", 1); b.Add("card_wolf", 1);
+        AHGame.I.ui.Toast("+3 health, +2 mana potions, Elixir of Might, Swiftness draught (test)");
+    }
+
+    [MenuItem("Ashen Hollow/Test: Give Meals")]
+    public static void GiveMeals()
+    {
+        if (!Application.isPlaying || AHGame.I == null || AHGame.I.player == null) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        var b = AHGame.I.player.bag;
+        b.Add("hunter_stew", 1); b.Add("steak_frites_fine", 1); b.Add("kings_feast_master", 1); b.Add("honey_porridge", 1);
+        AHGame.I.ui.Toast("+ Hunter's stew, fine steak and chips, masterwork King's feast, honey porridge (test)");
+    }
+
+    // ---------- test: go straight to any exported area (Play mode) ----------
+    static void TravelTo(string id)
+    {
+        var g = AHGame.I;
+        if (!Application.isPlaying || g == null || g.player == null) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        var ta = Resources.Load<TextAsset>("AH/Areas/" + id);
+        if (ta == null) { EditorUtility.DisplayDialog("Ashen Hollow", id + " is not exported yet.", "OK"); return; }
+        var d = JsonUtility.FromJson<AHWorldData>(ta.text);
+        g.Travel(id, d.spawn.x, d.spawn.z, 0f);
+    }
+    [MenuItem("Ashen Hollow/Test: Give Money")]
+    static void GiveMoney()
+    {
+        var g = AHGame.I;
+        if (!Application.isPlaying || g == null || g.player == null) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        g.player.bag.money += 50000L * AHDB.CU; g.player.bag.Touch(); g.MarkDirty();
+        Debug.Log("Ashen Hollow: +" + AHItems.MoneyText(50000L * AHDB.CU));
+    }
+    [MenuItem("Ashen Hollow/Test: Open Auction House")]
+    static void OpenAH()
+    {
+        var g = AHGame.I;
+        if (!Application.isPlaying || g == null || g.player == null) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        g.ui.OpenAH();
+    }
+    [MenuItem("Ashen Hollow/Test: Open Work Orders")]
+    static void OpenOrders()
+    {
+        var g = AHGame.I;
+        if (!Application.isPlaying || g == null || g.player == null) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        g.ui.OpenOrders();
+    }
+    [MenuItem("Ashen Hollow/Test: Open Land Agent")]
+    static void OpenAgent()
+    {
+        var g = AHGame.I;
+        if (!Application.isPlaying || g == null || g.player == null) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        g.ui.OpenFarmAgent();
+    }
+    // stand at the nearest shop door or bank vault in this area
+    [MenuItem("Ashen Hollow/Test: Go To Next Shop or Plot")]
+    static void NextShop()
+    {
+        var g = AHGame.I;
+        if (!Application.isPlaying || g == null || g.player == null) return;
+        var list = AHGather.Spots.FindAll(s => s.kind == "use" || s.kind == "oven" || s.kind == "mill" || s.kind == "dairy" || s.kind == "spin" || s.kind == "compost");
+        if (list.Count == 0) { Debug.Log("Ashen Hollow: no shop in " + g.data.region); return; }
+        shopI = (shopI + 1) % list.Count; var sp = list[shopI];
+        g.player.transform.position = g.Resolve(sp.pos + g.CamForward() * -1.2f, 0.35f);
+        Debug.Log("Ashen Hollow: at " + sp.name);
+    }
+    static int shopI = -1;
+    [MenuItem("Ashen Hollow/Test: Go To Waystone or Treasure")]
+    static void ToWay()
+    {
+        var g = AHGame.I;
+        if (!Application.isPlaying || g == null || g.player == null) return;
+        var list = AHGather.Spots.FindAll(s => s.name == "Waystone" || s.name == "Hidden treasure");
+        if (list.Count == 0) { Debug.Log("Ashen Hollow: no waystone or treasure in " + g.data.region); return; }
+        wayI = (wayI + 1) % list.Count; var sp = list[wayI];
+        g.player.transform.position = g.Resolve(sp.pos + g.CamForward() * -1.8f, 0.35f);
+        Debug.Log("Ashen Hollow: at " + sp.name);
+    }
+    static int wayI = -1;
+    [MenuItem("Ashen Hollow/Test: Level Up +10")]
+    static void LevelUp10()
+    {
+        var g = AHGame.I;
+        if (!Application.isPlaying || g == null || g.player == null) return;
+        var p = g.player; int L = Mathf.Min(90, p.level + 10); var t = AHDB.ClAt;
+        for (int lv = 10; lv <= L; lv += 10) if (!p.trialsDone.Contains(lv)) p.trialsDone.Add(lv);
+        if (L < t.Length) p.ClassXp = t[L];
+        p.Recalc(); p.hp = p.maxHp; g.ui.RefreshClass(); g.SaveProgress();
+        g.ui.Banner("Level " + p.level, "Test level-up");
+    }
+    [MenuItem("Ashen Hollow/Test: Open Market Warden")]
+    static void OpenWarden() { var g = AHGame.I; if (Application.isPlaying && g != null && g.ui != null) g.ui.OpenWarden(AHRep.At(g, g.player.transform.position) ?? "ashen"); }
+    [MenuItem("Ashen Hollow/Test: Make It Night")] static void Night() { var g = AHGame.I; if (Application.isPlaying && g != null) g.SetTimeOfDay(0.75f); }
+    [MenuItem("Ashen Hollow/Test: Make It Day")] static void Day() { var g = AHGame.I; if (Application.isPlaying && g != null) g.SetTimeOfDay(0.25f); }
+    // renders the hero from the front, side and back into HeroShots/ next to Assets (for checking outfits up close)
+    [MenuItem("Ashen Hollow/Test: Hero Snapshots")]
+    static void HeroShots()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        var hero = g.player.transform; string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
+        var go = new GameObject("ShotCam"); var cam = go.AddComponent<Camera>(); cam.fieldOfView = 30f; cam.nearClipPlane = 0.05f;
+        var rt = new RenderTexture(640, 640, 24); cam.targetTexture = rt; var tex = new Texture2D(640, 640, TextureFormat.RGB24, false);
+        string[] names = { "front", "side", "back", "threeq" }; float[] yaw = { 0f, 90f, 180f, 35f };
+        for (int i = 0; i < names.Length; i++)
+        {
+            Vector3 dir2 = Quaternion.Euler(0, yaw[i], 0) * hero.forward;
+            bool big = g.player.mounted; Vector3 at = hero.position + Vector3.up * (big ? 1.4f : 1.0f);
+            cam.transform.position = at + dir2 * (big ? 7.5f : 4.2f) + Vector3.up * 0.35f; cam.transform.LookAt(at);
+            cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, 640, 640), 0, 0); tex.Apply(); RenderTexture.active = null;
+            System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, "hero_" + names[i] + ".png"), tex.EncodeToPNG());
+        }
+        cam.transform.position = hero.position + Vector3.up * 26f - hero.forward * 6f; cam.transform.LookAt(hero.position); cam.fieldOfView = 50f;
+        cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, 640, 640), 0, 0); tex.Apply(); RenderTexture.active = null;
+        System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, "hero_top.png"), tex.EncodeToPNG());
+        cam.transform.position = hero.position + Vector3.up * 55f - hero.forward * 40f; cam.transform.LookAt(hero.position + hero.forward * 8f); cam.fieldOfView = 55f;
+        cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, 640, 640), 0, 0); tex.Apply(); RenderTexture.active = null;
+        System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, "hero_wide.png"), tex.EncodeToPNG());
+        cam.targetTexture = null; Object.Destroy(go); Object.Destroy(rt); Object.Destroy(tex);
+        Debug.Log("Hero snapshots saved to " + System.IO.Path.GetFullPath(dir));
+    }
+    static int lookI;
+    [MenuItem("Ashen Hollow/Test: Next Cosmetic Look")]
+    static void NextLook()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return; var p = g.player;
+        string[][] L =
+        {
+            new[] { "royal_helm", "sun_mantle", "royal_plate", "royal_cape", "royal_boots" },
+            new[] { "gold_crown", "bloom_mantle", "bloom_robe", "wyrm_wings", "" },
+            new[] { "corsair_hat", "", "corsair_coat", "captain_cape", "corsair_boots" },
+            new[] { "bloom_hood", "", "bloom_robe", "bloom_cape", "" },
+            new[] { "lava_horns", "sun_mantle", "", "magma_wings", "" },
+        };
+        var o = L[lookI++ % L.Length]; string[] sl = { "head", "shoulders", "chest", "cape", "feet" };
+        for (int i = 0; i < 5; i++) { if (o[i] != "") p.bag.Add(o[i]); AHWardrobe.SetCos(p, sl[i], o[i] == "" ? null : o[i]); }
+        p.CheckOutfit(); g.ui.Toast("Look " + lookI);
+    }
+    [MenuItem("Ashen Hollow/Test: Spark Check")]
+    static void SparkCheck()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return; var p = g.player.transform;
+        AHSpark.Burst(p.position + Vector3.up * 1.2f + p.forward * 1.5f, new Color(1f, 0.6f, 0.2f), 120, 2.5f, 4f, 0.3f);
+        AHSpark.LevelUp(p.position);
+        var s = GameObject.Find("Sparks"); var r = s != null ? s.GetComponent<ParticleSystemRenderer>() : null;
+        Debug.Log("Sparks: " + (s != null) + " particles " + (s != null ? s.GetComponent<ParticleSystem>().particleCount : -1) + " mat " + (r != null && r.sharedMaterial != null ? r.sharedMaterial.shader.name : "none"));
+    }
+    [MenuItem("Ashen Hollow/Test: Go To City House")]
+    static void ToHouse()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        var d = AHCityHouse.Door; if (!d.HasValue) { g.ui.Toast("Test: no city house here (travel to a city)."); return; }
+        var p = g.player.transform; p.position = d.Value + (d.Value - p.position).normalized * 0f; g.ui.Toast("Test: at the city house");
+    }
+    [MenuItem("Ashen Hollow/Test: Give Phoenix Mount")]
+    static void GivePhoenix()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return; var p = g.player;
+        if (!p.mounts.Contains(AHPhoenix.Id)) p.mounts.Add(AHPhoenix.Id);
+        if (p.mounted) AHComp.Dismount(g, true);
+        p.mountSel = AHPhoenix.Id; g.ui.RefreshRide(); AHComp.Mount(g);
+    }
+    // gives every mount and rides the next one in the list (for checking the seat and the gait)
+    [MenuItem("Ashen Hollow/Test: Ride Next Mount")]
+    static void NextMount()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return; var p = g.player;
+        var keys = new System.Collections.Generic.List<string>(AHComp.Mounts.Keys);
+        foreach (var k in keys) if (!p.mounts.Contains(k)) p.mounts.Add(k);
+        int i = p.mountSel == null ? 0 : (keys.IndexOf(p.mountSel) + 1) % keys.Count;
+        if (p.mounted) AHComp.Dismount(g, true);
+        p.mountSel = keys[i]; g.ui.RefreshRide(); AHComp.Mount(g);
+        g.ui.Toast("Test: riding " + AHComp.MountName(keys[i]));
+    }
+    // gives every pet and brings out the next one
+    [MenuItem("Ashen Hollow/Test: Next Pet")]
+    static void NextPet()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return; var p = g.player;
+        var keys = new System.Collections.Generic.List<string>(AHDB.Table("companions", "PETS").Keys);
+        foreach (var k in keys) if (!p.pets.Contains(k)) p.pets.Add(k);
+        int i = p.pet == null ? 0 : (keys.IndexOf(p.pet) + 1) % keys.Count;
+        p.pet = keys[i]; AHComp.SpawnPet(g);
+        g.ui.Toast("Test: pet " + keys[i]);
+    }
+    [MenuItem("Ashen Hollow/Test: Go To Bandit or Pirate")]
+    static void ToPerson()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        AHMob best = null; float bd = float.MaxValue; var p = g.player.transform;
+        foreach (var m in g.mobs) { if (m == null || m.dead || !AHMobPeople.Is(m.type.id)) continue; float d = (m.transform.position - p.position).sqrMagnitude; if (d < bd) { bd = d; best = m; } }
+        if (best == null) { g.ui.Toast("Test: no bandits, pirates or cultists in this area."); return; }
+        Vector3 at = best.transform.position + best.transform.forward * 3.5f; p.position = g.Resolve(at, 0.4f); p.rotation = g.Face(best.transform.position - p.position);
+        g.ui.Toast("Test: near " + best.type.name);
+    }
+    // the nearest beast from four sides into HeroShots/mob_*.png (it is held still while the pictures are taken)
+    [MenuItem("Ashen Hollow/Test: Monster Snapshots")]
+    static void MobShots()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        AHMob best = null; float bd = float.MaxValue; var hp = g.player.transform.position;
+        foreach (var m in g.mobs) { if (m == null || m.dead) continue; float d = (m.transform.position - hp).sqrMagnitude; if (d < bd) { bd = d; best = m; } }
+        if (best == null) return;
+        var t = best.transform; float h = Mathf.Max(1.2f, best.height);
+        string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
+        var go = new GameObject("ShotCam"); var cam = go.AddComponent<Camera>(); cam.fieldOfView = 30f; cam.nearClipPlane = 0.05f;
+        var rt = new RenderTexture(640, 640, 24); cam.targetTexture = rt; var tex = new Texture2D(640, 640, TextureFormat.RGB24, false);
+        string[] names = { "front", "side", "back", "threeq" }; float[] yaw = { 0f, 90f, 180f, 35f };
+        for (int i = 0; i < names.Length; i++)
+        {
+            Vector3 at = t.position + Vector3.up * h * 0.55f, d2 = Quaternion.Euler(0, yaw[i], 0) * t.forward;
+            cam.transform.position = at + d2 * (h * 2.4f + 1.5f) + Vector3.up * h * 0.2f; cam.transform.LookAt(at);
+            cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, 640, 640), 0, 0); tex.Apply(); RenderTexture.active = null;
+            System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, "mob_" + names[i] + ".png"), tex.EncodeToPNG());
+        }
+        cam.targetTexture = null; Object.Destroy(go); Object.Destroy(rt); Object.Destroy(tex);
+        Debug.Log("Monster snapshots of " + best.type.name);
+    }
+    // every new animal (monsters.json BEASTS) and every mount, each photographed close up into one contact sheet:
+    // HeroShots/parade_beasts.png and parade_mounts.png (they are made far above the hero, then taken away again)
+    [MenuItem("Ashen Hollow/Test: Sea and Swamp Beasts")]   // also the scorpions, Pterra, the wraiths and the bone sentinel
+    static void SeaBeasts()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
+        string[] ids = { "crab", "reefcrab", "coralking", "turtle", "seaserpent", "bogtoad", "w_toad", "scorpion", "t_scorp", "pterra", "sandwraith", "fsentinel", "fnight", "raptor", "thickskull", "spikeback" };
+        Vector3 sky = g.player.transform.position + Vector3.up * 400f;
+        var shots = new System.Collections.Generic.List<GameObject>();
+        for (int i = 0; i < ids.Length; i++)
+        {
+            var t = new AHMobType { id = ids[i], name = ids[i], hp = 10, lvl = 1, model = "Mobs/" + ids[i], speed = 0, radius = 0.5f };
+            var m = AHMob.Create(g, t, sky + Vector3.right * i * 40f); m.enabled = false; m.transform.rotation = Quaternion.Euler(0, ids[i] == "seaserpent" ? 125f : 200f, 0);
+            if (m.anim != null) { m.anim.Play("Idle", true); m.anim.Tick(0.6f); }
+            var sb = m.GetComponentInChildren<AHSerpentBody>(); if (sb != null) sb.Pose(1.3f, 0f, 0f); var sr = m.GetComponentInChildren<AHSerpentRig>(); if (sr != null) sr.PoseAt(1.1f, 1f);
+            shots.Add(m.gameObject);
+        }
+        Sheet(dir, "sea_beasts", shots);
+        Debug.Log("Sea and swamp beast snapshots");
+    }
+    // what the scene asks of the GPU: how many things are drawn, how many triangles, what is heaviest
+    [MenuItem("Ashen Hollow/Test: Count Draw Load")]
+    static void SceneStats()
+    {
+        if (!Application.isPlaying || AHGame.I == null) return;
+        var cam = AHGame.I.cam; var planes = cam != null ? GeometryUtility.CalculateFrustumPlanes(cam) : null;
+        long tris = 0, visTris = 0; int rend = 0, vis = 0, skinned = 0, lights = 0; var mats = new System.Collections.Generic.HashSet<Material>();
+        var heavy = new System.Collections.Generic.Dictionary<string, long>();
+        var allR = new System.Collections.Generic.List<Renderer>(); var allL = new System.Collections.Generic.List<Light>();
+        foreach (var go in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects()) { allR.AddRange(go.GetComponentsInChildren<Renderer>(false)); allL.AddRange(go.GetComponentsInChildren<Light>(false)); }
+        foreach (var r in allR)
+        {
+            if (!r.enabled || !r.gameObject.activeInHierarchy || r is ParticleSystemRenderer) continue;
+            Mesh m = null; var mf = r.GetComponent<MeshFilter>(); if (mf != null) m = mf.sharedMesh; var sm = r as SkinnedMeshRenderer; if (sm != null) { m = sm.sharedMesh; skinned++; }
+            if (m == null) continue; long t = 0; for (int k = 0; k < m.subMeshCount; k++) t += m.GetIndexCount(k) / 3;
+            rend++; tris += t; foreach (var mm in r.sharedMaterials) if (mm != null) mats.Add(mm);
+            bool seen = planes != null && GeometryUtility.TestPlanesAABB(planes, r.bounds) && (r.bounds.center - cam.transform.position).magnitude < 110f;
+            if (seen) { vis++; visTris += t; }
+            var root = r.transform; while (root.parent != null && root.parent.parent != null) root = root.parent;
+            long cur; heavy.TryGetValue(root.name, out cur); heavy[root.name] = cur + t;
+        }
+        foreach (var l in allL) if (l.enabled) lights++;
+        var top = new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, long>>(heavy); top.Sort((a, b) => b.Value.CompareTo(a.Value));
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine(AHGame.AreaId + ": " + rend + " renderers (" + skinned + " skinned), " + tris + " tris, " + mats.Count + " materials, " + lights + " lights; in view: " + vis + " renderers, " + visTris + " tris");
+        for (int i = 0; i < Mathf.Min(15, top.Count); i++) sb.AppendLine("  " + top[i].Key + ": " + top[i].Value);
+        System.IO.Directory.CreateDirectory("HeroShots"); System.IO.File.WriteAllText("HeroShots/stats_" + AHGame.AreaId + ".txt", sb.ToString());
+        Debug.Log(sb.ToString());
+    }
+
+    [MenuItem("Ashen Hollow/Test: Farm Showcase")]
+    static void FarmShowcase()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
+        var shots = AHHomeView.Showcase(g, g.player.transform.position + Vector3.up * 400f);
+        Sheet(dir, "farm", shots);
+        var sc = GameObject.Find("FarmShowcase"); if (sc != null) Object.Destroy(sc);
+        Debug.Log("Farm showcase: " + shots.Count);
+    }
+
+    [MenuItem("Ashen Hollow/Test: Beast and Mount Parade")]
+    static void Parade()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
+        var beasts = AHDB.Table("monsters", "BEASTS") as System.Collections.Generic.Dictionary<string, object>;
+        var ids = new System.Collections.Generic.List<string>(beasts.Keys);
+        Vector3 sky = g.player.transform.position + Vector3.up * 400f;
+        var shots = new System.Collections.Generic.List<GameObject>();
+        for (int i = 0; i < ids.Count; i++)
+        {
+            var t = new AHMobType { id = ids[i], name = ids[i], hp = 10, lvl = 1, model = "Mobs/" + ids[i], speed = 0, radius = 0.5f };
+            var m = AHMob.Create(g, t, sky + Vector3.right * i * 30f); m.enabled = false; m.transform.rotation = Quaternion.identity;
+            if (m.anim != null) { m.anim.Play("Idle", true); m.anim.Tick(1f); }
+            shots.Add(m.gameObject);
+        }
+        Sheet(dir, "parade_beasts", shots);
+        var mounts = AHComp.Mounts as System.Collections.Generic.Dictionary<string, object>;
+        foreach (var k in mounts.Keys)
+        {
+            if (k == AHPhoenix.Id) continue;
+            var h = new GameObject("Parade " + k); h.transform.position = sky + Vector3.right * shots.Count * 30f;
+            AHAnim a; AHModel.Spawn(h.transform, "Comp/mount_" + k, 0f, false, 0f, out a);
+            if (a != null && a.HasClips) { a.Play("Idle", true); a.Tick(1f); }
+            shots.Add(h);
+        }
+        shots.RemoveRange(0, ids.Count);
+        Sheet(dir, "parade_mounts", shots);
+        Debug.Log("Parade snapshots: " + ids.Count + " beasts, " + shots.Count + " mounts");
+    }
+    // the townsfolk of this area, close up, into HeroShots/townsfolk.png (up to 20)
+    [MenuItem("Ashen Hollow/Test: Townsfolk Snapshots")]
+    static void Townsfolk()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null) return;
+        string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
+        var objs = new System.Collections.Generic.List<GameObject>();
+        foreach (var n in AHNpc.All) { if (objs.Count >= 20) break; objs.Add(n.gameObject); }
+        Sheet(dir, "townsfolk", objs, false);
+        Debug.Log("Townsfolk snapshots: " + objs.Count);
+    }
+    // one of each herb, close up, into HeroShots/herbs.png
+    [MenuItem("Ashen Hollow/Test: Herb Snapshots")]
+    static void Herbs()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
+        var objs = new System.Collections.Generic.List<GameObject>(); Vector3 sky = g.player.transform.position + Vector3.up * 400f; int i = 0;
+        foreach (var t in new[] { "sunpetal", "ashbloom", "frostbloom", "emberthorn", "mireroot", "dragonfern", "reefmoss" })
+        {
+            Renderer b; GameObject f; Color c; var p = AHHerbs.Build(t, 7 + i, out b, out f, out c);
+            p.transform.position = sky + Vector3.right * 20f * i++; objs.Add(p);
+        }
+        Sheet(dir, "herbs", objs);
+        Debug.Log("Herb snapshots: " + objs.Count);
+    }
+    // a campfire, a furnace and an anvil, close up, into HeroShots/stations.png
+    [MenuItem("Ashen Hollow/Test: Open Spellbook")]
+    static void OpenBook()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.ui == null) return;
+        g.ui.OpenClassWin("book");
+    }
+    [MenuItem("Ashen Hollow/Test: Cast Pose Snapshots")]
+    static void PoseShots()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        if (g.player.mounted) AHComp.Dismount(g, true);
+        string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
+        g.gameObject.AddComponent<AHPoseShots>().dir = dir;
+    }
+    [MenuItem("Ashen Hollow/Test: Station Snapshots")]
+    static void Stations()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
+        var holder = new GameObject("Station shots").transform; Vector3 sky = g.player.transform.position + Vector3.up * 400f;
+        var objs = new System.Collections.Generic.List<GameObject> { AHStations.Campfire(holder, 1.25f, 3), AHStations.Furnace(holder, 1.6f, 1.25f, 5), AHStations.Anvil(holder, 1.25f), AHStations.Fountain(holder, 2.6f), AHStations.Brazier(holder, 1.7f, 9), AHStations.Banner(holder, new Color(0.64f, 0.07f, 0.12f)), AHStations.Column(holder, 6.2f, 3), AHStations.Throne(holder), AHTents.Pavilion(holder, 4), AHTents.Ridge(holder, 7), AHScenery.Bridge(holder, 6.2f, 5.6f, 3), AHScenery.Ruin(holder, 5.4f, new Color(0.58f, 0.39f, 0.18f), 11), AHScenery.Grave(holder, 1), AHScenery.Grave(holder, 2), AHScenery.Grave(holder, 5), AHScenery.Wreck(holder, 7) };
+        for (int i = 0; i < objs.Count; i++) objs[i].transform.position = sky + Vector3.right * 20f * i;
+        Sheet(dir, "stations", objs); Object.DestroyImmediate(holder.gameObject);
+        Debug.Log("Station snapshots");
+    }
+    static void Sheet(string dir, string name, System.Collections.Generic.List<GameObject> objs, bool destroy = true)
+    {
+        const int S = 360; int cols = Mathf.Min(5, objs.Count), rows = (objs.Count + cols - 1) / cols;
+        var sheet = new Texture2D(S * cols, S * rows, TextureFormat.RGB24, false);
+        var go = new GameObject("ShotCam"); var cam = go.AddComponent<Camera>(); cam.fieldOfView = 30f; cam.nearClipPlane = 0.05f;
+        cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(0.62f, 0.7f, 0.76f);
+        var rt = new RenderTexture(S, S, 24); cam.targetTexture = rt; var tex = new Texture2D(S, S, TextureFormat.RGB24, false);
+        var lg = new GameObject("ShotLight"); var li = lg.AddComponent<Light>(); li.type = LightType.Directional; li.intensity = 1.1f; lg.transform.rotation = Quaternion.Euler(40f, -30f, 0f);
+        for (int i = 0; i < objs.Count; i++)
+        {
+            var rs = objs[i].GetComponentsInChildren<Renderer>(); if (rs.Length == 0) continue;
+            Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+            float size = Mathf.Max(b.size.x, b.size.y, b.size.z);
+            var tr = objs[i].transform; Vector3 d = (tr.forward * 0.75f + tr.right * 0.55f + Vector3.up * 0.32f).normalized;
+            cam.transform.position = b.center + d * (size * 2.1f + 0.5f); cam.transform.LookAt(b.center);
+            cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, S, S), 0, 0); tex.Apply(); RenderTexture.active = null;
+            sheet.SetPixels((i % cols) * S, (rows - 1 - i / cols) * S, S, S, tex.GetPixels());
+        }
+        sheet.Apply();
+        System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, name + ".png"), sheet.EncodeToPNG());
+        cam.targetTexture = null; Object.DestroyImmediate(go); Object.DestroyImmediate(lg); Object.Destroy(rt); Object.Destroy(tex); Object.Destroy(sheet);
+        if (destroy) foreach (var o in objs) Object.DestroyImmediate(o);
+    }
+    [MenuItem("Ashen Hollow/Test: Give Cosmetics")]
+    static void GiveCos()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return; var p = g.player;
+        foreach (var id in new[] { "royal_helm", "royal_plate", "royal_cape", "royal_boots", "bloom_mantle", "gold_crown", "wyrm_wings", "corsair_hat", "lava_horns", "bloom_robe", "bloom_hood", "sun_mantle", "captain_cape" }) p.bag.Add(id);
+        AHWardrobe.SetCos(p, "head", "royal_helm"); AHWardrobe.SetCos(p, "shoulders", "sun_mantle"); AHWardrobe.SetCos(p, "chest", "royal_plate");
+        AHWardrobe.SetCos(p, "cape", "royal_cape"); AHWardrobe.SetCos(p, "feet", "royal_boots");
+        p.CheckOutfit(); g.ui.OpenWardrobe();
+    }
+    [MenuItem("Ashen Hollow/Test: Go To Bounty Board")]
+    static void ToBoard()
+    {
+        var g = AHGame.I;
+        if (!Application.isPlaying || g == null || g.player == null) return;
+        var sp = AHGather.Spots.Find(s => s.name == "Bounty board");
+        if (sp == null) { Debug.Log("Ashen Hollow: no bounty board in " + g.data.region); return; }
+        g.player.transform.position = g.Resolve(sp.pos + g.CamForward() * -1.6f, 0.35f);
+    }
+    [MenuItem("Ashen Hollow/Dungeons (test)/The Sunken Forge")] static void D0() { TravelTo("forge"); }
+    [MenuItem("Ashen Hollow/Dungeons (test)/The Mire Warrens")] static void D1() { TravelTo("d_warrens"); }
+    [MenuItem("Ashen Hollow/Dungeons (test)/Frostpeak Caverns")] static void D2() { TravelTo("d_frost"); }
+    [MenuItem("Ashen Hollow/Dungeons (test)/Tomb of the Sun King")] static void D3() { TravelTo("d_tomb"); }
+    [MenuItem("Ashen Hollow/Dungeons (test)/Molten Depths")] static void D4() { TravelTo("d_molten"); }
+    [MenuItem("Ashen Hollow/Dungeons (test)/The Hollow Below")] static void D5() { TravelTo("d_hollow"); }
+    [MenuItem("Ashen Hollow/Dungeons (test)/Kingdom Quest: Siege")] static void KQS() { var g = AHGame.I; if (Application.isPlaying && g != null) AHKQ.StartTest(g, "siege"); }
+    [MenuItem("Ashen Hollow/Dungeons (test)/Kingdom Quest: Gold Rush")] static void KQR() { var g = AHGame.I; if (Application.isPlaying && g != null) AHKQ.StartTest(g, "rush"); }
+    [MenuItem("Ashen Hollow/Dungeons (test)/The Ember Throne (raid)")] static void DRaid() { var g = AHGame.I; if (!Application.isPlaying || g == null) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; } AHRaid.Enter(g); }
+    [MenuItem("Ashen Hollow/Dungeons (test)/Clear Dungeon Seals")] static void D6() { AHDungeon.ResetAll(); Debug.Log("Ashen Hollow: dungeon seals cleared"); }
+    // defeat the nearest beast (to try boss fights, gates and chests quickly)
+    [MenuItem("Ashen Hollow/Dungeons (test)/Defeat Nearest Beast")]
+    static void D7()
+    {
+        var g = AHGame.I;
+        if (!Application.isPlaying || g == null || g.player == null) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        AHMob best = null; float bd = float.MaxValue;
+        foreach (var m in g.mobs) { if (m.dead) continue; float d = (m.transform.position - g.player.transform.position).sqrMagnitude; if (d < bd) { bd = d; best = m; } }
+        if (best != null) best.Hurt(999999, g.player, true);
+    }
+    // stand at a dungeon door in this area (or the Sunken Forge's portal)
+    [MenuItem("Ashen Hollow/Dungeons (test)/Go To Dungeon Door")]
+    static void D9()
+    {
+        var g = AHGame.I;
+        if (!Application.isPlaying || g == null || g.player == null) return;
+        foreach (var s in AHGather.Spots)
+            if (s.kind == "gate" && s.gate != null && s.gate.dung != null) { g.player.transform.position = g.Resolve(s.pos + g.CamForward() * -2.5f, 0.35f); Debug.Log("Ashen Hollow: at " + s.name); return; }
+        Debug.Log("Ashen Hollow: no dungeon door in " + g.data.region);
+    }
+    // bring the hero next to the beast (or boss) furthest into the dungeon
+    [MenuItem("Ashen Hollow/Dungeons (test)/Go To Boss")]
+    static void D8()
+    {
+        var g = AHGame.I;
+        if (!Application.isPlaying || g == null || g.player == null) return;
+        AHMob best = null;
+        foreach (var m in g.mobs) if (!m.dead && (best == null || m.type.hp > best.type.hp)) best = m;
+        if (best != null) g.player.transform.position = g.Resolve(best.transform.position + (g.player.transform.position - best.transform.position).normalized * 6f, 0.35f);
+    }
+    [MenuItem("Ashen Hollow/Travel (test)/Your Homestead")] static void THome() { var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return; if (g.player.home == null) { Debug.Log("Ashen Hollow: buy the deed first (Test: Open Land Agent)"); return; } AHHome.TravelHome(g); }
+    [MenuItem("Ashen Hollow/Travel (test)/Hollow Meadow")] static void T0() { TravelTo("meadow"); }
+    [MenuItem("Ashen Hollow/Travel (test)/Old Mill Road")] static void T1() { TravelTo("mill"); }
+    [MenuItem("Ashen Hollow/Travel (test)/Silkwood")] static void T2() { TravelTo("silkwood"); }
+    [MenuItem("Ashen Hollow/Travel (test)/Duskmire")] static void T3() { TravelTo("mire"); }
+    [MenuItem("Ashen Hollow/Travel (test)/Kingsvale")] static void T4() { TravelTo("vale"); }
+    [MenuItem("Ashen Hollow/Travel (test)/Varrow")] static void T5() { TravelTo("city"); }
+    [MenuItem("Ashen Hollow/Travel (test)/Frostfang Reach")] static void T6() { TravelTo("frost"); }
+    [MenuItem("Ashen Hollow/Travel (test)/Highcairn")] static void T7() { TravelTo("hc_city"); }
+    [MenuItem("Ashen Hollow/Travel (test)/Sunscar Wastes")] static void T8() { TravelTo("sands"); }
+    [MenuItem("Ashen Hollow/Travel (test)/Sunspire Oasis")] static void T9() { TravelTo("ss_city"); }
+    [MenuItem("Ashen Hollow/Travel (test)/Mirewatch")] static void T10() { TravelTo("mw_city"); }
+    [MenuItem("Ashen Hollow/Travel (test)/Dragonscale Isle")] static void T11() { TravelTo("isle"); }
+    [MenuItem("Ashen Hollow/Travel (test)/Tidewake Isles")] static void T12() { TravelTo("tide"); }
+    [MenuItem("Ashen Hollow/Travel (test)/Coralport")] static void T13() { TravelTo("co_city"); }
+    [MenuItem("Ashen Hollow/Travel (test)/Emberreach")] static void T14() { TravelTo("ember"); }
+    [MenuItem("Ashen Hollow/Travel (test)/Cinderhold")] static void T15() { TravelTo("ch_city"); }
+    [MenuItem("Ashen Hollow/Travel (test)/Fossil Lands")] static void T16() { TravelTo("fossil"); }
+
+    static bool MakeMat(string shaderName, string path)
+    {
+        Shader sh = Shader.Find(shaderName);
+        if (sh == null) { Debug.LogError("Ashen Hollow: shader " + shaderName + " not found"); return false; }
+        var existing = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (existing != null) { existing.shader = sh; EditorUtility.SetDirty(existing); return true; }
+        AssetDatabase.CreateAsset(new Material(sh), path);
+        return true;
+    }
+}

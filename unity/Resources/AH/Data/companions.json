@@ -1,0 +1,262 @@
+{
+ "PETS": {
+  "toad": {
+   "name": "Mire toadling",
+   "price": 450,
+   "blurb": "Hops after you and croaks at danger."
+  },
+  "slime": {
+   "name": "Jelly slime",
+   "price": 660,
+   "blurb": "Wobbly, loyal, slightly sticky."
+  },
+  "fox": {
+   "name": "Ember fox kit",
+   "price": 1050,
+   "blurb": "A fox cub with a tail that glows like coals."
+  },
+  "owl": {
+   "name": "Snow owl",
+   "price": 1440,
+   "blurb": "Circles above your head and hoots at night."
+  },
+  "drake": {
+   "name": "Baby dragon",
+   "price": 15000,
+   "blurb": "Tiny, fierce, and breathes little sparks."
+  },
+  "parrot": {
+   "name": "Tidewake parrot",
+   "price": 5400,
+   "blurb": "Squawks, flaps and repeats rude pirate words."
+  },
+  "pumpkin_slime": {
+   "name": "Pumpkin slime",
+   "price": 0,
+   "blurb": "A Harvest Fair slime. Smells faintly of pie."
+  },
+  "lantern_owl": {
+   "name": "Lantern owl",
+   "price": 0,
+   "blurb": "A golden owl that glows softly on Lantern Nights."
+  },
+  "snow_fox": {
+   "name": "Snow fox kit",
+   "price": 0,
+   "blurb": "A Winter Feast fox, white as fresh snow."
+  }
+ },
+ "MOUNTS": {
+  "horse": {
+   "name": "Chestnut horse",
+   "price": 2700,
+   "speed": 1.55,
+   "blurb": "Steady, fast and cheaper than new boots."
+  },
+  "destrier": {
+   "name": "Armored destrier",
+   "price": 9600,
+   "speed": 1.7,
+   "blurb": "A barded warhorse with a golden crest."
+  },
+  "direwolf": {
+   "name": "Frost dire wolf",
+   "price": 7800,
+   "speed": 1.75,
+   "blurb": "Bred in Highcairn. Runs on snow like it is road."
+  },
+  "raptor": {
+   "name": "Island raptor",
+   "price": 16500,
+   "speed": 1.9,
+   "blurb": "Tamed on Dragonscale Isle. The fastest thing with legs."
+  },
+  "goldsteed": {
+   "name": "Goldhorn steed",
+   "price": 0,
+   "speed": 1.8,
+   "rare": true,
+   "blurb": "A golden horse from Goldhorn’s herd. Rare drop."
+  },
+  "nightmare": {
+   "name": "Mistfang nightmare",
+   "price": 0,
+   "speed": 1.85,
+   "rare": true,
+   "blurb": "A ghost-black horse with burning violet eyes. Rare drop."
+  },
+  "bogstrider": {
+   "name": "Bogstrider",
+   "price": 0,
+   "speed": 1.85,
+   "rare": true,
+   "blurb": "A swamp lizard that runs on mud like it is road. Rare drop."
+  },
+  "glacierwolf": {
+   "name": "Glacier wolf",
+   "price": 0,
+   "speed": 1.9,
+   "rare": true,
+   "blurb": "Rimeclaw’s pup, grown huge and loyal. Rare drop."
+  },
+  "dunestrider": {
+   "name": "Dunestrider",
+   "price": 0,
+   "speed": 1.9,
+   "rare": true,
+   "blurb": "A sand-gold runner from the deep desert. Rare drop."
+  },
+  "tidelizard": {
+   "name": "Tidecrest runner",
+   "price": 0,
+   "speed": 1.95,
+   "rare": true,
+   "blurb": "Coral-crested and fast as a wave. Rare drop."
+  },
+  "emberlizard": {
+   "name": "Emberback runner",
+   "price": 0,
+   "speed": 1.95,
+   "rare": true,
+   "blurb": "Obsidian scales, lava in its veins. Rare drop."
+  },
+  "voidwing": {
+   "name": "Voidwing",
+   "price": 0,
+   "speed": 2.1,
+   "rare": true,
+   "blurb": "A winged steed of the starless sky. Almost nobody has one."
+  },
+  "gladiator": {
+   "name": "Gladiator’s warhorse",
+   "price": 0,
+   "speed": 1.95,
+   "blurb": "Earned in the arena by heroes rated 1800 or higher."
+  },
+  "phoenix": {
+   "name": "Ashen Phoenix",
+   "price": 0,
+   "speed": 2.15,
+   "rare": true,
+   "blurb": "A great bird of living flame, reborn from its own ashes. The fastest mount in the realm."
+  }
+ },
+ "MERCS": {
+  "knight": {
+   "name": "Sir Aldric",
+   "role": "Knight · tank",
+   "price": 1350,
+   "hp": 190,
+   "dmg": 7,
+   "range": 50,
+   "speed": 175,
+   "armor": 0.55,
+   "blurb": "Taunts enemies onto himself and soaks the hits.",
+   "weapon": "sword",
+   "shield": true
+  },
+  "ranger": {
+   "name": "Wren",
+   "role": "Ranger · damage",
+   "price": 1350,
+   "hp": 125,
+   "dmg": 9,
+   "range": 270,
+   "speed": 180,
+   "armor": 0.85,
+   "blurb": "Fires arrows from range at whatever you fight.",
+   "weapon": "bow",
+   "shield": false
+  },
+  "cleric": {
+   "name": "Sister Mae",
+   "role": "Cleric · healer",
+   "price": 1650,
+   "hp": 135,
+   "dmg": 5,
+   "range": 240,
+   "speed": 175,
+   "armor": 0.8,
+   "blurb": "Heals you and the party, and smites with holy bolts.",
+   "weapon": "mace",
+   "shield": false
+  }
+ },
+ "SEAT": {
+  "horse": 0.64,
+  "destrier": 0.64,
+  "direwolf": 0.52,
+  "raptor": 0.52,
+  "goldsteed": 0.64,
+  "nightmare": 0.64,
+  "bogstrider": 0.69,
+  "glacierwolf": 0.52,
+  "dunestrider": 0.69,
+  "tidelizard": 0.69,
+  "emberlizard": 0.69,
+  "voidwing": 0.64,
+  "gladiator": 0.64,
+  "phoenix": 1.05
+ },
+ "PET_FLY": [
+  "owl",
+  "drake",
+  "parrot",
+  "lantern_owl"
+ ],
+ "PET_SKILLS": [
+  [
+   3,
+   "Fetch",
+   "brings back extra coins from every kill"
+  ],
+  [
+   5,
+   "Forager",
+   "sometimes finds an extra material when you gather"
+  ],
+  [
+   8,
+   "Guard",
+   "bites whatever you are fighting"
+  ],
+  [
+   12,
+   "Mend",
+   "heals you during fights"
+  ],
+  [
+   16,
+   "Lucky",
+   "rare drops turn up more often"
+  ],
+  [
+   20,
+   "Loyal",
+   "every skill 50% stronger"
+  ]
+ ],
+ "PET_KIND": {
+  "toad": [
+   "forage",
+   "Forager 50% stronger"
+  ],
+  "slime": [
+   "mend",
+   "Mend 50% stronger"
+  ],
+  "fox": [
+   "guard",
+   "Guard 50% stronger"
+  ],
+  "owl": [
+   "fetch",
+   "Fetch 50% stronger"
+  ],
+  "drake": [
+   "all",
+   "every skill 25% stronger"
+  ]
+ },
+ "_about": "PETS, MOUNTS (web), MERCS (sellswords), SEAT (hero height on each mount, m), PET_FLY, PET_SKILLS, PET_KIND (web v67)"
+}
