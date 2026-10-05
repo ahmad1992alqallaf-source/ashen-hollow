@@ -970,6 +970,8 @@ public class AHPlayer : MonoBehaviour
         {
             Recalc();
             if (g.ui != null) g.ui.Banner("Level " + after, cls.name + " level up");
+            string opens = AHGame.LandsOpeningAt(after);
+            if (opens != null && g.ui != null) g.ui.Toast("Now ready for " + opens + ". See the world map (M).", 4f);
             AHSpark.LevelUp(transform.position);
             AHFx.Pillar(transform.position, 0.9f, 4f, new Color(1f, 0.85f, 0.4f, 0.8f), 1f);
             if (anim != null) { anim.Play("Cheer", false, 1f, true); atkT = 0.9f; hitAt = 0f; }

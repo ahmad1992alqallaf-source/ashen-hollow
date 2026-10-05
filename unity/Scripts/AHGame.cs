@@ -344,6 +344,23 @@ public class AHGame : MonoBehaviour
         ui.Toast("New land discovered: " + data.region + " · +" + xp + " XP, " + AHItems.MoneyText(silver), 3.5f);
     }
 
+    // the lands whose levels start at this level (for a hint when you level up)
+    public static string LandsOpeningAt(int lv)
+    {
+        var names = new List<string>();
+        foreach (var list in new[] { AHDB.List("world", "REGIONS"), AHDB.List("world", "CONNS") })
+        {
+            if (list == null) continue;
+            foreach (var o in list)
+            {
+                if (AHJson.B(o, "dung")) continue;
+                string l = AHJson.S(o, "lv", ""); int a; if (l == "" || !int.TryParse(l.Replace("–", "-").Split('-')[0], out a)) continue;
+                string n = AHJson.S(o, "name", ""); if (a == lv && n != "" && !names.Contains(n)) names.Add(n);
+            }
+        }
+        return names.Count == 0 ? null : string.Join(", ", names.ToArray());
+    }
+
     // arriving somewhere far above your level: a plain warning (the web game let you walk in and die)
     void DangerCheck()
     {

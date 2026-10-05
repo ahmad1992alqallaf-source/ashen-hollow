@@ -677,7 +677,7 @@ public partial class AHUI : MonoBehaviour
             if (d.IsFood) { p.Eat(id); bagSel = bag.Count(id) > 0 ? id : null; }
             else if (d.potion) { p.Drink(id); bagSel = bag.Count(id) > 0 ? id : null; }
             else if (id == "mystery_sack") { AHDaily.OpenSack(g); bagSel = bag.Count(id) > 0 ? id : null; }
-            else if (id == AHTreasure.MapId) { AHTreasure.Read(g); bagSel = bag.Count(id) > 0 ? id : null; }
+            else if (AHTreasure.IsMap(id)) { AHTreasure.Read(g, id); bagSel = bag.Count(id) > 0 ? id : null; }
             else if (d.reins != null) { if (p.mounts.Contains(d.reins)) Toast("You already know that mount. Sell the reins to someone who wants it."); else if (bag.Take(id)) { p.mounts.Add(d.reins); p.mountSel = d.reins; RefreshRide(); Banner(AHComp.MountName(d.reins), "Mount learned! Tap RIDE"); AHSound.Play("level"); g.MarkDirty(); } bagSel = bag.Count(id) > 0 ? id : null; }
             else if (id.StartsWith("card_")) { if (!AHPower.AddCard(g, id)) Toast("That card is already in your collection. Sell or trade the spare."); bagSel = bag.Count(id) > 0 ? id : null; }
             else if (d.IsGear) { string msg = bag.Equip(id, p.cls.id); if (msg != null) Toast(msg); bagSel = null; }

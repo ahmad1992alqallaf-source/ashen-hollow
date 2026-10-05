@@ -10077,6 +10077,51 @@
    "icon": "reins",
    "c": "#e8dcc0",
    "reins": "fossilraptor"
+  },
+  "tmap_meadow": {
+   "name": "Treasure map: Hollow Meadow",
+   "icon": "cloth",
+   "c": "#c9a24a"
+  },
+  "tmap_silkwood": {
+   "name": "Treasure map: Silkwood",
+   "icon": "cloth",
+   "c": "#c9a24a"
+  },
+  "tmap_mire": {
+   "name": "Treasure map: Duskmire",
+   "icon": "cloth",
+   "c": "#c9a24a"
+  },
+  "tmap_vale": {
+   "name": "Treasure map: Kingsvale",
+   "icon": "cloth",
+   "c": "#c9a24a"
+  },
+  "tmap_frost": {
+   "name": "Treasure map: Frostfang Reach",
+   "icon": "cloth",
+   "c": "#c9a24a"
+  },
+  "tmap_sands": {
+   "name": "Treasure map: Sunscar Wastes",
+   "icon": "cloth",
+   "c": "#c9a24a"
+  },
+  "tmap_isle": {
+   "name": "Treasure map: Dragonscale Isle",
+   "icon": "cloth",
+   "c": "#c9a24a"
+  },
+  "tmap_tide": {
+   "name": "Treasure map: Tidewake Isles",
+   "icon": "cloth",
+   "c": "#c9a24a"
+  },
+  "tmap_ember": {
+   "name": "Treasure map: Emberreach",
+   "icon": "cloth",
+   "c": "#c9a24a"
   }
  },
  "QUALITY": {

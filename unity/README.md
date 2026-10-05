@@ -379,10 +379,14 @@ For iPhone you need a Mac with Xcode.
   ground stretches and the woods get a second tree for every one. `AHGame.spreadK` holds the sizes;
   "Test: Toggle Wider Areas" shows a land as it was.
 - **Danger warning**: walking into a land far above your level shows a warning.
-- **Fossil Lands treasure maps**: beasts there drop old maps (bosses often), and your first visit gives you one. Read it
-  in the Fossil Lands (tap it twice in the bag): a red X with a pale light appears, also on your map. Dig there for
-  silver, gems, bones, potions, cards and sometimes another map. One dig in a hundred gives the reins of the
-  **Fossilized raptor** mount. Deeds: X Marks the Spot (5 digs), Bone Rider.
+- **Treasure maps**: every wild land has its own (Hollow Meadow, Silkwood, Duskmire, Kingsvale, Frostfang, Sunscar,
+  Dragonscale, Tidewake, Emberreach, Fossil Lands). Its beasts drop them (bosses often); your first visit to the Fossil
+  Lands gives you one. Read a map in its land (tap it twice in the bag): a red X with a pale light appears, also on
+  your map. Dig there (keep 4 bag slots free) for silver, ore and gems for the land's level, its herbs, potions, a card
+  of one of its beasts and sometimes another map. One dig in a hundred gives the reins of the land's rare mount; in
+  the Fossil Lands that is the new **Fossilized raptor**, a mount of bare bone. Deeds: X Marks the Spot (5 Fossil
+  digs), Treasure Seeker (10 digs), Bone Rider.
+- **Level-up hints**: reaching the first level of a land tells you it is ready for you.
 - **Bosses**: Forgemaster Grull and Pyraxis are the rigged demon from the "Demon Horror Creature with Weapon" Unity
   package you supplied (Resources/AH/Models/Demon). The regular imps are the Hellish imp.
 - **Cities**: the old web awnings and porches baked into each city's big model are trimmed away inside the rebuilt lots.

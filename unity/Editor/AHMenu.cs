@@ -942,12 +942,13 @@ public static class AHMenu
     }
 
     // in the Fossil Lands: read a map, walk to the X and dig (the result shows as a banner and in the Console)
-    [MenuItem("Ashen Hollow/Test: Fossil Treasure Run")]
+    [MenuItem("Ashen Hollow/Test: Fossil Treasure Run")]   // or the land you are in, if it has maps
     static void TreasureRun()
     {
         var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
-        if (AHGame.AreaId != "fossil") { TravelTo("fossil"); Debug.Log("Ashen Hollow: run this again once in the Fossil Lands"); return; }
-        g.player.bag.Add(AHTreasure.MapId, 1); AHTreasure.Read(g);
+        string mid = AHTreasure.MapHere;
+        if (mid == null) { TravelTo("fossil"); Debug.Log("Ashen Hollow: no treasure maps here; run this again once in the Fossil Lands"); return; }
+        g.player.bag.Add(mid, 1); AHTreasure.Read(g, mid);
         foreach (var s in AHGather.Spots) if (s.name == "Dig for treasure") { g.player.transform.position = g.Resolve(s.pos + Vector3.right * 1.5f, 0.3f); if (s.use != null) s.use(); return; }
     }
 }
