@@ -679,7 +679,7 @@ public class AHHomeView : MonoBehaviour
         {
             var t = Slot(k); var body = new GameObject("Body").transform; body.SetParent(t, false);
             float len = k == "cow" ? 2.4f : k == "pig" ? 1.35f : k == "sheep" ? 1.3f : k == "goat" ? 1.15f : 0f; AHAnim an;
-            if (len > 0f) { AHModel.Spawn(body, "Comp/farm_" + k, len, true, 0f, out an); if (an != null) { an.Play("Idle", true); an.Tick(1f); } } else v.AnimalModel(body, k);
+            if (len > 0f) { AHModel.Spawn(body, "Comp/farm_" + k, len, true, 0f, out an); if (an != null) { an.Play("Idle", true); an.Tick(1f); v.petAnims.Add(an); } } else v.AnimalModel(body, k);
         }
         var st = Slot("stall"); v.StationModel(st, "stall");
         var ct = Slot("cat"); v.ComfortModel(ct, "cat"); var dg = Slot("dog"); v.ComfortModel(dg, "dog");

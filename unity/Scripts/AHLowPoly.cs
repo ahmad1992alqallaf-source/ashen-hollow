@@ -68,3 +68,34 @@ public class AHCull : MonoBehaviour
         }
     }
 }
+
+// keeps a shown monster idling (its own AI is off)
+public class AHShowAnim : MonoBehaviour
+{
+    [System.NonSerialized] public AHAnim anim; [System.NonSerialized] public string shotName; float t; bool shot;
+    void Update()
+    {
+        t += Time.deltaTime;
+        if (anim != null && anim.HasClips) { anim.Play(t % 8f < 5.5f ? "Idle" : "Walk", true); anim.Tick(Time.deltaTime); }
+        if (!shot && t > 0.8f && shotName != null) { shot = true; Snap(); }
+    }
+    // a picture of it from the front three-quarters and the side, into HeroShots/<shotName>.png (editor tests)
+    void Snap()
+    {
+        var rs = GetComponentsInChildren<Renderer>(); if (rs.Length == 0) return;
+        Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); float size = Mathf.Max(b.size.x, b.size.y, b.size.z);
+        const int S = 640; var go = new GameObject("ShowCam"); var cam = go.AddComponent<Camera>(); cam.fieldOfView = 30f; cam.nearClipPlane = 0.05f;
+        cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(0.62f, 0.7f, 0.76f);
+        var rt = new RenderTexture(S, S, 24); cam.targetTexture = rt; var tex = new Texture2D(S * 2, S, TextureFormat.RGB24, false);
+        var views = new[] { (transform.forward * 0.8f + transform.right * 0.5f + Vector3.up * 0.25f).normalized, (transform.right + Vector3.up * 0.15f).normalized };
+        for (int i = 0; i < 2; i++)
+        {
+            cam.transform.position = b.center + views[i] * (size * 2.0f + 0.6f); cam.transform.LookAt(b.center); cam.Render();
+            RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, S, S), i * S, 0); RenderTexture.active = null;
+        }
+        tex.Apply();
+        string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
+        System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, shotName + ".png"), tex.EncodeToPNG());
+        cam.targetTexture = null; Destroy(go); Destroy(rt); Destroy(tex);
+    }
+}

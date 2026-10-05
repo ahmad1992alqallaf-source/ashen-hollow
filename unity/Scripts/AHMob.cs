@@ -165,10 +165,11 @@ public class AHMob : MonoBehaviour
     {
         switch (type) { case "golem": case "emberwarden": case "magmatitan": return "Fire"; case "obsidiangolem": return "Shadow"; }
         var d = AHJson.O(AHDB.Mobs, type);
-        object c = AHJson.Has(d, "glow") ? ((System.Collections.Generic.Dictionary<string, object>)d)["glow"] : AHJson.Has(d, "tint") ? ((System.Collections.Generic.Dictionary<string, object>)d)["tint"] : null;
+        // the body's own colour decides first (a fire golem with a violet glow is still a fire golem), then its glow
+        object c = AHJson.Has(d, "tint") ? ((System.Collections.Generic.Dictionary<string, object>)d)["tint"] : AHJson.Has(d, "glow") ? ((System.Collections.Generic.Dictionary<string, object>)d)["glow"] : null;
         if (c == null) return "Earth";
         float h, sat, l; Color.RGBToHSV(AHDB.Col(c, Color.white), out h, out sat, out l);
-        if (l > 0.9f || (h > 0.5f && h < 0.62f)) return "Ice";
+        if ((l > 0.85f && sat < 0.3f) || (h > 0.5f && h < 0.62f)) return "Ice";
         if (h > 0.68f && h < 0.9f) return "Shadow";
         if (h >= 0.1f && h < 0.18f && sat > 0.5f) return "Light";
         if (h < 0.1f || h > 0.95f) return "Fire";

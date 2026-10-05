@@ -484,6 +484,68 @@ public static class AHMenu
         Debug.Log(sb.ToString());
     }
 
+    // every monster of every area and dungeon, built as the game builds it, checked and photographed:
+    // HeroShots/all_mobs_<n>.png sheets and all_mobs.txt (what model each uses, rigged or not, animated or not)
+    [MenuItem("Ashen Hollow/Test: All Monsters Check")]
+    static void AllMobs()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
+        var types = new System.Collections.Generic.List<AHMobType>(); var seen = new System.Collections.Generic.HashSet<string>();
+        foreach (var ta in Resources.LoadAll<TextAsset>("AH/Areas"))
+        {
+            object d; try { d = AHJson.Parse(ta.text); } catch { continue; }
+            var mts = AHJson.A(d, "mobTypes"); if (mts == null) continue;
+            foreach (var o in mts)
+            {
+                string id = AHJson.S(o, "id"); if (id == null || !seen.Add(id)) continue;
+                types.Add(new AHMobType { id = id, name = AHJson.S(o, "name", id), model = AHJson.S(o, "model"), hp = 10, lvl = 1, speed = 0, radius = 0.5f });
+            }
+        }
+        types.Sort((a, b) => string.CompareOrdinal(a.id, b.id));
+        Vector3 sky = g.player.transform.position + Vector3.up * 500f;
+        var sb = new System.Text.StringBuilder(); var shots = new System.Collections.Generic.List<GameObject>(); int sheet = 0;
+        for (int i = 0; i < types.Count; i++)
+        {
+            var t = types[i]; AHMob m = null;
+            try { m = AHMob.Create(g, t, sky + Vector3.right * (i % 25) * 30f); } catch (System.Exception e) { sb.AppendLine(t.id + "\tERROR " + e.Message); continue; }
+            m.enabled = false; m.transform.rotation = Quaternion.identity;
+            if (m.anim != null && m.anim.HasClips) { m.anim.Play("Idle", true); m.anim.Tick(1.3f); }
+            var sk = m.GetComponentsInChildren<SkinnedMeshRenderer>(true).Length; var mr = m.GetComponentsInChildren<MeshRenderer>(true).Length;
+            string file = m.transform.childCount > 0 ? m.transform.GetChild(0).name : "?";
+            string kind = sk > 0 ? "rigged" : file.StartsWith("Mobs/") ? "OLD BLOCKS" : file.Contains("Capsule") ? "MISSING (capsule)" : "built";
+            sb.AppendLine(t.id + "\t" + t.name + "\t" + (t.model ?? "") + " -> " + file + "\t" + kind + "\t" + (m.anim != null && m.anim.HasClips ? "animated" : "still") + "\tskinned " + sk + ", parts " + mr);
+            shots.Add(m.gameObject);
+            if (shots.Count == 25 || i == types.Count - 1) { Sheet(dir, "all_mobs_" + sheet, shots); sheet++; shots = new System.Collections.Generic.List<GameObject>(); }
+        }
+        System.IO.File.WriteAllText(System.IO.Path.Combine(dir, "all_mobs.txt"), sb.ToString());
+        Debug.Log("All monsters check: " + types.Count + " types, " + sheet + " sheets");
+    }
+
+    // a monster stood a few metres in front of you, alive (breathing, idling) but harmless; again for the next one
+    static readonly string[] showIds = { "imp", "magmaimp", "troll", "f_hrimgar", "f_glacius", "lurker", "mirehulk", "bogmother", "w_bogking", "w_rotfang", "sandqueen", "thalassa", "voidmaw", "m_ignis" };
+    static int showAt; static GameObject showGo;
+    [MenuItem("Ashen Hollow/Test: Display Monster Here")]
+    static void ShowMonster()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        if (showGo != null) Object.Destroy(showGo);
+        string id = showIds[showAt++ % showIds.Length]; AHMobType t = null;
+        foreach (var ta in Resources.LoadAll<TextAsset>("AH/Areas"))
+        {
+            object d; try { d = AHJson.Parse(ta.text); } catch { continue; }
+            var mts = AHJson.A(d, "mobTypes"); if (mts == null) continue;
+            foreach (var o in mts) if (AHJson.S(o, "id") == id) { t = new AHMobType { id = id, name = AHJson.S(o, "name", id), model = AHJson.S(o, "model"), hp = 10, lvl = 1, radius = 0.5f }; break; }
+            if (t != null) break;
+        }
+        if (t == null) return;
+        var p = g.player.transform; Vector3 f = g.cam != null ? -g.cam.transform.forward : -p.forward; f.y = 0; f.Normalize();
+        var m = AHMob.Create(g, t, g.Resolve(p.position - f * 6f, 0.2f)); m.enabled = false;
+        m.transform.rotation = Quaternion.LookRotation(f);
+        var sa = m.gameObject.AddComponent<AHShowAnim>(); sa.anim = m.anim; sa.shotName = "show_" + id;
+        showGo = m.gameObject; g.ui.Toast("Test: " + t.name);
+    }
+
     [MenuItem("Ashen Hollow/Test: Farm Showcase")]
     static void FarmShowcase()
     {
@@ -687,3 +749,4 @@ public static class AHMenu
         return true;
     }
 }
+

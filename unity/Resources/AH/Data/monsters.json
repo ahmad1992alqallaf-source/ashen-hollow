@@ -279,7 +279,8 @@
    "atkCd": 2,
    "skinReq": 18,
    "elite": true,
-   "gold": 120
+   "gold": 120,
+   "tint": 13625589
   },
   "boarlord": {
    "name": "Old Tusker",
@@ -3148,6 +3149,90 @@
      "Dino/Stego_Death"
     ]
    }
+  },
+  "lurker": {
+   "files": [
+    "b_frogbeast"
+   ],
+   "size": 1.8,
+   "long": true,
+   "noTint": true,
+   "hop": true,
+   "flip": true
+  },
+  "w_lurker": {
+   "files": [
+    "b_frogbeast"
+   ],
+   "size": 1.6,
+   "long": true,
+   "noTint": true,
+   "hop": true,
+   "flip": true
+  },
+  "w_bogking": {
+   "files": [
+    "b_toad"
+   ],
+   "size": 1.4,
+   "long": true,
+   "noTint": true,
+   "hop": true,
+   "flip": true
+  },
+  "bogmother": {
+   "files": [
+    "b_frogbeast"
+   ],
+   "size": 1.4,
+   "long": true,
+   "noTint": true,
+   "hop": true,
+   "flip": true
+  },
+  "w_rotfang": {
+   "files": [
+    "b_boarlord"
+   ],
+   "size": 1.7,
+   "long": true,
+   "noTint": true,
+   "idle": "Idle",
+   "walk": "Walk",
+   "move": "Gallop",
+   "attack": [
+    "Attack"
+   ],
+   "hit": "Idle_HitReact_Left",
+   "death": "Death",
+   "moveRate": 0.9
+  },
+  "sandqueen": {
+   "files": [
+    "b_scorpion"
+   ],
+   "long": true,
+   "idle": "Armature|idle",
+   "walk": "Armature|walk",
+   "move": "Armature|walk",
+   "attack": [
+    "Armature|areaAttack"
+   ],
+   "hit": "Armature|Defend",
+   "death": "Armature|death",
+   "moveRate": 1.2,
+   "size": 3.2,
+   "noTint": true
+  },
+  "thalassa": {
+   "files": [
+    "b_serpent"
+   ],
+   "size": 11.0,
+   "long": true,
+   "noTint": true,
+   "rig": "serpent",
+   "flip": true
   }
  }
 }
