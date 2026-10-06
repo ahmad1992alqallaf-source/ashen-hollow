@@ -43,7 +43,7 @@ public static class AHMenu
         ok &= MakeMat("AshenHollow/Ground", matDir + "/Ground.mat");
         ok &= MakeMat("AshenHollow/Spark", matDir + "/Spark.mat");
         AssetDatabase.SaveAssets();
-        if (Resources.Load<GameObject>("AH/Areas/meadow_world") == null && Resources.Load<GameObject>("AH/meadow_world") == null)
+        if (Resources.Load<GameObject>("AH/Areas/meadow_world_kk") == null && Resources.Load<GameObject>("AH/Areas/meadow_world") == null && Resources.Load<GameObject>("AH/meadow_world") == null)
         {
             EditorUtility.DisplayDialog("Ashen Hollow", "The meadow model has not imported. Install the glTFast package first (Window > Package Manager > + > Install package by name > com.unity.cloud.gltfast), wait for it to finish, then run this again.", "OK");
             return;

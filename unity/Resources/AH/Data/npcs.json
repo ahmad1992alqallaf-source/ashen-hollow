@@ -1,0 +1,1962 @@
+{
+ "VILLAGERS": [
+  {
+   "name": "Guard Oswin",
+   "town": "varrow",
+   "x": 41530,
+   "y": 954,
+   "guard": true,
+   "lines": [
+    "Varrow’s gates are open to honest folk.",
+    "Bandits on the north road. Watch yourself."
+   ],
+   "hx": 41530,
+   "hy": 954,
+   "tx": 41530,
+   "ty": 954,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Guard Tamsin",
+   "town": "varrow",
+   "x": 41670,
+   "y": 960,
+   "guard": true,
+   "lines": [
+    "Move along, citizen.",
+    "The Salty Trout serves the best stew in the realm."
+   ],
+   "hx": 41670,
+   "hy": 960,
+   "tx": 41670,
+   "ty": 960,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Fisher Pell",
+   "town": "varrow",
+   "x": 41605,
+   "y": 2020,
+   "lines": [
+    "Tuna bite at the end of the pier. You need Fishing 12.",
+    "That ship? Bound for islands nobody has mapped. One day."
+   ],
+   "hx": 41605,
+   "hy": 2020,
+   "tx": 41605,
+   "ty": 2020,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Merchant Ilsa",
+   "town": "varrow",
+   "x": 41600,
+   "y": 1450,
+   "wander": true,
+   "lines": [
+    "Madame Velour sells outfits fit for royalty.",
+    "Have you touched a waystone? They remember you."
+   ],
+   "hx": 41600,
+   "hy": 1450,
+   "tx": 41600,
+   "ty": 1450,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Young Kit",
+   "town": "varrow",
+   "x": 41300,
+   "y": 1350,
+   "wander": true,
+   "lines": [
+    "I saw a baby dragon in the Menagerie! In Sunspire!",
+    "My da says there’s treasure buried near the standing stones."
+   ],
+   "hx": 41300,
+   "hy": 1350,
+   "tx": 41300,
+   "ty": 1350,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Elder Brann",
+   "town": "highcairn",
+   "x": 151210,
+   "y": 1070,
+   "wander": true,
+   "lines": [
+    "Frost trolls hit hard. Roll away when the ground cracks red.",
+    "Sigrid pays double for frost pelts."
+   ],
+   "hx": 151210,
+   "hy": 1070,
+   "tx": 151210,
+   "ty": 1070,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Bog-witch’s apprentice",
+   "town": "mirewatch",
+   "x": 156220,
+   "y": 1060,
+   "wander": true,
+   "lines": [
+    "Morwen’s sacks have… surprises.",
+    "Eels swim in the bog pools. Smoke them on a fire."
+   ],
+   "hx": 156220,
+   "hy": 1060,
+   "tx": 156220,
+   "ty": 1060,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Caravan master Idris",
+   "town": "sunspire",
+   "x": 161301,
+   "y": 1330.203,
+   "wander": true,
+   "lines": [
+    "The Sand Queen nests in the Kharos ruins to the south.",
+    "Gold rocks hide in the dunes. Rashid buys the ore."
+   ],
+   "hx": 161301,
+   "hy": 1330.203,
+   "tx": 161301,
+   "ty": 1330.203,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Farmer Hobb",
+   "town": null,
+   "x": 3920,
+   "y": 3808,
+   "lines": [
+    "Wolves took three sheep last week!",
+    "The windmill has turned for a hundred years."
+   ],
+   "hx": 3920,
+   "hy": 3808,
+   "tx": 3920,
+   "ty": 3808,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Captain Maren",
+   "town": "varrow",
+   "x": 41605,
+   "y": 2330,
+   "sail": "isle",
+   "lines": [
+    "The Seawolf sails for Dragonscale Isle. Hop aboard!"
+   ],
+   "hx": 41605,
+   "hy": 2330,
+   "tx": 41605,
+   "ty": 2330,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Captain Maren",
+   "town": null,
+   "x": 30560,
+   "y": 1910,
+   "sail": "home",
+   "lines": [
+    "Ready to sail home to Varrow?"
+   ],
+   "hx": 30560,
+   "hy": 1910,
+   "tx": 30560,
+   "ty": 1910,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Herald Bram",
+   "town": "varrow",
+   "x": 40560,
+   "y": 660,
+   "lines": [
+    "Hear ye! The king seeks heroes to slay the Ashen Wyrm!",
+    "The castle gates open to heroes of renown. Someday."
+   ],
+   "hx": 40560,
+   "hy": 660,
+   "tx": 40560,
+   "ty": 660,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Bard Lira",
+   "town": "varrow",
+   "x": 40645,
+   "y": 1770,
+   "wander": true,
+   "lines": [
+    "♪ Oh the wyrm of ash, the wyrm of flame… ♪",
+    "Every road in the realm ends at Varrow. Or starts there."
+   ],
+   "hx": 40645,
+   "hy": 1770,
+   "tx": 40645,
+   "ty": 1770,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Sergeant Voss",
+   "town": "varrow",
+   "x": 42650,
+   "y": 1880,
+   "guard": true,
+   "lines": [
+    "Hit the dummies all you like. They hit back less than trolls.",
+    "Out there, monsters stronger than you hit twice as hard. Level up before you wander."
+   ],
+   "hx": 42650,
+   "hy": 1880,
+   "tx": 42650,
+   "ty": 1880,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Gate guard",
+   "town": "varrow",
+   "x": 41530,
+   "y": 130,
+   "guard": true,
+   "lines": [
+    "Welcome to Varrow, capital of the realm."
+   ],
+   "hx": 41530,
+   "hy": 130,
+   "tx": 41530,
+   "ty": 130,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Gate guard",
+   "town": "varrow",
+   "x": 40130,
+   "y": 1280,
+   "guard": true,
+   "lines": [
+    "West road leads to Mirewatch and the swamps."
+   ],
+   "hx": 40130,
+   "hy": 1280,
+   "tx": 40130,
+   "ty": 1280,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Gate guard",
+   "town": "varrow",
+   "x": 43070,
+   "y": 1280,
+   "guard": true,
+   "lines": [
+    "East road runs to Sunspire, across the sands."
+   ],
+   "hx": 43070,
+   "hy": 1280,
+   "tx": 43070,
+   "ty": 1280,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Gate warden",
+   "town": null,
+   "x": 5168,
+   "y": 3872,
+   "guard": true,
+   "lines": [
+    "The capital lies beyond. Tap the gate to enter."
+   ],
+   "hx": 5168,
+   "hy": 3872,
+   "tx": 5168,
+   "ty": 3872,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Weary pilgrim",
+   "town": null,
+   "x": 53310,
+   "y": 380,
+   "lines": [
+    "The old mill hasn’t turned in years. They say a huge boar lives by the river.",
+    "Half way. Hollow Meadow lies back west, Silkwood ahead to the east."
+   ],
+   "hx": 53310,
+   "hy": 380,
+   "tx": 53310,
+   "ty": 380,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Trapper Olga",
+   "town": null,
+   "x": 65060,
+   "y": 786.384,
+   "lines": [
+    "Keep moving or the cold gets in your bones. The pass alpha hunts at the top.",
+    "Half way. Silkwood lies back west, Frostfang Reach ahead to the east."
+   ],
+   "hx": 65060,
+   "hy": 786.384,
+   "tx": 65060,
+   "ty": 786.384,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Peat cutter Ned",
+   "town": null,
+   "x": 75310,
+   "y": 1088.0473,
+   "lines": [
+    "Mind the sinking mud. The toads get bigger the deeper you go.",
+    "Half way. Hollow Meadow lies back west, Duskmire ahead to the east."
+   ],
+   "hx": 75310,
+   "hy": 1088.0473,
+   "tx": 75310,
+   "ty": 1088.0473,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Road warden Hask",
+   "town": null,
+   "x": 87060,
+   "y": 603.928,
+   "lines": [
+    "Chief Rook’s gang robs everyone on this road. Walk in a group.",
+    "Half way. Silkwood lies back west, Kingsvale ahead to the east."
+   ],
+   "hx": 87060,
+   "hy": 603.928,
+   "tx": 87060,
+   "ty": 603.928,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Ferryman Silas",
+   "town": null,
+   "x": 97560,
+   "y": 427.0169,
+   "lines": [
+    "Something huge moves under the black water. Stay on the stones.",
+    "Half way. Duskmire lies back west, Kingsvale ahead to the east."
+   ],
+   "hx": 97560,
+   "hy": 427.0169,
+   "tx": 97560,
+   "ty": 427.0169,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Caravan scout Nia",
+   "town": null,
+   "x": 109060,
+   "y": 956.7243,
+   "lines": [
+    "Carry water. And watch the canyon rims for bandits.",
+    "Half way. Kingsvale lies back west, Sunscar Wastes ahead to the east."
+   ],
+   "hx": 109060,
+   "hy": 956.7243,
+   "tx": 109060,
+   "ty": 956.7243,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Ash-walker Brom",
+   "town": null,
+   "x": 120060,
+   "y": 997.1356,
+   "lines": [
+    "The air tastes of sulphur from here on. A stone warden guards the upper road.",
+    "Half way. Sunscar Wastes lies back west, Emberreach ahead to the east."
+   ],
+   "hx": 120060,
+   "hy": 997.1356,
+   "tx": 120060,
+   "ty": 997.1356,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Forge-master Hilde",
+   "town": "cinderhold",
+   "x": 166180,
+   "y": 1310,
+   "wander": true,
+   "lines": [
+    "Obsidian golems in the southern glass fields drop shards. Bring me shards.",
+    "Magma cores come from imps and titans. Hot to hold."
+   ],
+   "hx": 166180,
+   "hy": 1310,
+   "tx": 166180,
+   "ty": 1310,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Ash-seer Oren",
+   "town": "cinderhold",
+   "x": 166240,
+   "y": 1210,
+   "lines": [
+    "Pyraxis wakes when the mountain rumbles. Fire rains where he looks.",
+    "Drink a fire ward before you face him. It takes the edge off."
+   ],
+   "hx": 166240,
+   "hy": 1210,
+   "tx": 166240,
+   "ty": 1210,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Dockhand Pip",
+   "town": "cinderhold",
+   "x": 135050,
+   "y": 3060,
+   "lines": [
+    "Lava eels live in the burning lake to the south-west. You need Fishing 18.",
+    "The bay here gives tuna. Cast off the pier."
+   ],
+   "hx": 135050,
+   "hy": 3060,
+   "tx": 135050,
+   "ty": 3060,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Scout Kessa",
+   "town": null,
+   "x": 130560,
+   "y": 2880,
+   "lines": [
+    "Emberreach. Everything here burns, even the rain.",
+    "Cinderhold lies due east along this road. Two bridges over the lava rivers."
+   ],
+   "hx": 130560,
+   "hy": 2880,
+   "tx": 130560,
+   "ty": 2880,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Old salt Morgan",
+   "town": "coralport",
+   "x": 171220,
+   "y": 1220,
+   "wander": true,
+   "lines": [
+    "Saltbeard’s crew holds Smugglers’ Key, north of Palmreach. His hat is worth a fortune.",
+    "Shellback turtles only fight if you poke them. They hit like anchors."
+   ],
+   "hx": 171220,
+   "hy": 1220,
+   "tx": 171220,
+   "ty": 1220,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Pearl diver Nami",
+   "town": "coralport",
+   "x": 171460,
+   "y": 1040,
+   "wander": true,
+   "lines": [
+    "Reef crabs hide pearls in their shells. Bill pays double for pearls.",
+    "Swordfish bite off the reefs. You need Fishing 16."
+   ],
+   "hx": 171460,
+   "hy": 1040,
+   "tx": 171460,
+   "ty": 1040,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Captain Isolde",
+   "town": null,
+   "x": 142560,
+   "y": 2760,
+   "sail": "home",
+   "lines": [
+    "Back to Varrow? The Gull’s Wing sails on your word."
+   ],
+   "hx": 142560,
+   "hy": 2760,
+   "tx": 142560,
+   "ty": 2760,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Captain Isolde",
+   "town": null,
+   "x": 140280,
+   "y": 2540,
+   "sail": "home",
+   "lines": [
+    "Wreckers’ Landing. Mind the planks, and mind the crabs."
+   ],
+   "hx": 140280,
+   "hy": 2540,
+   "tx": 140280,
+   "ty": 2540,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Castaway Ned",
+   "town": null,
+   "x": 140700,
+   "y": 2750,
+   "wander": true,
+   "lines": [
+    "Coralport is east. Cross the rope bridge to Palmreach, then the long one to Coral Isle.",
+    "Or take the south bridges over Turtle Sands. Longer, but prettier."
+   ],
+   "hx": 140700,
+   "hy": 2750,
+   "tx": 140700,
+   "ty": 2750,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Digmaster Ulla",
+   "town": "bonewatch",
+   "x": 191800,
+   "y": 2870,
+   "lines": [
+    "We came for old bones. Turns out the old bones come for you.",
+    "Lying skeletons are not always dead. Walk wide around them, or walk in swinging."
+   ],
+   "hx": 191800,
+   "hy": 2870,
+   "tx": 191800,
+   "ty": 2870,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Gravewarden Sefa",
+   "town": "bonewatch",
+   "x": 191620,
+   "y": 3000,
+   "wander": true,
+   "lines": [
+    "Dig a grave and you may find coin, dust or a relic. You may also wake whoever is in it.",
+    "After dark the fields fill up. The night-risen hit much harder."
+   ],
+   "hx": 191620,
+   "hy": 3000,
+   "tx": 191620,
+   "ty": 3000,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Caravan master Odo",
+   "town": "bonewatch",
+   "x": 191480,
+   "y": 2930,
+   "sail": "home",
+   "lines": [
+    "The bone road back to Varrow. Two days, if the wheels hold."
+   ],
+   "hx": 191480,
+   "hy": 2930,
+   "tx": 191480,
+   "ty": 2930,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Bargeman Brask",
+   "town": "varrow",
+   "x": 41605,
+   "y": 2100,
+   "sail": "fossil",
+   "lines": [
+    "The Dustrunner goes upriver to the Fossil Lands. Bring a strong arm and a stronger stomach."
+   ],
+   "hx": 41605,
+   "hy": 2100,
+   "tx": 41605,
+   "ty": 2100,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Captain Isolde",
+   "town": "varrow",
+   "x": 41605,
+   "y": 2240,
+   "sail": "tide",
+   "lines": [
+    "The Gull’s Wing sails for the Tidewake Isles. Pirates, pearls and sunshine!"
+   ],
+   "hx": 41605,
+   "hy": 2240,
+   "tx": 41605,
+   "ty": 2240,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Gate guard",
+   "town": "highcairn",
+   "x": 150290,
+   "y": 1030,
+   "guard": true,
+   "lines": [
+    "Welcome to Highcairn.",
+    "Tap the gate to head back out into the wild."
+   ],
+   "hx": 150290,
+   "hy": 1030,
+   "tx": 150290,
+   "ty": 1030,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Gate guard",
+   "town": "mirewatch",
+   "x": 156300,
+   "y": 290,
+   "guard": true,
+   "lines": [
+    "Welcome to Mirewatch.",
+    "Tap the gate to head back out into the wild."
+   ],
+   "hx": 156300,
+   "hy": 290,
+   "tx": 156300,
+   "ty": 290,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Gate guard",
+   "town": "mirewatch",
+   "x": 157310,
+   "y": 1020,
+   "guard": true,
+   "lines": [
+    "Welcome to Mirewatch.",
+    "Tap the gate to head back out into the wild."
+   ],
+   "hx": 157310,
+   "hy": 1020,
+   "tx": 157310,
+   "ty": 1020,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Gate guard",
+   "town": "sunspire",
+   "x": 160290,
+   "y": 1060,
+   "guard": true,
+   "lines": [
+    "Welcome to Sunspire Oasis.",
+    "Tap the gate to head back out into the wild."
+   ],
+   "hx": 160290,
+   "hy": 1060,
+   "tx": 160290,
+   "ty": 1060,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Jarl Hrothgar",
+   "town": "highcairn",
+   "x": 150540,
+   "y": 1640,
+   "lines": [
+    "That statue is my grandmother. She punched a frost troll to death.",
+    "Rimeclaw, the great white wolf, hunts the Reach every two hours. Bring friends."
+   ],
+   "hx": 150540,
+   "hy": 1640,
+   "tx": 150540,
+   "ty": 1640,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Skald Inga",
+   "town": "highcairn",
+   "x": 151440,
+   "y": 480,
+   "wander": true,
+   "lines": [
+    "♪ The Star-Eater comes twice a day, when the sky goes purple… ♪",
+    "Hot mead thaws the bones. Two coppers well spent."
+   ],
+   "hx": 151440,
+   "hy": 480,
+   "tx": 151440,
+   "ty": 480,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Granny Wormwood’s cat",
+   "town": "mirewatch",
+   "x": 155510,
+   "y": 990,
+   "lines": [
+    "Mrrrow.",
+    "(The cat stares at the bog. Something big lives there. The Bog Mother wakes every two hours.)"
+   ],
+   "hx": 155510,
+   "hy": 990,
+   "tx": 155510,
+   "ty": 990,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Lantern-keeper Hob",
+   "town": "mirewatch",
+   "x": 156720,
+   "y": 1420,
+   "wander": true,
+   "lines": [
+    "Keep your lantern lit. The bog eats the careless.",
+    "Eels bite in the town pools too. Try the south ones."
+   ],
+   "hx": 156720,
+   "hy": 1420,
+   "tx": 156720,
+   "ty": 1420,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Sultan’s vizier",
+   "town": "sunspire",
+   "x": 161400,
+   "y": 700,
+   "guard": true,
+   "lines": [
+    "The Sultan receives no one today. Or any day.",
+    "The Sandwraith walks the dunes every two hours. Its hide is worth a palace."
+   ],
+   "hx": 161400,
+   "hy": 700,
+   "tx": 161400,
+   "ty": 700,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Snake charmer Farid",
+   "town": "sunspire",
+   "x": 161980,
+   "y": 1360,
+   "wander": true,
+   "lines": [
+    "Hsss… I mean hello!",
+    "The spice market pays double for emberthorn."
+   ],
+   "hx": 161980,
+   "hy": 1360,
+   "tx": 161980,
+   "ty": 1360,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Gate guard",
+   "town": "cinderhold",
+   "x": 165290,
+   "y": 1020,
+   "guard": true,
+   "lines": [
+    "Welcome to Cinderhold.",
+    "Tap the gate to head back out into the wild."
+   ],
+   "hx": 165290,
+   "hy": 1020,
+   "tx": 165290,
+   "ty": 1020,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Gate guard",
+   "town": "cinderhold",
+   "x": 166380,
+   "y": 290,
+   "guard": true,
+   "lines": [
+    "Welcome to Cinderhold.",
+    "Tap the gate to head back out into the wild."
+   ],
+   "hx": 166380,
+   "hy": 290,
+   "tx": 166380,
+   "ty": 290,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Gate guard",
+   "town": "cinderhold",
+   "x": 167310,
+   "y": 1020,
+   "guard": true,
+   "lines": [
+    "Welcome to Cinderhold.",
+    "Tap the gate to head back out into the wild."
+   ],
+   "hx": 167310,
+   "hy": 1020,
+   "tx": 167310,
+   "ty": 1020,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Gate guard",
+   "town": "coralport",
+   "x": 170290,
+   "y": 1020,
+   "guard": true,
+   "lines": [
+    "Welcome to Coralport.",
+    "Tap the gate to head back out into the wild."
+   ],
+   "hx": 170290,
+   "hy": 1020,
+   "tx": 170290,
+   "ty": 1020,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Gate guard",
+   "town": "coralport",
+   "x": 171380,
+   "y": 290,
+   "guard": true,
+   "lines": [
+    "Welcome to Coralport.",
+    "Tap the gate to head back out into the wild."
+   ],
+   "hx": 171380,
+   "hy": 290,
+   "tx": 171380,
+   "ty": 290,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Gate guard",
+   "town": "coralport",
+   "x": 171380,
+   "y": 1910,
+   "guard": true,
+   "lines": [
+    "Welcome to Coralport.",
+    "Tap the gate to head back out into the wild."
+   ],
+   "hx": 171380,
+   "hy": 1910,
+   "tx": 171380,
+   "ty": 1910,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Guide Elara",
+   "town": null,
+   "x": 175820,
+   "y": 900,
+   "tutor": true,
+   "lines": [
+    "Welcome, hero! Everyone who sets out into the realm trains here first.",
+    "Follow the glowing light. I’ll teach you everything you need."
+   ],
+   "hx": 175820,
+   "hy": 900,
+   "tx": 175820,
+   "ty": 900,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Ferryman Oskar",
+   "town": null,
+   "x": 177240,
+   "y": 850,
+   "sail": "hollow",
+   "lines": [
+    "Finish your training and I’ll row you to Ashen Hollow."
+   ],
+   "hx": 177240,
+   "hy": 850,
+   "tx": 177240,
+   "ty": 850,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Land Agent Hilda",
+   "town": "varrow",
+   "x": 41870,
+   "y": 1200,
+   "agent": true,
+   "lines": [
+    "Land for sale! Your own homestead: a house, fields, animals. The deed costs 5 silver, and you must be at least level 10.",
+    "Seeds, feed and fertiliser, right here. Plant today, harvest tomorrow. Well… in a few minutes."
+   ],
+   "hx": 41870,
+   "hy": 1200,
+   "tx": 41870,
+   "ty": 1200,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Farmer Tobin",
+   "town": "ashen",
+   "x": 896,
+   "y": 1592,
+   "agent": true,
+   "lines": [
+    "Land for sale! Your own homestead: a house, fields, animals. The deed costs 5 silver, and you must be at least level 10.",
+    "Seeds, feed and fertiliser, right here. Plant today, harvest tomorrow. Well… in a few minutes."
+   ],
+   "hx": 896,
+   "hy": 1592,
+   "tx": 896,
+   "ty": 1592,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Guild Registrar Oren",
+   "town": "varrow",
+   "x": 41570,
+   "y": 1200,
+   "guild": true,
+   "lines": [
+    "The Guild welcomes every trade. Choose your profession, and I’ll find you honest work.",
+    "Work orders pay well. And a Master of any trade is respected from here to Emberreach."
+   ],
+   "hx": 41570,
+   "hy": 1200,
+   "tx": 41570,
+   "ty": 1200,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Guild Clerk Mina",
+   "town": "ashen",
+   "x": 544,
+   "y": 1592,
+   "guild": true,
+   "lines": [
+    "The Guild welcomes every trade. Choose your profession, and I’ll find you honest work.",
+    "Work orders pay well. And a Master of any trade is respected from here to Emberreach."
+   ],
+   "hx": 544,
+   "hy": 1592,
+   "tx": 544,
+   "ty": 1592,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Archivist Elowen",
+   "town": "varrow",
+   "x": 40730,
+   "y": 670,
+   "lines": [
+    "The sky above Kingsvale is torn. Something is watching through the gap.",
+    "Every dungeon in the realm hums with the same note. They are connected."
+   ],
+   "hx": 40730,
+   "hy": 670,
+   "tx": 40730,
+   "ty": 670,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Guildmaster Brannoc",
+   "town": "varrow",
+   "x": 42010,
+   "y": 1305,
+   "gmaster": true,
+   "lines": [
+    "A hero alone is a story. Heroes together are a legend. Found a guild, or find one that will have you.",
+    "Every guild gets a hall, a bank and a banner. The more you do together, the more it grows."
+   ],
+   "hx": 42010,
+   "hy": 1305,
+   "tx": 42010,
+   "ty": 1305,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Trial-master Garron",
+   "town": "varrow",
+   "x": 41510,
+   "y": 1220,
+   "kq": true,
+   "lines": [
+    "The Crown’s arena tests every hero. Siege on the hour, Gold Rush on the half hour.",
+    "The monsters in there grow with you. No easy wins."
+   ],
+   "hx": 41510,
+   "hy": 1220,
+   "tx": 41510,
+   "ty": 1220,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Baker Maudie",
+   "town": "ashen",
+   "x": 688,
+   "y": 1376,
+   "lines": [
+    "Fresh bread! Well, fresh-ish. Still warm, anyway.",
+    "You look thin. Heroes always look thin. Have a roll.",
+    "My grandmother baked for this village through three winters and a dragon. I mean to do the same."
+   ],
+   "hx": 688,
+   "hy": 1376,
+   "tx": 688,
+   "ty": 1376,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Woodcarver Ansel",
+   "town": "ashen",
+   "x": 1048,
+   "y": 1056,
+   "lines": [
+    "Wood remembers. Every knot is a winter the tree lived through.",
+    "I carved half the doors in this village. The other half were carved badly.",
+    "Pine for signs, oak for beds, birch for spoons. Never mix them up."
+   ],
+   "hx": 1048,
+   "hy": 1056,
+   "tx": 1048,
+   "ty": 1056,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Arena crier Bess",
+   "town": "ashen",
+   "x": 648,
+   "y": 976,
+   "kq": true,
+   "lines": [
+    "Kingdom Quests! Every hour at the arena! Fame, coins and a good bruising!",
+    "Siege on the hour, Gold Rush on the half hour. Don’t be late!"
+   ],
+   "hx": 648,
+   "hy": 976,
+   "tx": 648,
+   "ty": 976,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Little Tess",
+   "town": "ashen",
+   "x": 408,
+   "y": 1087.375,
+   "wander": true,
+   "lines": [
+    "Are you a real hero? Have you ever fought a dragon? Was it big? Was it THIS big?",
+    "Mum says I can’t go past the well. I went past the well. Don’t tell.",
+    "When I grow up I’m going to have a dog AND a sword."
+   ],
+   "hx": 408,
+   "hy": 1087.375,
+   "tx": 408,
+   "ty": 1087.375,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Barber Lyra",
+   "town": "varrow",
+   "x": 41540,
+   "y": 1280,
+   "barber": true,
+   "lines": [
+    "Sit down, sit down! A new cut, a new colour, a new you.",
+    "I can change anything: hair, face, even how tall you stand. Magic scissors, don’t ask."
+   ],
+   "hx": 41540,
+   "hy": 1280,
+   "tx": 41540,
+   "ty": 1280,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Barber Finn",
+   "town": "ashen",
+   "x": 560,
+   "y": 1624,
+   "barber": true,
+   "lines": [
+    "Sit down, sit down! A new cut, a new colour, a new you.",
+    "I can change anything: hair, face, even how tall you stand. Magic scissors, don’t ask."
+   ],
+   "hx": 560,
+   "hy": 1624,
+   "tx": 560,
+   "ty": 1624,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Auctioneer Silas",
+   "town": "varrow",
+   "x": 41720,
+   "y": 1330,
+   "auction": true,
+   "lines": [
+    "Buy, sell, bid! Traders from every corner of the realm list their goods here.",
+    "Prices rise and fall. Buy low, sell high, and watch what is in demand."
+   ],
+   "hx": 41720,
+   "hy": 1330,
+   "tx": 41720,
+   "ty": 1330,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Auctioneer Wren",
+   "town": "ashen",
+   "x": 688,
+   "y": 1800,
+   "auction": true,
+   "lines": [
+    "Buy, sell, bid! Traders from every corner of the realm list their goods here.",
+    "Prices rise and fall. Buy low, sell high, and watch what is in demand."
+   ],
+   "hx": 688,
+   "hy": 1800,
+   "tx": 688,
+   "ty": 1800,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Market Warden",
+   "town": "ashen",
+   "x": 660,
+   "y": 1504,
+   "mk": "ashen",
+   "lines": [
+    "Stalls for every trade, rented by the week. Come in and see who has the best prices!",
+    "The cheapest honest merchant wins the crowd. That’s the market."
+   ],
+   "hx": 660,
+   "hy": 1504,
+   "tx": 660,
+   "ty": 1504,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Market Warden",
+   "town": "varrow",
+   "x": 41450,
+   "y": 1350,
+   "mk": "varrow",
+   "lines": [
+    "Stalls for every trade, rented by the week. Come in and see who has the best prices!",
+    "The cheapest honest merchant wins the crowd. That’s the market."
+   ],
+   "hx": 41450,
+   "hy": 1350,
+   "tx": 41450,
+   "ty": 1350,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Market Warden",
+   "town": "highcairn",
+   "x": 151240,
+   "y": 1220,
+   "mk": "highcairn",
+   "lines": [
+    "Stalls for every trade, rented by the week. Come in and see who has the best prices!",
+    "The cheapest honest merchant wins the crowd. That’s the market."
+   ],
+   "hx": 151240,
+   "hy": 1220,
+   "tx": 151240,
+   "ty": 1220,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Market Warden",
+   "town": "mirewatch",
+   "x": 156220,
+   "y": 1210,
+   "mk": "mirewatch",
+   "lines": [
+    "Stalls for every trade, rented by the week. Come in and see who has the best prices!",
+    "The cheapest honest merchant wins the crowd. That’s the market."
+   ],
+   "hx": 156220,
+   "hy": 1210,
+   "tx": 156220,
+   "ty": 1210,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Market Warden",
+   "town": "sunspire",
+   "x": 161080,
+   "y": 1230,
+   "mk": "sunspire",
+   "lines": [
+    "Stalls for every trade, rented by the week. Come in and see who has the best prices!",
+    "The cheapest honest merchant wins the crowd. That’s the market."
+   ],
+   "hx": 161080,
+   "hy": 1230,
+   "tx": 161080,
+   "ty": 1230,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Market Warden",
+   "town": "cinderhold",
+   "x": 166290,
+   "y": 1320,
+   "mk": "cinderhold",
+   "lines": [
+    "Stalls for every trade, rented by the week. Come in and see who has the best prices!",
+    "The cheapest honest merchant wins the crowd. That’s the market."
+   ],
+   "hx": 166290,
+   "hy": 1320,
+   "tx": 166290,
+   "ty": 1320,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  },
+  {
+   "name": "Market Warden",
+   "town": "coralport",
+   "x": 171300,
+   "y": 1310,
+   "mk": "coralport",
+   "lines": [
+    "Stalls for every trade, rented by the week. Come in and see who has the best prices!",
+    "The cheapest honest merchant wins the crowd. That’s the market."
+   ],
+   "hx": 171300,
+   "hy": 1310,
+   "tx": 171300,
+   "ty": 1310,
+   "wt": 0,
+   "face": 1.5708,
+   "r": 14,
+   "phase": 0
+  }
+ ],
+ "NPC": {
+  "x": 848,
+  "y": 1408,
+  "r": 16,
+  "name": "Captain Mara"
+ },
+ "FRIENDS": {
+  "Captain Mara": {
+   "town": "ashen",
+   "loves": [
+    "trout",
+    "pie",
+    "hot_mead"
+   ],
+   "likes": [
+    "bread",
+    "raw_trout",
+    "honey"
+   ],
+   "gift": "big_potion",
+   "voice": "Mara",
+   "letter": "I watched you chop your first log with an axe twice too big for you. Now look at you. Ashen Hollow is proud. Come and sit by the fire sometime.",
+   "best": "You were a stranger off the boat once. Now you are family. My door is always open, and the kettle is always on."
+  },
+  "Baker Maudie": {
+   "town": "ashen",
+   "loves": [
+    "butter",
+    "strawberry",
+    "honey"
+   ],
+   "likes": [
+    "flour",
+    "egg",
+    "sugar",
+    "milk",
+    "wheat"
+   ],
+   "gift": "bread",
+   "voice": "Maudie",
+   "letter": "The whole Hollow smells of bread again, and half of it is thanks to you. I saved you the crustiest loaf. Do not tell Tess.",
+   "best": "I am writing down my grandmother’s pie recipe for you. Nobody else has ever seen it. Keep it secret, keep it warm."
+  },
+  "Woodcarver Ansel": {
+   "town": "ashen",
+   "loves": [
+    "pine_logs",
+    "beeswax"
+   ],
+   "likes": [
+    "logs",
+    "iron_bar",
+    "linen"
+   ],
+   "gift": "pine_logs",
+   "voice": "Ansel",
+   "letter": "I carved a little figure of you for the inn mantel. The axe is too big, but that felt right.",
+   "best": "My hands shake now, but they still know wood. I made you a walking stick. You will not need it for fifty years. Keep it anyway."
+  },
+  "Little Tess": {
+   "town": "ashen",
+   "loves": [
+    "strawberry",
+    "honey",
+    "pumpkin"
+   ],
+   "likes": [
+    "carrot",
+    "egg",
+    "feather",
+    "raw_trout"
+   ],
+   "gift": "feather",
+   "voice": "Tess",
+   "letter": "DEAR HERO. I drew you fighting a dragon. The dragon is crying because you are winning. Mum says I have to say thank you for the strawberries. THANK YOU.",
+   "best": "When I grow up I am going to be a hero like you, but with a dog. Biscuit says hello. (I asked him.)"
+  },
+  "Fisher Pell": {
+   "town": "varrow",
+   "loves": [
+    "raw_salmon",
+    "raw_tuna",
+    "raw_swordfish"
+   ],
+   "likes": [
+    "raw_trout",
+    "raw_eel",
+    "bread"
+   ],
+   "gift": "raw_salmon",
+   "voice": "Pell",
+   "letter": "The salmon are running thick by the pier this week. Come early, before the gulls. I will show you my secret knot.",
+   "best": "Forty years I have fished this harbour and never had a friend who could out-fish me. Now I do. I am not even angry."
+  },
+  "Young Kit": {
+   "town": "varrow",
+   "loves": [
+    "strawberry",
+    "pie",
+    "honey"
+   ],
+   "likes": [
+    "bread",
+    "egg",
+    "feather"
+   ],
+   "gift": "hp_potion",
+   "voice": "Kit",
+   "letter": "I practised with my wooden sword every day like you said. I hit the training dummy so hard its hat fell off.",
+   "best": "Sergeant Voss says I can be a squire when I am older. I told him I already learned from the best."
+  },
+  "Merchant Ilsa": {
+   "town": "varrow",
+   "loves": [
+    "pearl",
+    "ruby",
+    "sea_silk"
+   ],
+   "likes": [
+    "gold_ore",
+    "sapphire",
+    "emerald"
+   ],
+   "gift": "mystery_sack",
+   "voice": "Ilsa",
+   "letter": "A good customer is worth ten good deals. A good friend is worth more. I will pretend I did not write that.",
+   "best": "For you, and only for you: no haggling. Well. Less haggling."
+  },
+  "Bard Lira": {
+   "town": "varrow",
+   "loves": [
+    "hot_mead",
+    "honey"
+   ],
+   "likes": [
+    "feather",
+    "down_feather",
+    "sea_silk"
+   ],
+   "gift": "elixir_swift",
+   "voice": "Lira",
+   "letter": "I wrote a song about you. It has eleven verses and a dragon in it. The tavern made me sing it twice.",
+   "best": "They sing your song in three kingdoms now. I made sure the chorus gets your good side."
+  },
+  "Sergeant Voss": {
+   "town": "varrow",
+   "loves": [
+    "meat",
+    "steak_frites"
+   ],
+   "likes": [
+    "iron_bar",
+    "bread",
+    "stew"
+   ],
+   "gift": "elixir_iron",
+   "voice": "Voss",
+   "letter": "The recruits ask about you. I tell them: shield up, eyes open, and eat your breakfast. You taught me the last one.",
+   "best": "If you ever need a sword at your back, you have mine. That is not a figure of speech."
+  },
+  "Archivist Elowen": {
+   "town": "varrow",
+   "loves": [
+    "void_shard",
+    "kraken_ink"
+   ],
+   "likes": [
+    "feather",
+    "void_dust",
+    "pearl"
+   ],
+   "gift": "great_mana",
+   "voice": "Elowen",
+   "letter": "I catalogued every star you brought me. The archive has never been so full, or so bright.",
+   "best": "History will remember the hero. I will remember the friend who carried dusty books up four flights of stairs for me."
+  },
+  "Elder Brann": {
+   "town": "highcairn",
+   "loves": [
+    "stew",
+    "hunter_stew"
+   ],
+   "likes": [
+    "frost_pelt",
+    "hot_mead",
+    "bread"
+   ],
+   "gift": "elixir_iron",
+   "voice": "Brann",
+   "letter": "The snows are kind this year. The young ones say it is because of you. I tell them not to be silly. Then I agree with them.",
+   "best": "Highcairn carved your name on the old stone, beside the founders. It is a little crooked. So were theirs."
+  },
+  "Jarl Hrothgar": {
+   "town": "highcairn",
+   "loves": [
+    "hot_mead",
+    "troll_hide"
+   ],
+   "likes": [
+    "meat",
+    "frost_pelt",
+    "iron_bar"
+   ],
+   "gift": "hot_mead",
+   "voice": "Hrothgar",
+   "letter": "Your seat in my hall is warm. Your mug is full. Come drink, and lie to me about how many trolls you slew.",
+   "best": "Hrothgar has many shield-brothers. He has one friend he would follow into the cold. That is you."
+  },
+  "Skald Inga": {
+   "town": "highcairn",
+   "loves": [
+    "honey",
+    "wool"
+   ],
+   "likes": [
+    "yarn",
+    "hot_mead",
+    "feather"
+   ],
+   "gift": "hot_mead",
+   "voice": "Inga",
+   "letter": "The hall wanted a new saga. I gave them yours. Nobody slept until dawn.",
+   "best": "I knitted you a scarf in your colours. It is crooked. Wear it anyway."
+  },
+  "Lantern-keeper Hob": {
+   "town": "mirewatch",
+   "loves": [
+    "beeswax"
+   ],
+   "likes": [
+    "bog_slime",
+    "mireroot",
+    "honey"
+   ],
+   "gift": "elixir_swift",
+   "voice": "Hob",
+   "letter": "Every lantern in Mirewatch burned bright last night. One of them was for you.",
+   "best": "I named the newest lantern after you. It is the steadiest one. Of course it is."
+  },
+  "Granny Wormwood’s cat": {
+   "town": "mirewatch",
+   "loves": [
+    "raw_trout",
+    "trout",
+    "cream"
+   ],
+   "likes": [
+    "milk",
+    "raw_eel",
+    "raw_salmon"
+   ],
+   "gift": "mireroot",
+   "voice": "the cat",
+   "letter": "(A muddy pawprint, a dead beetle and a single whisker. You think it means “thank you”.)",
+   "best": "(The cat has left you its favourite thing in the world: a slightly chewed ribbon. This is a great honour.)"
+  },
+  "Caravan master Idris": {
+   "town": "sunspire",
+   "loves": [
+    "spiced_kebab",
+    "sugar"
+   ],
+   "likes": [
+    "jackal_pelt",
+    "bread",
+    "honey"
+   ],
+   "gift": "elixir_might",
+   "voice": "Idris",
+   "letter": "The caravans speak of a traveller who never lets a stranger walk alone. They mean you. Ride with us any time.",
+   "best": "From the Oasis to the sea, every caravan fire has a place for you. I have told them all."
+  },
+  "Snake charmer Farid": {
+   "town": "sunspire",
+   "loves": [
+    "egg",
+    "duck_egg"
+   ],
+   "likes": [
+    "scorpion_chitin",
+    "milk"
+   ],
+   "gift": "elixir_swift",
+   "voice": "Farid",
+   "letter": "My snake Sahar has learned a new dance. It is called “the hero”. It mostly involves biting things.",
+   "best": "Sahar trusts nobody. Sahar sleeps on your boots. This is the highest honour of the desert."
+  },
+  "Forge-master Hilde": {
+   "town": "cinderhold",
+   "loves": [
+    "obsidian_shard",
+    "magma_core"
+   ],
+   "likes": [
+    "iron_bar",
+    "gold_ore",
+    "bronze_bar"
+   ],
+   "gift": "iron_bar",
+   "voice": "Hilde",
+   "letter": "Your blade came back with a nick in it. I fixed it and charged you nothing. Tell anyone and I will deny it.",
+   "best": "I have forged for kings. You are the only one I would forge for for free. Do not test that."
+  },
+  "Dockhand Pip": {
+   "town": "cinderhold",
+   "loves": [
+    "bread",
+    "pancakes"
+   ],
+   "likes": [
+    "raw_lavaeel",
+    "meat",
+    "honey"
+   ],
+   "gift": "raw_lavaeel",
+   "voice": "Pip",
+   "letter": "Caught a lava eel with my bare hands. Well, with gloves. Well, with a net. It still counts.",
+   "best": "The other dockhands call me “the hero’s mate” now. I have stopped correcting them."
+  },
+  "Old salt Morgan": {
+   "town": "coralport",
+   "loves": [
+    "raw_swordfish",
+    "fisherman_pie"
+   ],
+   "likes": [
+    "turtle_shell",
+    "raw_tuna",
+    "hot_mead"
+   ],
+   "gift": "raw_tuna",
+   "voice": "Morgan",
+   "letter": "Sea’s been calm since you sank Saltbeard’s nonsense. Calm seas make for boring stories. Come tell me a better one.",
+   "best": "Sailed every sea, I have. Never had a mate like you. Fair winds, always."
+  },
+  "Pearl diver Nami": {
+   "town": "coralport",
+   "loves": [
+    "pearl",
+    "coral_shard"
+   ],
+   "likes": [
+    "reefmoss",
+    "raw_tuna",
+    "sea_silk"
+   ],
+   "gift": "pearl",
+   "voice": "Nami",
+   "letter": "I dove the Drowned Reef where you fought the Tide Queen. The water is clear again. I could see all the way to the bottom.",
+   "best": "I found a pearl the colour of sunrise. I kept it for a year, waiting for someone who deserved it. Here."
+  },
+  "Trapper Olga": {
+   "town": null,
+   "loves": [
+    "wolf_pelt"
+   ],
+   "likes": [
+    "deer_hide",
+    "boar_hide",
+    "meat"
+   ],
+   "gift": "wolf_pelt",
+   "voice": "Olga",
+   "letter": "The wolves keep to the hills now. My traps are empty and my heart is full. Odd feeling.",
+   "best": "The forest has a hundred paths. I have shown you all of them. That makes you family, by trapper law."
+  }
+ },
+ "FRIEND_NAMES": [
+  "Captain Mara",
+  "Baker Maudie",
+  "Woodcarver Ansel",
+  "Little Tess",
+  "Fisher Pell",
+  "Young Kit",
+  "Merchant Ilsa",
+  "Bard Lira",
+  "Sergeant Voss",
+  "Archivist Elowen",
+  "Elder Brann",
+  "Jarl Hrothgar",
+  "Skald Inga",
+  "Lantern-keeper Hob",
+  "Granny Wormwood’s cat",
+  "Caravan master Idris",
+  "Snake charmer Farid",
+  "Forge-master Hilde",
+  "Dockhand Pip",
+  "Old salt Morgan",
+  "Pearl diver Nami",
+  "Trapper Olga"
+ ],
+ "TAMERS": [
+  {
+   "n": "Little Tess",
+   "blurb": "Ashen Hollow’s youngest tamer. Be gentle.",
+   "team": [
+    [
+     "toad",
+     3
+    ]
+   ]
+  },
+  {
+   "n": "Fisher Pell",
+   "blurb": "Raises toads by the river in Varrow.",
+   "team": [
+    [
+     "toad",
+     6
+    ],
+    [
+     "slime",
+     6
+    ]
+   ]
+  },
+  {
+   "n": "Hunter Kael",
+   "blurb": "His fox and owl hunt as one.",
+   "team": [
+    [
+     "fox",
+     10
+    ],
+    [
+     "owl",
+     10
+    ]
+   ]
+  },
+  {
+   "n": "Sigrid Frostfur",
+   "blurb": "Highcairn’s champion. Her pets never feel the cold.",
+   "team": [
+    [
+     "owl",
+     14
+    ],
+    [
+     "fox",
+     14
+    ],
+    [
+     "slime",
+     14
+    ]
+   ]
+  },
+  {
+   "n": "Old Wyn",
+   "blurb": "The alchemist’s pets glow faintly. Don’t ask why.",
+   "team": [
+    [
+     "slime",
+     18
+    ],
+    [
+     "toad",
+     18
+    ],
+    [
+     "drake",
+     18
+    ]
+   ]
+  },
+  {
+   "n": "Grand Tamer Ilsa",
+   "blurb": "Nobody has beaten her team in years.",
+   "team": [
+    [
+     "drake",
+     20
+    ],
+    [
+     "parrot",
+     20
+    ],
+    [
+     "fox",
+     20
+    ]
+   ]
+  }
+ ]
+}

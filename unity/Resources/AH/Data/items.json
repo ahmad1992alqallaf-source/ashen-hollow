@@ -10312,6 +10312,42 @@
    "set": null,
    "c": "#7a5a34",
    "icon": "bow"
+  },
+  "card_bear": {
+   "name": "Brown bear card",
+   "icon": "card",
+   "c": "#7ad05a",
+   "card": "bear"
+  },
+  "card_croc": {
+   "name": "Mire crocodile card",
+   "icon": "card",
+   "c": "#7ad05a",
+   "card": "croc"
+  },
+  "card_ostrich": {
+   "name": "Ostrich card",
+   "icon": "card",
+   "c": "#7ad05a",
+   "card": "ostrich"
+  },
+  "card_ram": {
+   "name": "Mountain ram card",
+   "icon": "card",
+   "c": "#7ad05a",
+   "card": "ram"
+  },
+  "card_thickskull": {
+   "name": "Thickskull card",
+   "icon": "card",
+   "c": "#7ad05a",
+   "card": "thickskull"
+  },
+  "card_spikeback": {
+   "name": "Spikeback card",
+   "icon": "card",
+   "c": "#7ad05a",
+   "card": "spikeback"
   }
  },
  "QUALITY": {
@@ -12185,7 +12221,13 @@
   "plumed_hat": 210,
   "feather_cloak": 280,
   "ramhorn_helm": 260,
-  "fletched_bow": 260
+  "fletched_bow": 260,
+  "card_bear": 150,
+  "card_croc": 150,
+  "card_ostrich": 150,
+  "card_ram": 150,
+  "card_thickskull": 150,
+  "card_spikeback": 150
  },
  "AH_POOL": {
   "gear": [
@@ -13443,7 +13485,13 @@
   "plumed_hat": "gear",
   "feather_cloak": "gear",
   "ramhorn_helm": "gear",
-  "fletched_bow": "gear"
+  "fletched_bow": "gear",
+  "card_bear": "mats",
+  "card_croc": "mats",
+  "card_ostrich": "mats",
+  "card_ram": "mats",
+  "card_thickskull": "mats",
+  "card_spikeback": "mats"
  },
  "AH_OK": [
   "raw_meat",

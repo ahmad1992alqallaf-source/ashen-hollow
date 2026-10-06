@@ -1,0 +1,2057 @@
+{
+ "SHOPS": {
+  "general": {
+   "name": "Tobin’s General Goods",
+   "keeper": "Old Tobin",
+   "role": "General store",
+   "theme": "wood",
+   "greet": "Bread, potions, whatever you need for the road. I buy anything, too.",
+   "stock": [
+    "bread",
+    "hp_potion",
+    "mana_potion",
+    "trout",
+    "meat",
+    "logs",
+    "bronze_bar"
+   ]
+  },
+  "anvil": {
+   "name": "The Gilded Anvil",
+   "keeper": "Brenna Steelhand",
+   "role": "Weaponsmith",
+   "theme": "smith",
+   "greet": "Steel for every hand. Pick what suits your calling.",
+   "stock": [
+    "steel_sword",
+    "runed_staff",
+    "blessed_mace",
+    "iron_sword",
+    "iron_staff",
+    "iron_mace",
+    "iron_bar",
+    "enh_stone"
+   ]
+  },
+  "outfit": {
+   "name": "Silk & Steel Outfitters",
+   "keeper": "Master Aldous",
+   "role": "Armorer",
+   "theme": "cloth",
+   "greet": "Plate for the brave, silk for the clever. Both for the rich.",
+   "stock": [
+    "steel_helm",
+    "steel_pauldrons",
+    "steel_plate",
+    "steel_gauntlets",
+    "steel_greaves",
+    "steel_boots",
+    "silk_hood",
+    "silk_mantle",
+    "silk_robe",
+    "silk_gloves",
+    "silk_boots"
+   ]
+  },
+  "cauldron": {
+   "name": "The Crooked Cauldron",
+   "keeper": "Old Wyn",
+   "role": "Alchemist",
+   "theme": "alchemy",
+   "greet": "Mind the green one. It bites.",
+   "stock": [
+    "hp_potion",
+    "mana_potion",
+    "big_potion",
+    "elixir_might",
+    "elixir_swift",
+    "elixir_iron"
+   ]
+  },
+  "tavern": {
+   "name": "The Salty Trout",
+   "keeper": "Hal the Innkeeper",
+   "role": "Tavern and inn",
+   "theme": "tavern",
+   "greet": "Sit, eat, rest your bones. Sellswords drink here too, if you need a party.",
+   "stock": [
+    "svc:rest",
+    "stew",
+    "pie",
+    "tuna",
+    "bread",
+    "merc:knight",
+    "merc:ranger",
+    "merc:cleric"
+   ]
+  },
+  "velour": {
+   "name": "Madame Velour’s Wardrobe",
+   "keeper": "Madame Velour",
+   "role": "Fashion and cosmetics",
+   "theme": "fashion",
+   "greet": "Darling, armor wins fights. Style wins hearts.",
+   "stock": [
+    "royal_helm",
+    "royal_plate",
+    "royal_cape",
+    "royal_boots",
+    "corsair_hat",
+    "corsair_coat",
+    "corsair_cape",
+    "corsair_boots",
+    "bloom_hood",
+    "bloom_robe",
+    "bloom_mantle",
+    "bloom_cape"
+   ]
+  },
+  "frostfur": {
+   "name": "Frostfur Trading Post",
+   "keeper": "Sigrid Frostfur",
+   "role": "Furs and trade",
+   "theme": "fur",
+   "greet": "Frost pelts and troll hides fetch double here. Stay warm.",
+   "stock": [
+    "frost_hood",
+    "frost_mantle",
+    "frost_cloak",
+    "frost_boots",
+    "stew",
+    "hp_potion",
+    "mount:direwolf"
+   ],
+   "premium": [
+    "frost_pelt",
+    "troll_hide",
+    "wolf_pelt",
+    "jackal_pelt"
+   ]
+  },
+  "curios": {
+   "name": "Morwen’s Curios",
+   "keeper": "Hag Morwen",
+   "role": "Curiosities",
+   "theme": "curio",
+   "greet": "Heh. Everything has a price, dearie. Some prices are even in coin.",
+   "stock": [
+    "mystery_sack",
+    "elixir_iron",
+    "big_potion",
+    "lantern_hood",
+    "pet:toad",
+    "pet:slime"
+   ],
+   "premium": [
+    "bog_slime",
+    "lurker_moss"
+   ]
+  },
+  "bazaar": {
+   "name": "Sunspire Bazaar",
+   "keeper": "Rashid Silvertongue",
+   "role": "Exotic goods",
+   "theme": "bazaar",
+   "greet": "Treasures of the sands! Only slightly cursed.",
+   "stock": [
+    "gold_crown",
+    "sun_mantle",
+    "sun_cape",
+    "elixir_might",
+    "elixir_swift",
+    "big_potion"
+   ],
+   "premium": [
+    "scorpion_chitin",
+    "queen_stinger",
+    "gold_ore"
+   ]
+  },
+  "menagerie": {
+   "name": "The Menagerie",
+   "keeper": "Zahra the Tamer",
+   "role": "Pets and companions",
+   "theme": "pets",
+   "greet": "Every hero needs a friend who never argues.",
+   "stock": [
+    "pet:fox",
+    "pet:owl",
+    "pet:slime",
+    "pet:drake"
+   ]
+  },
+  "stable": {
+   "name": "Varrow Stables",
+   "keeper": "Stablemaster Hugh",
+   "role": "Mounts",
+   "theme": "stable",
+   "greet": "Four legs beat two. Pick your steed, then press Ride.",
+   "stock": [
+    "mount:horse",
+    "mount:destrier",
+    "bread"
+   ]
+  },
+  "hunter": {
+   "name": "Kael’s Hunting Lodge",
+   "keeper": "Hunter Kael",
+   "role": "Dinosaur hunter",
+   "theme": "fur",
+   "greet": "You made it! Watch the tall ferns. Raptors hunt in threes.",
+   "stock": [
+    "mount:raptor",
+    "big_potion",
+    "dragon_draught",
+    "stew"
+   ],
+   "premium": [
+    "raptor_hide",
+    "horn_plate",
+    "ptera_leather",
+    "tyrant_tooth",
+    "dragon_scale"
+   ]
+  },
+  "emberforge": {
+   "name": "The Molten Anvil",
+   "keeper": "Durgan Emberfist",
+   "role": "Obsidian smith",
+   "theme": "smith",
+   "greet": "Obsidian takes a hotter fire than iron. Lucky we live on a volcano.",
+   "stock": [
+    "obsidian_sword",
+    "obsidian_staff",
+    "obsidian_mace",
+    "obsidian_helm",
+    "obsidian_plate",
+    "iron_bar"
+   ],
+   "premium": [
+    "obsidian_shard",
+    "magma_core"
+   ]
+  },
+  "cinderwares": {
+   "name": "Cinderwares",
+   "keeper": "Ysolde Ashweaver",
+   "role": "Armorer",
+   "theme": "cloth",
+   "greet": "Drakehide doesn’t burn. Mostly.",
+   "stock": [
+    "drake_hood",
+    "drake_vest",
+    "drake_boots",
+    "drake_cloak",
+    "drake_mantle",
+    "ash_mantle"
+   ],
+   "premium": [
+    "ember_hide",
+    "salamander_scale",
+    "drake_wing"
+   ]
+  },
+  "ashcauldron": {
+   "name": "Brimstone Apothecary",
+   "keeper": "Old Sulla",
+   "role": "Alchemist",
+   "theme": "alchemy",
+   "greet": "Fire ward first, heroics second. Trust me.",
+   "stock": [
+    "fire_ward",
+    "great_mana",
+    "big_potion",
+    "mana_potion",
+    "elixir_might",
+    "elixir_iron"
+   ],
+   "premium": [
+    "ashbloom"
+   ]
+  },
+  "moltenmug": {
+   "name": "The Molten Mug",
+   "keeper": "Brakka the Brewer",
+   "role": "Tavern and inn",
+   "theme": "tavern",
+   "greet": "Cinder chili! It fights back.",
+   "stock": [
+    "svc:rest",
+    "cinder_stew",
+    "lavaeel",
+    "stew",
+    "merc:knight",
+    "merc:ranger",
+    "merc:cleric"
+   ]
+  },
+  "tidetrader": {
+   "name": "Barnacle Bill’s Trading Post",
+   "keeper": "Barnacle Bill",
+   "role": "General store",
+   "theme": "wood",
+   "greet": "Pearls, shells and scales. I buy ’em all, and I pay double for the shiny ones.",
+   "stock": [
+    "coconut",
+    "swordfish",
+    "hp_potion",
+    "mana_potion",
+    "tide_tonic",
+    "bread"
+   ],
+   "premium": [
+    "pearl",
+    "coral_shard",
+    "turtle_shell",
+    "serpent_scale"
+   ]
+  },
+  "shellsmith": {
+   "name": "The Pearl & Anchor",
+   "keeper": "Marisol Deepwater",
+   "role": "Sea-silk tailor",
+   "theme": "cloth",
+   "greet": "Sea silk, spun by moonlight. Casters swear by it.",
+   "stock": [
+    "seasilk_hood",
+    "seasilk_robe",
+    "seasilk_gloves",
+    "seasilk_boots",
+    "shell_mantle",
+    "reef_hood",
+    "reef_cape"
+   ],
+   "premium": [
+    "sea_silk"
+   ]
+  },
+  "saltydog": {
+   "name": "The Drowned Rat",
+   "keeper": "One-Eyed Mags",
+   "role": "Tavern and inn",
+   "theme": "tavern",
+   "greet": "Sit down before you fall down. Sellswords drink in the back.",
+   "stock": [
+    "svc:rest",
+    "swordfish",
+    "coconut",
+    "stew",
+    "merc:knight",
+    "merc:ranger",
+    "merc:cleric"
+   ]
+  },
+  "corsairs": {
+   "name": "Corsair Outfitters",
+   "keeper": "Captain Lola Vane",
+   "role": "Fashion and parrots",
+   "theme": "fashion",
+   "greet": "Every pirate needs three things: a hat, a coat and a parrot.",
+   "stock": [
+    "corsair_hat",
+    "corsair_coat",
+    "corsair_cape",
+    "corsair_boots",
+    "reef_hood",
+    "pet:parrot"
+   ]
+  },
+  "glacierforge": {
+   "name": "The Glacier Forge",
+   "keeper": "Bjorna Icehammer",
+   "role": "Weaponsmith",
+   "theme": "smith",
+   "greet": "Steel tempered in snow-melt. It never dulls.",
+   "stock": [
+    "steel_sword",
+    "runed_staff",
+    "blessed_mace",
+    "steel_helm",
+    "steel_plate",
+    "steel_boots",
+    "iron_bar",
+    "enh_stone"
+   ]
+  },
+  "frozenflagon": {
+   "name": "The Frozen Flagon",
+   "keeper": "Skald Inga",
+   "role": "Mead hall and inn",
+   "theme": "tavern",
+   "greet": "Mead, a fire and a song. What more does a hero need?",
+   "stock": [
+    "svc:rest",
+    "hot_mead",
+    "stew",
+    "pie",
+    "merc:knight",
+    "merc:ranger",
+    "merc:cleric"
+   ]
+  },
+  "hexenhut": {
+   "name": "The Hexen Hut",
+   "keeper": "Granny Wormwood",
+   "role": "Bog alchemist",
+   "theme": "curio",
+   "greet": "The purple one heals. Probably. Don’t sniff it.",
+   "stock": [
+    "witch_brew",
+    "hp_potion",
+    "mana_potion",
+    "elixir_iron",
+    "elixir_swift",
+    "mystery_sack"
+   ],
+   "premium": [
+    "mireroot",
+    "bog_slime",
+    "lurker_moss"
+   ]
+  },
+  "boglantern": {
+   "name": "Bog & Lantern",
+   "keeper": "Pim Reedwhistle",
+   "role": "General store",
+   "theme": "wood",
+   "greet": "Eels, bread and lanterns. Everything you need to not drown.",
+   "stock": [
+    "eel",
+    "bread",
+    "stew",
+    "lantern_hood",
+    "pet:toad",
+    "logs"
+   ]
+  },
+  "caravanserai": {
+   "name": "The Caravanserai",
+   "keeper": "Mother Yasmin",
+   "role": "Travellers’ inn",
+   "theme": "tavern",
+   "greet": "Shade, water and a soft bed. Caravans stop here for a reason.",
+   "stock": [
+    "svc:rest",
+    "spiced_kebab",
+    "tuna",
+    "stew",
+    "merc:knight",
+    "merc:ranger",
+    "merc:cleric"
+   ]
+  },
+  "spicemarket": {
+   "name": "Sunspire Spice Market",
+   "keeper": "Tariq the Spicer",
+   "role": "Food and elixirs",
+   "theme": "bazaar",
+   "greet": "Spices from six lands! One of them is even edible.",
+   "stock": [
+    "spiced_kebab",
+    "bread",
+    "elixir_swift",
+    "elixir_might",
+    "big_potion",
+    "hp_potion"
+   ],
+   "premium": [
+    "emberthorn",
+    "gold_ore"
+   ]
+  },
+  "cbi_home": {
+   "name": "A townhouse",
+   "keeper": "Resident",
+   "role": "Townsfolk",
+   "theme": "home",
+   "greet": "",
+   "stock": []
+  },
+  "cbi_rent": {
+   "name": "Your city house",
+   "keeper": "Housekeeper Mott",
+   "role": "Keeps the place tidy",
+   "theme": "home",
+   "greet": "",
+   "stock": []
+  },
+  "cbi_temple": {
+   "name": "The temple",
+   "keeper": "Priest",
+   "role": "Blessings and alms",
+   "theme": "temple",
+   "greet": "",
+   "stock": []
+  },
+  "cbi_hall": {
+   "name": "The town hall",
+   "keeper": "Clerk",
+   "role": "Records and rents",
+   "theme": "hall",
+   "greet": "",
+   "stock": []
+  },
+  "cbi_post": {
+   "name": "The post office",
+   "keeper": "Postmaster",
+   "role": "Mail and parcels",
+   "theme": "post",
+   "greet": "",
+   "stock": []
+  },
+  "cbi_smithy": {
+   "name": "The smithy",
+   "keeper": "Smith",
+   "role": "Furnace and anvil",
+   "theme": "smith",
+   "greet": "",
+   "stock": []
+  },
+  "cbi_weaver": {
+   "name": "The weaver’s workshop",
+   "keeper": "Weaver",
+   "role": "Loom and wheel",
+   "theme": "cloth",
+   "greet": "",
+   "stock": []
+  },
+  "cbi_kitchen": {
+   "name": "The bakehouse kitchen",
+   "keeper": "Baker",
+   "role": "Hearth, oven, mill and dairy",
+   "theme": "tavern",
+   "greet": "",
+   "stock": []
+  },
+  "cbi_alchemy": {
+   "name": "The alchemist’s lab",
+   "keeper": "Alchemist",
+   "role": "Cauldron",
+   "theme": "alchemy",
+   "greet": "",
+   "stock": []
+  },
+  "cbi_inn": {
+   "name": "The inn",
+   "keeper": "Innkeeper",
+   "role": "Beds and hot food",
+   "theme": "tavern",
+   "greet": "",
+   "stock": []
+  }
+ },
+ "RECIPES": {
+  "anvil": [
+   {
+    "out": "bronze_sword",
+    "lvl": 1,
+    "skill": "smithing",
+    "xp": 60
+   },
+   {
+    "out": "bronze_mace",
+    "lvl": 1,
+    "skill": "smithing",
+    "xp": 60
+   },
+   {
+    "out": "bronze_staff",
+    "lvl": 1,
+    "skill": "smithing",
+    "xp": 40
+   },
+   {
+    "out": "bronze_helm",
+    "lvl": 2,
+    "skill": "smithing",
+    "xp": 30
+   },
+   {
+    "out": "bronze_gauntlets",
+    "lvl": 2,
+    "skill": "smithing",
+    "xp": 30
+   },
+   {
+    "out": "bronze_boots",
+    "lvl": 2,
+    "skill": "smithing",
+    "xp": 30
+   },
+   {
+    "out": "bronze_pauldrons",
+    "lvl": 3,
+    "skill": "smithing",
+    "xp": 60
+   },
+   {
+    "out": "bronze_greaves",
+    "lvl": 3,
+    "skill": "smithing",
+    "xp": 60
+   },
+   {
+    "out": "bronze_plate",
+    "lvl": 4,
+    "skill": "smithing",
+    "xp": 90
+   },
+   {
+    "out": "iron_sword",
+    "lvl": 10,
+    "skill": "smithing",
+    "xp": 120
+   },
+   {
+    "out": "iron_mace",
+    "lvl": 10,
+    "skill": "smithing",
+    "xp": 120
+   },
+   {
+    "out": "iron_staff",
+    "lvl": 10,
+    "skill": "smithing",
+    "xp": 70
+   },
+   {
+    "out": "iron_helm",
+    "lvl": 10,
+    "skill": "smithing",
+    "xp": 120
+   },
+   {
+    "out": "iron_gauntlets",
+    "lvl": 11,
+    "skill": "smithing",
+    "xp": 60
+   },
+   {
+    "out": "iron_boots",
+    "lvl": 11,
+    "skill": "smithing",
+    "xp": 60
+   },
+   {
+    "out": "iron_pauldrons",
+    "lvl": 12,
+    "skill": "smithing",
+    "xp": 120
+   },
+   {
+    "out": "iron_greaves",
+    "lvl": 12,
+    "skill": "smithing",
+    "xp": 120
+   },
+   {
+    "out": "iron_plate",
+    "lvl": 13,
+    "skill": "smithing",
+    "xp": 180
+   },
+   {
+    "out": "bronze_dagger",
+    "lvl": 1,
+    "skill": "smithing",
+    "xp": 30
+   },
+   {
+    "out": "oak_bow",
+    "lvl": 1,
+    "skill": "smithing",
+    "xp": 45
+   },
+   {
+    "out": "oak_staff",
+    "lvl": 1,
+    "skill": "smithing",
+    "xp": 40
+   },
+   {
+    "out": "iron_dagger",
+    "lvl": 10,
+    "skill": "smithing",
+    "xp": 60
+   },
+   {
+    "out": "pine_bow",
+    "lvl": 10,
+    "skill": "smithing",
+    "xp": 75
+   },
+   {
+    "out": "pine_staff",
+    "lvl": 10,
+    "skill": "smithing",
+    "xp": 70
+   },
+   {
+    "out": "obsidian_helm",
+    "lvl": 17,
+    "skill": "smithing",
+    "xp": 380
+   },
+   {
+    "out": "obsidian_boots",
+    "lvl": 17,
+    "skill": "smithing",
+    "xp": 380
+   },
+   {
+    "out": "obsidian_gauntlets",
+    "lvl": 18,
+    "skill": "smithing",
+    "xp": 420
+   },
+   {
+    "out": "obsidian_pauldrons",
+    "lvl": 18,
+    "skill": "smithing",
+    "xp": 440
+   },
+   {
+    "out": "obsidian_greaves",
+    "lvl": 19,
+    "skill": "smithing",
+    "xp": 460
+   },
+   {
+    "out": "obsidian_plate",
+    "lvl": 20,
+    "skill": "smithing",
+    "xp": 600
+   },
+   {
+    "out": "obsidian_sword",
+    "lvl": 19,
+    "skill": "smithing",
+    "xp": 500
+   },
+   {
+    "out": "obsidian_staff",
+    "lvl": 19,
+    "skill": "smithing",
+    "xp": 500
+   },
+   {
+    "out": "obsidian_mace",
+    "lvl": 19,
+    "skill": "smithing",
+    "xp": 500
+   },
+   {
+    "out": "guild_blade",
+    "lvl": 14,
+    "skill": "smithing",
+    "xp": 520,
+    "mastery": {
+     "prof": "smith",
+     "lv": 20
+    }
+   },
+   {
+    "out": "guild_mace",
+    "lvl": 14,
+    "skill": "smithing",
+    "xp": 520,
+    "mastery": {
+     "prof": "smith",
+     "lv": 20
+    }
+   },
+   {
+    "out": "guild_staff",
+    "lvl": 14,
+    "skill": "smithing",
+    "xp": 520,
+    "mastery": {
+     "prof": "smith",
+     "lv": 20
+    }
+   },
+   {
+    "out": "guild_helm",
+    "lvl": 13,
+    "skill": "smithing",
+    "xp": 420,
+    "mastery": {
+     "prof": "smith",
+     "lv": 20
+    }
+   },
+   {
+    "out": "guild_plate",
+    "lvl": 15,
+    "skill": "smithing",
+    "xp": 700,
+    "mastery": {
+     "prof": "smith",
+     "lv": 20
+    }
+   }
+  ],
+  "loom": [
+   {
+    "out": "boar_gloves",
+    "lvl": 1,
+    "skill": "tailoring",
+    "xp": 30
+   },
+   {
+    "out": "deer_boots",
+    "lvl": 2,
+    "skill": "tailoring",
+    "xp": 35
+   },
+   {
+    "out": "leather_vest",
+    "lvl": 4,
+    "skill": "tailoring",
+    "xp": 60
+   },
+   {
+    "out": "wolf_mantle",
+    "lvl": 8,
+    "skill": "tailoring",
+    "xp": 80
+   },
+   {
+    "out": "wolf_hood",
+    "lvl": 9,
+    "skill": "tailoring",
+    "xp": 90
+   },
+   {
+    "out": "wolf_cloak",
+    "lvl": 10,
+    "skill": "tailoring",
+    "xp": 110
+   },
+   {
+    "out": "raptor_boots",
+    "lvl": 14,
+    "skill": "tailoring",
+    "xp": 160
+   },
+   {
+    "out": "raptor_hood",
+    "lvl": 15,
+    "skill": "tailoring",
+    "xp": 220
+   },
+   {
+    "out": "horn_mantle",
+    "lvl": 16,
+    "skill": "tailoring",
+    "xp": 240
+   },
+   {
+    "out": "raptor_vest",
+    "lvl": 17,
+    "skill": "tailoring",
+    "xp": 280
+   },
+   {
+    "out": "ptera_cloak",
+    "lvl": 18,
+    "skill": "tailoring",
+    "xp": 300
+   },
+   {
+    "out": "seasilk_gloves",
+    "lvl": 16,
+    "skill": "tailoring",
+    "xp": 260
+   },
+   {
+    "out": "seasilk_boots",
+    "lvl": 16,
+    "skill": "tailoring",
+    "xp": 260
+   },
+   {
+    "out": "seasilk_hood",
+    "lvl": 17,
+    "skill": "tailoring",
+    "xp": 320
+   },
+   {
+    "out": "shell_mantle",
+    "lvl": 17,
+    "skill": "tailoring",
+    "xp": 320
+   },
+   {
+    "out": "seasilk_robe",
+    "lvl": 18,
+    "skill": "tailoring",
+    "xp": 400
+   },
+   {
+    "out": "drake_boots",
+    "lvl": 18,
+    "skill": "tailoring",
+    "xp": 360
+   },
+   {
+    "out": "drake_hood",
+    "lvl": 19,
+    "skill": "tailoring",
+    "xp": 420
+   },
+   {
+    "out": "drake_mantle",
+    "lvl": 19,
+    "skill": "tailoring",
+    "xp": 420
+   },
+   {
+    "out": "drake_vest",
+    "lvl": 20,
+    "skill": "tailoring",
+    "xp": 520
+   },
+   {
+    "out": "drake_cloak",
+    "lvl": 20,
+    "skill": "tailoring",
+    "xp": 520
+   },
+   {
+    "out": "wool_cloak",
+    "lvl": 10,
+    "skill": "tailoring",
+    "xp": 300,
+    "mastery": {
+     "prof": "tailor",
+     "lv": 20
+    }
+   },
+   {
+    "out": "down_mantle",
+    "lvl": 11,
+    "skill": "tailoring",
+    "xp": 320,
+    "mastery": {
+     "prof": "tailor",
+     "lv": 20
+    }
+   },
+   {
+    "out": "hide_jerkin",
+    "lvl": 12,
+    "skill": "tailoring",
+    "xp": 380,
+    "mastery": {
+     "prof": "tailor",
+     "lv": 20
+    }
+   },
+   {
+    "out": "linen_robe",
+    "lvl": 12,
+    "skill": "tailoring",
+    "xp": 380,
+    "mastery": {
+     "prof": "tailor",
+     "lv": 20
+    }
+   },
+   {
+    "out": "cotton_hood",
+    "lvl": 11,
+    "skill": "tailoring",
+    "xp": 320,
+    "mastery": {
+     "prof": "tailor",
+     "lv": 20
+    }
+   }
+  ],
+  "brew": [
+   {
+    "out": "hp_potion",
+    "lvl": 1,
+    "skill": "herblore",
+    "xp": 25
+   },
+   {
+    "out": "mana_potion",
+    "lvl": 3,
+    "skill": "herblore",
+    "xp": 35
+   },
+   {
+    "out": "elixir_swift",
+    "lvl": 5,
+    "skill": "herblore",
+    "xp": 45
+   },
+   {
+    "out": "elixir_iron",
+    "lvl": 9,
+    "skill": "herblore",
+    "xp": 70
+   },
+   {
+    "out": "elixir_might",
+    "lvl": 12,
+    "skill": "herblore",
+    "xp": 90
+   },
+   {
+    "out": "big_potion",
+    "lvl": 15,
+    "skill": "herblore",
+    "xp": 120
+   },
+   {
+    "out": "dragon_draught",
+    "lvl": 18,
+    "skill": "herblore",
+    "xp": 180
+   },
+   {
+    "out": "tide_tonic",
+    "lvl": 17,
+    "skill": "herblore",
+    "xp": 150
+   },
+   {
+    "out": "great_mana",
+    "lvl": 17,
+    "skill": "herblore",
+    "xp": 150
+   },
+   {
+    "out": "fire_ward",
+    "lvl": 19,
+    "skill": "herblore",
+    "xp": 190
+   }
+  ],
+  "mill": [
+   {
+    "out": "flour",
+    "lvl": 1,
+    "skill": "farming",
+    "xp": 8,
+    "n": 1
+   },
+   {
+    "out": "animal_feed",
+    "lvl": 1,
+    "skill": "farming",
+    "xp": 6,
+    "n": 3
+   },
+   {
+    "out": "bone_meal",
+    "lvl": 2,
+    "skill": "farming",
+    "xp": 6,
+    "n": 2
+   },
+   {
+    "out": "sugar",
+    "lvl": 11,
+    "skill": "farming",
+    "xp": 20,
+    "n": 2
+   }
+  ],
+  "compost": [
+   {
+    "out": "compost",
+    "lvl": 1,
+    "skill": "farming",
+    "xp": 8,
+    "n": 2
+   }
+  ],
+  "dairy": [
+   {
+    "out": "cream",
+    "lvl": 2,
+    "skill": "cooking",
+    "xp": 6,
+    "n": 1
+   },
+   {
+    "out": "butter",
+    "lvl": 2,
+    "skill": "cooking",
+    "xp": 10,
+    "n": 1
+   },
+   {
+    "out": "cheese",
+    "lvl": 5,
+    "skill": "cooking",
+    "xp": 20,
+    "n": 1
+   },
+   {
+    "out": "goat_cheese",
+    "lvl": 7,
+    "skill": "cooking",
+    "xp": 24,
+    "n": 1
+   }
+  ],
+  "spin": [
+   {
+    "out": "yarn",
+    "lvl": 1,
+    "skill": "tailoring",
+    "xp": 12,
+    "n": 1
+   },
+   {
+    "out": "linen",
+    "lvl": 3,
+    "skill": "tailoring",
+    "xp": 16,
+    "n": 1
+   },
+   {
+    "out": "cotton_cloth",
+    "lvl": 8,
+    "skill": "tailoring",
+    "xp": 24,
+    "n": 1
+   }
+  ],
+  "oven": [
+   {
+    "out": "bread",
+    "lvl": 1,
+    "skill": "cooking",
+    "xp": 15,
+    "n": 2
+   },
+   {
+    "out": "boiled_eggs",
+    "lvl": 1,
+    "skill": "cooking",
+    "xp": 12,
+    "n": 1
+   },
+   {
+    "out": "pancakes",
+    "lvl": 3,
+    "skill": "cooking",
+    "xp": 18,
+    "n": 1
+   },
+   {
+    "out": "bone_broth",
+    "lvl": 3,
+    "skill": "cooking",
+    "xp": 18,
+    "n": 1
+   },
+   {
+    "out": "honey_porridge",
+    "lvl": 4,
+    "skill": "cooking",
+    "xp": 22,
+    "n": 1
+   },
+   {
+    "out": "cheese_omelette",
+    "lvl": 5,
+    "skill": "cooking",
+    "xp": 26,
+    "n": 1
+   },
+   {
+    "out": "farmers_breakfast",
+    "lvl": 6,
+    "skill": "cooking",
+    "xp": 30,
+    "n": 1
+   },
+   {
+    "out": "hunter_stew",
+    "lvl": 7,
+    "skill": "cooking",
+    "xp": 34,
+    "n": 1
+   },
+   {
+    "out": "roast_chicken",
+    "lvl": 8,
+    "skill": "cooking",
+    "xp": 38,
+    "n": 1
+   },
+   {
+    "out": "tomato_soup",
+    "lvl": 8,
+    "skill": "cooking",
+    "xp": 38,
+    "n": 1
+   },
+   {
+    "out": "lamb_skewers",
+    "lvl": 9,
+    "skill": "cooking",
+    "xp": 42,
+    "n": 1
+   },
+   {
+    "out": "goat_cheese_salad",
+    "lvl": 9,
+    "skill": "cooking",
+    "xp": 42,
+    "n": 1
+   },
+   {
+    "out": "corn_chowder",
+    "lvl": 10,
+    "skill": "cooking",
+    "xp": 46,
+    "n": 1
+   },
+   {
+    "out": "stuffed_cabbage",
+    "lvl": 10,
+    "skill": "cooking",
+    "xp": 46,
+    "n": 1
+   },
+   {
+    "out": "shepherds_pie",
+    "lvl": 11,
+    "skill": "cooking",
+    "xp": 52,
+    "n": 1
+   },
+   {
+    "out": "fisherman_pie",
+    "lvl": 12,
+    "skill": "cooking",
+    "xp": 56,
+    "n": 1
+   },
+   {
+    "out": "steak_frites",
+    "lvl": 12,
+    "skill": "cooking",
+    "xp": 56,
+    "n": 1
+   },
+   {
+    "out": "chili_con_carne",
+    "lvl": 13,
+    "skill": "cooking",
+    "xp": 60,
+    "n": 1
+   },
+   {
+    "out": "roast_duck",
+    "lvl": 14,
+    "skill": "cooking",
+    "xp": 66,
+    "n": 1
+   },
+   {
+    "out": "pumpkin_pie",
+    "lvl": 15,
+    "skill": "cooking",
+    "xp": 72,
+    "n": 1
+   },
+   {
+    "out": "strawberry_tart",
+    "lvl": 16,
+    "skill": "cooking",
+    "xp": 78,
+    "n": 1
+   },
+   {
+    "out": "truffle_pasta",
+    "lvl": 18,
+    "skill": "cooking",
+    "xp": 90,
+    "n": 1
+   },
+   {
+    "out": "kings_feast",
+    "lvl": 20,
+    "skill": "cooking",
+    "xp": 110,
+    "n": 1
+   }
+  ],
+  "jewel": [
+   {
+    "out": "copper_band",
+    "lvl": 1,
+    "skill": "jewelcrafting",
+    "xp": 20,
+    "n": 1
+   },
+   {
+    "out": "bronze_ring",
+    "lvl": 3,
+    "skill": "jewelcrafting",
+    "xp": 35,
+    "n": 1
+   },
+   {
+    "out": "bone_charm",
+    "lvl": 4,
+    "skill": "jewelcrafting",
+    "xp": 40,
+    "n": 1
+   },
+   {
+    "out": "iron_ring",
+    "lvl": 6,
+    "skill": "jewelcrafting",
+    "xp": 60,
+    "n": 1
+   },
+   {
+    "out": "gold_ring",
+    "lvl": 8,
+    "skill": "jewelcrafting",
+    "xp": 90,
+    "n": 1
+   },
+   {
+    "out": "sapphire_ring",
+    "lvl": 10,
+    "skill": "jewelcrafting",
+    "xp": 140,
+    "n": 1
+   },
+   {
+    "out": "pearl_necklace",
+    "lvl": 11,
+    "skill": "jewelcrafting",
+    "xp": 160,
+    "n": 1
+   },
+   {
+    "out": "ruby_ring",
+    "lvl": 12,
+    "skill": "jewelcrafting",
+    "xp": 180,
+    "n": 1
+   },
+   {
+    "out": "sapphire_amulet",
+    "lvl": 13,
+    "skill": "jewelcrafting",
+    "xp": 220,
+    "n": 1
+   },
+   {
+    "out": "emerald_ring",
+    "lvl": 14,
+    "skill": "jewelcrafting",
+    "xp": 240,
+    "n": 1
+   },
+   {
+    "out": "ruby_amulet",
+    "lvl": 15,
+    "skill": "jewelcrafting",
+    "xp": 280,
+    "n": 1
+   },
+   {
+    "out": "emerald_amulet",
+    "lvl": 16,
+    "skill": "jewelcrafting",
+    "xp": 300,
+    "n": 1
+   },
+   {
+    "out": "void_ring",
+    "lvl": 18,
+    "skill": "jewelcrafting",
+    "xp": 380,
+    "n": 1,
+    "mastery": {
+     "prof": "jeweler",
+     "lv": 20
+    }
+   },
+   {
+    "out": "diamond_ring",
+    "lvl": 19,
+    "skill": "jewelcrafting",
+    "xp": 480,
+    "n": 1,
+    "mastery": {
+     "prof": "jeweler",
+     "lv": 20
+    }
+   },
+   {
+    "out": "diamond_amulet",
+    "lvl": 20,
+    "skill": "jewelcrafting",
+    "xp": 600,
+    "n": 1,
+    "mastery": {
+     "prof": "jeweler",
+     "lv": 20
+    }
+   }
+  ]
+ },
+ "PROFS": {
+  "smith": {
+   "name": "Blacksmith",
+   "skill": "smithing",
+   "blurb": "Smelt bars and forge weapons and armor. Masterwork gear sells to every fighter in the realm.",
+   "perks": [
+    [
+     5,
+     "Careful hammer: 15% chance to save a material when forging"
+    ],
+    [
+     10,
+     "Masterwork: forged gear can come out Masterwork (+30% stats)"
+    ],
+    [
+     20,
+     "Guildforging: learn the Guildforged recipes"
+    ],
+    [
+     30,
+     "Double smelt: 25% chance to smelt 2 bars"
+    ],
+    [
+     40,
+     "Grand masterwork: +12% masterwork chance"
+    ]
+   ],
+   "specs": {
+    "weapon": [
+     "Weaponsmith",
+     "Masterwork weapons twice as often"
+    ],
+    "armor": [
+     "Armorsmith",
+     "Masterwork armor twice as often"
+    ]
+   }
+  },
+  "chef": {
+   "name": "Chef",
+   "skill": "cooking",
+   "blurb": "Cook dishes that make fighters stronger. The best meals are worth more than gold.",
+   "perks": [
+    [
+     5,
+     "Well seasoned: your meal buffs last 25% longer"
+    ],
+    [
+     10,
+     "Fine hands: +15% chance of fine and masterwork meals"
+    ],
+    [
+     20,
+     "Hearty: eating a dish also heals 20% HP"
+    ],
+    [
+     30,
+     "Two pots: 25% chance to cook two"
+    ],
+    [
+     40,
+     "Signature dish: +10% masterwork chance"
+    ]
+   ],
+   "specs": {
+    "baker": [
+     "Baker",
+     "Bread, pies and pancakes: 35% chance to make double"
+    ],
+    "grill": [
+     "Grill master",
+     "Meat dishes give 20% stronger buffs"
+    ]
+   }
+  },
+  "farmer": {
+   "name": "Farmer",
+   "skill": "farming",
+   "blurb": "Grow crops and raise animals on your homestead. Feed the whole realm.",
+   "perks": [
+    [
+     5,
+     "Green thumb: crops grow 15% faster"
+    ],
+    [
+     10,
+     "Big harvest: +1 crop every harvest"
+    ],
+    [
+     20,
+     "Good feed: feed lasts twice as long"
+    ],
+    [
+     30,
+     "Bumper crop: 20% chance to double a harvest"
+    ],
+    [
+     40,
+     "Prize livestock: animals produce 25% faster"
+    ]
+   ],
+   "specs": {
+    "crops": [
+     "Crop farmer",
+     "Crops grow a further 25% faster and always return a seed"
+    ],
+    "ranch": [
+     "Rancher",
+     "Pens hold 2 more animals and they produce 25% faster"
+    ]
+   }
+  },
+  "alchemist": {
+   "name": "Alchemist",
+   "skill": "herblore",
+   "blurb": "Pick herbs and brew potions and elixirs that keep adventurers alive.",
+   "perks": [
+    [
+     5,
+     "Steady hand: 20% chance to brew 2 potions"
+    ],
+    [
+     10,
+     "Potency: your healing potions heal 20% more"
+    ],
+    [
+     20,
+     "Herbal eye: 30% chance of an extra herb when picking"
+    ],
+    [
+     30,
+     "Twin brew: 2-potion chance rises to 40%"
+    ],
+    [
+     40,
+     "Philosopher: elixirs last 50% longer"
+    ]
+   ],
+   "specs": {
+    "healer": [
+     "Healer",
+     "Healing potion cooldown 30% shorter"
+    ]
+   }
+  },
+  "tailor": {
+   "name": "Tailor",
+   "skill": "tailoring",
+   "blurb": "Spin yarn and cloth and stitch leather and robes for every class.",
+   "perks": [
+    [
+     5,
+     "Neat stitches: 15% chance to save a material"
+    ],
+    [
+     10,
+     "Masterwork: tailored gear can come out Masterwork (+30% stats)"
+    ],
+    [
+     20,
+     "Weaver: learn the wool, linen and hide recipes"
+    ],
+    [
+     30,
+     "Fine thread: +8% masterwork chance"
+    ],
+    [
+     40,
+     "Couturier: +12% masterwork chance"
+    ]
+   ],
+   "specs": {
+    "leather": [
+     "Leatherworker",
+     "Masterwork leather twice as often"
+    ],
+    "cloth": [
+     "Clothier",
+     "Masterwork cloth twice as often"
+    ]
+   }
+  },
+  "miner": {
+   "name": "Miner",
+   "skill": "mining",
+   "blurb": "Dig ore and rare gems from every mountain in the realm. Smiths depend on you.",
+   "perks": [
+    [
+     5,
+     "Strong swing: mine 15% faster"
+    ],
+    [
+     10,
+     "Rich veins: 20% chance of double ore"
+    ],
+    [
+     20,
+     "Gem eye: 2% more chance to find a gem"
+    ],
+    [
+     30,
+     "Mother lode: double ore chance rises to 35%"
+    ],
+    [
+     40,
+     "Deep delver: mine a further 20% faster"
+    ]
+   ],
+   "specs": {
+    "prospect": [
+     "Prospector",
+     "Gems turn up 2.5× as often"
+    ],
+    "delve": [
+     "Delver",
+     "Rocks refill twice as fast for you"
+    ]
+   }
+  },
+  "fisher": {
+   "name": "Fisher",
+   "skill": "fishing",
+   "blurb": "Fish every lake, bog and sea. Chefs and alchemists always need your catch.",
+   "perks": [
+    [
+     5,
+     "Patience: fish 15% faster"
+    ],
+    [
+     10,
+     "Double catch: 20% chance of two fish"
+    ],
+    [
+     20,
+     "Sea treasure: 3% chance to reel in a mystery sack"
+    ],
+    [
+     30,
+     "Big catch: double catch rises to 35%"
+    ],
+    [
+     40,
+     "Legend of the lake: fish a further 20% faster"
+    ]
+   ],
+   "specs": {
+    "angler": [
+     "Angler",
+     "Better fish more often (your Fishing counts as +4)"
+    ],
+    "treasure": [
+     "Treasure hunter",
+     "Sacks, pearls and gems from the water 3× as often"
+    ]
+   }
+  },
+  "jeweler": {
+   "name": "Jeweler",
+   "skill": "jewelcrafting",
+   "blurb": "Cut the gems miners find and set them in rings and amulets that every class can wear.",
+   "perks": [
+    [
+     5,
+     "Light touch: 15% chance to save a material"
+    ],
+    [
+     10,
+     "Masterwork: jewelry can come out Masterwork (+30% stats)"
+    ],
+    [
+     20,
+     "Crown jeweler: learn the diamond and voidglass recipes"
+    ],
+    [
+     30,
+     "Steady cut: 25% chance to keep the gem"
+    ],
+    [
+     40,
+     "Flawless: +12% masterwork chance"
+    ]
+   ],
+   "specs": {
+    "rings": [
+     "Gemcutter",
+     "Masterwork rings twice as often"
+    ],
+    "amulets": [
+     "Goldsmith",
+     "Masterwork amulets twice as often"
+    ]
+   }
+  }
+ },
+ "OTIERS": {
+  "common": {
+   "name": "Common",
+   "col": "#cfc6b2",
+   "items": 1,
+   "nk": 1,
+   "pay": 2,
+   "mxp": 1,
+   "rep": 10,
+   "due": 0
+  },
+  "rare": {
+   "name": "Rare",
+   "col": "#5ab4ff",
+   "items": 1,
+   "nk": 2,
+   "pay": 3.5,
+   "mxp": 2,
+   "rep": 30,
+   "due": 60
+  },
+  "epic": {
+   "name": "Epic",
+   "col": "#c07aff",
+   "items": 2,
+   "nk": 2.2,
+   "pay": 6,
+   "mxp": 4,
+   "rep": 80,
+   "due": 90
+  },
+  "legend": {
+   "name": "Legendary",
+   "col": "#ffb030",
+   "items": 3,
+   "nk": 3,
+   "pay": 12,
+   "mxp": 8,
+   "rep": 250,
+   "due": 180
+  }
+ },
+ "MK_TRADES": [
+  [
+   "smith",
+   "Smiths’ Row",
+   11556924,
+   "Weapons, armor and metal bars"
+  ],
+  [
+   "tailor",
+   "Tailors & Tanners",
+   9067224,
+   "Cloth, leather, robes, hides and pelts"
+  ],
+  [
+   "chef",
+   "Cooks’ Corner",
+   14721088,
+   "Meals, bread and pies"
+  ],
+  [
+   "alchemist",
+   "Apothecaries",
+   3846282,
+   "Potions, elixirs and herbs"
+  ],
+  [
+   "jeweler",
+   "Jewelers’ Court",
+   5933823,
+   "Rings, amulets and set gems"
+  ],
+  [
+   "farmer",
+   "Farmers’ Market",
+   8040506,
+   "Crops, eggs, milk, honey and wool"
+  ],
+  [
+   "miner",
+   "Miners’ Exchange",
+   9079442,
+   "Ores and raw gems"
+  ],
+  [
+   "fisher",
+   "Fishmongers",
+   2788040,
+   "Fresh fish and pearls"
+  ],
+  [
+   "woodcutter",
+   "Timber Yard",
+   9071162,
+   "Logs and timber"
+  ]
+ ],
+ "MK_CITIES": {
+  "ashen": [
+   "Ashen Hollow",
+   2
+  ],
+  "varrow": [
+   "Varrow",
+   5
+  ],
+  "highcairn": [
+   "Highcairn",
+   3
+  ],
+  "mirewatch": [
+   "Mirewatch",
+   3
+  ],
+  "sunspire": [
+   "Sunspire Oasis",
+   3
+  ],
+  "cinderhold": [
+   "Cinderhold",
+   4
+  ],
+  "coralport": [
+   "Coralport",
+   4
+  ]
+ },
+ "LOOK_PRICE": {
+  "hair": 300,
+  "face": 400,
+  "body": 900,
+  "name": 1500,
+  "gender": 5000000
+ },
+ "FACTIONS": [
+  {
+   "id": "ashen",
+   "name": "Ashen Hollow",
+   "col": 6982202
+  },
+  {
+   "id": "varrow",
+   "name": "Varrow",
+   "col": 2771610
+  },
+  {
+   "id": "highcairn",
+   "name": "Highcairn",
+   "col": 9094383
+  },
+  {
+   "id": "mirewatch",
+   "name": "Mirewatch",
+   "col": 4876874
+  },
+  {
+   "id": "sunspire",
+   "name": "Sunspire Oasis",
+   "col": 14198848
+  },
+  {
+   "id": "cinderhold",
+   "name": "Cinderhold",
+   "col": 13126170
+  },
+  {
+   "id": "coralport",
+   "name": "Coralport",
+   "col": 2797768
+  }
+ ],
+ "FAC": {
+  "ashen": {
+   "id": "ashen",
+   "name": "Ashen Hollow",
+   "col": 6982202
+  },
+  "varrow": {
+   "id": "varrow",
+   "name": "Varrow",
+   "col": 2771610
+  },
+  "highcairn": {
+   "id": "highcairn",
+   "name": "Highcairn",
+   "col": 9094383
+  },
+  "mirewatch": {
+   "id": "mirewatch",
+   "name": "Mirewatch",
+   "col": 4876874
+  },
+  "sunspire": {
+   "id": "sunspire",
+   "name": "Sunspire Oasis",
+   "col": 14198848
+  },
+  "cinderhold": {
+   "id": "cinderhold",
+   "name": "Cinderhold",
+   "col": 13126170
+  },
+  "coralport": {
+   "id": "coralport",
+   "name": "Coralport",
+   "col": 2797768
+  }
+ },
+ "COMFORTS": [
+  {
+   "id": "flowers",
+   "name": "Flower beds",
+   "pts": 1,
+   "u": 1450,
+   "v": 815,
+   "cost": {
+    "money": 60
+   },
+   "blurb": "Two beds of sunpetals by the front door."
+  },
+  {
+   "id": "bench",
+   "name": "Pond bench",
+   "pts": 1,
+   "u": 520,
+   "v": 770,
+   "cost": {
+    "money": 50
+   },
+   "blurb": "A bench to watch the fish jump."
+  },
+  {
+   "id": "hearth",
+   "name": "Fire pit",
+   "pts": 2,
+   "u": 640,
+   "v": 905,
+   "cost": {
+    "money": 150
+   },
+   "blurb": "A ring of stones, a crackling fire and log seats. It lights up the night."
+  },
+  {
+   "id": "lanterns",
+   "name": "Path lanterns",
+   "pts": 1,
+   "u": 1450,
+   "v": 1010,
+   "cost": {
+    "money": 80
+   },
+   "blurb": "Four lanterns along the path. They glow after dark."
+  },
+  {
+   "id": "scarecrow",
+   "name": "Scarecrow",
+   "pts": 1,
+   "u": 1470,
+   "v": 1640,
+   "cost": {
+    "money": 40
+   },
+   "blurb": "Old Turnip-Head keeps watch over the fields."
+  },
+  {
+   "id": "chimes",
+   "name": "Wind chimes",
+   "pts": 1,
+   "u": 1235,
+   "v": 790,
+   "cost": {
+    "money": 120
+   },
+   "blurb": "They sing softly whenever the wind turns."
+  },
+  {
+   "id": "cat",
+   "name": "Cat basket",
+   "pts": 2,
+   "u": 1110,
+   "v": 790,
+   "cost": {
+    "money": 200
+   },
+   "blurb": "A soft basket, and a cat called Pudding who decides she lives here now."
+  },
+  {
+   "id": "dog",
+   "name": "Dog kennel",
+   "pts": 2,
+   "u": 1830,
+   "v": 830,
+   "cost": {
+    "money": 300
+   },
+   "blurb": "A kennel, and a loyal dog called Biscuit who runs to meet you."
+  },
+  {
+   "id": "swing",
+   "name": "Tree swing",
+   "pts": 1,
+   "u": 820,
+   "v": 380,
+   "cost": {
+    "money": 150
+   },
+   "blurb": "A rope swing under the orchard trees."
+  },
+  {
+   "id": "fountain",
+   "name": "Stone fountain",
+   "pts": 2,
+   "u": 1010,
+   "v": 905,
+   "cost": {
+    "money": 900
+   },
+   "blurb": "Clear water from the well, singing over coral stones."
+  },
+  {
+   "id": "gazebo",
+   "name": "Garden gazebo",
+   "pts": 3,
+   "u": 1760,
+   "v": 1720,
+   "cost": {
+    "money": 1500
+   },
+   "blurb": "A shady gazebo for long summer evenings."
+  },
+  {
+   "id": "trophies",
+   "name": "Trophy stand",
+   "pts": 2,
+   "u": 1850,
+   "v": 470,
+   "cost": {
+    "money": 2000
+   },
+   "blurb": "Trophies from your hunts, for visitors to admire."
+  },
+  {
+   "id": "telescope",
+   "name": "Star telescope",
+   "pts": 3,
+   "u": 2800,
+   "v": 2010,
+   "cost": {
+    "money": 2500
+   },
+   "blurb": "Brass and starlight. Watch the sky you saved."
+  }
+ ]
+}

@@ -1,0 +1,368 @@
+{
+ "PATHS_LIFE": {
+  "adventurer": [
+   "Adventurer",
+   "Fight monsters, clear dungeons, follow the story. Professions on the side."
+  ],
+  "artisan": [
+   "Artisan",
+   "Craft, gather, farm and trade. You level up through your work, monsters leave you alone unless you strike first, and the Artisan’s Road guides you."
+  ]
+ },
+ "PROFS": {
+  "smith": {
+   "name": "Blacksmith",
+   "skill": "smithing",
+   "blurb": "Smelt bars and forge weapons and armor. Masterwork gear sells to every fighter in the realm.",
+   "perks": [
+    [
+     5,
+     "Careful hammer: 15% chance to save a material when forging"
+    ],
+    [
+     10,
+     "Masterwork: forged gear can come out Masterwork (+30% stats)"
+    ],
+    [
+     20,
+     "Guildforging: learn the Guildforged recipes"
+    ],
+    [
+     30,
+     "Double smelt: 25% chance to smelt 2 bars"
+    ],
+    [
+     40,
+     "Grand masterwork: +12% masterwork chance"
+    ]
+   ],
+   "specs": {
+    "weapon": [
+     "Weaponsmith",
+     "Masterwork weapons twice as often"
+    ],
+    "armor": [
+     "Armorsmith",
+     "Masterwork armor twice as often"
+    ]
+   }
+  },
+  "chef": {
+   "name": "Chef",
+   "skill": "cooking",
+   "blurb": "Cook dishes that make fighters stronger. The best meals are worth more than gold.",
+   "perks": [
+    [
+     5,
+     "Well seasoned: your meal buffs last 25% longer"
+    ],
+    [
+     10,
+     "Fine hands: +15% chance of fine and masterwork meals"
+    ],
+    [
+     20,
+     "Hearty: eating a dish also heals 20% HP"
+    ],
+    [
+     30,
+     "Two pots: 25% chance to cook two"
+    ],
+    [
+     40,
+     "Signature dish: +10% masterwork chance"
+    ]
+   ],
+   "specs": {
+    "baker": [
+     "Baker",
+     "Bread, pies and pancakes: 35% chance to make double"
+    ],
+    "grill": [
+     "Grill master",
+     "Meat dishes give 20% stronger buffs"
+    ]
+   }
+  },
+  "farmer": {
+   "name": "Farmer",
+   "skill": "farming",
+   "blurb": "Grow crops and raise animals on your homestead. Feed the whole realm.",
+   "perks": [
+    [
+     5,
+     "Green thumb: crops grow 15% faster"
+    ],
+    [
+     10,
+     "Big harvest: +1 crop every harvest"
+    ],
+    [
+     20,
+     "Good feed: feed lasts twice as long"
+    ],
+    [
+     30,
+     "Bumper crop: 20% chance to double a harvest"
+    ],
+    [
+     40,
+     "Prize livestock: animals produce 25% faster"
+    ]
+   ],
+   "specs": {
+    "crops": [
+     "Crop farmer",
+     "Crops grow a further 25% faster and always return a seed"
+    ],
+    "ranch": [
+     "Rancher",
+     "Pens hold 2 more animals and they produce 25% faster"
+    ]
+   }
+  },
+  "alchemist": {
+   "name": "Alchemist",
+   "skill": "herblore",
+   "blurb": "Pick herbs and brew potions and elixirs that keep adventurers alive.",
+   "perks": [
+    [
+     5,
+     "Steady hand: 20% chance to brew 2 potions"
+    ],
+    [
+     10,
+     "Potency: your healing potions heal 20% more"
+    ],
+    [
+     20,
+     "Herbal eye: 30% chance of an extra herb when picking"
+    ],
+    [
+     30,
+     "Twin brew: 2-potion chance rises to 40%"
+    ],
+    [
+     40,
+     "Philosopher: elixirs last 50% longer"
+    ]
+   ],
+   "specs": {
+    "healer": [
+     "Healer",
+     "Healing potion cooldown 30% shorter"
+    ]
+   }
+  },
+  "tailor": {
+   "name": "Tailor",
+   "skill": "tailoring",
+   "blurb": "Spin yarn and cloth and stitch leather and robes for every class.",
+   "perks": [
+    [
+     5,
+     "Neat stitches: 15% chance to save a material"
+    ],
+    [
+     10,
+     "Masterwork: tailored gear can come out Masterwork (+30% stats)"
+    ],
+    [
+     20,
+     "Weaver: learn the wool, linen and hide recipes"
+    ],
+    [
+     30,
+     "Fine thread: +8% masterwork chance"
+    ],
+    [
+     40,
+     "Couturier: +12% masterwork chance"
+    ]
+   ],
+   "specs": {
+    "leather": [
+     "Leatherworker",
+     "Masterwork leather twice as often"
+    ],
+    "cloth": [
+     "Clothier",
+     "Masterwork cloth twice as often"
+    ]
+   }
+  },
+  "miner": {
+   "name": "Miner",
+   "skill": "mining",
+   "blurb": "Dig ore and rare gems from every mountain in the realm. Smiths depend on you.",
+   "perks": [
+    [
+     5,
+     "Strong swing: mine 15% faster"
+    ],
+    [
+     10,
+     "Rich veins: 20% chance of double ore"
+    ],
+    [
+     20,
+     "Gem eye: 2% more chance to find a gem"
+    ],
+    [
+     30,
+     "Mother lode: double ore chance rises to 35%"
+    ],
+    [
+     40,
+     "Deep delver: mine a further 20% faster"
+    ]
+   ],
+   "specs": {
+    "prospect": [
+     "Prospector",
+     "Gems turn up 2.5× as often"
+    ],
+    "delve": [
+     "Delver",
+     "Rocks refill twice as fast for you"
+    ]
+   }
+  },
+  "fisher": {
+   "name": "Fisher",
+   "skill": "fishing",
+   "blurb": "Fish every lake, bog and sea. Chefs and alchemists always need your catch.",
+   "perks": [
+    [
+     5,
+     "Patience: fish 15% faster"
+    ],
+    [
+     10,
+     "Double catch: 20% chance of two fish"
+    ],
+    [
+     20,
+     "Sea treasure: 3% chance to reel in a mystery sack"
+    ],
+    [
+     30,
+     "Big catch: double catch rises to 35%"
+    ],
+    [
+     40,
+     "Legend of the lake: fish a further 20% faster"
+    ]
+   ],
+   "specs": {
+    "angler": [
+     "Angler",
+     "Better fish more often (your Fishing counts as +4)"
+    ],
+    "treasure": [
+     "Treasure hunter",
+     "Sacks, pearls and gems from the water 3× as often"
+    ]
+   }
+  },
+  "jeweler": {
+   "name": "Jeweler",
+   "skill": "jewelcrafting",
+   "blurb": "Cut the gems miners find and set them in rings and amulets that every class can wear.",
+   "perks": [
+    [
+     5,
+     "Light touch: 15% chance to save a material"
+    ],
+    [
+     10,
+     "Masterwork: jewelry can come out Masterwork (+30% stats)"
+    ],
+    [
+     20,
+     "Crown jeweler: learn the diamond and voidglass recipes"
+    ],
+    [
+     30,
+     "Steady cut: 25% chance to keep the gem"
+    ],
+    [
+     40,
+     "Flawless: +12% masterwork chance"
+    ]
+   ],
+   "specs": {
+    "rings": [
+     "Gemcutter",
+     "Masterwork rings twice as often"
+    ],
+    "amulets": [
+     "Goldsmith",
+     "Masterwork amulets twice as often"
+    ]
+   }
+  }
+ },
+ "AROAD": [
+  {
+   "t": "talk",
+   "id": "guild",
+   "n": 1,
+   "pay": 20
+  },
+  {
+   "t": "gather",
+   "n": 20,
+   "pay": 30
+  },
+  {
+   "t": "craft",
+   "n": 10,
+   "pay": 50
+  },
+  {
+   "t": "order",
+   "n": 3,
+   "pay": 90
+  },
+  {
+   "t": "mastery",
+   "n": 10,
+   "pay": 150
+  },
+  {
+   "t": "prof",
+   "n": 2,
+   "pay": 120
+  },
+  {
+   "t": "craft",
+   "n": 40,
+   "pay": 250
+  },
+  {
+   "t": "order",
+   "n": 10,
+   "pay": 400
+  },
+  {
+   "t": "mastery",
+   "n": 20,
+   "pay": 800
+  },
+  {
+   "t": "mastery",
+   "n": 30,
+   "pay": 2000,
+   "title": true
+  }
+ ],
+ "RULES": {
+  "choose": "Chosen when the character is made ('How do you want to play?'): adventurer or artisan, plus any number of professions (an artisan must pick at least one; default smith + fisher). Saved as P.path ('adventurer' | 'artisan') and P.prof.mains.",
+  "change": "Can be switched later only at a Guild Registrar (Professions panel > 'Become an Artisan' / 'Become an Adventurer'). Switching sets peace to match the path.",
+  "peace": "P.peace: null = follow the path, true/false = player override. peaceOn() = P.peace === true || (P.peace == null && path is artisan).",
+  "peaceful": "With peace on, a monster ignores the player unless it was provoked (the player hit it first) and it is not a dungeon, raid, king's quest, arena, ghost, PvP or summoned add monster: peacefulFor(m) = peaceOn() && !m.provoked && !m.d.dung && !m.d.dungeon && !m.d.raid && !m.kqm && !m.arenaFoe && !m.ghostOf && !m.pvp && !m.add.",
+  "levelling": "Adventurers level by fighting; artisans level through their professions, and the Artisan's Road (AROAD) is their quest line instead of the combat story.",
+  "source": "Reference~/ashen-hollow-web-v67.js: search isArtisan, peaceOn, peacefulFor, PATHS_LIFE, AROAD, aroadCheck, crPath."
+ }
+}

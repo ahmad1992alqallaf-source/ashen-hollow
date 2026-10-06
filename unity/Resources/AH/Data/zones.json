@@ -1,0 +1,6561 @@
+{
+ "ALLZ": [
+  {
+   "id": "ember",
+   "name": "Emberreach",
+   "x": 130000,
+   "y": 0,
+   "w": 6000,
+   "h": 6000,
+   "cols": 60,
+   "rows": 60,
+   "t": {
+    "_bytes": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUCAgICAgICBQAFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwMDAwcHBwcHAAAAAAAAAAAAAAAAAAYCAgICAgICBQAFAAAAAAUFBQUFAAAAAAAAAAAAAAAAAAAABwcHAwkJCQMHBwcHAAAAAAAAAAAAAAAAAAYGAgICAgICBQAFAAAAAAUFBQUFAAAAAAAAAAAAAAAAAAcHBwcDCQkJCQkDBwcHBwAAAAAAAAAAAAAAAAAGAgICAgICBQAAAAAAAAUFBQUFAAAAAAAAAAAAAAAABwcHBwMJCQkJCQkJAwcHBwcHAAAAAAAAAAAAAAAGAgICAgICBQAAAAAAAAUFBQUFAAAFAAAAAAAAAAAHBwcHBwMJCQkBAQEBAwcHBwcHBwAAAAAAAAAAAAAGAgICAgICBQAAAAAAAQEFAAAAAAAFAAAAAAAAAAAHBwcHBwMJCQkJAQEBBAEHBwcHBwcHAAAAAAAAAAAGAgICAgICBQAAAAAAAQEAAAAAAAAFAAAAAAAAAAcHBwcHBwcDCQkJCQkDBwEBBwcHBwcHBwcAAAAAAAYGAgICAgICBQAAAAAAAAEBAAAAAAAFAAAAAAAABwcHBwcHBwcDAwkJCQMDBwcBAQcHBwcHBwcHAAAAAAYGAgICAgICBQAFBQAABQEBAAAAAAAAAAAAAAAHBwcHBwcHBwcHBwMDAwcHBwcHAQEHBwcHBwcHAAAAAAYGAgICAgICBQAFBQUFBQUBAQUAAAAAAAAABwcHBwcHBwcHBwcHBwcHBwcHBwcHAQEBBwcHBwcHAAAAAAAGAgICAgICBQAFBQAAAAUFAQUFAAAAAAAHBwcHBwcHBwcHBwcHBQUFBQUFBwcHBwEBBwcHBwcHBwAAAAAGAgICAgICBQAAAAAAAAUFAQEFAAAFAAcHBwcHBwcHBwcHBwcFBQUFBQUFBQcHBwcBAQcHBwcHBwAAAAAGBgICAgICBQcHBwcHBwcHBwEHBwcHBwcHBwcHBwcHBwcHBwUFBQUFBQUFBQUHBwcBAQEHBwcHBwAAAAAGBgICAgICBQcHBwcHBwcHBwEBBwcHBwcHBwcHBwcHBwcHBQUFBQUFBQUFBQUFBwcHAQEHBwcHBwAAAAAGBgICAgICBQcHBwcHBwcHBwcBBwcHBwcHBwcHBwcHBwcHBQUFBQUFBQUFBQUFBwcHBwEHBwcHBwAAAAAGAgICAgICBQcHBwcHBwcHBwcBAQcHBwcHBwcHBwcHBwcHBQUFBQUFBQUFBQUFBwcHBwEBBwcHBwAAAAYGAgICAgICBQcHBwcHBwcHBwcHAQcHBwcHBwcHBwcHBwcHBQUFBQUFBQUFBQUFBwcHBwEBBwcHAAAAAAYCAgICAgICBQcHBwcHBwcHBwcHAQEHBwcHBwcHBwcHBwcHBQUFBQUFBQUFBQUFBwcHBwEBBwcHAAAABgYCAgICAgICBQcHBwcHBwcHBwcHAQEHBwcHBwcHBwcHBwcHBQUFBQUFBQUFBQUFBwcHBwEBBwcHAAAGBgICAgICAgICBQcHBwcHBwcHBwcHBwEBBwcHBwcHBwcHBwcHBwUFBQUFBQUFBQUHBwcHBwEBBwcAAAAGBgICAgICAgICBQcHBwcHBwcHBwcHBwEBBwcHBwcHBwcHBwcHBwMFBQUFBQUFBQcHBwcHBwEBBwcAAAAGAgICAgICAgICBQcHBwcHBwcHBwcHBwcBAQcHBwcHBwcHBwcHAwMDBQUFBQUFBwcHBwcHBwEBBwcAAAYGAgICAgICAgICBQcHBwcHBwcHBwcHBwcBAQcHBwcHBwcHBwcDAwMHBwcHBwcDAwcHBwcHBwEBBwcABgYCAgICAgICAgICBQcHBwcHBwcHBwcHBwcBAQcHBwcHBwcHBwMDAwcHBwcHBwcDAwcHBwcHBwEBBwAABgYCAgICAgICAgICBQcHBwcHBwcHBwcHBwcBAQcHBwcABwcHBwMDBwcHBwcHBwcDAwcHBwcHBwEBBwAABgYCAgICAgICAgICBQcHBwcHBwcHBwcHBwcHAQcHBwcABwcHAwMHBwcHBwcHBwcDAwcHBwgICAgICAgIBgYCAgICAgICAgICBQcHBwcHBwcHBwcHBwcHAQEHBwcAAAcHAwMHBwcHBwcHBwcDAwcHBwgICAgICAgIBgYCAgICAgICAgICBQAAAAAAAAAAAAAAAAAAAQEAAQEBAQEEAwcHBwcHBwcHBwcHAwcHBwgICAgICAgIBgYCAgICAgICAgICAQEBAQEBAAAAAAAAAAEBAQEBAQEBAQQEBAEBAQcHBwcHBwcHAwcBAQgICAgICAgIAQEEBAQCAgICAgICAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAMDAAEBAQEBAQEBAQEBBAEBAQgICAgICAgIAQEEBAQCAgICAgICBQAAAAAAAAABAQEBAAAAAAAAAAAAAwMAAAABAQcBAQEBAQEEBAEHBwgICAgICAgIBgYCAgICAgICAgICBQAAAAAAAAAAAQEAAAAAAAAAAAADAwAAAAABAQcHBwcHBwcDAwcHBwgICAgICAgIBgYCAgICAgICAgICBQAAAAAAAAAAAQAAAAAAAAAAAAMDAwAAAAABAQcHBwcHBwcDAwcAAAgICAgICAgIBgYCAgICAgICAgICBQAAAAAAAAAAAQAAAAAAAAAAAAMDAAAAAAABAQAAAAcHBwcDAwAAAAAAAAAAAAAABgYCAgICAgICAgICBQAAAAAAAAABAQAAAAAAAAAAAwMAAAAAAAABAAAAAAAAAAADAwAAAAAAAAAAAAAABgYCAgICAgICAgICBQAAAAAAAAABAQAAAAAAAAADAwAAAAAAAAABAAAAAAAAAAADAAAAAAAAAAAAAAAABgYCAgICAgICAgICBQAAAAAAAAABAQAAAAAAAAADAwAAAAAAAAABAAAAAAAAAAMDAAAAAAAAAAAAAAAABgYCAgICAgICAgICBQAAAAAAAAABAQAAAAAAAAMDAAAAAAAAAAEBAAAAAAAAAAMDAAAAAAAAAAAAAAAAAAAABgYCAgICAgICBQAAAAAAAAABAAAAAAAAAAMDAAAAAAAAAAEBAAAAAAAAAwMAAAAAAAAAAAAAAAAAAAAAAAYCAgICAgICBQAAAAAAAAABAAAAAAAAAwMAAAAAAAAAAAEBAAAAAAAAAwMAAAAAAAAAAAAAAAAAAAAAAAYCAgICAgICBQAAAAAAAAEBAAAAAAAAAwMAAAkJCQkJCQEBCQkJCQAAAwAAAAAAAAAAAAAAAAAAAAAAAAYCAgICAgICBQAAAAAAAAEBAAAAAAADAwAAAAkJCQkJCQEBCQkJCQADAwAAAAAAAAAAAAAAAAAAAAAAAAYCAgICAgICBQAAAAAAAAEBAAAAAAADAwAAAAkJCQkJCQEJCQkJCQADAwAAAAAAAAAAAAAAAAAAAAAAAAYGAgICAgICBQAAAAAAAAADAwMDAwMDAAAAAAkJCQkJCQEJCQkJCQADAwAAAAAAAAAAAAAAAAAAAAAAAAYGAgICAgICBQAAAAAAAwMDAwMDAwMDAwAAAAkJCQkJCQEBCQAAAAAAAwAAAAAAAAAAAAAAAAAAAAAAAAYGAgICAgICBQAAAAADAwMDAwMDAwMDAwMAAAkJCQkJCQEBCQAAAAAAAwAAAAAAAAAAAAAAAAAAAAAAAAYGAgICAgICBQAAAAMDAwMDAwMDAwMDAwMDAAkJCQkJCQEBCQAAAAAAAwMAAAAAAAAAAAAAAAAAAAAAAAAGBgICAgICBQAAAAMDAwMDAwMDAwMDAwMDAAkJCQkJCQEBCQAAAAAAAwMAAAAAAAAAAAAAAAAAAAAAAAAGBgICAgICBQAAAAMDAwMDAwMDAwMDAwMDAAkJCQkJAAABAAAAAAAAAwMAAAAAAAAAAAAAAAAAAAAAAAAGBgICAgICBQAAAAADAwMDAwMDAwMDAwMDAAkJCQkAAAABAQAJAAAAAwMAAAAAAAAAAAAAAAAAAAAAAAAABgICAgICBQAAAAADAwMDAwMDAwMDAwMAAAkJCQkAAAABAQAJAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAGBgICAgICBQAAAAAAAwMDAwMDAwMDAwAAAAAAAAAAAAABAQAJCQAAAAMAAAAAAAAAAAAAAAAAAAAAAAAGBgICAgICBQAAAAAAAAAAAwMDAwMAAAAAAAAAAAAAAAAAAAAJCQAAAAMDAAAAAAAAAAAAAAAAAAAAAAYGAgICAgICBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJCQAAAAMDAAAAAAAAAAAAAAAAAAAAAAYGAgICAgICBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACQAAAAMDAAAAAAAAAAAAAAAAAAAABgYCAgICAgICBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAAAAAAAAAAAAAAAAAAAABgYCAgICAgICBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAAAAAAAAAAAAAAAAAAAABgICAgICAgICBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAAAAAAAAAAAAAAAAAAAGBgICAgICAgICBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUDBQUFBQUFBQUFBQUFBQUFBQICAgICAgIC",
+    "_type": "Uint8Array",
+    "_len": 3600
+   }
+  },
+  {
+   "id": "tide",
+   "name": "Tidewake Isles",
+   "x": 140000,
+   "y": 0,
+   "w": 5000,
+   "h": 5000,
+   "cols": 50,
+   "rows": 50,
+   "t": {
+    "_bytes": "AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBgYGAgICAgICAgICAgICAgICAgICAgIGBgAAAAYGBgICAgICAgICAgICAgICAgICBgAAAAAABgICAgICAgICAgICAgICAgIGBgAAAAAAAAAABgYCAgICAgICAgICAgICAgYAAAAAAAAAAgICAgICAgICAgICAgICAgYAAAAAAAAAAAAABgYCAgICAgICAgICAgIGAAAAAQAAAAAGAgICAgICAgICAgICAgIGAAAAAAABAQAAAAAABgICAgICAgICAgICAgYAAAABAQAAAAYCAgICAgICAgICAgICAgYAAAAAAAEBAAAAAAAGAgICAgICAgICAgICAgYAAAEBAAAGAgICAgICAgICAgICAgICAgYAAAAAAQEAAAAABgICAgICAgICAgICAgICAgYAAAEABgICAgICAgICAgICAgICAgICAgYGAAABAQAABgYCAgICAgICAgICAgICAgICAgICBAQCAgICAgICAgICAgICAgICAgICAgIGBgEBBgYCAgICAgICAgICAgICAgICAgICAgICBAICAgICAgICAgICAgICAgICAgICAgICBAQCAgICAgICAgICAgICAgICAgICAgICAgIEBAICAgICAgICAgICAgICAgICAgICAgIEBAICAgICAgICAgICAgICAgICAgICAgICAgQEAgICAgICAgICAgICAgICAgICAgICAgQCAgICAgICAgICAgICAgICAgICAgICAgICAgEBBgYCAgICAgICAgICAgICAgICAgIEBAICAgICAgICAgICAgICAgICAgICAgICAgIGAQEAAAYGAgICAgICAgICAgICAgICAgQEAgICAgICAgICAgICAgICAgICAgICAgICBgAAAQAAAAAGAgICAgICAgICAgYGBgYBAQYGBgICAgICAgICAgICAgICAgICAgICAgYAAAABAQAAAAAGAgICAgICAgIGBgYBAQEGBgYGBgICAgICAgICAgICAgICAgICAgICBgAAAAEBAQEAAAYCAgICAgICBgYGAAEBAAAABgYGBgICAgICAgICAgICAgICAgICAgIGAAEBAQEBAQEBAQQCAgICAgYGBgAAAQAAAAAAAAAGBgICAgICAgICAgICBgYGAgICAgEBAQEAAAAAAAAEBAQEAgIGBgAAAAEBAAAAAAAAAAAGBgICAgICAgICAgYAAAAGBgQEBAYAAAAAAAAABgICBAQEBAYGAAAAAQEAAAAAAAAAAAAGAgICAgICAgIGAAAAAAABBAQCAgYGAAAAAAYCAgICAgQEAQAAAAABAAAAAAAAAAAAAAYGAgICAgICAgAAAAAAAQEGAgICAgIGBgYGAgICAgICAgEBAAgICAgICAgAAAAAAAAABgYCAgICAgIGAAAAAAEBAAYCAgICAgICAgICAgICAgICBgEACAgICAgICAAAAAAAAAAABgICAgIEBAEBAQEBAQAABgICAgICAgICAgICAgICAgYGAQEICAgICAgIAAAAAAAAAAAGAgICAgQEAQEBAQEAAAAGAgICAgICAgICAgICAgICBgYBAQgICAgICAgAAAAAAAAAAAYCAgICAgICAAAAAQAAAAYCAgICAgICAgICAgICAgQBAQAACAgICAgICAAAAAAAAAAGBgICAgICAgIGAAABAQAAAgICAgICAgICAgICAgICAgIGAAAICAgICAgIAAAAAAAAAAYGAgICAgICAgYAAAEBAAYCAgICAgICAgICAgICAgICAgYAAAgICAgICAgAAAAAAAAABgYCAgICAgICAgYAAQEGBgICAgICAgICAgICAgICAgICBgYAAAAAAQAAAAAAAAICAgAGAgICAgICAgICBgYBAQICAgICAgICAgICAgICAgICAgICBgAAAAEBAAAAAAACAgICAgYCAgICAgICAgICAgEEBAICAgICAgICAgICAgICAgICAgIGBgEBAQEAAAAAAgICAgICAgICAgICAgICAgICAgQEBAICAgICAgIGAgICAgICAgICAgIBAQEAAAAAAAAAAgICAgIGAgICAgICAgICAgICAgQEBAICAgYGAAAAAAYGBgICAgIEBAEGBgAAAAAAAAAAAgICBgICAgICAgICAgICAgICAgIEBAIGAAAAAAAAAAAABgIEBAQEAgYGBgAAAAAAAAAABgYCAgICAgICAgICAgICAgICAgIEAQEBAAAAAAAAAAEBAQQEAgICAgYGBgYGBgAAAAYGAgICAgICAgICAgICAgICAgICAgIBAQEBAQEBAQEBAQEBAgICAgICAgIGBgYGBgYGBgICAgICAgICAgICAgICAgICAgICAgYAAAAAAQEBAAAAAAYCAgICAgICAgICBgYGAgICAgICAgICAgICAgICAgICAgICAgICBgAAAAAAAAAAAAAGAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBgYAAAAAAAAABgYCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYGBgYGBgYCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg==",
+    "_type": "Uint8Array",
+    "_len": 2500
+   }
+  },
+  {
+   "id": "fossil",
+   "name": "Fossil Lands",
+   "x": 191000,
+   "y": 0,
+   "w": 6000,
+   "h": 6000,
+   "cols": 60,
+   "rows": 60,
+   "t": {
+    "_bytes": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQcGBgcHBwcHBwAAAAAAAAcHBwcHBwcAAAAABwcHBwcHBwcHBwcHBwcHBwAAAAAGBgYHBwcHBwcAAAAFBQcGBgYGBgYGBgYHAAAHBwcHBwcHBwcHBwcGBwcHBwcHBwcGBgcHBwcHAAAAAAAABgcHBwcHBwAAAAAFBQcGBgYGBgYGBgYHBwcHBwcHBwcHBwcHBwcGBwcHBwcHBwcGBgcHBwcHAAAAAAAABgcHBwcHBwAAAAAFBQcGBgYHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcAAAAAAAAABgcHBwcHAAAAAAAFBQYGBgcAAAAHBwcHBwYGBgYGBgYHBwcHBwcHBwcHBwYGBgYHBwcGBgAAAAAAAAAABgYHBwcHAAAAAAAFBQcGBgcAAAAHBwcHBwYGBgYGBgYHBwYGBgEBBwcHBwYGBgYHBwcGBgAAAAAAAAAABgYHBwcHAAAAAAAFBQUHBwcAAAAHBwcHBwcGBgYGBgYGBgYGBgEBBwcHBwcHBgcHBgYGAAAAAAAAAAAABwcHBwcHAAAAAAAFBQUHBwAAAAAABwcHBwcGBgYGBgYGBgYGBwcBBwcHBwcHBwcGBgYGBgAAAAAAAAAABwcGBgcHBwAAAAAFBQUHBwAAAAAABwcHBwcGBgYGBgYGBgYGBwcBAQcHBwcHBwcGBgYGBgYAAAAAAAcHBwcGAgIHBwcHBwcFBQUHAAAAAAAAAAcHBwcHBwcGBgcHBwcHBwcBAQcHBwcHBwcGBgYGBgYHBwcGBgcHBwcCAgICBwcHBwcFBQAAAAAAAAAAAAAABgcHBwcGBgcHBwcHBwYGAQEGBgcHBwcGBgYGBgYHBwcGBgYGBgICAgICAgcHBwcFBQAAAAAAAAAAAAAAAAAAAAcGBgcHBwcHBwYGAQEGBgcHBwcGBgYGBgYHBwcGBgYGBgICAgICAgcHBwcFBQAAAAAAAAAAAAAAAAAAAAYGBgcHBwcHBwYGBgEHBwcHBwYGBgYGBgYGBwcHBwcHBwcCAgICAgcHBwcFBQcAAAAAAAAAAAAAAAAAAAAGBgcHBwcHBwYGBgEBBwcGBgYGBgYGBgYGBgYHBwcHBwcHAgIGBgYGBgYFBQcHBwcAAAAAAAAAAAAAAAAGBgYHBwcHBwYGBgEBBwcGBgYGBgYGBgYGBgYHBwcHBwcHBwYGBgYGBgYFBQcHBwcHBwYGBgYAAAAAAAAABgYHBwcGBgYGBwcBBwcGBgYGBwYGBgYGBgYHBwcHBwcHBwYGBgYHBwcFBQYHBwYGBgYGBgYGAAAAAAAAAAAGBgYGBgcHBwcBBwcGBgYHBwcHBwcHBwYGBgcHBwcHBwcGBgcHBwcFBQcHBwcGBgYGBgYGAAAAAAAAAAAGBgYGBgcHBwcBAQcGBgYHBwcHBQUHBwYGBgcHBwcHBwcGBgcHBwcFBQcHBwcHBwcHBwYGAAAAAAAAAAAGBgcHBwcHBwcBAQcGBgcHBwUFBQUHBgYGBwcHBwcHBwcGBgcHBwcFBQcHBwcHBwcHBwcGAAAAAAAAAAAGBgcHBwcGBgYBAQcHBwUFBQUFBQUGBgYHBwcHBwcHBwcGBgcHBwcFBQcHBwcHBwcHBwcGBgcHBwcGBgYGBgcHBwcGBgYHAQcHBwUFBQUFBQUGBgYHBwcHBwcHBwcGBgYHBwcFBQcHBwcHBwcHBwcGBgcHBwcGBgYGBgcHBwcGBgYGAQcHBwUFBQUFBQUGBgYGBwcHBwcGBgYGBgYGBgYFBQcHBwcHBwcHBwcGBgcHBwcGBgYGBgcHBwcGBgYGAQcHBwcHBwcHBwcGBgYGBgYGBgYGAAYGBgYGBgYFBQAAAAAAAAAABwcGBgcHBwcFBQYGBgcHBwcGBgYGAQcHBwcHBwcHBwcFBQUFBQYGBgYAAAAABgYGBgYFBQAAAAAAAAAABwcHBwcHBwcFBQUFBwcHBwcHBwcBAQYGBgcHBwcHBwcFBQUFBwcHBwcHAAAABgYGBgcFBQAAAAgICAgICAgHBwcHBwcFBQUFBQUFBQcHBwcBAQYGBgcHBwcGBwcFBQUHBwcHBgYHBwcABwcGBgcFBQAAAAgICAgICAgHBwcHBwcHBwcHBwcHBwcHBwcBAQYGBgcHBwcGBgcHBwcHBwYGBgYGBgcHBwcGBgcFBQAAAAgICAgICAgBAQcHBwcHBwcHBwcHBwcHBwcBAQYGBgcHBwcHBwcHBwcHBwYGBgYGBgcHBwcGBgcFBQcHBwgICAgICAgBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBBgYGBgYGBgYHBgYGBgYFBQcHBwgICAgICAgHBwcHBwcHBwcHBwEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBBgYGBgYGBgYHBgYGBgYFBQcHBwgICAgICAgHBwcHBwcHBwcGBgAAAAAAAAABAQYGBgcAAAAAAAAAAAAHBwYGBgYGBgcHBwYGBgcFBQcHBwcAAAAAAAYGBgcHBwcHBwYGBgAAAAAAAAABAQcHBwcAAAAAAAAAAAAABwYGBgYGBgcHBwYGBgcFBQcHBwcAAAAABgYGBgcHBwcHBwYGAAAAAAAAAAABAQcHBwcAAAAAAAAAAAAABwcHBgYHBwcHBwcGBgcFBQcHBwAAAAUFBQcHBwcHBwcHBwcAAAAAAAAAAAABAQcHBwcAAAAAAAAAAAAAAAAHBwcHBwcFBQUFBQcFBQcGBgAAAAUFBQUHBwcGBgcAAAAAAAAAAAAAAAcBBwcGBgYAAAAAAAAAAAAAAAAAAAAAAAUFBQUFBQUFBQcGAAAAAAUFBQUHBwcGBgcAAAAAAAAAAAAAAAcBBwcGBgYAAAAAAAAAAAAAAAAAAAAAAAUFBQUFBQUFBQcHAAAAAAUFBQUHBwcHBwcAAAAAAAAAAAAAAAYBBwcHBwYAAAAAAAAAAAAAAAAAAAAAAAUFBQUFBQUFBQcHAAAAAAUFBQcGBgcHBwcAAAAAAAAAAAAAAAEBBgYHBwcAAAAAAAAAAAAAAAAAAAAAAAAFBQUHBwcFBQcHAAAAAAAFBQcGBgcHBwAAAAAAAAAAAAAAAAEBBgYHBwcAAAAAAAAAAAAAAAAAAAAAAAAAAAcHBwcFBQcHAAAAAAAAAAcHBwcHBwAAAAAAAAAAAAAAAAEGBgcHBwcAAAAAAAAAAAAAAAAAAAAAAAAAAAcHBwcFBQYGBgAAAAAAAAAHBwcHAAAAAAAAAAAAAAAAAQEHBwcHBwcAAAAAAAAAAAAAAAAAAAAAAAAABwcHBwcFBQYGBgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQEHBwcHBwcHAAAAAAAABgYGBgcHAAAAAAAABwcHBwcFBQYGBgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQcHBwcHBwcHAAAAAAAABgYGBgYGAAAAAAAABwcHBwcFBQYHBwAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAQcHBwcHBwcAAAAAAAAHBwYGBgYGAAAAAAAABwcGBgYFBQcHBwAAAAAAAAAAAgIAAAAAAAAAAAAAAAABAQcHBwcHBwcAAAAAAAAHBwcGBgYGAAAAAAAABwYGBgYFBQcHBwAAAAAAAgICAgICAgAAAAAAAAAAAAABAAcHBwcHBwcAAAAAAAAHBwcHBwcHBwAAAAAGBgYHBwcFBQcHBwAAAAAAAgICAgICAgIAAAAAAAAAAAABAAcHBwcHBwcAAAAAAAAGBgcHBwcHBwcHBwYGBgYHBwcFBQcHAAAAAAAAAgICAgICAgIAAAAAAAAABwEBBwcHBwcHBwAAAAAAAAAGBgcHBwcHBwcHBwYGBgYHBwcFBQAAAAAAAAAAAgICAgICAgAAAAAAAAAABwEBBwcHBwcHAAAAAAAAAAAGBgYHBwcHBwcHBwYGBgYHBwcFBQAAAAAAAAAAAAACAgAAAAAAAAAAAAAHBwEBBwcHAAAAAAAAAAAAAAICAgICAgYGBgcHBwYGBgYHBwcFBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHBwEHBwcHAAAAAAAAAAAAAgICAgICAgIGBgcHBwYGBgcHBwcFBQAAAAAAAAAAAAAAAAAAAgICAgAAAAAHBwEHBwcHBwAAAAAAAAUFAgICAgICAgIHBwcHBwcHBwcHBwcFBQAAAAAAAAAAAAAAAAACAgICAgIAAAAAAQEHBwcHBwcGBgYABQUFAAICAgICAgcHBwcHBwcHBwcGBgcFBQAAAAAAAAAAAAAAAAACAgICAgAAAAAGAQEHBwcHBwcGBgUFBQUFAAAABwcHBwcHBwcHBwcHBwcHBgcFBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHBwcHBwcGBQUFBQUFAAAAAAAAAAAAAAAAAAAAAAAHBwcFBQAAAAAAAAAAAAAABwYGBgYGBgYHAAAAAAAABwcHBwcGBQUFBQUFAAAAAAAAAAAAAAAAAAAAAAAAAAAFBQAAAAAAAAAAAAAABwcGBgYGBgYHBwAAAAAABwcHBwcGBgUFBQUFAAAAAAAAAAAAAAAAAAAAAAAAAAAFBQAAAAAAAAAAAAAABwcHBwcHBwcHBwcAAAAABwcHBwcGBgcFBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUF",
+    "_type": "Uint8Array",
+    "_len": 3600
+   },
+   "pal": [
+    "#5e5e48",
+    "#857660",
+    "#17140f",
+    "#ff5a14",
+    "#4e4234",
+    "#55524c",
+    "#bdb498",
+    "#6e6a60",
+    "#8e8672",
+    "#2a2238"
+   ],
+   "city": null,
+   "around": 2762786,
+   "bg": "#24221c",
+   "tex": 1792,
+   "peak": 5920336,
+   "roadCol": "#857660",
+   "respawn": {
+    "x": 191840,
+    "y": 3080,
+    "name": "Bonewatch"
+   }
+  },
+  {
+   "id": "hc_city",
+   "name": "Highcairn",
+   "x": 150000,
+   "y": 0,
+   "w": 2600,
+   "h": 2200,
+   "cols": 26,
+   "rows": 22,
+   "t": {
+    "_bytes": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgICAgICAgICAgICAgICAUFBQUICAgICAgICAgICAgICAgICAgICAgIBQUFBQgICAgICAgICAgICAgICAgICAgICAgFBQUFCAgICAgICAgICAgICAgICAgICAgICAUFBQUICAgICAgICAgICAgICAgICAgICAgIBQUFBQgICAgICAgICAgICAgICAgICAgICAgFBQUFCAgICAgICAgICAgICAgICAgICAgICAUFBQUICAgICAgICAgICAgICAgICAgICAgIBQUFBQgICAgICAgICAgICAgICAgICAgICAgFBQUFCAgICAgICAgICAgICAgICAgICAgICAUFBQUICAgICAgICAgICAgICAgICAgICAgIBQUFBQgICAgICAgICAgICAgICAgICAgICAgFBQUFCAgICAgICAgICAgICAgICAgICAgICAUFBQUICAgICAgICAgICAgICAgICAgICAgIBQUFBQgICAgICAgICAgICAgICAgICAgICAgFBQUFCAgICAgICAgICAgICAgICAgICAgICAUFBQUICAgICAgICAgICAgICAgICAgICAgIBQUFBQgICAgICAgICAgICAgICAgICAgICAgFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU=",
+    "_type": "Uint8Array",
+    "_len": 572
+   },
+   "src": null,
+   "dx": 146510,
+   "dy": 370,
+   "T0": {
+    "id": "highcairn",
+    "name": "Highcairn",
+    "x": 7200,
+    "y": 768,
+    "w": 928,
+    "h": 800,
+    "style": "snow"
+   },
+   "R": {
+    "x": 150150,
+    "y": 150,
+    "w": 2300,
+    "h": 1900
+   },
+   "city": {
+    "x": 150150,
+    "y": 150,
+    "w": 2300,
+    "h": 1900
+   },
+   "core": {
+    "x": 151010,
+    "y": 850,
+    "w": 580,
+    "h": 500
+   },
+   "pal": [
+    "#dfe7ec",
+    "#b8b0a0",
+    "#6a8aa0",
+    "#ff5a14",
+    "#8a6a44",
+    "#8a93a0",
+    "#e8ecef",
+    "#6a625c",
+    "#cfd4d8",
+    "#2a2238"
+   ],
+   "around": 9081760,
+   "peak": 10134704,
+   "bg": "#8a93a0",
+   "floorCol": "#cdd2d6",
+   "plazaCol": "rgba(160,210,255,.35)",
+   "roadCol": "#a8a090",
+   "tex": 1280,
+   "streets": [
+    {
+     "x": 150150,
+     "y": 1020,
+     "w": 860,
+     "h": 180
+    },
+    {
+     "x": 150190,
+     "y": 190,
+     "w": 110,
+     "h": 1820,
+     "plan": 1
+    },
+    {
+     "x": 150875,
+     "y": 190,
+     "w": 110,
+     "h": 1820,
+     "plan": 1
+    },
+    {
+     "x": 151245,
+     "y": 190,
+     "w": 110,
+     "h": 1820,
+     "plan": 1
+    },
+    {
+     "x": 151615,
+     "y": 190,
+     "w": 110,
+     "h": 1820,
+     "plan": 1
+    },
+    {
+     "x": 152300,
+     "y": 190,
+     "w": 110,
+     "h": 1820,
+     "plan": 1
+    },
+    {
+     "x": 150190,
+     "y": 190,
+     "w": 2220,
+     "h": 110,
+     "plan": 1
+    },
+    {
+     "x": 150190,
+     "y": 715,
+     "w": 2220,
+     "h": 110,
+     "plan": 1
+    },
+    {
+     "x": 150190,
+     "y": 1015,
+     "w": 2220,
+     "h": 190,
+     "plan": 1
+    },
+    {
+     "x": 150190,
+     "y": 1375,
+     "w": 2220,
+     "h": 110,
+     "plan": 1
+    },
+    {
+     "x": 150190,
+     "y": 1900,
+     "w": 2220,
+     "h": 110,
+     "plan": 1
+    }
+   ],
+   "respawn": {
+    "x": 151300,
+    "y": 1170,
+    "name": "the Highcairn waystone"
+   },
+   "pond": {
+    "x": 151750,
+    "y": 1530,
+    "w": 520,
+    "h": 330
+   },
+   "cityPlan": {
+    "id": "highcairn",
+    "R": {
+     "x": 150170,
+     "y": 170,
+     "w": 2260,
+     "h": 1860
+    },
+    "core": {
+     "x": 151010,
+     "y": 850,
+     "w": 580,
+     "h": 500
+    },
+    "xs": [
+     150245,
+     150930,
+     151300,
+     151670,
+     152355
+    ],
+    "ys": [
+     245,
+     770,
+     1110,
+     1430,
+     1955
+    ],
+    "xw": [
+     110,
+     110,
+     110,
+     110,
+     110
+    ],
+    "yw": [
+     110,
+     110,
+     190,
+     110,
+     110
+    ],
+    "ST": 110,
+    "X0": 150245,
+    "X1": 152355,
+    "Y0": 245,
+    "Y1": 1955,
+    "lots": [
+     {
+      "x": 151118,
+      "y": 1485,
+      "w": 127,
+      "h": 125,
+      "style": "snow",
+      "roof": 5917252,
+      "cb": {
+       "id": "highcairn_0",
+       "city": "highcairn",
+       "use": "temple",
+       "face": "n",
+       "floors": 3,
+       "res": "Liv Snowmane",
+       "door": {
+        "x": 151181.5,
+        "y": 1461
+       },
+       "seed": 723780,
+       "wallK": 0.9245
+      }
+     },
+     {
+      "x": 151355,
+      "y": 1485,
+      "w": 142,
+      "h": 125,
+      "style": "snow",
+      "roof": 4868692,
+      "cb": {
+       "id": "highcairn_1",
+       "city": "highcairn",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Astrid the furrier",
+       "door": {
+        "x": 151426,
+        "y": 1461
+       },
+       "seed": 903753,
+       "wallK": 0.3093
+      }
+     },
+     {
+      "x": 150985,
+      "y": 1485,
+      "w": 131,
+      "h": 125,
+      "style": "snow",
+      "roof": 4020864,
+      "cb": {
+       "id": "highcairn_2",
+       "city": "highcairn",
+       "use": "rent",
+       "face": "n",
+       "floors": 1,
+       "res": "Knut Iceborn",
+       "door": {
+        "x": 151050.5,
+        "y": 1461
+       },
+       "seed": 114373,
+       "wallK": 0.6619
+      }
+     },
+     {
+      "x": 151504,
+      "y": 1485,
+      "w": 111,
+      "h": 125,
+      "style": "snow",
+      "roof": 4868692,
+      "cb": {
+       "id": "highcairn_3",
+       "city": "highcairn",
+       "use": "post",
+       "face": "n",
+       "floors": 1,
+       "res": "Freya Wolfsbane",
+       "door": {
+        "x": 151559.5,
+        "y": 1461
+       },
+       "seed": 536729,
+       "wallK": 0.4346
+      }
+     },
+     {
+      "x": 150724,
+      "y": 1205,
+      "w": 151,
+      "h": 145,
+      "style": "snow",
+      "roof": 6961706,
+      "cb": {
+       "id": "highcairn_4",
+       "city": "highcairn",
+       "use": "hall",
+       "face": "n",
+       "floors": 3,
+       "res": "Jorunn Snowmane",
+       "door": {
+        "x": 150799.5,
+        "y": 1181
+       },
+       "seed": 78050,
+       "wallK": 0.5575
+      }
+     },
+     {
+      "x": 151121,
+      "y": 1618,
+      "w": 124,
+      "h": 149,
+      "style": "snow",
+      "roof": 4020864,
+      "cb": {
+       "id": "highcairn_5",
+       "city": "highcairn",
+       "use": "home",
+       "face": "e",
+       "floors": 1,
+       "res": "Olaf the brewer",
+       "door": {
+        "x": 151269,
+        "y": 1692.5
+       },
+       "seed": 783509,
+       "wallK": 0.701
+      }
+     },
+     {
+      "x": 151355,
+      "y": 1618,
+      "w": 124,
+      "h": 149,
+      "style": "snow",
+      "roof": 4020864,
+      "cb": {
+       "id": "highcairn_6",
+       "city": "highcairn",
+       "use": "home",
+       "face": "w",
+       "floors": 1,
+       "res": "Bjorn the woodsman",
+       "door": {
+        "x": 151331,
+        "y": 1692.5
+       },
+       "seed": 710292,
+       "wallK": 0.425
+      }
+     },
+     {
+      "x": 150614,
+      "y": 825,
+      "w": 159,
+      "h": 145,
+      "style": "snow",
+      "roof": 4868692,
+      "cb": {
+       "id": "highcairn_7",
+       "city": "highcairn",
+       "use": "smithy",
+       "face": "n",
+       "floors": 1,
+       "res": "Vigdis Frostbeard",
+       "door": {
+        "x": 150693.5,
+        "y": 801
+       },
+       "seed": 715416,
+       "wallK": 0.3796
+      }
+     },
+     {
+      "x": 150985,
+      "y": 1618,
+      "w": 124,
+      "h": 149,
+      "style": "snow",
+      "roof": 4020864,
+      "cb": {
+       "id": "highcairn_8",
+       "city": "highcairn",
+       "use": "home",
+       "face": "w",
+       "floors": 1,
+       "res": "Freya the skald",
+       "door": {
+        "x": 150961,
+        "y": 1692.5
+       },
+       "seed": 66241,
+       "wallK": 0.3233
+      }
+     },
+     {
+      "x": 151725,
+      "y": 590,
+      "w": 110,
+      "h": 125,
+      "style": "snow",
+      "roof": 5917252,
+      "cb": {
+       "id": "highcairn_9",
+       "city": "highcairn",
+       "use": "weaver",
+       "face": "s",
+       "floors": 1,
+       "res": "Nanna the skald",
+       "door": {
+        "x": 151780,
+        "y": 739
+       },
+       "seed": 214524,
+       "wallK": 0.4794
+      }
+     },
+     {
+      "x": 150723,
+      "y": 1485,
+      "w": 152,
+      "h": 125,
+      "style": "snow",
+      "roof": 4020864,
+      "cb": {
+       "id": "highcairn_10",
+       "city": "highcairn",
+       "use": "kitchen",
+       "face": "n",
+       "floors": 1,
+       "res": "Vigdis Snowmane",
+       "door": {
+        "x": 150799,
+        "y": 1461
+       },
+       "seed": 114919,
+       "wallK": 0.7351
+      }
+     },
+     {
+      "x": 151890,
+      "y": 1205,
+      "w": 138,
+      "h": 145,
+      "style": "snow",
+      "roof": 5917252,
+      "cb": {
+       "id": "highcairn_11",
+       "city": "highcairn",
+       "use": "alchemy",
+       "face": "n",
+       "floors": 1,
+       "res": "Halla the brewer",
+       "door": {
+        "x": 151959,
+        "y": 1181
+       },
+       "seed": 4257,
+       "wallK": 0.3126
+      }
+     },
+     {
+      "x": 150563,
+      "y": 1205,
+      "w": 154,
+      "h": 145,
+      "style": "snow",
+      "roof": 6961706,
+      "cb": {
+       "id": "highcairn_12",
+       "city": "highcairn",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Astrid Stonehand",
+       "door": {
+        "x": 150640,
+        "y": 1181
+       },
+       "seed": 576123,
+       "wallK": 0.1907
+      }
+     },
+     {
+      "x": 151130,
+      "y": 1775,
+      "w": 115,
+      "h": 125,
+      "style": "snow",
+      "roof": 5917252,
+      "cb": {
+       "id": "highcairn_13",
+       "city": "highcairn",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Astrid Snowmane",
+       "door": {
+        "x": 151187.5,
+        "y": 1924
+       },
+       "seed": 822864,
+       "wallK": 0.3303
+      }
+     },
+     {
+      "x": 151355,
+      "y": 1775,
+      "w": 145,
+      "h": 125,
+      "style": "snow",
+      "roof": 4020864,
+      "cb": {
+       "id": "highcairn_14",
+       "city": "highcairn",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Bjorn the skald",
+       "door": {
+        "x": 151427.5,
+        "y": 1924
+       },
+       "seed": 745547,
+       "wallK": 0.8355
+      }
+     },
+     {
+      "x": 150630,
+      "y": 590,
+      "w": 105,
+      "h": 125,
+      "style": "snow",
+      "roof": 4868692,
+      "cb": {
+       "id": "highcairn_15",
+       "city": "highcairn",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Knut the brewer",
+       "door": {
+        "x": 150682.5,
+        "y": 739
+       },
+       "seed": 317255,
+       "wallK": 0.6448
+      }
+     },
+     {
+      "x": 151845,
+      "y": 590,
+      "w": 155,
+      "h": 125,
+      "style": "snow",
+      "roof": 5917252,
+      "cb": {
+       "id": "highcairn_16",
+       "city": "highcairn",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Ulf Iceborn",
+       "door": {
+        "x": 151922.5,
+        "y": 739
+       },
+       "seed": 457431,
+       "wallK": 0.6409
+      }
+     },
+     {
+      "x": 150750,
+      "y": 1618,
+      "w": 125,
+      "h": 149,
+      "style": "snow",
+      "roof": 4020864,
+      "cb": {
+       "id": "highcairn_17",
+       "city": "highcairn",
+       "use": "home",
+       "face": "e",
+       "floors": 1,
+       "res": "Ulf the woodsman",
+       "door": {
+        "x": 150899,
+        "y": 1692.5
+       },
+       "seed": 457480,
+       "wallK": 0.5306
+      }
+     },
+     {
+      "x": 151725,
+      "y": 433,
+      "w": 125,
+      "h": 149,
+      "style": "snow",
+      "roof": 6961706,
+      "cb": {
+       "id": "highcairn_18",
+       "city": "highcairn",
+       "use": "home",
+       "face": "w",
+       "floors": 1,
+       "res": "Ingvar the brewer",
+       "door": {
+        "x": 151701,
+        "y": 507.5
+       },
+       "seed": 944835,
+       "wallK": 0.3853
+      }
+     },
+     {
+      "x": 150985,
+      "y": 1775,
+      "w": 145,
+      "h": 125,
+      "style": "snow",
+      "roof": 4020864,
+      "cb": {
+       "id": "highcairn_19",
+       "city": "highcairn",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Sigurd the woodsman",
+       "door": {
+        "x": 151057.5,
+        "y": 1924
+       },
+       "seed": 661996,
+       "wallK": 0.2604
+      }
+     },
+     {
+      "x": 151509,
+      "y": 1775,
+      "w": 106,
+      "h": 125,
+      "style": "snow",
+      "roof": 6961706,
+      "cb": {
+       "id": "highcairn_20",
+       "city": "highcairn",
+       "use": "rent",
+       "face": "s",
+       "floors": 1,
+       "res": "Vigdis the trapper",
+       "door": {
+        "x": 151562,
+        "y": 1924
+       },
+       "seed": 575510,
+       "wallK": 0.1355
+      }
+     },
+     {
+      "x": 151989,
+      "y": 825,
+      "w": 138,
+      "h": 145,
+      "style": "snow",
+      "roof": 6961706,
+      "cb": {
+       "id": "highcairn_21",
+       "city": "highcairn",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Sigurd Wolfsbane",
+       "door": {
+        "x": 152058,
+        "y": 801
+       },
+       "seed": 165720,
+       "wallK": 0.9063
+      }
+     },
+     {
+      "x": 152035,
+      "y": 1205,
+      "w": 127,
+      "h": 145,
+      "style": "snow",
+      "roof": 6961706,
+      "cb": {
+       "id": "highcairn_22",
+       "city": "highcairn",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Halla Stonehand",
+       "door": {
+        "x": 152098.5,
+        "y": 1181
+       },
+       "seed": 955902,
+       "wallK": 0.2953
+      }
+     },
+     {
+      "x": 150468,
+      "y": 590,
+      "w": 160,
+      "h": 125,
+      "style": "snow",
+      "roof": 5917252,
+      "cb": {
+       "id": "highcairn_23",
+       "city": "highcairn",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Astrid Frostbeard",
+       "door": {
+        "x": 150548,
+        "y": 739
+       },
+       "seed": 166110,
+       "wallK": 0.6904
+      }
+     },
+     {
+      "x": 150746,
+      "y": 1775,
+      "w": 129,
+      "h": 125,
+      "style": "snow",
+      "roof": 4868692,
+      "cb": {
+       "id": "highcairn_24",
+       "city": "highcairn",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Thora the brewer",
+       "door": {
+        "x": 150810.5,
+        "y": 1924
+       },
+       "seed": 902020,
+       "wallK": 0.4096
+      }
+     },
+     {
+      "x": 151725,
+      "y": 300,
+      "w": 136,
+      "h": 125,
+      "style": "snow",
+      "roof": 4868692,
+      "cb": {
+       "id": "highcairn_25",
+       "city": "highcairn",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Ulf the trapper",
+       "door": {
+        "x": 151793,
+        "y": 276
+       },
+       "seed": 690499,
+       "wallK": 0.3598
+      }
+     },
+     {
+      "x": 152009,
+      "y": 590,
+      "w": 131,
+      "h": 125,
+      "style": "snow",
+      "roof": 4020864,
+      "cb": {
+       "id": "highcairn_26",
+       "city": "highcairn",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Jorunn the woodsman",
+       "door": {
+        "x": 152074.5,
+        "y": 739
+       },
+       "seed": 936838,
+       "wallK": 0.5661
+      }
+     },
+     {
+      "x": 150693,
+      "y": 300,
+      "w": 182,
+      "h": 125,
+      "style": "snow",
+      "roof": 4868692,
+      "cb": {
+       "id": "highcairn_27",
+       "city": "highcairn",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Vigdis Stonehand",
+       "door": {
+        "x": 150784,
+        "y": 276
+       },
+       "seed": 931842,
+       "wallK": 0.2579
+      }
+     },
+     {
+      "x": 152136,
+      "y": 825,
+      "w": 164,
+      "h": 145,
+      "style": "snow",
+      "roof": 6961706,
+      "cb": {
+       "id": "highcairn_28",
+       "city": "highcairn",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Olaf Wolfsbane",
+       "door": {
+        "x": 152218,
+        "y": 801
+       },
+       "seed": 800170,
+       "wallK": 0.0101
+      }
+     },
+     {
+      "x": 152164,
+      "y": 1205,
+      "w": 136,
+      "h": 145,
+      "style": "snow",
+      "roof": 5917252,
+      "cb": {
+       "id": "highcairn_29",
+       "city": "highcairn",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Olaf the woodsman",
+       "door": {
+        "x": 152232,
+        "y": 1181
+       },
+       "seed": 507222,
+       "wallK": 0.8594
+      }
+     },
+     {
+      "x": 151863,
+      "y": 300,
+      "w": 112,
+      "h": 125,
+      "style": "snow",
+      "roof": 4868692,
+      "cb": {
+       "id": "highcairn_30",
+       "city": "highcairn",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Ingvar Wolfsbane",
+       "door": {
+        "x": 151919,
+        "y": 276
+       },
+       "seed": 862954,
+       "wallK": 0.4847
+      }
+     },
+     {
+      "x": 150596,
+      "y": 1775,
+      "w": 149,
+      "h": 125,
+      "style": "snow",
+      "roof": 6961706,
+      "cb": {
+       "id": "highcairn_31",
+       "city": "highcairn",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Magnus Snowmane",
+       "door": {
+        "x": 150670.5,
+        "y": 1924
+       },
+       "seed": 645801,
+       "wallK": 0.55
+      }
+     },
+     {
+      "x": 150572,
+      "y": 300,
+      "w": 118,
+      "h": 125,
+      "style": "snow",
+      "roof": 4020864,
+      "cb": {
+       "id": "highcairn_32",
+       "city": "highcairn",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Vigdis Wolfsbane",
+       "door": {
+        "x": 150631,
+        "y": 276
+       },
+       "seed": 860679,
+       "wallK": 0.3561
+      }
+     },
+     {
+      "x": 150300,
+      "y": 590,
+      "w": 161,
+      "h": 125,
+      "style": "snow",
+      "roof": 4868692,
+      "cb": {
+       "id": "highcairn_33",
+       "city": "highcairn",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Gunnar Wolfsbane",
+       "door": {
+        "x": 150380.5,
+        "y": 739
+       },
+       "seed": 591533,
+       "wallK": 0.8199
+      }
+     },
+     {
+      "x": 152141,
+      "y": 590,
+      "w": 159,
+      "h": 125,
+      "style": "snow",
+      "roof": 4020864,
+      "cb": {
+       "id": "highcairn_34",
+       "city": "highcairn",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Yrsa Iceborn",
+       "door": {
+        "x": 152220.5,
+        "y": 739
+       },
+       "seed": 273274,
+       "wallK": 0.9674
+      }
+     },
+     {
+      "x": 151975,
+      "y": 300,
+      "w": 105,
+      "h": 125,
+      "style": "snow",
+      "roof": 5917252,
+      "cb": {
+       "id": "highcairn_35",
+       "city": "highcairn",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Eirik Frostbeard",
+       "door": {
+        "x": 152027.5,
+        "y": 276
+       },
+       "seed": 288376,
+       "wallK": 0.4368
+      }
+     },
+     {
+      "x": 150432,
+      "y": 1775,
+      "w": 160,
+      "h": 125,
+      "style": "snow",
+      "roof": 4020864,
+      "cb": {
+       "id": "highcairn_36",
+       "city": "highcairn",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Ragna the trapper",
+       "door": {
+        "x": 150512,
+        "y": 1924
+       },
+       "seed": 625061,
+       "wallK": 0.2374
+      }
+     },
+     {
+      "x": 150453,
+      "y": 300,
+      "w": 115,
+      "h": 125,
+      "style": "snow",
+      "roof": 4020864,
+      "cb": {
+       "id": "highcairn_37",
+       "city": "highcairn",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Magnus the skald",
+       "door": {
+        "x": 150510.5,
+        "y": 276
+       },
+       "seed": 379624,
+       "wallK": 0.3501
+      }
+     },
+     {
+      "x": 150300,
+      "y": 433,
+      "w": 125,
+      "h": 149,
+      "style": "snow",
+      "roof": 6961706,
+      "cb": {
+       "id": "highcairn_38",
+       "city": "highcairn",
+       "use": "home",
+       "face": "w",
+       "floors": 1,
+       "res": "Halla Snowmane",
+       "door": {
+        "x": 150276,
+        "y": 507.5
+       },
+       "seed": 249334,
+       "wallK": 0.7324
+      }
+     },
+     {
+      "x": 152175,
+      "y": 433,
+      "w": 125,
+      "h": 149,
+      "style": "snow",
+      "roof": 5917252,
+      "cb": {
+       "id": "highcairn_39",
+       "city": "highcairn",
+       "use": "home",
+       "face": "e",
+       "floors": 1,
+       "res": "Astrid the woodsman",
+       "door": {
+        "x": 152324,
+        "y": 507.5
+       },
+       "seed": 124641,
+       "wallK": 0.0165
+      }
+     },
+     {
+      "x": 152091,
+      "y": 300,
+      "w": 206.25,
+      "h": 125,
+      "style": "snow",
+      "roof": 5917252,
+      "cb": {
+       "id": "highcairn_40",
+       "city": "highcairn",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Yrsa the skald",
+       "door": {
+        "x": 152194.125,
+        "y": 276
+       },
+       "seed": 201727,
+       "wallK": 0.5287
+      }
+     },
+     {
+      "x": 150300,
+      "y": 300,
+      "w": 142,
+      "h": 125,
+      "style": "snow",
+      "roof": 4868692,
+      "cb": {
+       "id": "highcairn_41",
+       "city": "highcairn",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Dagny Iceborn",
+       "door": {
+        "x": 150371,
+        "y": 276
+       },
+       "seed": 489016,
+       "wallK": 0.7273
+      }
+     },
+     {
+      "x": 150300,
+      "y": 1775,
+      "w": 130,
+      "h": 125,
+      "style": "snow",
+      "roof": 6961706,
+      "cb": {
+       "id": "highcairn_42",
+       "city": "highcairn",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Thora the furrier",
+       "door": {
+        "x": 150365,
+        "y": 1924
+       },
+       "seed": 510913,
+       "wallK": 0.4017
+      }
+     }
+    ],
+    "yards": [
+     {
+      "x": 150445,
+      "y": 445,
+      "w": 285,
+      "h": 125
+     },
+     {
+      "x": 150445,
+      "y": 1630,
+      "w": 285,
+      "h": 125
+     },
+     {
+      "x": 151870,
+      "y": 445,
+      "w": 285,
+      "h": 125
+     },
+     {
+      "x": 151870,
+      "y": 1630,
+      "w": 285,
+      "h": 125
+     }
+    ],
+    "skip": [
+     {
+      "x": 151010,
+      "y": 850,
+      "w": 580,
+      "h": 500
+     },
+     {
+      "x": 151750,
+      "y": 1530,
+      "w": 520,
+      "h": 330,
+      "m": 120,
+      "noStreet": true
+     }
+    ],
+    "z": "[ref]",
+    "streetCol": "rgba(90,100,110,.25)",
+    "curbCol": "rgba(255,255,255,.5)",
+    "style": "snow"
+   }
+  },
+  {
+   "id": "mw_city",
+   "name": "Mirewatch",
+   "x": 155000,
+   "y": 0,
+   "w": 2600,
+   "h": 2200,
+   "cols": 26,
+   "rows": 22,
+   "t": {
+    "_bytes": "AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICCAgICAgICAgICAgICAgICAgICAgICAICAgIICAgICAgICAgICAgICAgICAICAgIIAgICAggICAgICAgICAgICAgICAgCAgICAgICAgICCAgICAgICAgICAgICAgICAgCAgICCAICAgIICAgICAgICAgICAgICAgICAgICAgIAgICAggICAgICAgICAgICAgICAgICAgICAgCAgICCAgICAgICAgICAgICAgICAgICAgICAICAgIICAgICAgICAgICAgICAgICAgICAgIAgICAggICAgICAgICAgICAgICAgICAgICAgCAgICCAgICAgICAgICAgICAgICAgICAgICAICAgIICAgICAgICAgICAgICAgICAgICAgIAgICAggICAgICAgICAgICAgICAgICAgICAgCAgICCAgICAgICAgICAgICAgICAgICAgICAICAgIICAgICAgICAgICAgICAgICAgICAgIAgICAgICAgICCAgICAgICAgICAgCAgICAggCAgICAgICAgIICAgICAgICAgIAgICAgICAgICAgICAgICAggICAgICAgICAgIAgICAgIIAgICAggICAgICAgICAgICAgICAgICAgICAgCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=",
+    "_type": "Uint8Array",
+    "_len": 572
+   },
+   "src": null,
+   "dx": 155320,
+   "dy": -1840,
+   "T0": {
+    "id": "mirewatch",
+    "name": "Mirewatch",
+    "x": 1088,
+    "y": 4320,
+    "w": 960,
+    "h": 768,
+    "style": "hut"
+   },
+   "R": {
+    "x": 155150,
+    "y": 150,
+    "w": 2300,
+    "h": 1900
+   },
+   "city": {
+    "x": 155150,
+    "y": 150,
+    "w": 2300,
+    "h": 1900
+   },
+   "core": {
+    "x": 156000,
+    "y": 860,
+    "w": 600,
+    "h": 480
+   },
+   "pal": [
+    "#44503a",
+    "#7a6a4a",
+    "#23331c",
+    "#ff5a14",
+    "#6a5030",
+    "#3f4a30",
+    "#5a5a3a",
+    "#6a625c",
+    "#5a5040",
+    "#2a2238"
+   ],
+   "around": 2306844,
+   "peak": 4147760,
+   "bg": "#23331c",
+   "floorCol": "#5a5040",
+   "plazaCol": "rgba(160,255,120,.18)",
+   "roadCol": "#7a6a4a",
+   "tex": 1280,
+   "streets": [
+    {
+     "x": 156130,
+     "y": 150,
+     "w": 180,
+     "h": 710
+    },
+    {
+     "x": 156600,
+     "y": 1010,
+     "w": 850,
+     "h": 180
+    },
+    {
+     "x": 155190,
+     "y": 190,
+     "w": 110,
+     "h": 1820,
+     "plan": 1
+    },
+    {
+     "x": 155865,
+     "y": 190,
+     "w": 110,
+     "h": 1820,
+     "plan": 1
+    },
+    {
+     "x": 156125,
+     "y": 190,
+     "w": 190,
+     "h": 1820,
+     "plan": 1
+    },
+    {
+     "x": 156625,
+     "y": 190,
+     "w": 110,
+     "h": 1820,
+     "plan": 1
+    },
+    {
+     "x": 157300,
+     "y": 190,
+     "w": 110,
+     "h": 1820,
+     "plan": 1
+    },
+    {
+     "x": 155190,
+     "y": 190,
+     "w": 2220,
+     "h": 110,
+     "plan": 1
+    },
+    {
+     "x": 155190,
+     "y": 725,
+     "w": 2220,
+     "h": 110,
+     "plan": 1
+    },
+    {
+     "x": 155190,
+     "y": 1005,
+     "w": 2220,
+     "h": 190,
+     "plan": 1
+    },
+    {
+     "x": 155190,
+     "y": 1365,
+     "w": 2220,
+     "h": 110,
+     "plan": 1
+    },
+    {
+     "x": 155190,
+     "y": 1900,
+     "w": 2220,
+     "h": 110,
+     "plan": 1
+    }
+   ],
+   "respawn": {
+    "x": 156280,
+    "y": 1160,
+    "name": "the Mirewatch waystone"
+   },
+   "pools": [
+    {
+     "u": 450,
+     "v": 1750,
+     "rx": 300,
+     "ry": 190
+    },
+    {
+     "u": 2050,
+     "v": 1750,
+     "rx": 330,
+     "ry": 200
+    },
+    {
+     "u": 2100,
+     "v": 480,
+     "rx": 260,
+     "ry": 170
+    }
+   ],
+   "cityPlan": {
+    "id": "mirewatch",
+    "R": {
+     "x": 155170,
+     "y": 170,
+     "w": 2260,
+     "h": 1860
+    },
+    "core": {
+     "x": 156000,
+     "y": 860,
+     "w": 600,
+     "h": 480
+    },
+    "xs": [
+     155245,
+     155920,
+     156220,
+     156680,
+     157355
+    ],
+    "ys": [
+     245,
+     780,
+     1100,
+     1420,
+     1955
+    ],
+    "xw": [
+     110,
+     110,
+     190,
+     110,
+     110
+    ],
+    "yw": [
+     110,
+     110,
+     190,
+     110,
+     110
+    ],
+    "ST": 110,
+    "X0": 155245,
+    "X1": 157355,
+    "Y0": 245,
+    "Y1": 1955,
+    "lots": [
+     {
+      "x": 156315,
+      "y": 600,
+      "w": 112,
+      "h": 125,
+      "style": "hut",
+      "roof": 5921322,
+      "cb": {
+       "id": "mirewatch_0",
+       "city": "mirewatch",
+       "use": "post",
+       "face": "s",
+       "floors": 2,
+       "res": "Hester the ferryman",
+       "door": {
+        "x": 156371,
+        "y": 749
+       },
+       "seed": 145987,
+       "wallK": 0.5829
+      }
+     },
+     {
+      "x": 155975,
+      "y": 600,
+      "w": 150,
+      "h": 125,
+      "style": "hut",
+      "roof": 7039546,
+      "cb": {
+       "id": "mirewatch_1",
+       "city": "mirewatch",
+       "use": "temple",
+       "face": "s",
+       "floors": 3,
+       "res": "Hester the eel-catcher",
+       "door": {
+        "x": 156050,
+        "y": 749
+       },
+       "seed": 487526,
+       "wallK": 0.5847
+      }
+     },
+     {
+      "x": 155975,
+      "y": 1475,
+      "w": 150,
+      "h": 125,
+      "style": "hut",
+      "roof": 5921322,
+      "cb": {
+       "id": "mirewatch_2",
+       "city": "mirewatch",
+       "use": "hall",
+       "face": "n",
+       "floors": 3,
+       "res": "Fen the herbwife",
+       "door": {
+        "x": 156050,
+        "y": 1451
+       },
+       "seed": 535046,
+       "wallK": 0.0765
+      }
+     },
+     {
+      "x": 156735,
+      "y": 835,
+      "w": 110,
+      "h": 145,
+      "style": "hut",
+      "roof": 3820074,
+      "cb": {
+       "id": "mirewatch_3",
+       "city": "mirewatch",
+       "use": "smithy",
+       "face": "n",
+       "floors": 2,
+       "res": "Grub the reed-cutter",
+       "door": {
+        "x": 156790,
+        "y": 811
+       },
+       "seed": 977693,
+       "wallK": 0.9935
+      }
+     },
+     {
+      "x": 155711,
+      "y": 835,
+      "w": 154,
+      "h": 145,
+      "style": "hut",
+      "roof": 3820074,
+      "cb": {
+       "id": "mirewatch_4",
+       "city": "mirewatch",
+       "use": "weaver",
+       "face": "n",
+       "floors": 1,
+       "res": "Agnes Toadsworth",
+       "door": {
+        "x": 155788,
+        "y": 811
+       },
+       "seed": 99781,
+       "wallK": 0.049
+      }
+     },
+     {
+      "x": 156852,
+      "y": 835,
+      "w": 147,
+      "h": 145,
+      "style": "hut",
+      "roof": 7039546,
+      "cb": {
+       "id": "mirewatch_5",
+       "city": "mirewatch",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Nettle Mosscap",
+       "door": {
+        "x": 156925.5,
+        "y": 811
+       },
+       "seed": 502690,
+       "wallK": 0.2463
+      }
+     },
+     {
+      "x": 156735,
+      "y": 600,
+      "w": 117,
+      "h": 125,
+      "style": "hut",
+      "roof": 3820074,
+      "cb": {
+       "id": "mirewatch_6",
+       "city": "mirewatch",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Jory Mosscap",
+       "door": {
+        "x": 156793.5,
+        "y": 749
+       },
+       "seed": 935467,
+       "wallK": 0.8898
+      }
+     },
+     {
+      "x": 155714,
+      "y": 600,
+      "w": 151,
+      "h": 125,
+      "style": "hut",
+      "roof": 7039546,
+      "cb": {
+       "id": "mirewatch_7",
+       "city": "mirewatch",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Lark Toadsworth",
+       "door": {
+        "x": 155789.5,
+        "y": 749
+       },
+       "seed": 671362,
+       "wallK": 0.5377
+      }
+     },
+     {
+      "x": 156315,
+      "y": 1775,
+      "w": 128,
+      "h": 125,
+      "style": "hut",
+      "roof": 5921322,
+      "cb": {
+       "id": "mirewatch_8",
+       "city": "mirewatch",
+       "use": "kitchen",
+       "face": "s",
+       "floors": 1,
+       "res": "Elspeth the herbwife",
+       "door": {
+        "x": 156379,
+        "y": 1924
+       },
+       "seed": 778336,
+       "wallK": 0.9724
+      }
+     },
+     {
+      "x": 156854,
+      "y": 600,
+      "w": 153,
+      "h": 125,
+      "style": "hut",
+      "roof": 4864554,
+      "cb": {
+       "id": "mirewatch_9",
+       "city": "mirewatch",
+       "use": "alchemy",
+       "face": "s",
+       "floors": 1,
+       "res": "Kettle the eel-catcher",
+       "door": {
+        "x": 156930.5,
+        "y": 749
+       },
+       "seed": 957153,
+       "wallK": 0.5586
+      }
+     },
+     {
+      "x": 155740,
+      "y": 433,
+      "w": 125,
+      "h": 159,
+      "style": "hut",
+      "roof": 5921322,
+      "cb": {
+       "id": "mirewatch_10",
+       "city": "mirewatch",
+       "use": "inn",
+       "face": "e",
+       "floors": 1,
+       "res": "Clem the lantern-maker",
+       "door": {
+        "x": 155889,
+        "y": 512.5
+       },
+       "seed": 937674,
+       "wallK": 0.2343
+      }
+     },
+     {
+      "x": 155740,
+      "y": 1608,
+      "w": 125,
+      "h": 159,
+      "style": "hut",
+      "roof": 4864554,
+      "cb": {
+       "id": "mirewatch_11",
+       "city": "mirewatch",
+       "use": "home",
+       "face": "e",
+       "floors": 1,
+       "res": "Dill Toadsworth",
+       "door": {
+        "x": 155889,
+        "y": 1687.5
+       },
+       "seed": 103437,
+       "wallK": 0.9292
+      }
+     },
+     {
+      "x": 156453,
+      "y": 1775,
+      "w": 172,
+      "h": 125,
+      "style": "hut",
+      "roof": 7039546,
+      "cb": {
+       "id": "mirewatch_12",
+       "city": "mirewatch",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Lark Marshwick",
+       "door": {
+        "x": 156539,
+        "y": 1924
+       },
+       "seed": 462449,
+       "wallK": 0.8801
+      }
+     },
+     {
+      "x": 155604,
+      "y": 600,
+      "w": 109,
+      "h": 125,
+      "style": "hut",
+      "roof": 3820074,
+      "cb": {
+       "id": "mirewatch_13",
+       "city": "mirewatch",
+       "use": "rent",
+       "face": "s",
+       "floors": 1,
+       "res": "Pike Toadsworth",
+       "door": {
+        "x": 155658.5,
+        "y": 749
+       },
+       "seed": 113341,
+       "wallK": 0.856
+      }
+     },
+     {
+      "x": 156474,
+      "y": 300,
+      "w": 151,
+      "h": 125,
+      "style": "hut",
+      "roof": 3820074,
+      "cb": {
+       "id": "mirewatch_14",
+       "city": "mirewatch",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Dill the reed-cutter",
+       "door": {
+        "x": 156549.5,
+        "y": 276
+       },
+       "seed": 114979,
+       "wallK": 0.4797
+      }
+     },
+     {
+      "x": 155975,
+      "y": 1775,
+      "w": 150,
+      "h": 125,
+      "style": "hut",
+      "roof": 3820074,
+      "cb": {
+       "id": "mirewatch_15",
+       "city": "mirewatch",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Orla the reed-cutter",
+       "door": {
+        "x": 156050,
+        "y": 1924
+       },
+       "seed": 292026,
+       "wallK": 0.6785
+      }
+     },
+     {
+      "x": 155458,
+      "y": 600,
+      "w": 136,
+      "h": 125,
+      "style": "hut",
+      "roof": 3820074,
+      "cb": {
+       "id": "mirewatch_16",
+       "city": "mirewatch",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Grub Bogwater",
+       "door": {
+        "x": 155526,
+        "y": 749
+       },
+       "seed": 263461,
+       "wallK": 0.1674
+      }
+     },
+     {
+      "x": 155711,
+      "y": 1775,
+      "w": 154,
+      "h": 125,
+      "style": "hut",
+      "roof": 5921322,
+      "cb": {
+       "id": "mirewatch_17",
+       "city": "mirewatch",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Lark the reed-cutter",
+       "door": {
+        "x": 155788,
+        "y": 1924
+       },
+       "seed": 680780,
+       "wallK": 0.9267
+      }
+     },
+     {
+      "x": 157010,
+      "y": 600,
+      "w": 149,
+      "h": 125,
+      "style": "hut",
+      "roof": 4864554,
+      "cb": {
+       "id": "mirewatch_18",
+       "city": "mirewatch",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Hester the reed-cutter",
+       "door": {
+        "x": 157084.5,
+        "y": 749
+       },
+       "seed": 520452,
+       "wallK": 0.5944
+      }
+     },
+     {
+      "x": 155694,
+      "y": 300,
+      "w": 171,
+      "h": 125,
+      "style": "hut",
+      "roof": 4864554,
+      "cb": {
+       "id": "mirewatch_19",
+       "city": "mirewatch",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Kettle Bogwater",
+       "door": {
+        "x": 155779.5,
+        "y": 276
+       },
+       "seed": 5111,
+       "wallK": 0.6593
+      }
+     },
+     {
+      "x": 155551,
+      "y": 300,
+      "w": 138,
+      "h": 125,
+      "style": "hut",
+      "roof": 4864554,
+      "cb": {
+       "id": "mirewatch_20",
+       "city": "mirewatch",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Grub the herbwife",
+       "door": {
+        "x": 155620,
+        "y": 276
+       },
+       "seed": 272321,
+       "wallK": 0.8914
+      }
+     },
+     {
+      "x": 155300,
+      "y": 600,
+      "w": 156,
+      "h": 125,
+      "style": "hut",
+      "roof": 3820074,
+      "cb": {
+       "id": "mirewatch_21",
+       "city": "mirewatch",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Elspeth Bogwater",
+       "door": {
+        "x": 155378,
+        "y": 749
+       },
+       "seed": 120631,
+       "wallK": 0.3259
+      }
+     },
+     {
+      "x": 157170,
+      "y": 600,
+      "w": 130,
+      "h": 125,
+      "style": "hut",
+      "roof": 3820074,
+      "cb": {
+       "id": "mirewatch_22",
+       "city": "mirewatch",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Sedge the herbwife",
+       "door": {
+        "x": 157235,
+        "y": 749
+       },
+       "seed": 539489,
+       "wallK": 0.1639
+      }
+     },
+     {
+      "x": 155443,
+      "y": 300,
+      "w": 107,
+      "h": 125,
+      "style": "hut",
+      "roof": 4864554,
+      "cb": {
+       "id": "mirewatch_23",
+       "city": "mirewatch",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Pike the ferryman",
+       "door": {
+        "x": 155496.5,
+        "y": 276
+       },
+       "seed": 624306,
+       "wallK": 0.0082
+      }
+     },
+     {
+      "x": 155300,
+      "y": 433,
+      "w": 125,
+      "h": 159,
+      "style": "hut",
+      "roof": 4864554,
+      "cb": {
+       "id": "mirewatch_24",
+       "city": "mirewatch",
+       "use": "home",
+       "face": "w",
+       "floors": 1,
+       "res": "Reed the herbwife",
+       "door": {
+        "x": 155276,
+        "y": 512.5
+       },
+       "seed": 270159,
+       "wallK": 0.725
+      }
+     },
+     {
+      "x": 155300,
+      "y": 300,
+      "w": 139,
+      "h": 125,
+      "style": "hut",
+      "roof": 3820074,
+      "cb": {
+       "id": "mirewatch_25",
+       "city": "mirewatch",
+       "use": "rent",
+       "face": "n",
+       "floors": 1,
+       "res": "Fen Mudfoot",
+       "door": {
+        "x": 155369.5,
+        "y": 276
+       },
+       "seed": 868716,
+       "wallK": 0.815
+      }
+     }
+    ],
+    "yards": [
+     {
+      "x": 155445,
+      "y": 445,
+      "w": 275,
+      "h": 135
+     },
+     {
+      "x": 155445,
+      "y": 1620,
+      "w": 275,
+      "h": 135
+     },
+     {
+      "x": 156880,
+      "y": 445,
+      "w": 275,
+      "h": 135
+     },
+     {
+      "x": 156880,
+      "y": 1620,
+      "w": 275,
+      "h": 135
+     }
+    ],
+    "skip": [
+     {
+      "x": 156000,
+      "y": 860,
+      "w": 600,
+      "h": 480
+     }
+    ],
+    "z": "[ref]",
+    "streetCol": "rgba(110,85,50,.55)",
+    "curbCol": "rgba(60,40,20,.5)",
+    "style": "hut"
+   }
+  },
+  {
+   "id": "ss_city",
+   "name": "Sunspire Oasis",
+   "x": 160000,
+   "y": 0,
+   "w": 2800,
+   "h": 2300,
+   "cols": 28,
+   "rows": 23,
+   "t": {
+    "_bytes": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQgICAgICAgICAgICAgICAgICAgICAgICAUFBQUICAgICAgICAgICAgICAgICAgICAgICAgFBQUFCAgICAgICAgICAgICAgICAgICAgICAgIBQUFBQgICAgICAgICAgICAgICAgICAgICAgICAUFBQUICAgICAgICAgICAgICAgICAgICAgICAgFBQUFCAgICAgICAgICAgICAgICAgICAgICAgIBQUFBQgICAgICAgICAgICAgICAgICAgICAgICAUFBQUICAgICAgICAgICAgICAgICAgICAgICAgFBQUFCAgICAgICAgICAgICAgICAgICAgICAgIBQUFBQgICAgICAgICAgIAgIICAgICAgICAgICAUFBQUICAgICAgICAgICAgICAgICAgICAgICAgFBQUFCAgICAgICAgICAgICAgICAgICAgICAgIBQUFBQgICAgICAgICAgICAgICAgICAgICAgICAUFBQUICAgICAgICAgICAgICAgICAgICAgICAgFBQUFCAgICAgICAgICAgICAgICAgICAgICAgIBQUFBQgICAgICAgICAgICAgICAgICAgICAgICAUFBQUICAgICAgICAgICAgICAgICAgICAgICAgFBQUFCAgICAgICAgICAgICAgICAgICAgICAgIBQUFBQgICAgICAgICAgICAgICAgICAgICAgICAUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU=",
+    "_type": "Uint8Array",
+    "_len": 644
+   },
+   "src": null,
+   "dx": 156190,
+   "dy": -1820,
+   "T0": {
+    "id": "sunspire",
+    "name": "Sunspire Oasis",
+    "x": 7808,
+    "y": 4320,
+    "w": 1056,
+    "h": 864,
+    "style": "sand"
+   },
+   "R": {
+    "x": 160150,
+    "y": 150,
+    "w": 2500,
+    "h": 2000
+   },
+   "city": {
+    "x": 160150,
+    "y": 150,
+    "w": 2500,
+    "h": 2000
+   },
+   "core": {
+    "x": 161070,
+    "y": 880,
+    "w": 660,
+    "h": 540
+   },
+   "pal": [
+    "#d8bf8a",
+    "#c9a877",
+    "#2c7a90",
+    "#ff5a14",
+    "#8a6a44",
+    "#b8865a",
+    "#e0c890",
+    "#6a625c",
+    "#d8c49a",
+    "#2a2238"
+   ],
+   "around": 14204810,
+   "peak": 13145690,
+   "bg": "#d8bf8a",
+   "floorCol": "#dccb9e",
+   "plazaCol": "rgba(60,160,190,.35)",
+   "roadCol": "#c9a877",
+   "tex": 1280,
+   "streets": [
+    {
+     "x": 160150,
+     "y": 1050,
+     "w": 920,
+     "h": 180
+    },
+    {
+     "x": 160190,
+     "y": 190,
+     "w": 110,
+     "h": 1920,
+     "plan": 1
+    },
+    {
+     "x": 160562.5,
+     "y": 190,
+     "w": 110,
+     "h": 1920,
+     "plan": 1
+    },
+    {
+     "x": 160935,
+     "y": 190,
+     "w": 110,
+     "h": 1920,
+     "plan": 1
+    },
+    {
+     "x": 161345,
+     "y": 190,
+     "w": 110,
+     "h": 1920,
+     "plan": 1
+    },
+    {
+     "x": 161755,
+     "y": 190,
+     "w": 110,
+     "h": 1920,
+     "plan": 1
+    },
+    {
+     "x": 162127.5,
+     "y": 190,
+     "w": 110,
+     "h": 1920,
+     "plan": 1
+    },
+    {
+     "x": 162500,
+     "y": 190,
+     "w": 110,
+     "h": 1920,
+     "plan": 1
+    },
+    {
+     "x": 160190,
+     "y": 190,
+     "w": 2420,
+     "h": 110,
+     "plan": 1
+    },
+    {
+     "x": 160190,
+     "y": 745,
+     "w": 2420,
+     "h": 110,
+     "plan": 1
+    },
+    {
+     "x": 160190,
+     "y": 1045,
+     "w": 2420,
+     "h": 190,
+     "plan": 1
+    },
+    {
+     "x": 160190,
+     "y": 1445,
+     "w": 2420,
+     "h": 110,
+     "plan": 1
+    },
+    {
+     "x": 160190,
+     "y": 2000,
+     "w": 2420,
+     "h": 110,
+     "plan": 1
+    }
+   ],
+   "respawn": {
+    "x": 161200,
+    "y": 1240,
+    "name": "the Sunspire Oasis waystone"
+   },
+   "oasis": {
+    "x": 161400,
+    "y": 1140,
+    "rx": 110,
+    "ry": 70,
+    "kind": "oasis"
+   },
+   "palace": {
+    "x": 161040,
+    "y": 260,
+    "w": 720,
+    "h": 380
+   },
+   "cityPlan": {
+    "id": "sunspire",
+    "R": {
+     "x": 160170,
+     "y": 170,
+     "w": 2460,
+     "h": 1960
+    },
+    "core": {
+     "x": 161070,
+     "y": 880,
+     "w": 660,
+     "h": 540
+    },
+    "xs": [
+     160245,
+     160617.5,
+     160990,
+     161400,
+     161810,
+     162182.5,
+     162555
+    ],
+    "ys": [
+     245,
+     800,
+     1140,
+     1500,
+     2055
+    ],
+    "xw": [
+     110,
+     110,
+     110,
+     110,
+     110,
+     110,
+     110
+    ],
+    "yw": [
+     110,
+     110,
+     190,
+     110,
+     110
+    ],
+    "ST": 110,
+    "X0": 160245,
+    "X1": 162555,
+    "Y0": 245,
+    "Y1": 2055,
+    "lots": [
+     {
+      "x": 161045,
+      "y": 1555,
+      "w": 164,
+      "h": 125,
+      "style": "sand",
+      "roof": 2787978,
+      "cb": {
+       "id": "sunspire_0",
+       "city": "sunspire",
+       "use": "temple",
+       "face": "n",
+       "floors": 3,
+       "res": "Farah the water-seller",
+       "door": {
+        "x": 161127,
+        "y": 1531
+       },
+       "seed": 930562,
+       "wallK": 0.5991
+      }
+     },
+     {
+      "x": 161045,
+      "y": 1688,
+      "w": 125,
+      "h": 179,
+      "style": "sand",
+      "roof": 12098154,
+      "cb": {
+       "id": "sunspire_1",
+       "city": "sunspire",
+       "use": "home",
+       "face": "w",
+       "floors": 1,
+       "res": "Nadia the camel-driver",
+       "door": {
+        "x": 161021,
+        "y": 1777.5
+       },
+       "seed": 227863,
+       "wallK": 0.848
+      }
+     },
+     {
+      "x": 160807.5,
+      "y": 1555,
+      "w": 127.5,
+      "h": 125,
+      "style": "sand",
+      "roof": 14200944,
+      "cb": {
+       "id": "sunspire_2",
+       "city": "sunspire",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Omar the spicer",
+       "door": {
+        "x": 160871.25,
+        "y": 1531
+       },
+       "seed": 825909,
+       "wallK": 0.7369
+      }
+     },
+     {
+      "x": 160799.5,
+      "y": 620,
+      "w": 135.5,
+      "h": 125,
+      "style": "sand",
+      "roof": 13208106,
+      "cb": {
+       "id": "sunspire_3",
+       "city": "sunspire",
+       "use": "hall",
+       "face": "s",
+       "floors": 3,
+       "res": "Samir the spicer",
+       "door": {
+        "x": 160867.25,
+        "y": 769
+       },
+       "seed": 11216,
+       "wallK": 0.7192
+      }
+     },
+     {
+      "x": 161865,
+      "y": 620,
+      "w": 161,
+      "h": 125,
+      "style": "sand",
+      "roof": 2787978,
+      "cb": {
+       "id": "sunspire_4",
+       "city": "sunspire",
+       "use": "post",
+       "face": "s",
+       "floors": 1,
+       "res": "Basim the weaver",
+       "door": {
+        "x": 161945.5,
+        "y": 769
+       },
+       "seed": 393913,
+       "wallK": 0.3309
+      }
+     },
+     {
+      "x": 161455,
+      "y": 1875,
+      "w": 143,
+      "h": 125,
+      "style": "sand",
+      "roof": 2787978,
+      "cb": {
+       "id": "sunspire_5",
+       "city": "sunspire",
+       "use": "smithy",
+       "face": "s",
+       "floors": 1,
+       "res": "Hana the lamp-maker",
+       "door": {
+        "x": 161526.5,
+        "y": 2024
+       },
+       "seed": 10316,
+       "wallK": 0.9504
+      }
+     },
+     {
+      "x": 161191,
+      "y": 1875,
+      "w": 154,
+      "h": 125,
+      "style": "sand",
+      "roof": 2787978,
+      "cb": {
+       "id": "sunspire_6",
+       "city": "sunspire",
+       "use": "weaver",
+       "face": "s",
+       "floors": 1,
+       "res": "Karim the water-seller",
+       "door": {
+        "x": 161268,
+        "y": 2024
+       },
+       "seed": 802744,
+       "wallK": 0.3941
+      }
+     },
+     {
+      "x": 160672.5,
+      "y": 1555,
+      "w": 135,
+      "h": 125,
+      "style": "sand",
+      "roof": 2787978,
+      "cb": {
+       "id": "sunspire_7",
+       "city": "sunspire",
+       "use": "kitchen",
+       "face": "n",
+       "floors": 1,
+       "res": "Jamila the lamp-maker",
+       "door": {
+        "x": 160740,
+        "y": 1531
+       },
+       "seed": 845287,
+       "wallK": 0.7189
+      }
+     },
+     {
+      "x": 160672.5,
+      "y": 620,
+      "w": 120,
+      "h": 125,
+      "style": "sand",
+      "roof": 2787978,
+      "cb": {
+       "id": "sunspire_8",
+       "city": "sunspire",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Omar the date-seller",
+       "door": {
+        "x": 160732.5,
+        "y": 769
+       },
+       "seed": 427673,
+       "wallK": 0.7493
+      }
+     },
+     {
+      "x": 160810,
+      "y": 1688,
+      "w": 125,
+      "h": 179,
+      "style": "sand",
+      "roof": 14200944,
+      "cb": {
+       "id": "sunspire_9",
+       "city": "sunspire",
+       "use": "home",
+       "face": "e",
+       "floors": 1,
+       "res": "Jamila the potter",
+       "door": {
+        "x": 160959,
+        "y": 1777.5
+       },
+       "seed": 278887,
+       "wallK": 0.3057
+      }
+     },
+     {
+      "x": 161865,
+      "y": 1688,
+      "w": 125,
+      "h": 179,
+      "style": "sand",
+      "roof": 13208106,
+      "cb": {
+       "id": "sunspire_10",
+       "city": "sunspire",
+       "use": "alchemy",
+       "face": "w",
+       "floors": 1,
+       "res": "Karim the coppersmith",
+       "door": {
+        "x": 161841,
+        "y": 1777.5
+       },
+       "seed": 790978,
+       "wallK": 0.152
+      }
+     },
+     {
+      "x": 161599,
+      "y": 1875,
+      "w": 156,
+      "h": 125,
+      "style": "sand",
+      "roof": 12098154,
+      "cb": {
+       "id": "sunspire_11",
+       "city": "sunspire",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Jamila the carpet-seller",
+       "door": {
+        "x": 161677,
+        "y": 2024
+       },
+       "seed": 286471,
+       "wallK": 0.0199
+      }
+     },
+     {
+      "x": 161045,
+      "y": 1875,
+      "w": 142,
+      "h": 125,
+      "style": "sand",
+      "roof": 2787978,
+      "cb": {
+       "id": "sunspire_12",
+       "city": "sunspire",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Yusuf the water-seller",
+       "door": {
+        "x": 161116,
+        "y": 2024
+       },
+       "seed": 312226,
+       "wallK": 0.3798
+      }
+     },
+     {
+      "x": 160672.5,
+      "y": 1688,
+      "w": 125,
+      "h": 179,
+      "style": "sand",
+      "roof": 12098154,
+      "cb": {
+       "id": "sunspire_13",
+       "city": "sunspire",
+       "use": "home",
+       "face": "w",
+       "floors": 1,
+       "res": "Rania the carpet-seller",
+       "door": {
+        "x": 160648.5,
+        "y": 1777.5
+       },
+       "seed": 342486,
+       "wallK": 0.3448
+      }
+     },
+     {
+      "x": 162002.5,
+      "y": 1688,
+      "w": 125,
+      "h": 179,
+      "style": "sand",
+      "roof": 13208106,
+      "cb": {
+       "id": "sunspire_14",
+       "city": "sunspire",
+       "use": "home",
+       "face": "e",
+       "floors": 1,
+       "res": "Nadia the lamp-maker",
+       "door": {
+        "x": 162151.5,
+        "y": 1777.5
+       },
+       "seed": 355214,
+       "wallK": 0.9141
+      }
+     },
+     {
+      "x": 162237.5,
+      "y": 1346,
+      "w": 129,
+      "h": 99,
+      "style": "sand",
+      "roof": 2787978,
+      "cb": {
+       "id": "sunspire_15",
+       "city": "sunspire",
+       "use": "rent",
+       "face": "s",
+       "floors": 1,
+       "res": "Zahra the weaver",
+       "door": {
+        "x": 162302,
+        "y": 1469
+       },
+       "seed": 640756,
+       "wallK": 0.9304
+      }
+     },
+     {
+      "x": 160422,
+      "y": 1346,
+      "w": 140.5,
+      "h": 99,
+      "style": "sand",
+      "roof": 13208106,
+      "cb": {
+       "id": "sunspire_16",
+       "city": "sunspire",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Hadi the camel-driver",
+       "door": {
+        "x": 160492.25,
+        "y": 1469
+       },
+       "seed": 430580,
+       "wallK": 0.3155
+      }
+     },
+     {
+      "x": 160828.5,
+      "y": 1875,
+      "w": 106.5,
+      "h": 125,
+      "style": "sand",
+      "roof": 12098154,
+      "cb": {
+       "id": "sunspire_17",
+       "city": "sunspire",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Nadia the weaver",
+       "door": {
+        "x": 160881.75,
+        "y": 2024
+       },
+       "seed": 655044,
+       "wallK": 0.7967
+      }
+     },
+     {
+      "x": 161865,
+      "y": 1875,
+      "w": 128,
+      "h": 125,
+      "style": "sand",
+      "roof": 13208106,
+      "cb": {
+       "id": "sunspire_18",
+       "city": "sunspire",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Tamara the scribe",
+       "door": {
+        "x": 161929,
+        "y": 2024
+       },
+       "seed": 543680,
+       "wallK": 0.1007
+      }
+     },
+     {
+      "x": 162237.5,
+      "y": 620,
+      "w": 116,
+      "h": 125,
+      "style": "sand",
+      "roof": 2787978,
+      "cb": {
+       "id": "sunspire_19",
+       "city": "sunspire",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Dalia the scribe",
+       "door": {
+        "x": 162295.5,
+        "y": 769
+       },
+       "seed": 489386,
+       "wallK": 0.3337
+      }
+     },
+     {
+      "x": 160433,
+      "y": 620,
+      "w": 129.5,
+      "h": 125,
+      "style": "sand",
+      "roof": 2787978,
+      "cb": {
+       "id": "sunspire_20",
+       "city": "sunspire",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Yusuf the coppersmith",
+       "door": {
+        "x": 160497.75,
+        "y": 769
+       },
+       "seed": 55513,
+       "wallK": 0.4956
+      }
+     },
+     {
+      "x": 162237.5,
+      "y": 1555,
+      "w": 131,
+      "h": 125,
+      "style": "sand",
+      "roof": 13208106,
+      "cb": {
+       "id": "sunspire_21",
+       "city": "sunspire",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Basim the coppersmith",
+       "door": {
+        "x": 162303,
+        "y": 1531
+       },
+       "seed": 177364,
+       "wallK": 0.2678
+      }
+     },
+     {
+      "x": 160430,
+      "y": 1555,
+      "w": 132.5,
+      "h": 125,
+      "style": "sand",
+      "roof": 14200944,
+      "cb": {
+       "id": "sunspire_22",
+       "city": "sunspire",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Layla the spicer",
+       "door": {
+        "x": 160496.25,
+        "y": 1531
+       },
+       "seed": 549900,
+       "wallK": 0.3153
+      }
+     },
+     {
+      "x": 160672.5,
+      "y": 1875,
+      "w": 147,
+      "h": 125,
+      "style": "sand",
+      "roof": 12098154,
+      "cb": {
+       "id": "sunspire_23",
+       "city": "sunspire",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Layla the scribe",
+       "door": {
+        "x": 160746,
+        "y": 2024
+       },
+       "seed": 623430,
+       "wallK": 0.9967
+      }
+     },
+     {
+      "x": 161997,
+      "y": 1875,
+      "w": 130.5,
+      "h": 125,
+      "style": "sand",
+      "roof": 12098154,
+      "cb": {
+       "id": "sunspire_24",
+       "city": "sunspire",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Tamara the lamp-maker",
+       "door": {
+        "x": 162062.25,
+        "y": 2024
+       },
+       "seed": 38498,
+       "wallK": 0.3914
+      }
+     },
+     {
+      "x": 162383.5,
+      "y": 1235,
+      "w": 116.5,
+      "h": 99,
+      "style": "sand",
+      "roof": 2787978,
+      "cb": {
+       "id": "sunspire_25",
+       "city": "sunspire",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Zahra the spicer",
+       "door": {
+        "x": 162441.75,
+        "y": 1211
+       },
+       "seed": 22734,
+       "wallK": 0.3359
+      }
+     },
+     {
+      "x": 162375.5,
+      "y": 1346,
+      "w": 124.5,
+      "h": 99,
+      "style": "sand",
+      "roof": 12098154,
+      "cb": {
+       "id": "sunspire_26",
+       "city": "sunspire",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Jamila the spicer",
+       "door": {
+        "x": 162437.75,
+        "y": 1469
+       },
+       "seed": 79469,
+       "wallK": 0.4336
+      }
+     },
+     {
+      "x": 160437.5,
+      "y": 433,
+      "w": 125,
+      "h": 179,
+      "style": "sand",
+      "roof": 12098154,
+      "cb": {
+       "id": "sunspire_27",
+       "city": "sunspire",
+       "use": "home",
+       "face": "e",
+       "floors": 1,
+       "res": "Dalia the date-seller",
+       "door": {
+        "x": 160586.5,
+        "y": 522.5
+       },
+       "seed": 943576,
+       "wallK": 0.9746
+      }
+     },
+     {
+      "x": 160437.5,
+      "y": 1688,
+      "w": 125,
+      "h": 179,
+      "style": "sand",
+      "roof": 13208106,
+      "cb": {
+       "id": "sunspire_28",
+       "city": "sunspire",
+       "use": "home",
+       "face": "e",
+       "floors": 1,
+       "res": "Ghazi the date-seller",
+       "door": {
+        "x": 160586.5,
+        "y": 1777.5
+       },
+       "seed": 217832,
+       "wallK": 0.6942
+      }
+     },
+     {
+      "x": 162237.5,
+      "y": 433,
+      "w": 125,
+      "h": 179,
+      "style": "sand",
+      "roof": 12098154,
+      "cb": {
+       "id": "sunspire_29",
+       "city": "sunspire",
+       "use": "home",
+       "face": "w",
+       "floors": 1,
+       "res": "Salma the spicer",
+       "door": {
+        "x": 162213.5,
+        "y": 522.5
+       },
+       "seed": 456870,
+       "wallK": 0.0769
+      }
+     },
+     {
+      "x": 162237.5,
+      "y": 1688,
+      "w": 125,
+      "h": 179,
+      "style": "sand",
+      "roof": 12098154,
+      "cb": {
+       "id": "sunspire_30",
+       "city": "sunspire",
+       "use": "home",
+       "face": "w",
+       "floors": 1,
+       "res": "Hadi the potter",
+       "door": {
+        "x": 162213.5,
+        "y": 1777.5
+       },
+       "seed": 285208,
+       "wallK": 0.0297
+      }
+     },
+     {
+      "x": 162362.5,
+      "y": 620,
+      "w": 137.5,
+      "h": 125,
+      "style": "sand",
+      "roof": 12098154,
+      "cb": {
+       "id": "sunspire_31",
+       "city": "sunspire",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Tamara the date-seller",
+       "door": {
+        "x": 162431.25,
+        "y": 769
+       },
+       "seed": 518578,
+       "wallK": 0.7102
+      }
+     },
+     {
+      "x": 162370.5,
+      "y": 1555,
+      "w": 129.5,
+      "h": 125,
+      "style": "sand",
+      "roof": 14200944,
+      "cb": {
+       "id": "sunspire_32",
+       "city": "sunspire",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Nadia the water-seller",
+       "door": {
+        "x": 162435.25,
+        "y": 1531
+       },
+       "seed": 285533,
+       "wallK": 0.5199
+      }
+     },
+     {
+      "x": 160300,
+      "y": 1555,
+      "w": 128,
+      "h": 125,
+      "style": "sand",
+      "roof": 2787978,
+      "cb": {
+       "id": "sunspire_33",
+       "city": "sunspire",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Amira the water-seller",
+       "door": {
+        "x": 160364,
+        "y": 1531
+       },
+       "seed": 773617,
+       "wallK": 0.1465
+      }
+     },
+     {
+      "x": 160300,
+      "y": 620,
+      "w": 124,
+      "h": 125,
+      "style": "sand",
+      "roof": 12098154,
+      "cb": {
+       "id": "sunspire_34",
+       "city": "sunspire",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Rania the water-seller",
+       "door": {
+        "x": 160362,
+        "y": 769
+       },
+       "seed": 631504,
+       "wallK": 0.9155
+      }
+     },
+     {
+      "x": 160444,
+      "y": 1875,
+      "w": 118.5,
+      "h": 125,
+      "style": "sand",
+      "roof": 12098154,
+      "cb": {
+       "id": "sunspire_35",
+       "city": "sunspire",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Yusuf the date-seller",
+       "door": {
+        "x": 160503.25,
+        "y": 2024
+       },
+       "seed": 977205,
+       "wallK": 0.1839
+      }
+     },
+     {
+      "x": 162237.5,
+      "y": 1875,
+      "w": 120,
+      "h": 125,
+      "style": "sand",
+      "roof": 13208106,
+      "cb": {
+       "id": "sunspire_36",
+       "city": "sunspire",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Dalia the weaver",
+       "door": {
+        "x": 162297.5,
+        "y": 2024
+       },
+       "seed": 412869,
+       "wallK": 0.17
+      }
+     },
+     {
+      "x": 162237.5,
+      "y": 300,
+      "w": 132,
+      "h": 125,
+      "style": "sand",
+      "roof": 12098154,
+      "cb": {
+       "id": "sunspire_37",
+       "city": "sunspire",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Zahra the lamp-maker",
+       "door": {
+        "x": 162303.5,
+        "y": 276
+       },
+       "seed": 19609,
+       "wallK": 0.6564
+      }
+     },
+     {
+      "x": 160300,
+      "y": 433,
+      "w": 125,
+      "h": 179,
+      "style": "sand",
+      "roof": 12098154,
+      "cb": {
+       "id": "sunspire_38",
+       "city": "sunspire",
+       "use": "home",
+       "face": "w",
+       "floors": 1,
+       "res": "Malik the spicer",
+       "door": {
+        "x": 160276,
+        "y": 522.5
+       },
+       "seed": 759124,
+       "wallK": 0.3863
+      }
+     },
+     {
+      "x": 160300,
+      "y": 1688,
+      "w": 125,
+      "h": 179,
+      "style": "sand",
+      "roof": 14200944,
+      "cb": {
+       "id": "sunspire_39",
+       "city": "sunspire",
+       "use": "home",
+       "face": "w",
+       "floors": 1,
+       "res": "Ghazi the scribe",
+       "door": {
+        "x": 160276,
+        "y": 1777.5
+       },
+       "seed": 648831,
+       "wallK": 0.2501
+      }
+     },
+     {
+      "x": 162375,
+      "y": 433,
+      "w": 125,
+      "h": 179,
+      "style": "sand",
+      "roof": 13208106,
+      "cb": {
+       "id": "sunspire_40",
+       "city": "sunspire",
+       "use": "home",
+       "face": "e",
+       "floors": 1,
+       "res": "Samir the water-seller",
+       "door": {
+        "x": 162524,
+        "y": 522.5
+       },
+       "seed": 721545,
+       "wallK": 0.4573
+      }
+     },
+     {
+      "x": 162375,
+      "y": 1688,
+      "w": 125,
+      "h": 179,
+      "style": "sand",
+      "roof": 14200944,
+      "cb": {
+       "id": "sunspire_41",
+       "city": "sunspire",
+       "use": "rent",
+       "face": "e",
+       "floors": 1,
+       "res": "Ghazi the water-seller",
+       "door": {
+        "x": 162524,
+        "y": 1777.5
+       },
+       "seed": 227147,
+       "wallK": 0.768
+      }
+     },
+     {
+      "x": 160300,
+      "y": 300,
+      "w": 161,
+      "h": 125,
+      "style": "sand",
+      "roof": 14200944,
+      "cb": {
+       "id": "sunspire_42",
+       "city": "sunspire",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Ghazi the camel-driver",
+       "door": {
+        "x": 160380.5,
+        "y": 276
+       },
+       "seed": 946736,
+       "wallK": 0.4382
+      }
+     },
+     {
+      "x": 160300,
+      "y": 1875,
+      "w": 141,
+      "h": 125,
+      "style": "sand",
+      "roof": 13208106,
+      "cb": {
+       "id": "sunspire_43",
+       "city": "sunspire",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Idris the spicer",
+       "door": {
+        "x": 160370.5,
+        "y": 2024
+       },
+       "seed": 507631,
+       "wallK": 0.0169
+      }
+     },
+     {
+      "x": 162366.5,
+      "y": 1875,
+      "w": 133.5,
+      "h": 125,
+      "style": "sand",
+      "roof": 2787978,
+      "cb": {
+       "id": "sunspire_44",
+       "city": "sunspire",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Tamara the spicer",
+       "door": {
+        "x": 162433.25,
+        "y": 2024
+       },
+       "seed": 542745,
+       "wallK": 0.5854
+      }
+     },
+     {
+      "x": 162380.5,
+      "y": 300,
+      "w": 119.5,
+      "h": 125,
+      "style": "sand",
+      "roof": 2787978,
+      "cb": {
+       "id": "sunspire_45",
+       "city": "sunspire",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Layla the camel-driver",
+       "door": {
+        "x": 162440.25,
+        "y": 276
+       },
+       "seed": 485571,
+       "wallK": 0.2425
+      }
+     }
+    ],
+    "yards": [],
+    "skip": [
+     {
+      "x": 161070,
+      "y": 880,
+      "w": 660,
+      "h": 540
+     },
+     {
+      "x": 161040,
+      "y": 260,
+      "w": 720,
+      "h": 380,
+      "m": 70,
+      "noStreet": true
+     }
+    ],
+    "z": "[ref]",
+    "streetCol": "rgba(170,130,80,.3)",
+    "style": "sand"
+   }
+  },
+  {
+   "id": "ch_city",
+   "name": "Cinderhold",
+   "x": 165000,
+   "y": 0,
+   "w": 2600,
+   "h": 2200,
+   "cols": 26,
+   "rows": 22,
+   "t": {
+    "_bytes": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgICAgICAgICAgICAgICAUFBQUICAgICAgICAgICAgICAgICAgICAgIBQUFBQgICAgICAgICAgICAgICAgICAgICAgFBQUFCAgICAgICAgICAgICAgICAgICAgICAUFBQUICAgICAgICAgICAgICAgICAgICAgIBQUFBQgICAgICAgICAgICAgICAgICAgICAgFBQUFCAgICAgICAgICAgICAgICAgICAgICAUFBQUICAgICAgICAgICAgICAgICAgICAgIBQUFBQgICAgICAgICAgICAgICAgICAgICAgFBQUFCAgICAgICAgICAgICAgICAgICAgICAUFBQUICAgICAgICAgICAgICAgICAgICAgIBQUFBQgICAgICAgICAgICAgICAgICAgICAgFBQUFCAgICAgICAgICAgICAgICAgICAgICAUFBQUICAgICAgICAgICAgICAgICAgICAgIBQUFBQgICAgICAgICAgICAgICAgICAgICAgFBQUFCAgICAgICAgICAgICAgICAgICAgICAUFBQUICAgICAgICAgICAgICAgICAgICAgIBQUFBQgICAgICAgICAgICAgICAgICAgICAgFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU=",
+    "_type": "Uint8Array",
+    "_len": 572
+   },
+   "src": {
+    "id": "ember",
+    "name": "Emberreach",
+    "x": 130000,
+    "y": 0,
+    "w": 6000,
+    "h": 6000,
+    "cols": 60,
+    "rows": 60,
+    "t": {
+     "_bytes": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUCAgICAgICBQAFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwMDAwcHBwcHAAAAAAAAAAAAAAAAAAYCAgICAgICBQAFAAAAAAUFBQUFAAAAAAAAAAAAAAAAAAAABwcHAwkJCQMHBwcHAAAAAAAAAAAAAAAAAAYGAgICAgICBQAFAAAAAAUFBQUFAAAAAAAAAAAAAAAAAAcHBwcDCQkJCQkDBwcHBwAAAAAAAAAAAAAAAAAGAgICAgICBQAAAAAAAAUFBQUFAAAAAAAAAAAAAAAABwcHBwMJCQkJCQkJAwcHBwcHAAAAAAAAAAAAAAAGAgICAgICBQAAAAAAAAUFBQUFAAAFAAAAAAAAAAAHBwcHBwMJCQkBAQEBAwcHBwcHBwAAAAAAAAAAAAAGAgICAgICBQAAAAAAAQEFAAAAAAAFAAAAAAAAAAAHBwcHBwMJCQkJAQEBBAEHBwcHBwcHAAAAAAAAAAAGAgICAgICBQAAAAAAAQEAAAAAAAAFAAAAAAAAAAcHBwcHBwcDCQkJCQkDBwEBBwcHBwcHBwcAAAAAAAYGAgICAgICBQAAAAAAAAEBAAAAAAAFAAAAAAAABwcHBwcHBwcDAwkJCQMDBwcBAQcHBwcHBwcHAAAAAAYGAgICAgICBQAFBQAABQEBAAAAAAAAAAAAAAAHBwcHBwcHBwcHBwMDAwcHBwcHAQEHBwcHBwcHAAAAAAYGAgICAgICBQAFBQUFBQUBAQUAAAAAAAAABwcHBwcHBwcHBwcHBwcHBwcHBwcHAQEBBwcHBwcHAAAAAAAGAgICAgICBQAFBQAAAAUFAQUFAAAAAAAHBwcHBwcHBwcHBwcHBQUFBQUFBwcHBwEBBwcHBwcHBwAAAAAGAgICAgICBQAAAAAAAAUFAQEFAAAFAAcHBwcHBwcHBwcHBwcFBQUFBQUFBQcHBwcBAQcHBwcHBwAAAAAGBgICAgICBQcHBwcHBwcHBwEHBwcHBwcHBwcHBwcHBwcHBwUFBQUFBQUFBQUHBwcBAQEHBwcHBwAAAAAGBgICAgICBQcHBwcHBwcHBwEBBwcHBwcHBwcHBwcHBwcHBQUFBQUFBQUFBQUFBwcHAQEHBwcHBwAAAAAGBgICAgICBQcHBwcHBwcHBwcBBwcHBwcHBwcHBwcHBwcHBQUFBQUFBQUFBQUFBwcHBwEHBwcHBwAAAAAGAgICAgICBQcHBwcHBwcHBwcBAQcHBwcHBwcHBwcHBwcHBQUFBQUFBQUFBQUFBwcHBwEBBwcHBwAAAAYGAgICAgICBQcHBwcHBwcHBwcHAQcHBwcHBwcHBwcHBwcHBQUFBQUFBQUFBQUFBwcHBwEBBwcHAAAAAAYCAgICAgICBQcHBwcHBwcHBwcHAQEHBwcHBwcHBwcHBwcHBQUFBQUFBQUFBQUFBwcHBwEBBwcHAAAABgYCAgICAgICBQcHBwcHBwcHBwcHAQEHBwcHBwcHBwcHBwcHBQUFBQUFBQUFBQUFBwcHBwEBBwcHAAAGBgICAgICAgICBQcHBwcHBwcHBwcHBwEBBwcHBwcHBwcHBwcHBwUFBQUFBQUFBQUHBwcHBwEBBwcAAAAGBgICAgICAgICBQcHBwcHBwcHBwcHBwEBBwcHBwcHBwcHBwcHBwMFBQUFBQUFBQcHBwcHBwEBBwcAAAAGAgICAgICAgICBQcHBwcHBwcHBwcHBwcBAQcHBwcHBwcHBwcHAwMDBQUFBQUFBwcHBwcHBwEBBwcAAAYGAgICAgICAgICBQcHBwcHBwcHBwcHBwcBAQcHBwcHBwcHBwcDAwMHBwcHBwcDAwcHBwcHBwEBBwcABgYCAgICAgICAgICBQcHBwcHBwcHBwcHBwcBAQcHBwcHBwcHBwMDAwcHBwcHBwcDAwcHBwcHBwEBBwAABgYCAgICAgICAgICBQcHBwcHBwcHBwcHBwcBAQcHBwcABwcHBwMDBwcHBwcHBwcDAwcHBwcHBwEBBwAABgYCAgICAgICAgICBQcHBwcHBwcHBwcHBwcHAQcHBwcABwcHAwMHBwcHBwcHBwcDAwcHBwgICAgICAgIBgYCAgICAgICAgICBQcHBwcHBwcHBwcHBwcHAQEHBwcAAAcHAwMHBwcHBwcHBwcDAwcHBwgICAgICAgIBgYCAgICAgICAgICBQAAAAAAAAAAAAAAAAAAAQEAAQEBAQEEAwcHBwcHBwcHBwcHAwcHBwgICAgICAgIBgYCAgICAgICAgICAQEBAQEBAAAAAAAAAAEBAQEBAQEBAQQEBAEBAQcHBwcHBwcHAwcBAQgICAgICAgIAQEEBAQCAgICAgICAQEBAQEBAQEBAQEBAQEBAQAAAAAAAAMDAAEBAQEBAQEBAQEBBAEBAQgICAgICAgIAQEEBAQCAgICAgICBQAAAAAAAAABAQEBAAAAAAAAAAAAAwMAAAABAQcBAQEBAQEEBAEHBwgICAgICAgIBgYCAgICAgICAgICBQAAAAAAAAAAAQEAAAAAAAAAAAADAwAAAAABAQcHBwcHBwcDAwcHBwgICAgICAgIBgYCAgICAgICAgICBQAAAAAAAAAAAQAAAAAAAAAAAAMDAwAAAAABAQcHBwcHBwcDAwcAAAgICAgICAgIBgYCAgICAgICAgICBQAAAAAAAAAAAQAAAAAAAAAAAAMDAAAAAAABAQAAAAcHBwcDAwAAAAAAAAAAAAAABgYCAgICAgICAgICBQAAAAAAAAABAQAAAAAAAAAAAwMAAAAAAAABAAAAAAAAAAADAwAAAAAAAAAAAAAABgYCAgICAgICAgICBQAAAAAAAAABAQAAAAAAAAADAwAAAAAAAAABAAAAAAAAAAADAAAAAAAAAAAAAAAABgYCAgICAgICAgICBQAAAAAAAAABAQAAAAAAAAADAwAAAAAAAAABAAAAAAAAAAMDAAAAAAAAAAAAAAAABgYCAgICAgICAgICBQAAAAAAAAABAQAAAAAAAAMDAAAAAAAAAAEBAAAAAAAAAAMDAAAAAAAAAAAAAAAAAAAABgYCAgICAgICBQAAAAAAAAABAAAAAAAAAAMDAAAAAAAAAAEBAAAAAAAAAwMAAAAAAAAAAAAAAAAAAAAAAAYCAgICAgICBQAAAAAAAAABAAAAAAAAAwMAAAAAAAAAAAEBAAAAAAAAAwMAAAAAAAAAAAAAAAAAAAAAAAYCAgICAgICBQAAAAAAAAEBAAAAAAAAAwMAAAkJCQkJCQEBCQkJCQAAAwAAAAAAAAAAAAAAAAAAAAAAAAYCAgICAgICBQAAAAAAAAEBAAAAAAADAwAAAAkJCQkJCQEBCQkJCQADAwAAAAAAAAAAAAAAAAAAAAAAAAYCAgICAgICBQAAAAAAAAEBAAAAAAADAwAAAAkJCQkJCQEJCQkJCQADAwAAAAAAAAAAAAAAAAAAAAAAAAYGAgICAgICBQAAAAAAAAADAwMDAwMDAAAAAAkJCQkJCQEJCQkJCQADAwAAAAAAAAAAAAAAAAAAAAAAAAYGAgICAgICBQAAAAAAAwMDAwMDAwMDAwAAAAkJCQkJCQEBCQAAAAAAAwAAAAAAAAAAAAAAAAAAAAAAAAYGAgICAgICBQAAAAADAwMDAwMDAwMDAwMAAAkJCQkJCQEBCQAAAAAAAwAAAAAAAAAAAAAAAAAAAAAAAAYGAgICAgICBQAAAAMDAwMDAwMDAwMDAwMDAAkJCQkJCQEBCQAAAAAAAwMAAAAAAAAAAAAAAAAAAAAAAAAGBgICAgICBQAAAAMDAwMDAwMDAwMDAwMDAAkJCQkJCQEBCQAAAAAAAwMAAAAAAAAAAAAAAAAAAAAAAAAGBgICAgICBQAAAAMDAwMDAwMDAwMDAwMDAAkJCQkJAAABAAAAAAAAAwMAAAAAAAAAAAAAAAAAAAAAAAAGBgICAgICBQAAAAADAwMDAwMDAwMDAwMDAAkJCQkAAAABAQAJAAAAAwMAAAAAAAAAAAAAAAAAAAAAAAAABgICAgICBQAAAAADAwMDAwMDAwMDAwMAAAkJCQkAAAABAQAJAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAGBgICAgICBQAAAAAAAwMDAwMDAwMDAwAAAAAAAAAAAAABAQAJCQAAAAMAAAAAAAAAAAAAAAAAAAAAAAAGBgICAgICBQAAAAAAAAAAAwMDAwMAAAAAAAAAAAAAAAAAAAAJCQAAAAMDAAAAAAAAAAAAAAAAAAAAAAYGAgICAgICBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJCQAAAAMDAAAAAAAAAAAAAAAAAAAAAAYGAgICAgICBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACQAAAAMDAAAAAAAAAAAAAAAAAAAABgYCAgICAgICBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAAAAAAAAAAAAAAAAAAAABgYCAgICAgICBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAAAAAAAAAAAAAAAAAAAABgICAgICAgICBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDAAAAAAAAAAAAAAAAAAAGBgICAgICAgICBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUDBQUFBQUFBQUFBQUFBQUFBQICAgICAgIC",
+     "_type": "Uint8Array",
+     "_len": 3600
+    }
+   },
+   "dx": 31900,
+   "dy": -1900,
+   "T0": {
+    "id": "cinderhold",
+    "name": "Cinderhold",
+    "x": 133970,
+    "y": 2570,
+    "w": 860,
+    "h": 860,
+    "style": "ember"
+   },
+   "R": {
+    "x": 165150,
+    "y": 150,
+    "w": 2300,
+    "h": 1900
+   },
+   "city": {
+    "x": 165150,
+    "y": 150,
+    "w": 2300,
+    "h": 1900
+   },
+   "core": {
+    "x": 165870,
+    "y": 670,
+    "w": 860,
+    "h": 860
+   },
+   "pal": [
+    "#3a302a",
+    "#7a5a3e",
+    "#1f5a78",
+    "#ff5a14",
+    "#6a4a30",
+    "#2a2220",
+    "#4a403a",
+    "#3a3230",
+    "#5e5650",
+    "#2a2238"
+   ],
+   "around": 2366488,
+   "peak": 3813420,
+   "bg": "#241c18",
+   "floorCol": "#5e5650",
+   "plazaCol": "rgba(255,120,40,.25)",
+   "roadCol": "#7a5a3e",
+   "tex": 1280,
+   "streets": [
+    {
+     "x": 165150,
+     "y": 1010,
+     "w": 720,
+     "h": 180
+    },
+    {
+     "x": 166210,
+     "y": 150,
+     "w": 180,
+     "h": 520
+    },
+    {
+     "x": 166730,
+     "y": 1010,
+     "w": 720,
+     "h": 180
+    },
+    {
+     "x": 165190,
+     "y": 190,
+     "w": 110,
+     "h": 1820,
+     "plan": 1
+    },
+    {
+     "x": 165735,
+     "y": 190,
+     "w": 110,
+     "h": 1820,
+     "plan": 1
+    },
+    {
+     "x": 166205,
+     "y": 190,
+     "w": 190,
+     "h": 1820,
+     "plan": 1
+    },
+    {
+     "x": 166755,
+     "y": 190,
+     "w": 110,
+     "h": 1820,
+     "plan": 1
+    },
+    {
+     "x": 167300,
+     "y": 190,
+     "w": 110,
+     "h": 1820,
+     "plan": 1
+    },
+    {
+     "x": 165190,
+     "y": 190,
+     "w": 2220,
+     "h": 110,
+     "plan": 1
+    },
+    {
+     "x": 165190,
+     "y": 535,
+     "w": 2220,
+     "h": 110,
+     "plan": 1
+    },
+    {
+     "x": 165190,
+     "y": 1005,
+     "w": 2220,
+     "h": 190,
+     "plan": 1
+    },
+    {
+     "x": 165190,
+     "y": 1555,
+     "w": 2220,
+     "h": 110,
+     "plan": 1
+    },
+    {
+     "x": 165190,
+     "y": 1900,
+     "w": 2220,
+     "h": 110,
+     "plan": 1
+    }
+   ],
+   "respawn": {
+    "x": 166410,
+    "y": 1330,
+    "name": "the Cinderhold waystone"
+   },
+   "cityPlan": {
+    "id": "cinderhold",
+    "R": {
+     "x": 165170,
+     "y": 170,
+     "w": 2260,
+     "h": 1860
+    },
+    "core": {
+     "x": 165870,
+     "y": 670,
+     "w": 860,
+     "h": 860
+    },
+    "xs": [
+     165245,
+     165790,
+     166300,
+     166810,
+     167355
+    ],
+    "ys": [
+     245,
+     590,
+     1100,
+     1610,
+     1955
+    ],
+    "xw": [
+     110,
+     110,
+     190,
+     110,
+     110
+    ],
+    "yw": [
+     110,
+     110,
+     190,
+     110,
+     110
+    ],
+    "ST": 110,
+    "X0": 165245,
+    "X1": 167355,
+    "Y0": 245,
+    "Y1": 1955,
+    "lots": [
+     {
+      "x": 166097,
+      "y": 1665,
+      "w": 108,
+      "h": 111,
+      "style": "ember",
+      "roof": 3815994,
+      "cb": {
+       "id": "cinderhold_0",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Grim the ore-carter",
+       "door": {
+        "x": 166151,
+        "y": 1641
+       },
+       "seed": 993036,
+       "wallK": 0.2761
+      }
+     },
+     {
+      "x": 166865,
+      "y": 1195,
+      "w": 116,
+      "h": 125,
+      "style": "ember",
+      "roof": 5909026,
+      "cb": {
+       "id": "cinderhold_1",
+       "city": "cinderhold",
+       "use": "post",
+       "face": "n",
+       "floors": 2,
+       "res": "Wren the ore-carter",
+       "door": {
+        "x": 166923,
+        "y": 1171
+       },
+       "seed": 259794,
+       "wallK": 0.5611
+      }
+     },
+     {
+      "x": 166395,
+      "y": 1665,
+      "w": 161,
+      "h": 111,
+      "style": "ember",
+      "roof": 9054746,
+      "cb": {
+       "id": "cinderhold_2",
+       "city": "cinderhold",
+       "use": "temple",
+       "face": "n",
+       "floors": 4,
+       "res": "Wren Ironfist",
+       "door": {
+        "x": 166475.5,
+        "y": 1641
+       },
+       "seed": 5141,
+       "wallK": 0.948
+      }
+     },
+     {
+      "x": 165600,
+      "y": 880,
+      "w": 135,
+      "h": 125,
+      "style": "ember",
+      "roof": 9054746,
+      "cb": {
+       "id": "cinderhold_3",
+       "city": "cinderhold",
+       "use": "hall",
+       "face": "s",
+       "floors": 4,
+       "res": "Torva Ashfoot",
+       "door": {
+        "x": 165667.5,
+        "y": 1029
+       },
+       "seed": 738696,
+       "wallK": 0.0058
+      }
+     },
+     {
+      "x": 166865,
+      "y": 880,
+      "w": 138,
+      "h": 125,
+      "style": "ember",
+      "roof": 3815994,
+      "cb": {
+       "id": "cinderhold_4",
+       "city": "cinderhold",
+       "use": "smithy",
+       "face": "s",
+       "floors": 2,
+       "res": "Ingrid the quencher",
+       "door": {
+        "x": 166934,
+        "y": 1029
+       },
+       "seed": 308680,
+       "wallK": 0.9205
+      }
+     },
+     {
+      "x": 165581,
+      "y": 1195,
+      "w": 154,
+      "h": 125,
+      "style": "ember",
+      "roof": 3815994,
+      "cb": {
+       "id": "cinderhold_5",
+       "city": "cinderhold",
+       "use": "weaver",
+       "face": "n",
+       "floors": 2,
+       "res": "Slag Sparkhand",
+       "door": {
+        "x": 165658,
+        "y": 1171
+       },
+       "seed": 641263,
+       "wallK": 0.3719
+      }
+     },
+     {
+      "x": 165979,
+      "y": 1665,
+      "w": 117,
+      "h": 111,
+      "style": "ember",
+      "roof": 6961706,
+      "cb": {
+       "id": "cinderhold_6",
+       "city": "cinderhold",
+       "use": "kitchen",
+       "face": "n",
+       "floors": 2,
+       "res": "Ash Coalbrow",
+       "door": {
+        "x": 166037.5,
+        "y": 1641
+       },
+       "seed": 816823,
+       "wallK": 0.9447
+      }
+     },
+     {
+      "x": 165969,
+      "y": 424,
+      "w": 114,
+      "h": 111,
+      "style": "ember",
+      "roof": 9054746,
+      "cb": {
+       "id": "cinderhold_7",
+       "city": "cinderhold",
+       "use": "alchemy",
+       "face": "s",
+       "floors": 2,
+       "res": "Torva the quencher",
+       "door": {
+        "x": 166026,
+        "y": 559
+       },
+       "seed": 64403,
+       "wallK": 0.4418
+      }
+     },
+     {
+      "x": 166531,
+      "y": 424,
+      "w": 109,
+      "h": 111,
+      "style": "ember",
+      "roof": 6961706,
+      "cb": {
+       "id": "cinderhold_8",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Rurik Blackanvil",
+       "door": {
+        "x": 166585.5,
+        "y": 559
+       },
+       "seed": 956079,
+       "wallK": 0.6353
+      }
+     },
+     {
+      "x": 166557,
+      "y": 1665,
+      "w": 198,
+      "h": 111,
+      "style": "ember",
+      "roof": 3815994,
+      "cb": {
+       "id": "cinderhold_9",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Ember Coalbrow",
+       "door": {
+        "x": 166656,
+        "y": 1641
+       },
+       "seed": 760378,
+       "wallK": 0.5916
+      }
+     },
+     {
+      "x": 165845,
+      "y": 1665,
+      "w": 130,
+      "h": 111,
+      "style": "ember",
+      "roof": 9054746,
+      "cb": {
+       "id": "cinderhold_10",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Magda Ironfist",
+       "door": {
+        "x": 165910,
+        "y": 1641
+       },
+       "seed": 243596,
+       "wallK": 0.3493
+      }
+     },
+     {
+      "x": 165845,
+      "y": 424,
+      "w": 117,
+      "h": 111,
+      "style": "ember",
+      "roof": 6961706,
+      "cb": {
+       "id": "cinderhold_11",
+       "city": "cinderhold",
+       "use": "rent",
+       "face": "s",
+       "floors": 2,
+       "res": "Ash the bellows-boy",
+       "door": {
+        "x": 165903.5,
+        "y": 559
+       },
+       "seed": 939464,
+       "wallK": 0.7578
+      }
+     },
+     {
+      "x": 165612,
+      "y": 645,
+      "w": 123,
+      "h": 125,
+      "style": "ember",
+      "roof": 5909026,
+      "cb": {
+       "id": "cinderhold_12",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Magda Blackanvil",
+       "door": {
+        "x": 165673.5,
+        "y": 621
+       },
+       "seed": 986131,
+       "wallK": 0.82
+      }
+     },
+     {
+      "x": 166651,
+      "y": 424,
+      "w": 104,
+      "h": 111,
+      "style": "ember",
+      "roof": 5909026,
+      "cb": {
+       "id": "cinderhold_13",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Kael the quencher",
+       "door": {
+        "x": 166703,
+        "y": 559
+       },
+       "seed": 821611,
+       "wallK": 0.0585
+      }
+     },
+     {
+      "x": 166865,
+      "y": 645,
+      "w": 146,
+      "h": 125,
+      "style": "ember",
+      "roof": 3815994,
+      "cb": {
+       "id": "cinderhold_14",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Ingrid Emberly",
+       "door": {
+        "x": 166938,
+        "y": 621
+       },
+       "seed": 675986,
+       "wallK": 0.1411
+      }
+     },
+     {
+      "x": 165588,
+      "y": 1430,
+      "w": 147,
+      "h": 125,
+      "style": "ember",
+      "roof": 3815994,
+      "cb": {
+       "id": "cinderhold_15",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Torva Coalbrow",
+       "door": {
+        "x": 165661.5,
+        "y": 1579
+       },
+       "seed": 114007,
+       "wallK": 0.036
+      }
+     },
+     {
+      "x": 166865,
+      "y": 1430,
+      "w": 154,
+      "h": 125,
+      "style": "ember",
+      "roof": 5909026,
+      "cb": {
+       "id": "cinderhold_16",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Ingrid Ironfist",
+       "door": {
+        "x": 166942,
+        "y": 1579
+       },
+       "seed": 594461,
+       "wallK": 0.6357
+      }
+     },
+     {
+      "x": 166395,
+      "y": 1789,
+      "w": 152,
+      "h": 111,
+      "style": "ember",
+      "roof": 6961706,
+      "cb": {
+       "id": "cinderhold_17",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Ember the quencher",
+       "door": {
+        "x": 166471,
+        "y": 1924
+       },
+       "seed": 57225,
+       "wallK": 0.9901
+      }
+     },
+     {
+      "x": 165976,
+      "y": 1789,
+      "w": 206.25,
+      "h": 111,
+      "style": "ember",
+      "roof": 9054746,
+      "cb": {
+       "id": "cinderhold_18",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Slag the bellows-boy",
+       "door": {
+        "x": 166079.125,
+        "y": 1924
+       },
+       "seed": 271178,
+       "wallK": 0.1207
+      }
+     },
+     {
+      "x": 166549,
+      "y": 1789,
+      "w": 115,
+      "h": 111,
+      "style": "ember",
+      "roof": 9054746,
+      "cb": {
+       "id": "cinderhold_19",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Nyx Coalbrow",
+       "door": {
+        "x": 166606.5,
+        "y": 1924
+       },
+       "seed": 719816,
+       "wallK": 0.2923
+      }
+     },
+     {
+      "x": 166547,
+      "y": 300,
+      "w": 206.25,
+      "h": 111,
+      "style": "ember",
+      "roof": 5909026,
+      "cb": {
+       "id": "cinderhold_20",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Durgan Emberly",
+       "door": {
+        "x": 166650.125,
+        "y": 276
+       },
+       "seed": 401546,
+       "wallK": 0.0094
+      }
+     },
+     {
+      "x": 165845,
+      "y": 300,
+      "w": 160,
+      "h": 111,
+      "style": "ember",
+      "roof": 5909026,
+      "cb": {
+       "id": "cinderhold_21",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Nyx the smelter",
+       "door": {
+        "x": 165925,
+        "y": 276
+       },
+       "seed": 517366,
+       "wallK": 0.3035
+      }
+     },
+     {
+      "x": 165845,
+      "y": 1789,
+      "w": 128,
+      "h": 111,
+      "style": "ember",
+      "roof": 3815994,
+      "cb": {
+       "id": "cinderhold_22",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Pyra Coalbrow",
+       "door": {
+        "x": 165909,
+        "y": 1924
+       },
+       "seed": 533917,
+       "wallK": 0.0802
+      }
+     },
+     {
+      "x": 165450,
+      "y": 645,
+      "w": 159,
+      "h": 125,
+      "style": "ember",
+      "roof": 9054746,
+      "cb": {
+       "id": "cinderhold_23",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Rurik the bellows-boy",
+       "door": {
+        "x": 165529.5,
+        "y": 621
+       },
+       "seed": 218717,
+       "wallK": 0.5609
+      }
+     },
+     {
+      "x": 167016,
+      "y": 645,
+      "w": 133,
+      "h": 125,
+      "style": "ember",
+      "roof": 5909026,
+      "cb": {
+       "id": "cinderhold_24",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Rurik Ashfoot",
+       "door": {
+        "x": 167082.5,
+        "y": 621
+       },
+       "seed": 313875,
+       "wallK": 0.9416
+      }
+     },
+     {
+      "x": 165430,
+      "y": 1430,
+      "w": 154,
+      "h": 125,
+      "style": "ember",
+      "roof": 6961706,
+      "cb": {
+       "id": "cinderhold_25",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Vulka the ore-carter",
+       "door": {
+        "x": 165507,
+        "y": 1579
+       },
+       "seed": 681766,
+       "wallK": 0.882
+      }
+     },
+     {
+      "x": 166865,
+      "y": 1665,
+      "w": 149,
+      "h": 111,
+      "style": "ember",
+      "roof": 3815994,
+      "cb": {
+       "id": "cinderhold_26",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Grim the bellows-boy",
+       "door": {
+        "x": 166939.5,
+        "y": 1641
+       },
+       "seed": 946049,
+       "wallK": 0.5523
+      }
+     },
+     {
+      "x": 167019,
+      "y": 1430,
+      "w": 164,
+      "h": 125,
+      "style": "ember",
+      "roof": 9054746,
+      "cb": {
+       "id": "cinderhold_27",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Torva Emberly",
+       "door": {
+        "x": 167101,
+        "y": 1579
+       },
+       "seed": 313194,
+       "wallK": 0.7286
+      }
+     },
+     {
+      "x": 166865,
+      "y": 424,
+      "w": 159,
+      "h": 111,
+      "style": "ember",
+      "roof": 9054746,
+      "cb": {
+       "id": "cinderhold_28",
+       "city": "cinderhold",
+       "use": "rent",
+       "face": "s",
+       "floors": 2,
+       "res": "Ash Ashfoot",
+       "door": {
+        "x": 166944.5,
+        "y": 559
+       },
+       "seed": 388972,
+       "wallK": 0.3927
+      }
+     },
+     {
+      "x": 165541,
+      "y": 424,
+      "w": 194,
+      "h": 111,
+      "style": "ember",
+      "roof": 6961706,
+      "cb": {
+       "id": "cinderhold_29",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Brenna Ashfoot",
+       "door": {
+        "x": 165638,
+        "y": 559
+       },
+       "seed": 716636,
+       "wallK": 0.5054
+      }
+     },
+     {
+      "x": 165547,
+      "y": 1665,
+      "w": 107,
+      "h": 111,
+      "style": "ember",
+      "roof": 3815994,
+      "cb": {
+       "id": "cinderhold_30",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Hearth the quencher",
+       "door": {
+        "x": 165600.5,
+        "y": 1641
+       },
+       "seed": 516955,
+       "wallK": 0.0052
+      }
+     },
+     {
+      "x": 166865,
+      "y": 1789,
+      "w": 110,
+      "h": 111,
+      "style": "ember",
+      "roof": 5909026,
+      "cb": {
+       "id": "cinderhold_31",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Hearth the bellows-boy",
+       "door": {
+        "x": 166920,
+        "y": 1924
+       },
+       "seed": 113837,
+       "wallK": 0.9321
+      }
+     },
+     {
+      "x": 166865,
+      "y": 300,
+      "w": 114,
+      "h": 111,
+      "style": "ember",
+      "roof": 6961706,
+      "cb": {
+       "id": "cinderhold_32",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Grim the quencher",
+       "door": {
+        "x": 166922,
+        "y": 276
+       },
+       "seed": 201059,
+       "wallK": 0.23
+      }
+     },
+     {
+      "x": 165614,
+      "y": 1789,
+      "w": 121,
+      "h": 111,
+      "style": "ember",
+      "roof": 3815994,
+      "cb": {
+       "id": "cinderhold_33",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Nyx the ore-carter",
+       "door": {
+        "x": 165674.5,
+        "y": 1924
+       },
+       "seed": 374663,
+       "wallK": 0.01
+      }
+     },
+     {
+      "x": 165550,
+      "y": 300,
+      "w": 185,
+      "h": 111,
+      "style": "ember",
+      "roof": 3815994,
+      "cb": {
+       "id": "cinderhold_34",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Magda the quencher",
+       "door": {
+        "x": 165642.5,
+        "y": 276
+       },
+       "seed": 306754,
+       "wallK": 0.7873
+      }
+     },
+     {
+      "x": 167150,
+      "y": 645,
+      "w": 150,
+      "h": 125,
+      "style": "ember",
+      "roof": 6961706,
+      "cb": {
+       "id": "cinderhold_35",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Slag the quencher",
+       "door": {
+        "x": 167225,
+        "y": 621
+       },
+       "seed": 993403,
+       "wallK": 0.9538
+      }
+     },
+     {
+      "x": 167025,
+      "y": 1665,
+      "w": 133,
+      "h": 111,
+      "style": "ember",
+      "roof": 3815994,
+      "cb": {
+       "id": "cinderhold_36",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Nyx Ashfoot",
+       "door": {
+        "x": 167091.5,
+        "y": 1641
+       },
+       "seed": 642994,
+       "wallK": 0.8308
+      }
+     },
+     {
+      "x": 165300,
+      "y": 645,
+      "w": 147,
+      "h": 125,
+      "style": "ember",
+      "roof": 5909026,
+      "cb": {
+       "id": "cinderhold_37",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Wren Sparkhand",
+       "door": {
+        "x": 165373.5,
+        "y": 621
+       },
+       "seed": 989451,
+       "wallK": 0.269
+      }
+     },
+     {
+      "x": 167034,
+      "y": 424,
+      "w": 136,
+      "h": 111,
+      "style": "ember",
+      "roof": 3815994,
+      "cb": {
+       "id": "cinderhold_38",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Grim Ashfoot",
+       "door": {
+        "x": 167102,
+        "y": 559
+       },
+       "seed": 435580,
+       "wallK": 0.1861
+      }
+     },
+     {
+      "x": 165300,
+      "y": 1430,
+      "w": 123,
+      "h": 125,
+      "style": "ember",
+      "roof": 5909026,
+      "cb": {
+       "id": "cinderhold_39",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Nyx Ironfist",
+       "door": {
+        "x": 165361.5,
+        "y": 1579
+       },
+       "seed": 95705,
+       "wallK": 0.0227
+      }
+     },
+     {
+      "x": 167186,
+      "y": 1430,
+      "w": 114,
+      "h": 125,
+      "style": "ember",
+      "roof": 3815994,
+      "cb": {
+       "id": "cinderhold_40",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Hearth Ironfist",
+       "door": {
+        "x": 167243,
+        "y": 1579
+       },
+       "seed": 841495,
+       "wallK": 0.4006
+      }
+     },
+     {
+      "x": 165431,
+      "y": 1665,
+      "w": 113,
+      "h": 111,
+      "style": "ember",
+      "roof": 9054746,
+      "cb": {
+       "id": "cinderhold_41",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Ember the ore-carter",
+       "door": {
+        "x": 165487.5,
+        "y": 1641
+       },
+       "seed": 405914,
+       "wallK": 0.6907
+      }
+     },
+     {
+      "x": 165429,
+      "y": 424,
+      "w": 111,
+      "h": 111,
+      "style": "ember",
+      "roof": 5909026,
+      "cb": {
+       "id": "cinderhold_42",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Ember Blackanvil",
+       "door": {
+        "x": 165484.5,
+        "y": 559
+       },
+       "seed": 335918,
+       "wallK": 0.4503
+      }
+     },
+     {
+      "x": 166985,
+      "y": 300,
+      "w": 109,
+      "h": 111,
+      "style": "ember",
+      "roof": 3815994,
+      "cb": {
+       "id": "cinderhold_43",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Durgan Coalbrow",
+       "door": {
+        "x": 167039.5,
+        "y": 276
+       },
+       "seed": 588087,
+       "wallK": 0.9506
+      }
+     },
+     {
+      "x": 166986,
+      "y": 1789,
+      "w": 157,
+      "h": 111,
+      "style": "ember",
+      "roof": 3815994,
+      "cb": {
+       "id": "cinderhold_44",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Durgan Ashfoot",
+       "door": {
+        "x": 167064.5,
+        "y": 1924
+       },
+       "seed": 90536,
+       "wallK": 0.2229
+      }
+     },
+     {
+      "x": 165453,
+      "y": 1789,
+      "w": 150,
+      "h": 111,
+      "style": "ember",
+      "roof": 6961706,
+      "cb": {
+       "id": "cinderhold_45",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Forge the smelter",
+       "door": {
+        "x": 165528,
+        "y": 1924
+       },
+       "seed": 63809,
+       "wallK": 0.2617
+      }
+     },
+     {
+      "x": 165430,
+      "y": 300,
+      "w": 109,
+      "h": 111,
+      "style": "ember",
+      "roof": 9054746,
+      "cb": {
+       "id": "cinderhold_46",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Vulka the quencher",
+       "door": {
+        "x": 165484.5,
+        "y": 276
+       },
+       "seed": 494314,
+       "wallK": 0.4495
+      }
+     },
+     {
+      "x": 167167,
+      "y": 1665,
+      "w": 133,
+      "h": 111,
+      "style": "ember",
+      "roof": 3815994,
+      "cb": {
+       "id": "cinderhold_47",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Cinder Ashfoot",
+       "door": {
+        "x": 167233.5,
+        "y": 1641
+       },
+       "seed": 645501,
+       "wallK": 0.2804
+      }
+     },
+     {
+      "x": 167170,
+      "y": 424,
+      "w": 130,
+      "h": 111,
+      "style": "ember",
+      "roof": 6961706,
+      "cb": {
+       "id": "cinderhold_48",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Vulka Coalbrow",
+       "door": {
+        "x": 167235,
+        "y": 559
+       },
+       "seed": 623219,
+       "wallK": 0.9332
+      }
+     },
+     {
+      "x": 165300,
+      "y": 424,
+      "w": 125,
+      "h": 111,
+      "style": "ember",
+      "roof": 9054746,
+      "cb": {
+       "id": "cinderhold_49",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Ember Emberly",
+       "door": {
+        "x": 165362.5,
+        "y": 559
+       },
+       "seed": 249804,
+       "wallK": 0.3533
+      }
+     },
+     {
+      "x": 165300,
+      "y": 1665,
+      "w": 123,
+      "h": 111,
+      "style": "ember",
+      "roof": 3815994,
+      "cb": {
+       "id": "cinderhold_50",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Cinder Ironfist",
+       "door": {
+        "x": 165361.5,
+        "y": 1641
+       },
+       "seed": 315919,
+       "wallK": 0.349
+      }
+     },
+     {
+      "x": 167097,
+      "y": 300,
+      "w": 203,
+      "h": 111,
+      "style": "ember",
+      "roof": 9054746,
+      "cb": {
+       "id": "cinderhold_51",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Hearth Blackanvil",
+       "door": {
+        "x": 167198.5,
+        "y": 276
+       },
+       "seed": 381491,
+       "wallK": 0.1837
+      }
+     },
+     {
+      "x": 165300,
+      "y": 1789,
+      "w": 153,
+      "h": 111,
+      "style": "ember",
+      "roof": 9054746,
+      "cb": {
+       "id": "cinderhold_52",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Hearth Emberly",
+       "door": {
+        "x": 165376.5,
+        "y": 1924
+       },
+       "seed": 20874,
+       "wallK": 0.2256
+      }
+     },
+     {
+      "x": 167147,
+      "y": 1789,
+      "w": 153,
+      "h": 111,
+      "style": "ember",
+      "roof": 6961706,
+      "cb": {
+       "id": "cinderhold_53",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "s",
+       "floors": 2,
+       "res": "Cinder Coalbrow",
+       "door": {
+        "x": 167223.5,
+        "y": 1924
+       },
+       "seed": 697044,
+       "wallK": 0.1085
+      }
+     },
+     {
+      "x": 165300,
+      "y": 300,
+      "w": 123,
+      "h": 111,
+      "style": "ember",
+      "roof": 6961706,
+      "cb": {
+       "id": "cinderhold_54",
+       "city": "cinderhold",
+       "use": "home",
+       "face": "n",
+       "floors": 2,
+       "res": "Forge Ashfoot",
+       "door": {
+        "x": 165361.5,
+        "y": 276
+       },
+       "seed": 152472,
+       "wallK": 0.9137
+      }
+     }
+    ],
+    "yards": [
+     {
+      "x": 165445,
+      "y": 790,
+      "w": 145,
+      "h": 70
+     },
+     {
+      "x": 165445,
+      "y": 1340,
+      "w": 145,
+      "h": 70
+     },
+     {
+      "x": 167010,
+      "y": 790,
+      "w": 145,
+      "h": 70
+     },
+     {
+      "x": 167010,
+      "y": 1340,
+      "w": 145,
+      "h": 70
+     }
+    ],
+    "skip": [
+     {
+      "x": 165870,
+      "y": 670,
+      "w": 860,
+      "h": 860
+     }
+    ],
+    "z": "[ref]",
+    "streetCol": "rgba(20,14,12,.35)",
+    "curbCol": "rgba(255,120,40,.35)",
+    "style": "ember"
+   }
+  },
+  {
+   "id": "co_city",
+   "name": "Coralport",
+   "x": 170000,
+   "y": 0,
+   "w": 2600,
+   "h": 2200,
+   "cols": 26,
+   "rows": 22,
+   "t": {
+    "_bytes": "AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICCAgICAgICAgICAgICAgICAgICAgICAICAgIICAgICAgICAgICAgICAgICAgICAgIAgICAggICAgICAgICAgICAgICAgICAgICAgCAgICCAgICAgICAgICAgICAgICAgICAgICAICAgIICAgICAgICAgICAgICAgICAgICAgIAgICAggICAgICAgICAgICAgICAgICAgICAgCAgICCAgICAgICAgICAgICAgICAgICAgICAICAgIICAgICAgICAgICAgICAgICAgICAgIAgICAggICAgICAgICAgICAgICAgICAgICAgCAgICCAgICAgICAgICAgICAgICAgICAgICAICAgIICAgICAgICAgICAgICAgICAgICAgIAgICAggICAgICAgICAgICAgICAgICAgICAgCAgICCAgICAgICAgICAgICAgICAgICAgICAICAgIICAgICAgICAgICAgICAgICAgICAgIAgICAggICAgICAgICAgICAgICAgICAgICAgCAgICCAgICAgICAgICAgICAgICAgICAgICAICAgIICAgICAgICAgICAgICAgICAgICAgIAgICAggICAgICAgICAgICAgICAgICAgICAgCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=",
+    "_type": "Uint8Array",
+    "_len": 572
+   },
+   "src": {
+    "id": "tide",
+    "name": "Tidewake Isles",
+    "x": 140000,
+    "y": 0,
+    "w": 5000,
+    "h": 5000,
+    "cols": 50,
+    "rows": 50,
+    "t": {
+     "_bytes": "AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBgYGAgICAgICAgICAgICAgICAgICAgIGBgAAAAYGBgICAgICAgICAgICAgICAgICBgAAAAAABgICAgICAgICAgICAgICAgIGBgAAAAAAAAAABgYCAgICAgICAgICAgICAgYAAAAAAAAAAgICAgICAgICAgICAgICAgYAAAAAAAAAAAAABgYCAgICAgICAgICAgIGAAAAAQAAAAAGAgICAgICAgICAgICAgIGAAAAAAABAQAAAAAABgICAgICAgICAgICAgYAAAABAQAAAAYCAgICAgICAgICAgICAgYAAAAAAAEBAAAAAAAGAgICAgICAgICAgICAgYAAAEBAAAGAgICAgICAgICAgICAgICAgYAAAAAAQEAAAAABgICAgICAgICAgICAgICAgYAAAEABgICAgICAgICAgICAgICAgICAgYGAAABAQAABgYCAgICAgICAgICAgICAgICAgICBAQCAgICAgICAgICAgICAgICAgICAgIGBgEBBgYCAgICAgICAgICAgICAgICAgICAgICBAICAgICAgICAgICAgICAgICAgICAgICBAQCAgICAgICAgICAgICAgICAgICAgICAgIEBAICAgICAgICAgICAgICAgICAgICAgIEBAICAgICAgICAgICAgICAgICAgICAgICAgQEAgICAgICAgICAgICAgICAgICAgICAgQCAgICAgICAgICAgICAgICAgICAgICAgICAgEBBgYCAgICAgICAgICAgICAgICAgIEBAICAgICAgICAgICAgICAgICAgICAgICAgIGAQEAAAYGAgICAgICAgICAgICAgICAgQEAgICAgICAgICAgICAgICAgICAgICAgICBgAAAQAAAAAGAgICAgICAgICAgYGBgYBAQYGBgICAgICAgICAgICAgICAgICAgICAgYAAAABAQAAAAAGAgICAgICAgIGBgYBAQEGBgYGBgICAgICAgICAgICAgICAgICAgICBgAAAAEBAQEAAAYCAgICAgICBgYGAAEBAAAABgYGBgICAgICAgICAgICAgICAgICAgIGAAEBAQEBAQEBAQQCAgICAgYGBgAAAQAAAAAAAAAGBgICAgICAgICAgICBgYGAgICAgEBAQEAAAAAAAAEBAQEAgIGBgAAAAEBAAAAAAAAAAAGBgICAgICAgICAgYAAAAGBgQEBAYAAAAAAAAABgICBAQEBAYGAAAAAQEAAAAAAAAAAAAGAgICAgICAgIGAAAAAAABBAQCAgYGAAAAAAYCAgICAgQEAQAAAAABAAAAAAAAAAAAAAYGAgICAgICAgAAAAAAAQEGAgICAgIGBgYGAgICAgICAgEBAAgICAgICAgAAAAAAAAABgYCAgICAgIGAAAAAAEBAAYCAgICAgICAgICAgICAgICBgEACAgICAgICAAAAAAAAAAABgICAgIEBAEBAQEBAQAABgICAgICAgICAgICAgICAgYGAQEICAgICAgIAAAAAAAAAAAGAgICAgQEAQEBAQEAAAAGAgICAgICAgICAgICAgICBgYBAQgICAgICAgAAAAAAAAAAAYCAgICAgICAAAAAQAAAAYCAgICAgICAgICAgICAgQBAQAACAgICAgICAAAAAAAAAAGBgICAgICAgIGAAABAQAAAgICAgICAgICAgICAgICAgIGAAAICAgICAgIAAAAAAAAAAYGAgICAgICAgYAAAEBAAYCAgICAgICAgICAgICAgICAgYAAAgICAgICAgAAAAAAAAABgYCAgICAgICAgYAAQEGBgICAgICAgICAgICAgICAgICBgYAAAAAAQAAAAAAAAICAgAGAgICAgICAgICBgYBAQICAgICAgICAgICAgICAgICAgICBgAAAAEBAAAAAAACAgICAgYCAgICAgICAgICAgEEBAICAgICAgICAgICAgICAgICAgIGBgEBAQEAAAAAAgICAgICAgICAgICAgICAgICAgQEBAICAgICAgIGAgICAgICAgICAgIBAQEAAAAAAAAAAgICAgIGAgICAgICAgICAgICAgQEBAICAgYGAAAAAAYGBgICAgIEBAEGBgAAAAAAAAAAAgICBgICAgICAgICAgICAgICAgIEBAIGAAAAAAAAAAAABgIEBAQEAgYGBgAAAAAAAAAABgYCAgICAgICAgICAgICAgICAgIEAQEBAAAAAAAAAAEBAQQEAgICAgYGBgYGBgAAAAYGAgICAgICAgICAgICAgICAgICAgIBAQEBAQEBAQEBAQEBAgICAgICAgIGBgYGBgYGBgICAgICAgICAgICAgICAgICAgICAgYAAAAAAQEBAAAAAAYCAgICAgICAgICBgYGAgICAgICAgICAgICAgICAgICAgICAgICBgAAAAAAAAAAAAAGAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBgYAAAAAAAAABgYCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYGBgYGBgYCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg==",
+     "_type": "Uint8Array",
+     "_len": 2500
+    }
+   },
+   "dx": 27950,
+   "dy": -1525,
+   "T0": {
+    "id": "coralport",
+    "name": "Coralport",
+    "x": 142970,
+    "y": 2270,
+    "w": 760,
+    "h": 710,
+    "style": "reef"
+   },
+   "R": {
+    "x": 170150,
+    "y": 150,
+    "w": 2300,
+    "h": 1900
+   },
+   "city": {
+    "x": 170150,
+    "y": 150,
+    "w": 2300,
+    "h": 1900
+   },
+   "core": {
+    "x": 170920,
+    "y": 745,
+    "w": 760,
+    "h": 710
+   },
+   "pal": [
+    "#6aa84a",
+    "#e0d4b8",
+    "#2a9ab8",
+    "#ff5a14",
+    "#8a6a44",
+    "#8a8a80",
+    "#ecd9a0",
+    "#6a625c",
+    "#e8dcc0",
+    "#2a2238"
+   ],
+   "around": 2792120,
+   "peak": 9079424,
+   "bg": "#2a9ab8",
+   "floorCol": "#e8dcc0",
+   "plazaCol": "rgba(40,160,170,.3)",
+   "roadCol": "#d8c8a0",
+   "tex": 1280,
+   "streets": [
+    {
+     "x": 170150,
+     "y": 1010,
+     "w": 770,
+     "h": 180
+    },
+    {
+     "x": 171210,
+     "y": 150,
+     "w": 180,
+     "h": 595
+    },
+    {
+     "x": 171210,
+     "y": 1455,
+     "w": 180,
+     "h": 595
+    },
+    {
+     "x": 170190,
+     "y": 190,
+     "w": 110,
+     "h": 1820,
+     "plan": 1
+    },
+    {
+     "x": 170785,
+     "y": 190,
+     "w": 110,
+     "h": 1820,
+     "plan": 1
+    },
+    {
+     "x": 171205,
+     "y": 190,
+     "w": 190,
+     "h": 1820,
+     "plan": 1
+    },
+    {
+     "x": 171705,
+     "y": 190,
+     "w": 110,
+     "h": 1820,
+     "plan": 1
+    },
+    {
+     "x": 172300,
+     "y": 190,
+     "w": 110,
+     "h": 1820,
+     "plan": 1
+    },
+    {
+     "x": 170190,
+     "y": 190,
+     "w": 2220,
+     "h": 110,
+     "plan": 1
+    },
+    {
+     "x": 170190,
+     "y": 610,
+     "w": 2220,
+     "h": 110,
+     "plan": 1
+    },
+    {
+     "x": 170190,
+     "y": 1005,
+     "w": 2220,
+     "h": 190,
+     "plan": 1
+    },
+    {
+     "x": 170190,
+     "y": 1480,
+     "w": 2220,
+     "h": 110,
+     "plan": 1
+    },
+    {
+     "x": 170190,
+     "y": 1900,
+     "w": 2220,
+     "h": 110,
+     "plan": 1
+    }
+   ],
+   "respawn": {
+    "x": 171420,
+    "y": 1320,
+    "name": "the Coralport waystone"
+   },
+   "cityPlan": {
+    "id": "coralport",
+    "R": {
+     "x": 170170,
+     "y": 170,
+     "w": 2260,
+     "h": 1860
+    },
+    "core": {
+     "x": 170920,
+     "y": 745,
+     "w": 760,
+     "h": 710
+    },
+    "xs": [
+     170245,
+     170840,
+     171300,
+     171760,
+     172355
+    ],
+    "ys": [
+     245,
+     665,
+     1100,
+     1535,
+     1955
+    ],
+    "xw": [
+     110,
+     110,
+     190,
+     110,
+     110
+    ],
+    "yw": [
+     110,
+     110,
+     190,
+     110,
+     110
+    ],
+    "ST": 110,
+    "X0": 170245,
+    "X1": 172355,
+    "Y0": 245,
+    "Y1": 1955,
+    "lots": [
+     {
+      "x": 171815,
+      "y": 1195,
+      "w": 137,
+      "h": 125,
+      "style": "reef",
+      "roof": 2779802,
+      "cb": {
+       "id": "coralport_0",
+       "city": "coralport",
+       "use": "temple",
+       "face": "n",
+       "floors": 3,
+       "res": "Lagoon the net-mender",
+       "door": {
+        "x": 171883.5,
+        "y": 1171
+       },
+       "seed": 240603,
+       "wallK": 0.1713
+      }
+     },
+     {
+      "x": 171815,
+      "y": 880,
+      "w": 155,
+      "h": 125,
+      "style": "reef",
+      "roof": 2779802,
+      "cb": {
+       "id": "coralport_1",
+       "city": "coralport",
+       "use": "hall",
+       "face": "s",
+       "floors": 3,
+       "res": "Cora the fishwife",
+       "door": {
+        "x": 171892.5,
+        "y": 1029
+       },
+       "seed": 624119,
+       "wallK": 0.2669
+      }
+     },
+     {
+      "x": 170610,
+      "y": 880,
+      "w": 175,
+      "h": 125,
+      "style": "reef",
+      "roof": 12607546,
+      "cb": {
+       "id": "coralport_2",
+       "city": "coralport",
+       "use": "post",
+       "face": "s",
+       "floors": 1,
+       "res": "Reef the pearl-sorter",
+       "door": {
+        "x": 170697.5,
+        "y": 1029
+       },
+       "seed": 895414,
+       "wallK": 0.8357
+      }
+     },
+     {
+      "x": 171517,
+      "y": 485,
+      "w": 188,
+      "h": 125,
+      "style": "reef",
+      "roof": 2787978,
+      "cb": {
+       "id": "coralport_3",
+       "city": "coralport",
+       "use": "smithy",
+       "face": "s",
+       "floors": 1,
+       "res": "Pearl Driftwood",
+       "door": {
+        "x": 171611,
+        "y": 634
+       },
+       "seed": 40778,
+       "wallK": 0.6525
+      }
+     },
+     {
+      "x": 170895,
+      "y": 1590,
+      "w": 158,
+      "h": 125,
+      "style": "reef",
+      "roof": 2787978,
+      "cb": {
+       "id": "coralport_4",
+       "city": "coralport",
+       "use": "weaver",
+       "face": "n",
+       "floors": 1,
+       "res": "Ebb the fishwife",
+       "door": {
+        "x": 170974,
+        "y": 1566
+       },
+       "seed": 224252,
+       "wallK": 0.157
+      }
+     },
+     {
+      "x": 170895,
+      "y": 485,
+      "w": 150,
+      "h": 125,
+      "style": "reef",
+      "roof": 2779802,
+      "cb": {
+       "id": "coralport_5",
+       "city": "coralport",
+       "use": "kitchen",
+       "face": "s",
+       "floors": 1,
+       "res": "Jonah the sailmaker",
+       "door": {
+        "x": 170970,
+        "y": 634
+       },
+       "seed": 131002,
+       "wallK": 0.0934
+      }
+     },
+     {
+      "x": 171815,
+      "y": 720,
+      "w": 142,
+      "h": 125,
+      "style": "reef",
+      "roof": 12607546,
+      "cb": {
+       "id": "coralport_6",
+       "city": "coralport",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Cora the net-mender",
+       "door": {
+        "x": 171886,
+        "y": 696
+       },
+       "seed": 918589,
+       "wallK": 0.6126
+      }
+     },
+     {
+      "x": 171815,
+      "y": 1355,
+      "w": 143,
+      "h": 125,
+      "style": "reef",
+      "roof": 2779802,
+      "cb": {
+       "id": "coralport_7",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Hal the boat-builder",
+       "door": {
+        "x": 171886.5,
+        "y": 1504
+       },
+       "seed": 143495,
+       "wallK": 0.6686
+      }
+     },
+     {
+      "x": 170606,
+      "y": 720,
+      "w": 179,
+      "h": 125,
+      "style": "reef",
+      "roof": 12607546,
+      "cb": {
+       "id": "coralport_8",
+       "city": "coralport",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Shelly Gullwing",
+       "door": {
+        "x": 170695.5,
+        "y": 696
+       },
+       "seed": 981628,
+       "wallK": 0.8156
+      }
+     },
+     {
+      "x": 170577,
+      "y": 1195,
+      "w": 106,
+      "h": 125,
+      "style": "reef",
+      "roof": 2787978,
+      "cb": {
+       "id": "coralport_9",
+       "city": "coralport",
+       "use": "alchemy",
+       "face": "n",
+       "floors": 1,
+       "res": "Isla Barnacle",
+       "door": {
+        "x": 170630,
+        "y": 1171
+       },
+       "seed": 537621,
+       "wallK": 0.7538
+      }
+     },
+     {
+      "x": 170565,
+      "y": 1355,
+      "w": 206.25,
+      "h": 125,
+      "style": "reef",
+      "roof": 2787978,
+      "cb": {
+       "id": "coralport_10",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Wade the net-mender",
+       "door": {
+        "x": 170668.125,
+        "y": 1504
+       },
+       "seed": 674540,
+       "wallK": 0.017
+      }
+     },
+     {
+      "x": 171959,
+      "y": 1195,
+      "w": 121,
+      "h": 125,
+      "style": "reef",
+      "roof": 3828392,
+      "cb": {
+       "id": "coralport_11",
+       "city": "coralport",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Wade the boat-builder",
+       "door": {
+        "x": 172019.5,
+        "y": 1171
+       },
+       "seed": 605577,
+       "wallK": 0.4677
+      }
+     },
+     {
+      "x": 171979,
+      "y": 880,
+      "w": 113,
+      "h": 125,
+      "style": "reef",
+      "roof": 2787978,
+      "cb": {
+       "id": "coralport_12",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Pearl the net-mender",
+       "door": {
+        "x": 172035.5,
+        "y": 1029
+       },
+       "seed": 563411,
+       "wallK": 0.5488
+      }
+     },
+     {
+      "x": 171960,
+      "y": 720,
+      "w": 105,
+      "h": 125,
+      "style": "reef",
+      "roof": 12607546,
+      "cb": {
+       "id": "coralport_13",
+       "city": "coralport",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Nemo the boat-builder",
+       "door": {
+        "x": 172012.5,
+        "y": 696
+       },
+       "seed": 570747,
+       "wallK": 0.3806
+      }
+     },
+     {
+      "x": 171963,
+      "y": 1355,
+      "w": 121,
+      "h": 125,
+      "style": "reef",
+      "roof": 2787978,
+      "cb": {
+       "id": "coralport_14",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Bo the pearl-sorter",
+       "door": {
+        "x": 172023.5,
+        "y": 1504
+       },
+       "seed": 605459,
+       "wallK": 0.7661
+      }
+     },
+     {
+      "x": 171815,
+      "y": 485,
+      "w": 128,
+      "h": 125,
+      "style": "reef",
+      "roof": 2779802,
+      "cb": {
+       "id": "coralport_15",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Shelly the rope-maker",
+       "door": {
+        "x": 171879,
+        "y": 634
+       },
+       "seed": 798398,
+       "wallK": 0.6275
+      }
+     },
+     {
+      "x": 171548,
+      "y": 1775,
+      "w": 157,
+      "h": 125,
+      "style": "reef",
+      "roof": 2787978,
+      "cb": {
+       "id": "coralport_16",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Cora the sailmaker",
+       "door": {
+        "x": 171626.5,
+        "y": 1924
+       },
+       "seed": 768475,
+       "wallK": 0.6173
+      }
+     },
+     {
+      "x": 171815,
+      "y": 1590,
+      "w": 151,
+      "h": 125,
+      "style": "reef",
+      "roof": 2787978,
+      "cb": {
+       "id": "coralport_17",
+       "city": "coralport",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Cora the boat-builder",
+       "door": {
+        "x": 171890.5,
+        "y": 1566
+       },
+       "seed": 953289,
+       "wallK": 0.0279
+      }
+     },
+     {
+      "x": 170895,
+      "y": 1775,
+      "w": 125,
+      "h": 125,
+      "style": "reef",
+      "roof": 3828392,
+      "cb": {
+       "id": "coralport_18",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Kai Driftwood",
+       "door": {
+        "x": 170957.5,
+        "y": 1924
+       },
+       "seed": 326271,
+       "wallK": 0.745
+      }
+     },
+     {
+      "x": 170895,
+      "y": 300,
+      "w": 116,
+      "h": 125,
+      "style": "reef",
+      "roof": 3828392,
+      "cb": {
+       "id": "coralport_19",
+       "city": "coralport",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Finn the fishwife",
+       "door": {
+        "x": 170953,
+        "y": 276
+       },
+       "seed": 452051,
+       "wallK": 0.2473
+      }
+     },
+     {
+      "x": 170603,
+      "y": 1590,
+      "w": 182,
+      "h": 125,
+      "style": "reef",
+      "roof": 12607546,
+      "cb": {
+       "id": "coralport_20",
+       "city": "coralport",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Shelly the net-mender",
+       "door": {
+        "x": 170694,
+        "y": 1566
+       },
+       "seed": 917453,
+       "wallK": 0.9778
+      }
+     },
+     {
+      "x": 170584,
+      "y": 485,
+      "w": 201,
+      "h": 125,
+      "style": "reef",
+      "roof": 2787978,
+      "cb": {
+       "id": "coralport_21",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Shelly the fishwife",
+       "door": {
+        "x": 170684.5,
+        "y": 634
+       },
+       "seed": 438792,
+       "wallK": 0.1144
+      }
+     },
+     {
+      "x": 170458,
+      "y": 720,
+      "w": 146,
+      "h": 125,
+      "style": "reef",
+      "roof": 12607546,
+      "cb": {
+       "id": "coralport_22",
+       "city": "coralport",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Gale Gullwing",
+       "door": {
+        "x": 170531,
+        "y": 696
+       },
+       "seed": 550630,
+       "wallK": 0.6833
+      }
+     },
+     {
+      "x": 170415,
+      "y": 1355,
+      "w": 148,
+      "h": 125,
+      "style": "reef",
+      "roof": 2787978,
+      "cb": {
+       "id": "coralport_23",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Nemo Gullwing",
+       "door": {
+        "x": 170489,
+        "y": 1504
+       },
+       "seed": 367677,
+       "wallK": 0.7573
+      }
+     },
+     {
+      "x": 172068,
+      "y": 720,
+      "w": 137,
+      "h": 125,
+      "style": "reef",
+      "roof": 3828392,
+      "cb": {
+       "id": "coralport_24",
+       "city": "coralport",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Wade Driftwood",
+       "door": {
+        "x": 172136.5,
+        "y": 696
+       },
+       "seed": 139613,
+       "wallK": 0.5711
+      }
+     },
+     {
+      "x": 172088,
+      "y": 1195,
+      "w": 206.25,
+      "h": 125,
+      "style": "reef",
+      "roof": 2787978,
+      "cb": {
+       "id": "coralport_25",
+       "city": "coralport",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Reef the boat-builder",
+       "door": {
+        "x": 172191.125,
+        "y": 1171
+       },
+       "seed": 947506,
+       "wallK": 0.6939
+      }
+     },
+     {
+      "x": 172094,
+      "y": 880,
+      "w": 206,
+      "h": 125,
+      "style": "reef",
+      "roof": 2779802,
+      "cb": {
+       "id": "coralport_26",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Jonah the boat-builder",
+       "door": {
+        "x": 172197,
+        "y": 1029
+       },
+       "seed": 818632,
+       "wallK": 0.5199
+      }
+     },
+     {
+      "x": 171949,
+      "y": 485,
+      "w": 157,
+      "h": 125,
+      "style": "reef",
+      "roof": 2787978,
+      "cb": {
+       "id": "coralport_27",
+       "city": "coralport",
+       "use": "rent",
+       "face": "s",
+       "floors": 1,
+       "res": "Shelly the pearl-sorter",
+       "door": {
+        "x": 172027.5,
+        "y": 634
+       },
+       "seed": 337803,
+       "wallK": 0.383
+      }
+     },
+     {
+      "x": 171815,
+      "y": 1775,
+      "w": 110,
+      "h": 125,
+      "style": "reef",
+      "roof": 12607546,
+      "cb": {
+       "id": "coralport_28",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Oona Barnacle",
+       "door": {
+        "x": 171870,
+        "y": 1924
+       },
+       "seed": 734305,
+       "wallK": 0.6717
+      }
+     },
+     {
+      "x": 171975,
+      "y": 1590,
+      "w": 156,
+      "h": 125,
+      "style": "reef",
+      "roof": 12607546,
+      "cb": {
+       "id": "coralport_29",
+       "city": "coralport",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Reef the net-mender",
+       "door": {
+        "x": 172053,
+        "y": 1566
+       },
+       "seed": 379420,
+       "wallK": 0.7087
+      }
+     },
+     {
+      "x": 171815,
+      "y": 300,
+      "w": 159,
+      "h": 125,
+      "style": "reef",
+      "roof": 3828392,
+      "cb": {
+       "id": "coralport_30",
+       "city": "coralport",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Ebb Gullwing",
+       "door": {
+        "x": 171894.5,
+        "y": 276
+       },
+       "seed": 146027,
+       "wallK": 0.1105
+      }
+     },
+     {
+      "x": 170622,
+      "y": 300,
+      "w": 163,
+      "h": 125,
+      "style": "reef",
+      "roof": 2779802,
+      "cb": {
+       "id": "coralport_31",
+       "city": "coralport",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Reef Driftwood",
+       "door": {
+        "x": 170703.5,
+        "y": 276
+       },
+       "seed": 326903,
+       "wallK": 0.5441
+      }
+     },
+     {
+      "x": 172093,
+      "y": 1355,
+      "w": 206.25,
+      "h": 125,
+      "style": "reef",
+      "roof": 2787978,
+      "cb": {
+       "id": "coralport_32",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Hal Barnacle",
+       "door": {
+        "x": 172196.125,
+        "y": 1504
+       },
+       "seed": 62223,
+       "wallK": 0.2839
+      }
+     },
+     {
+      "x": 170456,
+      "y": 1590,
+      "w": 138,
+      "h": 125,
+      "style": "reef",
+      "roof": 12607546,
+      "cb": {
+       "id": "coralport_33",
+       "city": "coralport",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Gale the pearl-sorter",
+       "door": {
+        "x": 170525,
+        "y": 1566
+       },
+       "seed": 416695,
+       "wallK": 0.1242
+      }
+     },
+     {
+      "x": 170454,
+      "y": 485,
+      "w": 127,
+      "h": 125,
+      "style": "reef",
+      "roof": 2779802,
+      "cb": {
+       "id": "coralport_34",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Isla Gullwing",
+       "door": {
+        "x": 170517.5,
+        "y": 634
+       },
+       "seed": 637617,
+       "wallK": 0.1748
+      }
+     },
+     {
+      "x": 170564,
+      "y": 1775,
+      "w": 206.25,
+      "h": 125,
+      "style": "reef",
+      "roof": 12607546,
+      "cb": {
+       "id": "coralport_35",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Pearl the boat-builder",
+       "door": {
+        "x": 170667.125,
+        "y": 1924
+       },
+       "seed": 905455,
+       "wallK": 0.3206
+      }
+     },
+     {
+      "x": 170300,
+      "y": 720,
+      "w": 149,
+      "h": 125,
+      "style": "reef",
+      "roof": 3828392,
+      "cb": {
+       "id": "coralport_36",
+       "city": "coralport",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Wade Saltwater",
+       "door": {
+        "x": 170374.5,
+        "y": 696
+       },
+       "seed": 3754,
+       "wallK": 0.8126
+      }
+     },
+     {
+      "x": 170300,
+      "y": 1355,
+      "w": 111,
+      "h": 125,
+      "style": "reef",
+      "roof": 2787978,
+      "cb": {
+       "id": "coralport_37",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Hal the rope-maker",
+       "door": {
+        "x": 170355.5,
+        "y": 1504
+       },
+       "seed": 33814,
+       "wallK": 0.5912
+      }
+     },
+     {
+      "x": 171935,
+      "y": 1775,
+      "w": 136,
+      "h": 125,
+      "style": "reef",
+      "roof": 12607546,
+      "cb": {
+       "id": "coralport_38",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Nemo the fishwife",
+       "door": {
+        "x": 172003,
+        "y": 1924
+       },
+       "seed": 67751,
+       "wallK": 0.6547
+      }
+     },
+     {
+      "x": 171978,
+      "y": 300,
+      "w": 151,
+      "h": 125,
+      "style": "reef",
+      "roof": 3828392,
+      "cb": {
+       "id": "coralport_39",
+       "city": "coralport",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Tide Gullwing",
+       "door": {
+        "x": 172053.5,
+        "y": 276
+       },
+       "seed": 162230,
+       "wallK": 0.1363
+      }
+     },
+     {
+      "x": 170460,
+      "y": 300,
+      "w": 156,
+      "h": 125,
+      "style": "reef",
+      "roof": 2787978,
+      "cb": {
+       "id": "coralport_40",
+       "city": "coralport",
+       "use": "rent",
+       "face": "n",
+       "floors": 1,
+       "res": "Isla Saltwater",
+       "door": {
+        "x": 170538,
+        "y": 276
+       },
+       "seed": 626158,
+       "wallK": 0.8975
+      }
+     },
+     {
+      "x": 172113,
+      "y": 485,
+      "w": 187,
+      "h": 125,
+      "style": "reef",
+      "roof": 12607546,
+      "cb": {
+       "id": "coralport_41",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Bo Saltwater",
+       "door": {
+        "x": 172206.5,
+        "y": 634
+       },
+       "seed": 594664,
+       "wallK": 0.9818
+      }
+     },
+     {
+      "x": 172140,
+      "y": 1590,
+      "w": 160,
+      "h": 125,
+      "style": "reef",
+      "roof": 2787978,
+      "cb": {
+       "id": "coralport_42",
+       "city": "coralport",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Davy Driftwood",
+       "door": {
+        "x": 172220,
+        "y": 1566
+       },
+       "seed": 190993,
+       "wallK": 0.2148
+      }
+     },
+     {
+      "x": 170300,
+      "y": 1590,
+      "w": 153,
+      "h": 125,
+      "style": "reef",
+      "roof": 2787978,
+      "cb": {
+       "id": "coralport_43",
+       "city": "coralport",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Oona the sailmaker",
+       "door": {
+        "x": 170376.5,
+        "y": 1566
+       },
+       "seed": 230551,
+       "wallK": 0.1268
+      }
+     },
+     {
+      "x": 170300,
+      "y": 485,
+      "w": 145,
+      "h": 125,
+      "style": "reef",
+      "roof": 3828392,
+      "cb": {
+       "id": "coralport_44",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Wade the sailmaker",
+       "door": {
+        "x": 170372.5,
+        "y": 634
+       },
+       "seed": 617866,
+       "wallK": 0.4481
+      }
+     },
+     {
+      "x": 170421,
+      "y": 1775,
+      "w": 140,
+      "h": 125,
+      "style": "reef",
+      "roof": 2779802,
+      "cb": {
+       "id": "coralport_45",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Lagoon Gullwing",
+       "door": {
+        "x": 170491,
+        "y": 1924
+       },
+       "seed": 508070,
+       "wallK": 0.7223
+      }
+     },
+     {
+      "x": 172081,
+      "y": 1775,
+      "w": 206.25,
+      "h": 125,
+      "style": "reef",
+      "roof": 12607546,
+      "cb": {
+       "id": "coralport_46",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Shelly Driftwood",
+       "door": {
+        "x": 172184.125,
+        "y": 1924
+       },
+       "seed": 537680,
+       "wallK": 0.3818
+      }
+     },
+     {
+      "x": 172137,
+      "y": 300,
+      "w": 163,
+      "h": 125,
+      "style": "reef",
+      "roof": 12607546,
+      "cb": {
+       "id": "coralport_47",
+       "city": "coralport",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Ebb the pearl-sorter",
+       "door": {
+        "x": 172218.5,
+        "y": 276
+       },
+       "seed": 491737,
+       "wallK": 0.1263
+      }
+     },
+     {
+      "x": 170300,
+      "y": 300,
+      "w": 151,
+      "h": 125,
+      "style": "reef",
+      "roof": 12607546,
+      "cb": {
+       "id": "coralport_48",
+       "city": "coralport",
+       "use": "home",
+       "face": "n",
+       "floors": 1,
+       "res": "Oona the boat-builder",
+       "door": {
+        "x": 170375.5,
+        "y": 276
+       },
+       "seed": 358778,
+       "wallK": 0.1674
+      }
+     },
+     {
+      "x": 170300,
+      "y": 1775,
+      "w": 121,
+      "h": 125,
+      "style": "reef",
+      "roof": 3828392,
+      "cb": {
+       "id": "coralport_49",
+       "city": "coralport",
+       "use": "home",
+       "face": "s",
+       "floors": 1,
+       "res": "Reef the sailmaker",
+       "door": {
+        "x": 170360.5,
+        "y": 1924
+       },
+       "seed": 166499,
+       "wallK": 0.4997
+      }
+     }
+    ],
+    "yards": [],
+    "skip": [
+     {
+      "x": 170920,
+      "y": 745,
+      "w": 760,
+      "h": 710
+     }
+    ],
+    "z": "[ref]",
+    "streetCol": "rgba(120,150,170,.25)",
+    "curbCol": "rgba(255,255,255,.6)",
+    "style": "reef"
+   }
+  },
+  {
+   "id": "tutorial",
+   "name": "Dawnrest Isle",
+   "x": 175000,
+   "y": 0,
+   "w": 2400,
+   "h": 1800,
+   "cols": 24,
+   "rows": 18,
+   "t": {
+    "_bytes": "AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBgYGBgYGAgICAgICAgICAgICAgICBgYAAAAAAAAABgYGAgICAgICAgICAgYGAAAAAAAAAAAAAAAABgICAgICAgICBgYAAAABAQEBAQAAAAAAAAYGAgICAgICBgAAAAABAQABAQEBAQEAAAAGAgICAgIGAAAAAAABAQEBAQEBAQEBAAAGBgICAgIGAAEBAQEBAQEAAAAAAAABAQEBAQQEAgIGAAEBAQEBAQAAAAAAAAABAQEBAQQEAgIGAAAAAAAAAQEAAAAAAAEBAAAGAgICAgICBgAAAAAAAAEBAQEBAQEAAAAGAgICAgICAgYAAAAAAAAAAAABAAAAAAYGAgICAgICAgYGAAAAAAAAAAAAAAAABgYCAgICAgICAgICBgYAAAAAAAAAAAAGAgICAgICAgICAgICAgICBgYGBgYGBgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC",
+    "_type": "Uint8Array",
+    "_len": 432
+   },
+   "city": null,
+   "pal": [
+    "#5aa04a",
+    "#c8a870",
+    "#1f8fb0",
+    "#ff5a14",
+    "#8a6a44",
+    "#6a6a60",
+    "#ecd9a0",
+    "#6a625c",
+    "#d8ccb0",
+    "#2a2238"
+   ],
+   "around": 2068400,
+   "bg": "#1f8fb0",
+   "tex": 1024,
+   "respawn": {
+    "x": 175420,
+    "y": 900,
+    "name": "the Dawnrest shore"
+   }
+  },
+  {
+   "id": "homestead",
+   "name": "Your Homestead",
+   "x": 185000,
+   "y": 0,
+   "w": 3200,
+   "h": 2400,
+   "cols": 32,
+   "rows": 24,
+   "t": {
+    "_bytes": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQUAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAFBQAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAgIAAAUFAAAAAgICAAAAAAAAAAAAAAAAAAEAAAAAAAICAgAABQUAAAICAgICAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAFBQAAAgICAgAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAUFAAAAAAAAAAAAAAAAAAEAAAAAAAEAAAAAAAAAAAAABQUAAAAAAAAAAAAAAAAAAQAAAAAAAQAAAAAAAAAAAAAFBQAAAAAAAAAAAAAAAAABAAAAAAABAAAAAAAAAAAAAAUFAAAAAAAAAAAAAAAAAAEAAAAAAAEAAAAAAAAAAAAABQUAAAAAAAAAAAAAAAAAAQAAAAAAAQAAAAAAAAAAAAAFBQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQUFAAAAAAAAAAAAAAAAAAEAAAAAAAEAAAAAAAAAAAAABQUAAAAAAAAAAAAAAAAAAQAAAAAAAQAAAAAAAAAAAAAFBQAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAUFAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAABQUAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAFBQAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAUFAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAABQUAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAFBQAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAUFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUF",
+    "_type": "Uint8Array",
+    "_len": 768
+   },
+   "city": null,
+   "pal": [
+    "#6aa84a",
+    "#c8a870",
+    "#2f7fa0",
+    "#ff5a14",
+    "#8a6a44",
+    "#6a6a60",
+    "#ecd9a0",
+    "#6a625c",
+    "#d8ccb0",
+    "#2a2238"
+   ],
+   "around": 4155950,
+   "bg": "#3f6a2e",
+   "tex": 1280,
+   "roadCol": "#b89a66",
+   "respawn": {
+    "x": 185330,
+    "y": 1260,
+    "name": "your homestead"
+   }
+  },
+  {
+   "id": "d_warrens",
+   "name": "The Mire Warrens",
+   "x": 200000,
+   "y": 0,
+   "w": 4400,
+   "h": 1400,
+   "cols": 44,
+   "rows": 14,
+   "t": {
+    "_bytes": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgFBQUFBQUFBQUICAgICAgIBQUICAgICAgIBQUICAgICAgIBQUICAgICAgICAUFBQUFBQUFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgIBQUICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAgFBQgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAUFCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBQUICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAgFBQUFBQUFBQUICAgICAgIBQUICAgICAgIBQUICAgICAgIBQUICAgICAgICAUFBQUFBQUFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgIBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQ==",
+    "_type": "Uint8Array",
+    "_len": 616
+   },
+   "city": null,
+   "dark": true,
+   "pal": [
+    "#3a3a30",
+    "#5a5040",
+    "#1f4f68",
+    "#ff5a14",
+    "#6a5a44",
+    "#2a3324",
+    "#8a7a5a",
+    "#3a3030",
+    "#4a5238",
+    "#1a1418"
+   ],
+   "around": 1317392,
+   "bg": "#0e0b0a",
+   "tex": 1024,
+   "respawn": {
+    "x": 200300,
+    "y": 700,
+    "name": "the The Mire Warrens entrance"
+   }
+  },
+  {
+   "id": "d_frost",
+   "name": "Frostpeak Caverns",
+   "x": 206000,
+   "y": 0,
+   "w": 4400,
+   "h": 1400,
+   "cols": 44,
+   "rows": 14,
+   "t": {
+    "_bytes": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgFBQUFBQUFBQUICAgICAgIBQUICAgICAgIBQUICAgICAgIBQUICAgICAgICAUFBQUFBQUFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgIBQUICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAgFBQgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAUFCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBQUICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAgFBQUFBQUFBQUICAgICAgIBQUICAgICAgIBQUICAgICAgIBQUICAgICAgICAUFBQUFBQUFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgIBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQ==",
+    "_type": "Uint8Array",
+    "_len": 616
+   },
+   "city": null,
+   "dark": true,
+   "pal": [
+    "#3a3a30",
+    "#5a5040",
+    "#1f4f68",
+    "#ff5a14",
+    "#6a5a44",
+    "#8a9aaa",
+    "#8a7a5a",
+    "#3a3030",
+    "#b8c8d8",
+    "#1a1418"
+   ],
+   "around": 1713200,
+   "bg": "#0e0b0a",
+   "tex": 1024,
+   "respawn": {
+    "x": 206300,
+    "y": 700,
+    "name": "the Frostpeak Caverns entrance"
+   }
+  },
+  {
+   "id": "d_tomb",
+   "name": "Tomb of the Sand King",
+   "x": 212000,
+   "y": 0,
+   "w": 4400,
+   "h": 1400,
+   "cols": 44,
+   "rows": 14,
+   "t": {
+    "_bytes": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgFBQUFBQUFBQUICAgICAgIBQUICAgICAgIBQUICAgICAgIBQUICAgICAgICAUFBQUFBQUFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgIBQUICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAgFBQgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAUFCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBQUICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAgFBQUFBQUFBQUICAgICAgIBQUICAgICAgIBQUICAgICAgIBQUICAgICAgICAUFBQUFBQUFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgIBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQ==",
+    "_type": "Uint8Array",
+    "_len": 616
+   },
+   "city": null,
+   "dark": true,
+   "pal": [
+    "#3a3a30",
+    "#5a5040",
+    "#1f4f68",
+    "#ff5a14",
+    "#6a5a44",
+    "#8a6a3a",
+    "#8a7a5a",
+    "#3a3030",
+    "#c8a870",
+    "#1a1418"
+   ],
+   "around": 2760208,
+   "bg": "#0e0b0a",
+   "tex": 1024,
+   "respawn": {
+    "x": 212300,
+    "y": 700,
+    "name": "the Tomb of the Sand King entrance"
+   }
+  },
+  {
+   "id": "d_molten",
+   "name": "The Molten Depths",
+   "x": 218000,
+   "y": 0,
+   "w": 4400,
+   "h": 1400,
+   "cols": 44,
+   "rows": 14,
+   "t": {
+    "_bytes": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgFBQUFBQUFBQUICAgICAgIBQUICAgICAgIBQUICAgICAgIBQUICAgICAgICAUFBQUFBQUFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgIBQUICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAgFBQgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAUFCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBQUICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAgFBQUFBQUFBQUICAgICAgIBQUICAgICAgIBQUICAgICAgIBQUICAgICAgICAUFBQUFBQUFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgIBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQ==",
+    "_type": "Uint8Array",
+    "_len": 616
+   },
+   "city": null,
+   "dark": true,
+   "pal": [
+    "#3a3a30",
+    "#5a5040",
+    "#1f4f68",
+    "#ff5a14",
+    "#6a5a44",
+    "#2a1410",
+    "#8a7a5a",
+    "#3a3030",
+    "#4a2a1e",
+    "#1a1418"
+   ],
+   "around": 1705990,
+   "bg": "#0e0b0a",
+   "tex": 1024,
+   "respawn": {
+    "x": 218300,
+    "y": 700,
+    "name": "the The Molten Depths entrance"
+   }
+  },
+  {
+   "id": "d_hollow",
+   "name": "The Hollow Below",
+   "x": 224000,
+   "y": 0,
+   "w": 4400,
+   "h": 1400,
+   "cols": 44,
+   "rows": 14,
+   "t": {
+    "_bytes": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgFBQUFBQUFBQUICAgICAgIBQUICAgICAgIBQUICAgICAgIBQUICAgICAgICAUFBQUFBQUFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgIBQUICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAgFBQgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAUFCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBQUICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAgFBQUFBQUFBQUICAgICAgIBQUICAgICAgIBQUICAgICAgIBQUICAgICAgICAUFBQUFBQUFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgIBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQ==",
+    "_type": "Uint8Array",
+    "_len": 616
+   },
+   "city": null,
+   "dark": true,
+   "pal": [
+    "#3a3a30",
+    "#5a5040",
+    "#1f4f68",
+    "#ff5a14",
+    "#6a5a44",
+    "#2a2238",
+    "#8a7a5a",
+    "#3a3030",
+    "#3e3450",
+    "#1a1418"
+   ],
+   "around": 1183258,
+   "bg": "#0e0b0a",
+   "tex": 1024,
+   "respawn": {
+    "x": 224300,
+    "y": 700,
+    "name": "the The Hollow Below entrance"
+   }
+  },
+  {
+   "id": "kq",
+   "name": "The Proving Grounds",
+   "x": 232000,
+   "y": 0,
+   "w": 2000,
+   "h": 2000,
+   "cols": 20,
+   "rows": 20,
+   "t": {
+    "_bytes": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQEBBQUFBQUFBQUFBQUFBQUFAQgICAgICAEFBQUFBQUFBQUFBQEICAgICAgICAEFBQUFBQUFBQUBCAgICAgICAgICAEFBQUFBQUFAQgICAgICAgICAgICAEFBQUFBQUICAgICAgICAgICAgICAUFBQUFBQgICAgICAgICAgICAgIBQUFBQUBCAgICAgICAgICAgICAgBBQUFBQEICAgICAgICAgICAgICAEFBQUFBQgICAgICAgICAgICAgIBQUFBQUFCAgICAgICAgICAgICAgFBQUFBQUBCAgICAgICAgICAgIAQUFBQUFBQUBCAgICAgICAgICAEFBQUFBQUFBQUBCAgICAgICAgBBQUFBQUFBQUFBQUBCAgICAgIAQUFBQUFBQUFBQUFBQUFBQEBBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQ==",
+    "_type": "Uint8Array",
+    "_len": 400
+   },
+   "city": null,
+   "pal": [
+    "#5a8a3a",
+    "#c8a870",
+    "#2f7fa0",
+    "#ff5a14",
+    "#8a6a44",
+    "#5a5048",
+    "#d8c08a",
+    "#6a625c",
+    "#c9a46a",
+    "#2a2238"
+   ],
+   "around": 3024416,
+   "bg": "#2e2620",
+   "tex": 1024,
+   "respawn": {
+    "x": 41720,
+    "y": 1230,
+    "name": "Varrow"
+   }
+  },
+  {
+   "id": "ghall",
+   "name": "Guild Hall",
+   "x": 236000,
+   "y": 0,
+   "w": 1400,
+   "h": 1100,
+   "cols": 14,
+   "rows": 11,
+   "t": {
+    "_bytes": "BQUFBQUFBQUFBQUFBQUFCAgICAgICAgICAgIBQUICAgICAgICAgICAgFBQgICAgICAgICAgICAUFCAgICAgICAgICAgIBQUICAgICAgICAgICAgFBQgICAgICAgICAgICAUFCAgICAgICAgICAgIBQUICAgICAgICAgICAgFBQgICAgICAgICAgICAUFBQUFBQUFBQUFBQUFBQ==",
+    "_type": "Uint8Array",
+    "_len": 154
+   },
+   "city": null,
+   "pal": [
+    "#5a8a3a",
+    "#c8a870",
+    "#2f7fa0",
+    "#ff5a14",
+    "#8a6a44",
+    "#4a4038",
+    "#d8c08a",
+    "#6a625c",
+    "#8a7e70",
+    "#2a2238"
+   ],
+   "around": 2761760,
+   "bg": "#2a2420",
+   "tex": 1024,
+   "respawn": null
+  },
+  {
+   "id": "mquarter",
+   "name": "Merchants’ Quarter",
+   "x": 248000,
+   "y": 0,
+   "w": 2600,
+   "h": 2050,
+   "cols": 26,
+   "rows": 20.5,
+   "t": {
+    "_bytes": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgICAgICAgICAgICAgICAgIBQUICAgICAgICAgICAgICAgICAgICAgICAgFBQgICAgICAgICAgICAgICAgICAgICAgICAUFCAgICAgICAgICAgICAgICAgICAgICAgIBQUICAgICAgICAgICAgICAgICAgICAgICAgFBQgICAgICAgICAgICAgICAgICAgICAgICAUFCAgICAgICAgICAgICAgICAgICAgICAgIBQUICAgICAgICAgICAgICAgICAgICAgICAgFBQgICAgICAgICAgICAgICAgICAgICAgICAUFCAgICAgICAgICAgICAgICAgICAgICAgIBQUICAgICAgICAgICAgICAgICAgICAgICAgFBQgICAgICAgICAgICAgICAgICAgICAgICAUFCAgICAgICAgICAgICAgICAgICAgICAgIBQUICAgICAgICAgICAgICAgICAgICAgICAgFBQgICAgICAgICAgICAgICAgICAgICAgICAUFCAgICAgICAgICAgICAgICAgICAgICAgIBQUICAgICAgICAgICAgICAgICAgICAgICAgFBQgICAgICAgICAgICAgICAgICAgICAgICAUFCAgICAgICAgICAgICAgICAgICAgICAgIBQUFBQUFBQUFBQUFBQU=",
+    "_type": "Uint8Array",
+    "_len": 533
+   },
+   "city": null,
+   "pal": [
+    "#5a8a3a",
+    "#c8a870",
+    "#2f7fa0",
+    "#ff5a14",
+    "#8a6a44",
+    "#5a5048",
+    "#d8c08a",
+    "#6a625c",
+    "#a89a84",
+    "#2a2238"
+   ],
+   "around": 3813416,
+   "bg": "#3a3028",
+   "tex": 1024,
+   "respawn": null
+  },
+  {
+   "id": "raid",
+   "name": "The Ember Throne",
+   "x": 240000,
+   "y": 0,
+   "w": 2400,
+   "h": 2000,
+   "cols": 24,
+   "rows": 20,
+   "t": {
+    "_bytes": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQEBAQEFBQUFBQUFBQUFBQUFBQUFBQEICAgICAgICAEFBQUFBQUFBQUFBQUFAQgICAgICAgICAgBBQUFBQUFBQUFBQUBCAgICAgICAgICAgIAQUFBQUFBQUFBQEICAgICAgICAgICAgICAEFBQUFBQUFBQgICAgICAgICAgICAgICAgFBQUFBQUFBQgICAgICAgICAgICAgICAgFBQUFBQUFAQgICAgICAgICAgICAgICAgBBQUFBQUFAQgICAgICAgICAgICAgICAgBBQUFBQUFAQgICAgICAgICAgICAgICAgBBQUFBQUFAQgICAgICAgICAgICAgICAgBBQUFBQUFBQgICAgICAgICAgICAgICAgFBQUFBQUFBQgICAgICAgICAgICAgICAgFBQUFBQUFBQEICAgICAgICAgICAgICAEFBQUFBQUFBQUBCAgICAgICAgICAgIAQUFBQUFBQUFBQUFAQgICAgICAgICAgBBQUFBQUFBQUFBQUFBQEICAgICAgICAEFBQUFBQUFBQUFBQUFBQUFBQEBAQEFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUF",
+    "_type": "Uint8Array",
+    "_len": 480
+   },
+   "city": null,
+   "pal": [
+    "#5a8a3a",
+    "#7a3a1a",
+    "#2f7fa0",
+    "#ff5a14",
+    "#8a6a44",
+    "#2a1a16",
+    "#d8c08a",
+    "#6a625c",
+    "#5a3e30",
+    "#2a2238"
+   ],
+   "around": 1707530,
+   "bg": "#1a0e0a",
+   "tex": 1024,
+   "respawn": {
+    "x": 241200,
+    "y": 1660,
+    "name": "the Throne gate"
+   }
+  }
+ ]
+}

@@ -1,0 +1,1199 @@
+{
+ "FESTS": {
+  "harvest": {
+   "name": "Harvest Fair",
+   "icon": "🎃",
+   "col": "#ff9a3a",
+   "blurb": "Pumpkins on every corner and a stall full of autumn finery.",
+   "act": "Carve a pumpkin",
+   "actN": 3,
+   "tasks": [
+    [
+     "gather",
+     20,
+     "Gather 20 materials"
+    ],
+    [
+     "kill",
+     25,
+     "Defeat 25 monsters"
+    ],
+    [
+     "fest",
+     3,
+     "Carve 3 pumpkins in town"
+    ]
+   ],
+   "shop": [
+    [
+     "harvest_hat",
+     30
+    ],
+    [
+     "harvest_cape",
+     40
+    ],
+    [
+     "pet:pumpkin_slime",
+     80
+    ]
+   ],
+   "title": "the Harvester",
+   "when": {
+    "_js": "t => { const d = new Date(t), m = d.getMonth(), day = d.getDate(); return (m === 8 && day >= 15) || (m === 9 && day <= 15); }"
+   }
+  },
+  "lantern": {
+   "name": "Lantern Nights",
+   "icon": "🏮",
+   "col": "#ffd27a",
+   "blurb": "Ramadan: lanterns glow in the squares after sunset, and neighbours share their tables.",
+   "act": "Light a lantern",
+   "actN": 5,
+   "night": true,
+   "tasks": [
+    [
+     "fest",
+     5,
+     "Light 5 lanterns after dark"
+    ],
+    [
+     "gift",
+     2,
+     "Share 2 gifts with neighbours"
+    ],
+    [
+     "talk",
+     6,
+     "Visit 6 villagers"
+    ]
+   ],
+   "shop": [
+    [
+     "lantern_hood",
+     30
+    ],
+    [
+     "crescent_cape",
+     40
+    ],
+    [
+     "pet:lantern_owl",
+     80
+    ]
+   ],
+   "title": "the Lantern-bearer",
+   "when": {
+    "_js": "t => { const r = ramadanNow(t); return !!r; }"
+   }
+  },
+  "winter": {
+   "name": "Winter Feast",
+   "icon": "🎁",
+   "col": "#9fd4ff",
+   "blurb": "Snow-dusted pines, a gift tree in the square and warm stew for everyone.",
+   "act": "Open a gift",
+   "actN": 1,
+   "tasks": [
+    [
+     "kill",
+     25,
+     "Defeat 25 monsters"
+    ],
+    [
+     "gather",
+     15,
+     "Gather 15 materials"
+    ],
+    [
+     "fest",
+     1,
+     "Open your gift under the tree"
+    ]
+   ],
+   "shop": [
+    [
+     "winter_hat",
+     30
+    ],
+    [
+     "snow_cape",
+     40
+    ],
+    [
+     "pet:snow_fox",
+     80
+    ]
+   ],
+   "title": "the Merry",
+   "when": {
+    "_js": "t => { const d = new Date(t), m = d.getMonth(), day = d.getDate(); return (m === 11 && day >= 15) || (m === 0 && day <= 5); }"
+   }
+  }
+ },
+ "RAID": {
+  "id": "r_throne",
+  "name": "The Ember Throne",
+  "lv": "50–90",
+  "min": 50,
+  "raid": true,
+  "size": 8,
+  "slots": {
+   "tank": 2,
+   "healer": 2,
+   "damage": 4
+  },
+  "boss": "r_vaelor"
+ },
+ "ARENA2": {
+  "id": "a_2v2",
+  "name": "Arena 2v2",
+  "size": 2,
+  "arena": true,
+  "slots": {
+   "tank": 1,
+   "healer": 1,
+   "damage": 2
+  }
+ },
+ "KQC": {
+  "x": 233000,
+  "y": 1000,
+  "r": 720
+ },
+ "RIFT": {
+  "x": 6336,
+  "y": 3472,
+  "r": 230
+ },
+ "DUNGEONS": [
+  {
+   "id": "d_warrens",
+   "name": "The Mire Warrens",
+   "zx": 200000,
+   "lv": "14–20",
+   "region": "mire",
+   "tier": 1,
+   "blurb": "Tunnels under the Duskmire where a toad cult worships the Bog King",
+   "rock": "#2a3324",
+   "floor": "#4a5238",
+   "around": 1317392,
+   "mobs": [
+    [
+     "w_toad",
+     "bogtoad",
+     "Warren toad",
+     15,
+     420,
+     14,
+     260,
+     20,
+     6982202,
+     1.25
+    ],
+    [
+     "w_lurker",
+     "lurker",
+     "Tunnel lurker",
+     17,
+     700,
+     19,
+     360,
+     35,
+     3824202
+    ],
+    [
+     "w_cultist",
+     "bandit",
+     "Toad cultist",
+     16,
+     520,
+     17,
+     320,
+     45,
+     5933626
+    ]
+   ],
+   "pack": 5,
+   "mini": [
+    "w_rotfang",
+    "lurker",
+    "Rotfang the Gorger",
+    18,
+    2600,
+    26,
+    1800,
+    300,
+    9071146,
+    1.7
+   ],
+   "boss": [
+    "w_bogking",
+    "lurker",
+    "The Bog King",
+    20,
+    7000,
+    30,
+    6000,
+    900,
+    6961802,
+    2.3
+   ],
+   "add": "w_toad",
+   "bossLines": [
+    "The Bog King rises from the muck!",
+    "Toxic sludge bubbles up! Move!",
+    "The Bog King calls his children!"
+   ],
+   "sets": {
+    "warrior": [
+     "bogguard_head",
+     "bogguard_chest",
+     "bogguard_hands",
+     "bogguard_weapon"
+    ],
+    "mage": [
+     "mirecall_head",
+     "mirecall_chest",
+     "mirecall_hands",
+     "mirecall_weapon"
+    ],
+    "priest": [
+     "fenlight_head",
+     "fenlight_chest",
+     "fenlight_hands",
+     "fenlight_weapon"
+    ],
+    "rogue": [
+     "bogstalk_head",
+     "bogstalk_chest",
+     "bogstalk_hands",
+     "bogstalk_weapon"
+    ],
+    "ranger": [
+     "fenstride_head",
+     "fenstride_chest",
+     "fenstride_hands",
+     "fenstride_weapon"
+    ],
+    "druid": [
+     "mossweave_head",
+     "mossweave_chest",
+     "mossweave_hands",
+     "mossweave_weapon"
+    ]
+   },
+   "z": {
+    "id": "d_warrens",
+    "name": "The Mire Warrens",
+    "x": 200000,
+    "y": 0,
+    "w": 4400,
+    "h": 1400,
+    "cols": 44,
+    "rows": 14,
+    "t": {
+     "_bytes": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgFBQUFBQUFBQUICAgICAgIBQUICAgICAgIBQUICAgICAgIBQUICAgICAgICAUFBQUFBQUFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgIBQUICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAgFBQgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAUFCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBQUICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAgFBQUFBQUFBQUICAgICAgIBQUICAgICAgIBQUICAgICAgIBQUICAgICAgICAUFBQUFBQUFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgIBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQ==",
+     "_type": "Uint8Array",
+     "_len": 616
+    },
+    "city": null,
+    "dark": true,
+    "pal": [
+     "#3a3a30",
+     "#5a5040",
+     "#1f4f68",
+     "#ff5a14",
+     "#6a5a44",
+     "#2a3324",
+     "#8a7a5a",
+     "#3a3030",
+     "#4a5238",
+     "#1a1418"
+    ],
+    "around": 1317392,
+    "bg": "#0e0b0a",
+    "tex": 1024,
+    "respawn": {
+     "x": 200300,
+     "y": 700,
+     "name": "the The Mire Warrens entrance"
+    }
+   },
+   "gates": [
+    {
+     "x": 201580,
+     "y": 600,
+     "w": 40,
+     "h": 200,
+     "dgate": "d_warrens"
+    },
+    {
+     "x": 202480,
+     "y": 600,
+     "w": 40,
+     "h": 200,
+     "dgate": "d_warrens"
+    },
+    {
+     "x": 203380,
+     "y": 600,
+     "w": 40,
+     "h": 200,
+     "dgate": "d_warrens"
+    }
+   ],
+   "ent": {
+    "x": 2161.4495,
+    "y": 4826.2955
+   },
+   "exit": {
+    "x": 200200,
+    "y": 700
+   },
+   "exitPlate": {
+    "txt": "",
+    "cls": ""
+   },
+   "gateModels": [
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "id": "d_frost",
+   "name": "Frostpeak Caverns",
+   "zx": 206000,
+   "lv": "22–30",
+   "region": "frost",
+   "tier": 1.45,
+   "blurb": "Ice caves under the peaks, where a frost giant sleeps on his hoard",
+   "rock": "#8a9aaa",
+   "floor": "#b8c8d8",
+   "around": 1713200,
+   "mobs": [
+    [
+     "f_wolf",
+     "icewolf",
+     "Cavern ice wolf",
+     24,
+     800,
+     24,
+     480,
+     40,
+     13625599
+    ],
+    [
+     "f_troll",
+     "troll",
+     "Rimeback troll",
+     27,
+     1300,
+     30,
+     700,
+     80,
+     11061480
+    ],
+    [
+     "f_cultist",
+     "bandit",
+     "Frost cultist",
+     25,
+     900,
+     26,
+     520,
+     70,
+     8042751
+    ]
+   ],
+   "pack": 5,
+   "mini": [
+    "f_glacius",
+    "troll",
+    "Glacius the Unmelting",
+    28,
+    5200,
+    38,
+    3200,
+    600,
+    15268095,
+    1.8
+   ],
+   "boss": [
+    "f_hrimgar",
+    "troll",
+    "Hrimgar, the Frost Giant",
+    30,
+    14000,
+    44,
+    11000,
+    1800,
+    12576511,
+    2.6
+   ],
+   "add": "f_wolf",
+   "bossLines": [
+    "Hrimgar wakes, and the cave shakes!",
+    "Ice spears fall from the ceiling!",
+    "Hrimgar howls for his wolves!"
+   ],
+   "sets": {
+    "warrior": [
+     "rimeguard_head",
+     "rimeguard_chest",
+     "rimeguard_hands",
+     "rimeguard_weapon"
+    ],
+    "mage": [
+     "frostweave_head",
+     "frostweave_chest",
+     "frostweave_hands",
+     "frostweave_weapon"
+    ],
+    "priest": [
+     "snowlight_head",
+     "snowlight_chest",
+     "snowlight_hands",
+     "snowlight_weapon"
+    ],
+    "rogue": [
+     "rimeshade_head",
+     "rimeshade_chest",
+     "rimeshade_hands",
+     "rimeshade_weapon"
+    ],
+    "ranger": [
+     "frosthunt_head",
+     "frosthunt_chest",
+     "frosthunt_hands",
+     "frosthunt_weapon"
+    ],
+    "druid": [
+     "snowbark_head",
+     "snowbark_chest",
+     "snowbark_hands",
+     "snowbark_weapon"
+    ]
+   },
+   "z": {
+    "id": "d_frost",
+    "name": "Frostpeak Caverns",
+    "x": 206000,
+    "y": 0,
+    "w": 4400,
+    "h": 1400,
+    "cols": 44,
+    "rows": 14,
+    "t": {
+     "_bytes": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgFBQUFBQUFBQUICAgICAgIBQUICAgICAgIBQUICAgICAgIBQUICAgICAgICAUFBQUFBQUFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgIBQUICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAgFBQgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAUFCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBQUICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAgFBQUFBQUFBQUICAgICAgIBQUICAgICAgIBQUICAgICAgIBQUICAgICAgICAUFBQUFBQUFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgIBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQ==",
+     "_type": "Uint8Array",
+     "_len": 616
+    },
+    "city": null,
+    "dark": true,
+    "pal": [
+     "#3a3a30",
+     "#5a5040",
+     "#1f4f68",
+     "#ff5a14",
+     "#6a5a44",
+     "#8a9aaa",
+     "#8a7a5a",
+     "#3a3030",
+     "#b8c8d8",
+     "#1a1418"
+    ],
+    "around": 1713200,
+    "bg": "#0e0b0a",
+    "tex": 1024,
+    "respawn": {
+     "x": 206300,
+     "y": 700,
+     "name": "the Frostpeak Caverns entrance"
+    }
+   },
+   "gates": [
+    {
+     "x": 207580,
+     "y": 600,
+     "w": 40,
+     "h": 200,
+     "dgate": "d_frost"
+    },
+    {
+     "x": 208480,
+     "y": 600,
+     "w": 40,
+     "h": 200,
+     "dgate": "d_frost"
+    },
+    {
+     "x": 209380,
+     "y": 600,
+     "w": 40,
+     "h": 200,
+     "dgate": "d_frost"
+    }
+   ],
+   "ent": {
+    "x": 7957.5974,
+    "y": 1662.836
+   },
+   "exit": {
+    "x": 206200,
+    "y": 700
+   },
+   "exitPlate": {
+    "txt": "",
+    "cls": ""
+   },
+   "gateModels": [
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "id": "d_tomb",
+   "name": "Tomb of the Sand King",
+   "zx": 212000,
+   "lv": "30–38",
+   "region": "sands",
+   "tier": 1.9,
+   "blurb": "The buried tomb beneath the Kharos ruins. Its king does not rest",
+   "rock": "#8a6a3a",
+   "floor": "#c8a870",
+   "around": 2760208,
+   "mobs": [
+    [
+     "t_scorp",
+     "scorpion",
+     "Tomb scorpion",
+     32,
+     1100,
+     32,
+     640,
+     60,
+     13672512,
+     1.2
+    ],
+    [
+     "t_jackal",
+     "jackal",
+     "Jackal warden",
+     31,
+     950,
+     30,
+     600,
+     60,
+     3811866,
+     1.3
+    ],
+    [
+     "t_guard",
+     "golem",
+     "Tomb guardian",
+     34,
+     1700,
+     36,
+     820,
+     90,
+     14200944,
+     1.1
+    ]
+   ],
+   "pack": 6,
+   "mini": [
+    "t_priest",
+    "bandit",
+    "High Priest Setkhet",
+    35,
+    7500,
+    44,
+    4600,
+    900,
+    16765498,
+    1.5
+   ],
+   "boss": [
+    "t_anubek",
+    "golem",
+    "Anubek, the Sand King",
+    38,
+    22000,
+    52,
+    16000,
+    2800,
+    16762938,
+    2.2
+   ],
+   "add": "t_scorp",
+   "bossLines": [
+    "Anubek stirs in his golden sarcophagus!",
+    "Sand pours from the ceiling!",
+    "The Sand King summons his guard!"
+   ],
+   "sets": {
+    "warrior": [
+     "sandking_head",
+     "sandking_chest",
+     "sandking_hands",
+     "sandking_weapon"
+    ],
+    "mage": [
+     "dunescroll_head",
+     "dunescroll_chest",
+     "dunescroll_hands",
+     "dunescroll_weapon"
+    ],
+    "priest": [
+     "sunpriest_head",
+     "sunpriest_chest",
+     "sunpriest_hands",
+     "sunpriest_weapon"
+    ],
+    "rogue": [
+     "tombrun_head",
+     "tombrun_chest",
+     "tombrun_hands",
+     "tombrun_weapon"
+    ],
+    "ranger": [
+     "duneshot_head",
+     "duneshot_chest",
+     "duneshot_hands",
+     "duneshot_weapon"
+    ],
+    "druid": [
+     "oasis_head",
+     "oasis_chest",
+     "oasis_hands",
+     "oasis_weapon"
+    ]
+   },
+   "z": {
+    "id": "d_tomb",
+    "name": "Tomb of the Sand King",
+    "x": 212000,
+    "y": 0,
+    "w": 4400,
+    "h": 1400,
+    "cols": 44,
+    "rows": 14,
+    "t": {
+     "_bytes": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgFBQUFBQUFBQUICAgICAgIBQUICAgICAgIBQUICAgICAgIBQUICAgICAgICAUFBQUFBQUFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgIBQUICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAgFBQgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAUFCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBQUICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAgFBQUFBQUFBQUICAgICAgIBQUICAgICAgIBQUICAgICAgIBQUICAgICAgICAUFBQUFBQUFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgIBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQ==",
+     "_type": "Uint8Array",
+     "_len": 616
+    },
+    "city": null,
+    "dark": true,
+    "pal": [
+     "#3a3a30",
+     "#5a5040",
+     "#1f4f68",
+     "#ff5a14",
+     "#6a5a44",
+     "#8a6a3a",
+     "#8a7a5a",
+     "#3a3030",
+     "#c8a870",
+     "#1a1418"
+    ],
+    "around": 2760208,
+    "bg": "#0e0b0a",
+    "tex": 1024,
+    "respawn": {
+     "x": 212300,
+     "y": 700,
+     "name": "the Tomb of the Sand King entrance"
+    }
+   },
+   "gates": [
+    {
+     "x": 213580,
+     "y": 600,
+     "w": 40,
+     "h": 200,
+     "dgate": "d_tomb"
+    },
+    {
+     "x": 214480,
+     "y": 600,
+     "w": 40,
+     "h": 200,
+     "dgate": "d_tomb"
+    },
+    {
+     "x": 215380,
+     "y": 600,
+     "w": 40,
+     "h": 200,
+     "dgate": "d_tomb"
+    }
+   ],
+   "ent": {
+    "x": 8163.7085,
+    "y": 5272.0908
+   },
+   "exit": {
+    "x": 212200,
+    "y": 700
+   },
+   "exitPlate": {
+    "txt": "",
+    "cls": ""
+   },
+   "gateModels": [
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "id": "d_molten",
+   "name": "The Molten Depths",
+   "zx": 218000,
+   "lv": "48–56",
+   "region": "ember",
+   "tier": 2.8,
+   "blurb": "The burning heart of Mount Pyrax. Only the strongest come back",
+   "rock": "#2a1410",
+   "floor": "#4a2a1e",
+   "around": 1705990,
+   "mobs": [
+    [
+     "m_imp",
+     "magmaimp",
+     "Depth imp",
+     50,
+     2400,
+     50,
+     1100,
+     120,
+     16734748
+    ],
+    [
+     "m_hound",
+     "cinderhound",
+     "Magma hound",
+     51,
+     2800,
+     54,
+     1200,
+     130,
+     16742954
+    ],
+    [
+     "m_golem",
+     "obsidiangolem",
+     "Obsidian sentinel",
+     53,
+     4200,
+     60,
+     1500,
+     180,
+     2759226,
+     1.2
+    ]
+   ],
+   "pack": 6,
+   "mini": [
+    "m_flameguard",
+    "obsidiangolem",
+    "Flameguard Kaross",
+    54,
+    18000,
+    70,
+    8000,
+    2000,
+    16726554,
+    1.7
+   ],
+   "boss": [
+    "m_ignis",
+    "obsidiangolem",
+    "Ignis, Heart of the Mountain",
+    56,
+    60000,
+    82,
+    30000,
+    6000,
+    16738842,
+    2.4
+   ],
+   "add": "m_imp",
+   "bossLines": [
+    "Ignis awakens. The mountain roars!",
+    "Magma erupts across the floor!",
+    "Ignis tears imps from the lava!"
+   ],
+   "sets": {
+    "warrior": [
+     "infernal_head",
+     "infernal_chest",
+     "infernal_hands",
+     "infernal_weapon"
+    ],
+    "mage": [
+     "hellweave_head",
+     "hellweave_chest",
+     "hellweave_hands",
+     "hellweave_weapon"
+    ],
+    "priest": [
+     "emberlight_head",
+     "emberlight_chest",
+     "emberlight_hands",
+     "emberlight_weapon"
+    ],
+    "rogue": [
+     "cinderfang_head",
+     "cinderfang_chest",
+     "cinderfang_hands",
+     "cinderfang_weapon"
+    ],
+    "ranger": [
+     "blazewind_head",
+     "blazewind_chest",
+     "blazewind_hands",
+     "blazewind_weapon"
+    ],
+    "druid": [
+     "ashgrove_head",
+     "ashgrove_chest",
+     "ashgrove_hands",
+     "ashgrove_weapon"
+    ]
+   },
+   "z": {
+    "id": "d_molten",
+    "name": "The Molten Depths",
+    "x": 218000,
+    "y": 0,
+    "w": 4400,
+    "h": 1400,
+    "cols": 44,
+    "rows": 14,
+    "t": {
+     "_bytes": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgFBQUFBQUFBQUICAgICAgIBQUICAgICAgIBQUICAgICAgIBQUICAgICAgICAUFBQUFBQUFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgIBQUICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAgFBQgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAUFCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBQUICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAgFBQUFBQUFBQUICAgICAgIBQUICAgICAgIBQUICAgICAgIBQUICAgICAgICAUFBQUFBQUFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgIBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQ==",
+     "_type": "Uint8Array",
+     "_len": 616
+    },
+    "city": null,
+    "dark": true,
+    "pal": [
+     "#3a3a30",
+     "#5a5040",
+     "#1f4f68",
+     "#ff5a14",
+     "#6a5a44",
+     "#2a1410",
+     "#8a7a5a",
+     "#3a3030",
+     "#4a2a1e",
+     "#1a1418"
+    ],
+    "around": 1705990,
+    "bg": "#0e0b0a",
+    "tex": 1024,
+    "respawn": {
+     "x": 218300,
+     "y": 700,
+     "name": "the The Molten Depths entrance"
+    }
+   },
+   "gates": [
+    {
+     "x": 219580,
+     "y": 600,
+     "w": 40,
+     "h": 200,
+     "dgate": "d_molten"
+    },
+    {
+     "x": 220480,
+     "y": 600,
+     "w": 40,
+     "h": 200,
+     "dgate": "d_molten"
+    },
+    {
+     "x": 221380,
+     "y": 600,
+     "w": 40,
+     "h": 200,
+     "dgate": "d_molten"
+    }
+   ],
+   "ent": {
+    "x": 135236.9333,
+    "y": 3040.1986
+   },
+   "exit": {
+    "x": 218200,
+    "y": 700
+   },
+   "exitPlate": {
+    "txt": "",
+    "cls": ""
+   },
+   "gateModels": [
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "id": "d_hollow",
+   "name": "The Hollow Below",
+   "zx": 224000,
+   "lv": "57–60",
+   "region": "meadow",
+   "tier": 3.3,
+   "blurb": "Old caves under Ashen Hollow, where the heart of the fallen star took root",
+   "gate": "Into the Hollow Below",
+   "gateMsg": "The old well is sealed. A faint violet light hums far below. (The story will lead you here.)",
+   "rock": "#2a2238",
+   "floor": "#3e3450",
+   "around": 1183258,
+   "mobs": [
+    [
+     "h_shade",
+     "shadowwolf",
+     "Starving shade",
+     57,
+     3000,
+     60,
+     1300,
+     140,
+     5913226,
+     1.3
+    ],
+    [
+     "h_rift",
+     "riftling",
+     "Hollow riftling",
+     58,
+     3300,
+     63,
+     1400,
+     150,
+     9067208
+    ],
+    [
+     "h_golem",
+     "golem",
+     "Root-bound golem",
+     58,
+     4800,
+     68,
+     1700,
+     200,
+     3811930,
+     1.4
+    ]
+   ],
+   "pack": 6,
+   "mini": [
+    "h_warden",
+    "obsidiangolem",
+    "The Hollow Warden",
+    59,
+    21000,
+    78,
+    9000,
+    2400,
+    6961834,
+    1.7
+   ],
+   "boss": [
+    "h_nyx",
+    "voidmaw",
+    "Nyxara, the Last Star",
+    60,
+    72000,
+    90,
+    36000,
+    8000,
+    11569919,
+    0.85
+   ],
+   "add": "h_rift",
+   "bossLines": [
+    "Nyxara opens a thousand eyes. The roots of the Hollow tremble!",
+    "Starfire rains from the cave roof! Move!",
+    "Nyxara tears riftlings out of the dark!"
+   ],
+   "sets": {
+    "warrior": [
+     "starguard_head",
+     "starguard_chest",
+     "starguard_hands",
+     "starguard_weapon"
+    ],
+    "mage": [
+     "nightweave_head",
+     "nightweave_chest",
+     "nightweave_hands",
+     "nightweave_weapon"
+    ],
+    "priest": [
+     "dawnlight_head",
+     "dawnlight_chest",
+     "dawnlight_hands",
+     "dawnlight_weapon"
+    ],
+    "rogue": [
+     "hollowshade_head",
+     "hollowshade_chest",
+     "hollowshade_hands",
+     "hollowshade_weapon"
+    ],
+    "ranger": [
+     "starshot_head",
+     "starshot_chest",
+     "starshot_hands",
+     "starshot_weapon"
+    ],
+    "druid": [
+     "rootsong_head",
+     "rootsong_chest",
+     "rootsong_hands",
+     "rootsong_weapon"
+    ]
+   },
+   "z": {
+    "id": "d_hollow",
+    "name": "The Hollow Below",
+    "x": 224000,
+    "y": 0,
+    "w": 4400,
+    "h": 1400,
+    "cols": 44,
+    "rows": 14,
+    "t": {
+     "_bytes": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgFBQUFBQUFBQUICAgICAgIBQUICAgICAgIBQUICAgICAgIBQUICAgICAgICAUFBQUFBQUFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgIBQUICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAgFBQgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAUFCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIBQUICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAUFCAgICAgICAgFBQUFBQUFBQUICAgICAgIBQUICAgICAgIBQUICAgICAgIBQUICAgICAgICAUFBQUFBQUFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgFBQgICAgICAgIBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCAgICAgICAgFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQ==",
+     "_type": "Uint8Array",
+     "_len": 616
+    },
+    "city": null,
+    "dark": true,
+    "pal": [
+     "#3a3a30",
+     "#5a5040",
+     "#1f4f68",
+     "#ff5a14",
+     "#6a5a44",
+     "#2a2238",
+     "#8a7a5a",
+     "#3a3030",
+     "#3e3450",
+     "#1a1418"
+    ],
+    "around": 1183258,
+    "bg": "#0e0b0a",
+    "tex": 1024,
+    "respawn": {
+     "x": 224300,
+     "y": 700,
+     "name": "the The Hollow Below entrance"
+    }
+   },
+   "gates": [
+    {
+     "x": 225580,
+     "y": 600,
+     "w": 40,
+     "h": 200,
+     "dgate": "d_hollow"
+    },
+    {
+     "x": 226480,
+     "y": 600,
+     "w": 40,
+     "h": 200,
+     "dgate": "d_hollow"
+    },
+    {
+     "x": 227380,
+     "y": 600,
+     "w": 40,
+     "h": 200,
+     "dgate": "d_hollow"
+    }
+   ],
+   "ent": {
+    "x": 1320,
+    "y": 1496
+   },
+   "exit": {
+    "x": 224200,
+    "y": 700
+   },
+   "exitPlate": {
+    "txt": "",
+    "cls": ""
+   },
+   "gateModels": [
+    null,
+    null,
+    null
+   ]
+  }
+ ],
+ "DROOM": [
+  [
+   100,
+   450,
+   520,
+   500
+  ],
+  [
+   800,
+   330,
+   700,
+   740
+  ],
+  [
+   1700,
+   330,
+   700,
+   740
+  ],
+  [
+   2600,
+   330,
+   700,
+   740
+  ],
+  [
+   3500,
+   230,
+   800,
+   940
+  ]
+ ],
+ "PORTALS": [
+  {
+   "x": 3664,
+   "y": 2368,
+   "to": {
+    "x": 12100,
+    "y": 610
+   },
+   "name": "Sunken Forge",
+   "enter": true
+  },
+  {
+   "x": 12040,
+   "y": 610,
+   "to": {
+    "x": 3560,
+    "y": 2272
+   },
+   "name": "Leave dungeon",
+   "enter": false
+  }
+ ]
+}

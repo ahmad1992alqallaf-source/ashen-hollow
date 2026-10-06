@@ -13,9 +13,30 @@ public static class AHMountains
     static readonly GameObject[] prefabs = new GameObject[3], lite = new GameObject[3];
     static readonly float[] width = new float[3], liteW = new float[3];
     static Transform root; static Dictionary<Color, Material> mats;
+    // every peak as a simple cone (centre, foot radius, base, height) so the camera can keep out of the rock
+    static readonly List<Vector4> cones = new List<Vector4>();
+
+    // how far the camera can sit back from look along dir before it would be inside a mountain
+    public static float Clear(Vector3 look, Vector3 dir, float want)
+    {
+        if (cones.Count == 0) return want;
+        for (float t = 0.6f; t <= want; t += 0.4f)
+        {
+            Vector3 q = look + dir * t;
+            foreach (var c in cones)
+            {
+                float dx = q.x - c.x, dz = q.z - c.z, r2 = dx * dx + dz * dz, R = c.y;
+                if (r2 >= R * R) continue;
+                float top = c.z + c.w * (1f - Mathf.Sqrt(r2) / R) * 0.92f;
+                if (q.y < top + 0.5f) return Mathf.Max(0.6f, t - 0.4f);
+            }
+        }
+        return want;
+    }
 
     public static void Setup(AHGame g, Transform world)
     {
+        cones.Clear();
         if (world == null) return;
         for (int i = 0; i < 3; i++) if (prefabs[i] == null)
         {
@@ -154,6 +175,7 @@ public static class AHMountains
         go.position = new Vector3(b.center.x, b.min.y - 0.35f, b.center.z);
         go.rotation = Quaternion.Euler(0f, (float)rnd.NextDouble() * 360f, 0f);
         go.localScale = new Vector3(sxz, h * 1.06f + 0.35f, sxz);
+        cones.Add(new Vector4(b.center.x, Mathf.Max(b.size.x, b.size.z) * 0.54f, b.min.y, h * 1.06f));
         Material mat;
         if (!mats.TryGetValue(col, out mat))
         {

@@ -99,7 +99,7 @@ public partial class AHUI
     void ShopKeys()
     {
         if (Modal == 0 && AHInput.RideKey()) AHComp.ToggleRide(g);
-        if (Modal == 0 && AHInput.MapKey()) OpenMap();
+        if (Modal == 0 && AHInput.MapKey() && Time.frameCount != workShutFrame) OpenMap();
     }
 
     // ---------- shops (web openShop / renderShop / buy / sell) ----------
@@ -188,6 +188,7 @@ public partial class AHUI
             Toast("Bought " + AHItems.Get(id).name + " for " + AHItems.MoneyText(pr) + ".");
         }
         p.bag.Touch(); g.MarkDirty(); RenderWork();
+        g.quests.Event("buy", "any", 1, g);
     }
 
     void Sell(AHPlayer p, string id, bool all)

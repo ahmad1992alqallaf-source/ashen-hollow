@@ -1,0 +1,2217 @@
+{
+ "QUESTS": [
+  {
+   "name": "First Steps",
+   "text": "Welcome to Ashen Hollow, traveler. Every adventurer starts with firewood. Walk up to any tree outside town and chop some logs with the action button.",
+   "reward": {
+    "xp": [
+     "woodcutting",
+     60
+    ],
+    "items": {
+     "trout": 2
+    }
+   }
+  },
+  {
+   "name": "Ore and Fire",
+   "text": "Good work. Head into Hollow Meadow and mine copper and tin. We will turn them into bronze.",
+   "reward": {
+    "xp": [
+     "mining",
+     80
+    ],
+    "items": {
+     "bronze_bar": 1
+    }
+   }
+  },
+  {
+   "name": "The Smith’s Way",
+   "text": "Smelt your ore at the furnace, then forge something at the anvil. An adventurer is only as good as their gear.",
+   "reward": {
+    "xp": [
+     "smithing",
+     120
+    ],
+    "items": {
+     "bronze_bar": 2
+    }
+   }
+  },
+  {
+   "name": "Hunter’s Work",
+   "text": "Boars keep raiding our stores. Hunt a few and skin one. Leather from the loom keeps you alive out there.",
+   "reward": {
+    "xp": [
+     "attack",
+     150
+    ],
+    "items": {
+     "meat": 3
+    }
+   }
+  },
+  {
+   "name": "Wolves of Silkwood",
+   "text": "The Silkwood wolves grow bold. Take the Old Mill Road east through the pass to reach Silkwood, then thin the pack. When a red circle appears under you, roll out of it.",
+   "reward": {
+    "xp": [
+     "attack",
+     300
+    ],
+    "items": {
+     "iron_bar": 2
+    }
+   }
+  },
+  {
+   "name": "Into the Forge",
+   "text": "An old evil stirs in the Sunken Forge, through the burning portal in the corner of Silkwood. Defeat Forgemaster Grull.",
+   "reward": {
+    "xp": [
+     "attack",
+     800
+    ],
+    "items": {
+     "$head": 1
+    }
+   }
+  },
+  {
+   "name": "The Road to Varrow",
+   "text": "You have outgrown this village. Walk the King’s Road south from Silkwood, a long march through bandit country, to Varrow, the capital by the sea. Touch its waystone and you can return in a blink.",
+   "reward": {
+    "xp": [
+     "attack",
+     300
+    ],
+    "gold": 100,
+    "items": {
+     "hp_potion": 2
+    }
+   }
+  },
+  {
+   "name": "Coin and Commerce",
+   "text": "Monsters drop coins, and merchants buy almost anything. Visit a shop in Varrow and buy something useful. Walk up to a shop door to go inside.",
+   "reward": {
+    "xp": [
+     "attack",
+     200
+    ],
+    "gold": 80,
+    "items": {
+     "elixir_might": 1
+    }
+   }
+  },
+  {
+   "name": "Mire and Muck",
+   "text": "Mirewatch, deep in the Duskmire, asks for help. Toads foul their water and a bog lurker stalks the pools.",
+   "reward": {
+    "xp": [
+     "attack",
+     600
+    ],
+    "gold": 150,
+    "items": {
+     "big_potion": 1
+    }
+   }
+  },
+  {
+   "name": "Fangs of Frost",
+   "text": "Highcairn, in the frozen north-east, is cut off by ice wolves and frost trolls. Buy warm furs from Sigrid if the cold bites.",
+   "reward": {
+    "xp": [
+     "attack",
+     900
+    ],
+    "gold": 250,
+    "items": {
+     "elixir_iron": 1
+    }
+   }
+  },
+  {
+   "name": "Queen of the Sands",
+   "text": "South of Sunspire Oasis lie the Kharos ruins, where the Sand Queen Ssera nests. Slay her and the Sun King’s crown is yours.",
+   "reward": {
+    "xp": [
+     "attack",
+     1500
+    ],
+    "gold": 600,
+    "items": {
+     "gold_crown": 1
+    }
+   }
+  },
+  {
+   "name": "Across the Sea",
+   "text": "Captain Maren at the end of Varrow’s pier sails to Dragonscale Isle, where dinosaurs still roam. See it with your own eyes.",
+   "reward": {
+    "xp": [
+     "attack",
+     1200
+    ],
+    "gold": 300,
+    "items": {
+     "big_potion": 2
+    }
+   }
+  },
+  {
+   "name": "Primal Hunt",
+   "text": "Hunter Kael on the isle needs hides. Raptors hunt in packs; hornbacks only fight back when provoked.",
+   "reward": {
+    "xp": [
+     "attack",
+     2000
+    ],
+    "gold": 700,
+    "items": {
+     "dragon_draught": 1
+    }
+   }
+  },
+  {
+   "name": "The Ashen Wyrm",
+   "text": "In the shadow of the volcano sleeps Ignirax, the Ashen Wyrm. Hire a party at the Salty Trout, brew draughts, and end it.",
+   "reward": {
+    "xp": [
+     "attack",
+     6000
+    ],
+    "gold": 5000,
+    "items": {
+     "dragon_scale": 1
+    }
+   }
+  },
+  {
+   "name": "Tidings from the Sea",
+   "text": "A new captain waits on Varrow’s pier: Isolde of the Gull’s Wing sails to the Tidewake Isles, six islands strung together by rope bridges. Land at Wreckers’ Landing, then walk the bridges east to Coralport.",
+   "reward": {
+    "xp": [
+     "attack",
+     3000
+    ],
+    "gold": 900,
+    "items": {
+     "tide_tonic": 2
+    }
+   }
+  },
+  {
+   "name": "Reefbreakers",
+   "text": "Pirates, reef crabs and tide serpents plague the isles. Thin them out and Coralport will call you friend.",
+   "reward": {
+    "xp": [
+     "attack",
+     4000
+    ],
+    "gold": 1200,
+    "items": {
+     "great_mana": 2
+    }
+   }
+  },
+  {
+   "name": "Saltbeard’s Hat",
+   "text": "Captain Saltbeard rules Smugglers’ Key, over the rope bridge north of Palmreach. Take him down.",
+   "reward": {
+    "xp": [
+     "attack",
+     5000
+    ],
+    "gold": 2000,
+    "items": {
+     "pearl": 3
+    }
+   }
+  },
+  {
+   "name": "The Tide Queen",
+   "text": "On the Drowned Reef, over the north bridge from Coralport, Thalassa the Tide Queen stirs. Her tentacles crush and her waves drown. Bring a party and roll out of the red.",
+   "reward": {
+    "xp": [
+     "attack",
+     9000
+    ],
+    "gold": 8000,
+    "items": {
+     "pearl_crown": 1
+    }
+   }
+  },
+  {
+   "name": "Ashes in the East",
+   "text": "At the far east edge of the Sunscar Wastes, Ashfall Pass climbs toward Emberreach, a land of lava rivers under Mount Pyrax. Walk the pass, cross the lava bridges and reach the forge city of Cinderhold.",
+   "reward": {
+    "xp": [
+     "attack",
+     5000
+    ],
+    "gold": 1500,
+    "items": {
+     "fire_ward": 2
+    }
+   }
+  },
+  {
+   "name": "Cinder and Glass",
+   "text": "Cinderhold needs obsidian and peace. Hunt cinder hounds and magma imps, then break an obsidian golem in the Glassfields to the south.",
+   "reward": {
+    "xp": [
+     "attack",
+     7000
+    ],
+    "gold": 2500,
+    "items": {
+     "great_mana": 2,
+     "big_potion": 2
+    }
+   }
+  },
+  {
+   "name": "The Molten King",
+   "text": "Pyraxis sits on the Molten Throne north of the volcano, ringed by lava. Take the north road past the brimstone vents, cross the bridge, dodge the falling fire, and end his reign.",
+   "reward": {
+    "xp": [
+     "attack",
+     15000
+    ],
+    "gold": 15000,
+    "items": {
+     "pyrax_heart": 1
+    }
+   }
+  },
+  {
+   "name": "A Letter from Varrow",
+   "giver": "Captain Mara",
+   "turnin": "Herald Bram",
+   "text": "A royal rider brought this for you, sealed in black wax. “Something fell from the sky over Kingsvale. The Crown needs the hero of Emberreach.” Herald Bram waits below the castle in Varrow.",
+   "reward": {
+    "xp": [
+     "attack",
+     8000
+    ],
+    "gold": 1500,
+    "items": {
+     "big_potion": 3
+    }
+   }
+  },
+  {
+   "name": "A Place of Your Own",
+   "giver": "Herald Bram",
+   "text": "Before the Crown sends you into the dark, it wants you rooted. Buy a homestead deed from Land Agent Hilda by the waystone. A hero needs a hearth to come back to.",
+   "reward": {
+    "xp": [
+     "attack",
+     6000
+    ],
+    "gold": 2500,
+    "items": {
+     "wheat_seed": 10,
+     "potato_seed": 10
+    }
+   }
+  },
+  {
+   "name": "A Trade to Master",
+   "giver": "Herald Bram",
+   "text": "Swords win battles. Smiths, cooks and healers win wars. Join the Guild with Registrar Oren and choose a trade, then fill two of their work orders.",
+   "reward": {
+    "xp": [
+     "attack",
+     9000
+    ],
+    "gold": 3000,
+    "items": {
+     "sapphire": 1
+    }
+   }
+  },
+  {
+   "name": "The Riven Crater",
+   "giver": "Herald Bram",
+   "text": "East of Varrow, in Kingsvale, the ground is split open and glows violet at night. Go to the Riven Crater and see what fell.",
+   "reward": {
+    "xp": [
+     "attack",
+     14000
+    ],
+    "gold": 3500,
+    "items": {
+     "great_mana": 2,
+     "big_potion": 2
+    }
+   }
+  },
+  {
+   "name": "Dust of the Stars",
+   "giver": "Archivist Elowen",
+   "text": "I am Elowen, keeper of the royal archive. The riftlings leave a glittering dust. Bring me ten pinches and I will tell you what it means.",
+   "reward": {
+    "xp": [
+     "attack",
+     16000
+    ],
+    "gold": 4000,
+    "items": {
+     "emerald": 1
+    }
+   }
+  },
+  {
+   "name": "Echoes in the Mire",
+   "giver": "Archivist Elowen",
+   "text": "The dust sings the same note as four places under the realm. The first is the Mire Warrens, beneath the Duskmire. The Bog King’s cult has been feeding the rift. Silence him.",
+   "reward": {
+    "xp": [
+     "attack",
+     18000
+    ],
+    "gold": 5000,
+    "items": {
+     "ruby": 1
+    }
+   }
+  },
+  {
+   "name": "The Frozen Seal",
+   "giver": "Archivist Elowen",
+   "text": "The second well of power sleeps under Frostfang Reach, in the Frostpeak Caverns. Hrimgar the Frost Giant guards it without knowing what it is. Take it from him.",
+   "reward": {
+    "xp": [
+     "attack",
+     24000
+    ],
+    "gold": 7000,
+    "items": {
+     "sapphire": 2
+    }
+   }
+  },
+  {
+   "name": "The Sand King’s Key",
+   "giver": "Archivist Elowen",
+   "text": "The third lies in the Tomb of the Sand King, under the Sunscar Wastes. Anubek was buried with a key to the sky. He will not give it up.",
+   "reward": {
+    "xp": [
+     "attack",
+     30000
+    ],
+    "gold": 9000,
+    "items": {
+     "emerald": 2
+    }
+   }
+  },
+  {
+   "name": "Heart of the Mountain",
+   "giver": "Archivist Elowen",
+   "text": "The last well is the hottest. Under Mount Pyrax, in the Molten Depths, Ignis is the mountain’s heart. When he falls, the rift will have nothing left to drink.",
+   "reward": {
+    "xp": [
+     "attack",
+     45000
+    ],
+    "gold": 15000,
+    "items": {
+     "diamond": 1
+    }
+   }
+  },
+  {
+   "name": "Gather the Realm",
+   "giver": "Herald Bram",
+   "text": "The rift is starving, and starving things get desperate. Before the Star-Eater comes through, grow strong and stock up. The Crown asks for five great healing potions for the army.",
+   "reward": {
+    "xp": [
+     "attack",
+     40000
+    ],
+    "gold": 12000,
+    "items": {
+     "dragon_draught": 2
+    }
+   }
+  },
+  {
+   "name": "The Star-Eater",
+   "giver": "Archivist Elowen",
+   "text": "Twice a day the rift opens and Voidmaw, the Star-Eater, reaches through into the Riven Crater. Watch the Events chip for the time. Bring friends. Bring potions. Bring everything.",
+   "reward": {
+    "xp": [
+     "attack",
+     80000
+    ],
+    "gold": 40000,
+    "items": {
+     "$legend": 1
+    }
+   }
+  },
+  {
+   "name": "Voidbreaker",
+   "giver": "Herald Bram",
+   "text": "The sky is closing. Bells ring in Varrow for the first time in a year. Come to the castle square. The whole city wants to see you.",
+   "reward": {
+    "xp": [
+     "attack",
+     30000
+    ],
+    "gold": 25000,
+    "items": {
+     "void_crown": 1
+    }
+   }
+  },
+  {
+   "name": "Bells for a Hero",
+   "giver": "Herald Bram",
+   "turnin": "Captain Mara",
+   "text": "Varrow will feast for a week, and every bard in the realm is writing a song about you. But somebody has waited longer than all of them. Go home to Ashen Hollow. Captain Mara has kept your seat by the fire.",
+   "reward": {
+    "xp": [
+     "attack",
+     4000
+    ],
+    "gold": 3000
+   }
+  },
+  {
+   "name": "Smoke from the Chimney",
+   "giver": "Captain Mara",
+   "text": "You saved the realm, and you saved the little places in it too. A home needs more than walls, though. Travel to your homestead and build something cosy: flower beds, a bench by the pond, a fire pit. Tap your house to see what you can build.",
+   "reward": {
+    "xp": [
+     "farming",
+     1200
+    ],
+    "gold": 1500,
+    "items": {
+     "logs": 8
+    }
+   }
+  },
+  {
+   "name": "New Faces in the Hollow",
+   "giver": "Captain Mara",
+   "text": "While you were away, new folk settled in Ashen Hollow. Baker Maudie fires her oven by the waystone, Woodcarver Ansel took over the old workshop, and little Tess follows everyone around asking questions. Go and say hello.",
+   "reward": {
+    "xp": [
+     "attack",
+     2500
+    ],
+    "gold": 1000,
+    "items": {
+     "bread": 4
+    }
+   }
+  },
+  {
+   "name": "A Gift Goes a Long Way",
+   "giver": "Baker Maudie",
+   "text": "Folk out here don’t need much. A warm loaf, a fresh fish, someone who remembers what they like. When you talk to someone, you can give them a gift. They will tell you what they love most. Give two gifts today.",
+   "reward": {
+    "xp": [
+     "cooking",
+     1500
+    ],
+    "gold": 800,
+    "items": {
+     "strawberry": 3
+    }
+   }
+  },
+  {
+   "name": "Bread for the Hollow",
+   "giver": "Baker Maudie",
+   "text": "My oven is hungry, and so is the Hollow. Bring me six sacks of flour from your mill and six eggs from your hens. If you have no mill or coop yet, build them at your homestead.",
+   "reward": {
+    "xp": [
+     "cooking",
+     2000
+    ],
+    "gold": 2500,
+    "items": {
+     "bread": 6
+    }
+   }
+  },
+  {
+   "name": "The Woodcarver’s Wish",
+   "giver": "Woodcarver Ansel",
+   "text": "I am carving a new sign for the Hollow, with your name on it. But the good pine grows out in Silkwood, and my knees are older than the trees. Twelve pine logs would do it.",
+   "reward": {
+    "xp": [
+     "woodcutting",
+     2000
+    ],
+    "gold": 2500
+   }
+  },
+  {
+   "name": "Tess and the Goldfin",
+   "giver": "Little Tess",
+   "text": "There is a GOLDEN fish in the river. Everybody says so. If you catch ten fish, one of them HAS to be it! Any river, any pond. Even the one at your house.",
+   "reward": {
+    "xp": [
+     "fishing",
+     2000
+    ],
+    "gold": 1500,
+    "items": {
+     "elixir_swift": 2
+    }
+   }
+  },
+  {
+   "name": "Old Tusker Returns",
+   "giver": "Captain Mara",
+   "text": "Old Tusker is back on the Old Mill Road east of the Hollow, flattening Farmer Tobin’s fences. He remembers you. He is still angry about it.",
+   "reward": {
+    "xp": [
+     "attack",
+     3000
+    ],
+    "gold": 2000
+   }
+  },
+  {
+   "name": "Friends Across the Realm",
+   "giver": "Captain Mara",
+   "text": "A hero belongs to everyone, not just to the Hollow. Visit the towns you saved and make friends. Chat with people every day and bring them something they love. Earn a heart with four people.",
+   "reward": {
+    "xp": [
+     "attack",
+     4000
+    ],
+    "gold": 3000
+   }
+  },
+  {
+   "name": "A Home Worth Coming Back To",
+   "giver": "Captain Mara",
+   "text": "Your land should feel like home when you walk up the path. Raise your homestead’s Comfort to 5. Every comfort also makes your rested XP pool bigger.",
+   "reward": {
+    "xp": [
+     "farming",
+     2500
+    ],
+    "gold": 4000
+   }
+  },
+  {
+   "name": "The Humming Well",
+   "giver": "Woodcarver Ansel",
+   "turnin": "Archivist Elowen",
+   "text": "Strange thing. The old well out in Hollow Meadow hums at night, the same note the crater used to make, and the water glows violet. Gather some dust from the riftlings at the Riven Crater and take it to Archivist Elowen in Varrow. She will know what it means.",
+   "reward": {
+    "xp": [
+     "attack",
+     5000
+    ],
+    "gold": 4000
+   }
+  },
+  {
+   "name": "Echoes of a Fallen Star",
+   "giver": "Archivist Elowen",
+   "text": "When Voidmaw fell, its heart did not die. It shattered. The shards scattered across the realm and hid inside the strongest creatures they could find, feeding on them. The crater dust glows near a shard, so we need more of it. A lot more.",
+   "reward": {
+    "xp": [
+     "attack",
+     6000
+    ],
+    "gold": 4000,
+    "items": {
+     "big_potion": 3
+    }
+   }
+  },
+  {
+   "name": "The Violet Eye",
+   "giver": "Archivist Elowen",
+   "text": "The dust flared over Whitepine Pass. The Whitepine Alpha has grown a violet eye and hunts by day and night. Put the poor beast to rest and bring back its shard.",
+   "reward": {
+    "xp": [
+     "attack",
+     4000
+    ],
+    "gold": 3000
+   }
+  },
+  {
+   "name": "Something in the Causeway",
+   "giver": "Archivist Elowen",
+   "text": "The second shard sank into the Drowned Causeway, where the Mire hulk sleeps. Lantern-keeper Hob in Mirewatch has seen its glow over the water. Ask him where, then take the shard.",
+   "reward": {
+    "xp": [
+     "attack",
+     4500
+    ],
+    "gold": 3000
+   }
+  },
+  {
+   "name": "A Thief of Stars",
+   "giver": "Archivist Elowen",
+   "text": "Bandit chief Rook stole a shard and means to sell it to the highest bidder. His gang camps along the King’s Road and in Scorchwind Canyon. A star is not a trinket.",
+   "reward": {
+    "xp": [
+     "attack",
+     4500
+    ],
+    "gold": 3500
+   }
+  },
+  {
+   "name": "Snow That Glows",
+   "giver": "Archivist Elowen",
+   "turnin": "Elder Brann",
+   "text": "Elder Brann of Highcairn writes that the snow on Frostfang Reach glows purple at night, and the frost trolls have gone mad. Help his people, and he will tell you where the light is coming from.",
+   "reward": {
+    "xp": [
+     "attack",
+     5000
+    ],
+    "gold": 3500
+   }
+  },
+  {
+   "name": "A Gift for the Hall",
+   "giver": "Elder Brann",
+   "turnin": "Jarl Hrothgar",
+   "text": "The Jarl knows where the shard fell, but nobody walks into his hall empty-handed. Bring him three horns of hot mead, and cook two dishes in a real kitchen to show you can feed a hall.",
+   "reward": {
+    "xp": [
+     "cooking",
+     2500
+    ],
+    "gold": 3000
+   }
+  },
+  {
+   "name": "The Giant Stirs",
+   "giver": "Jarl Hrothgar",
+   "text": "The shard fell through the ice into Frostpeak Caverns, right onto Hrimgar’s hoard. The giant is awake, and he has never been angrier. Clear the caverns again.",
+   "reward": {
+    "xp": [
+     "attack",
+     7000
+    ],
+    "gold": 5000
+   }
+  },
+  {
+   "name": "The Queen’s Nest",
+   "giver": "Jarl Hrothgar",
+   "turnin": "Caravan master Idris",
+   "text": "The next glow is far to the south. Ssera’s nest in the Kharos ruins has a new queen, and she hatched with a shard in her crown. Caravan master Idris at Sunspire Oasis will want to hear when she is gone.",
+   "reward": {
+    "xp": [
+     "attack",
+     6000
+    ],
+    "gold": 4000
+   }
+  },
+  {
+   "name": "Under the Dunes Again",
+   "giver": "Caravan master Idris",
+   "text": "Our camels will not walk past the old tomb any more. It sings at night. A shard has woken Anubek, and the Sand King wants his sky back. Clear the Tomb of the Sand King.",
+   "reward": {
+    "xp": [
+     "attack",
+     8000
+    ],
+    "gold": 6000
+   }
+  },
+  {
+   "name": "Teeth of the Isle",
+   "giver": "Caravan master Idris",
+   "turnin": "Captain Maren",
+   "text": "Sailors swear the Tyrant king on Dragonscale Isle bites with violet light. Captain Maren sails there from Varrow’s pier. Bring him the news when it is done.",
+   "reward": {
+    "xp": [
+     "attack",
+     7000
+    ],
+    "gold": 5000
+   }
+  },
+  {
+   "name": "Saltbeard’s Last Stand",
+   "giver": "Captain Maren",
+   "turnin": "Old salt Morgan",
+   "text": "Captain Saltbeard is back on Smugglers’ Key, and he fished a glowing stone out of the sea. Sail with Captain Isolde to the Tidewake Isles and finish him for good. Old salt Morgan in Coralport has waited years for this day.",
+   "reward": {
+    "xp": [
+     "attack",
+     8000
+    ],
+    "gold": 6000
+   }
+  },
+  {
+   "name": "A Shell to Listen With",
+   "giver": "Old salt Morgan",
+   "turnin": "Pearl diver Nami",
+   "text": "The last shards hide where no eye can see them. Nami can hear them, if you bring her the makings of a listening shell: six coral shards from the reef rocks and two pearls.",
+   "reward": {
+    "xp": [
+     "mining",
+     2500
+    ],
+    "gold": 5000
+   }
+  },
+  {
+   "name": "Embers of the Star",
+   "giver": "Pearl diver Nami",
+   "turnin": "Forge-master Hilde",
+   "text": "The shell hums toward the east, toward the heat. Two shards burn in Emberreach: one in the Ashfall warden on the pass, one in the Magma titan below the volcano. Forge-master Hilde in Cinderhold can cage them.",
+   "reward": {
+    "xp": [
+     "attack",
+     9000
+    ],
+    "gold": 7000
+   }
+  },
+  {
+   "name": "The Lantern of Seven Shards",
+   "giver": "Forge-master Hilde",
+   "text": "Seven shards, one cage. I will forge a lantern strong enough to hold them, but I need eight obsidian shards and six good iron bars.",
+   "reward": {
+    "xp": [
+     "smithing",
+     3000
+    ],
+    "gold": 6000
+   }
+  },
+  {
+   "name": "Carry the Lantern Home",
+   "giver": "Forge-master Hilde",
+   "turnin": "Archivist Elowen",
+   "text": "The lantern is done. Seven shards burn inside it, and they all lean the same way, like flowers toward the sun. West. Toward the place you started. Take it to your Archivist in Varrow.",
+   "reward": {
+    "xp": [
+     "attack",
+     5000
+    ],
+    "gold": 3000
+   }
+  },
+  {
+   "name": "The Door in the Meadow",
+   "giver": "Archivist Elowen",
+   "turnin": "Captain Mara",
+   "text": "The lantern points home, to the humming well in Hollow Meadow. The eighth shard, the heart of the star, fell into the old caves beneath your village, and it is still growing. The well is a door, and it will open for the lantern. Tell Captain Mara.",
+   "reward": {
+    "xp": [
+     "attack",
+     5000
+    ],
+    "gold": 3000
+   }
+  },
+  {
+   "name": "Rally the Realm",
+   "giver": "Captain Mara",
+   "text": "If something climbs out of that well, the whole realm should be ready. Visit your friends and tell them: Sergeant Voss in Varrow, Jarl Hrothgar in Highcairn and Forge-master Hilde in Cinderhold.",
+   "reward": {
+    "xp": [
+     "attack",
+     6000
+    ],
+    "gold": 5000
+   }
+  },
+  {
+   "name": "Potions for the Deep",
+   "giver": "Captain Mara",
+   "text": "Down there, nobody can run to the shop for you. Brew three potions at an alchemy bench. Granny Wormwood says it is the best way to learn what saves your life.",
+   "reward": {
+    "xp": [
+     "herblore",
+     2500
+    ],
+    "gold": 3000,
+    "items": {
+     "big_potion": 5
+    }
+   }
+  },
+  {
+   "name": "Strength for the Dark",
+   "giver": "Captain Mara",
+   "text": "The heart of the star is stronger than Voidmaw ever was. Train until you reach class level 58. Rest at home first: a cosy house fills your rested XP.",
+   "reward": {
+    "xp": [
+     "attack",
+     5000
+    ],
+    "gold": 5000
+   }
+  },
+  {
+   "name": "Hearth and Shield",
+   "giver": "Captain Mara",
+   "text": "Before you go, the Hollow wants to send you off properly, and so does the rest of the realm. Earn a heart with eight friends. They will all be thinking of you down there.",
+   "reward": {
+    "xp": [
+     "attack",
+     6000
+    ],
+    "gold": 6000
+   }
+  },
+  {
+   "name": "Into the Hollow Below",
+   "giver": "Captain Mara",
+   "text": "The well in Hollow Meadow is open. Take the lantern, go down, and find what is growing under our home. The Hollow Warden guards the second hall. Bring friends, bring potions, and come back.",
+   "reward": {
+    "xp": [
+     "attack",
+     10000
+    ],
+    "gold": 8000
+   }
+  },
+  {
+   "name": "The Last Star",
+   "giver": "Captain Mara",
+   "text": "Nyxara, the Last Star. The heart of the thing that ate the sky, and it took root under your home. Pull it out by the roots.",
+   "reward": {
+    "xp": [
+     "attack",
+     20000
+    ],
+    "gold": 30000,
+    "items": {
+     "$legend": 1,
+     "mystery_sack": 2
+    }
+   }
+  },
+  {
+   "name": "Morning in Ashen Hollow",
+   "giver": "Captain Mara",
+   "text": "The well is quiet and the water runs clear. The whole Hollow is out on the plaza with Maudie’s bread and Ansel’s new sign. Go and see them. They have been waiting all night.",
+   "reward": {
+    "xp": [
+     "attack",
+     8000
+    ],
+    "gold": 10000
+   }
+  },
+  {
+   "name": "Roots",
+   "giver": "Captain Mara",
+   "text": "You do not have to save the world every day. Some days you just grow carrots. Reach Farming level 12.",
+   "reward": {
+    "xp": [
+     "farming",
+     3000
+    ],
+    "gold": 4000
+   }
+  },
+  {
+   "name": "Good Neighbours",
+   "giver": "Captain Mara",
+   "text": "Real friendship takes time. Keep visiting, keep listening, keep bringing pie. Reach two hearts with three friends.",
+   "reward": {
+    "xp": [
+     "attack",
+     4000
+    ],
+    "gold": 6000,
+    "items": {
+     "mystery_sack": 1
+    }
+   }
+  },
+  {
+   "name": "A Feast for the Hollow",
+   "giver": "Baker Maudie",
+   "text": "The harvest festival is coming and my oven cannot do it alone. Cook six dishes in your kitchen, and bring me five jars of honey from your bees.",
+   "reward": {
+    "xp": [
+     "cooking",
+     4000
+    ],
+    "gold": 6000
+   }
+  },
+  {
+   "name": "A Cosy Life",
+   "giver": "Captain Mara",
+   "text": "A fountain to listen to, a dog to greet you, a fire to sit by. Raise your homestead’s Comfort to 12.",
+   "reward": {
+    "xp": [
+     "farming",
+     4000
+    ],
+    "gold": 10000
+   }
+  },
+  {
+   "name": "Rare Sightings",
+   "giver": "Woodcarver Ansel",
+   "text": "I want to carve the rare beasts of the realm, but they only show themselves now and then. Check the Events list to see when one appears, and hunt three of them for me.",
+   "reward": {
+    "xp": [
+     "attack",
+     10000
+    ],
+    "gold": 10000
+   }
+  },
+  {
+   "name": "A Trade of Your Own",
+   "giver": "Captain Mara",
+   "text": "Every hero needs one thing they are truly good at that is not hitting things. Raise any skill to level 18: cooking, fishing, smithing, anything you love.",
+   "reward": {
+    "xp": [
+     "attack",
+     8000
+    ],
+    "gold": 12000,
+    "items": {
+     "diamond": 1
+    }
+   }
+  },
+  {
+   "name": "Best of Friends",
+   "giver": "Captain Mara",
+   "text": "Some friends you make in a day. The best ones take a lifetime, or at least a couple of weeks. Reach five hearts with someone.",
+   "reward": {
+    "xp": [
+     "attack",
+     10000
+    ],
+    "gold": 15000,
+    "items": {
+     "mystery_sack": 2
+    }
+   }
+  },
+  {
+   "name": "Warden of Ashen Hollow",
+   "giver": "Captain Mara",
+   "text": "The elders met last night. They want to give you a title nobody has held for a hundred years: Warden of Ashen Hollow. All they ask is that you are as strong as you are kind. Reach class level 65, and show the Hollow Below that it stays empty.",
+   "reward": {
+    "xp": [
+     "attack",
+     30000
+    ],
+    "gold": 50000,
+    "items": {
+     "diamond": 2
+    }
+   }
+  },
+  {
+   "name": "The Bone Road",
+   "giver": "Archivist Elowen",
+   "text": "Diggers upriver found bones the size of ships, and now the bones are getting up. Bargeman Brask on Varrow’s pier runs the Dustrunner up to the Fossil Lands. Go to the diggers’ camp at Bonewatch and see what is happening.",
+   "reward": {
+    "xp": [
+     "attack",
+     8000
+    ],
+    "gold": 2500,
+    "items": {
+     "great_mana": 3
+    }
+   }
+  },
+  {
+   "name": "Dust to Dust",
+   "giver": "Digmaster Ulla",
+   "text": "The skeletons lie in the dirt like they are sleeping, then jump up when you pass. Rib Valley is full of them, north of the crossroads. Put some back down for good.",
+   "reward": {
+    "xp": [
+     "attack",
+     12000
+    ],
+    "gold": 3500,
+    "items": {
+     "hp_potion": 5
+    }
+   }
+  },
+  {
+   "name": "What the Graves Keep",
+   "giver": "Gravewarden Sefa",
+   "text": "South of the crossroads the Grave Fields stretch for a mile. Bone sentinels guard them. Thin them out, and dig a few graves while you are there. Mind who wakes up.",
+   "reward": {
+    "xp": [
+     "attack",
+     15000
+    ],
+    "gold": 4500,
+    "items": {
+     "ancient_relic": 1
+    }
+   }
+  },
+  {
+   "name": "The Grave Lord",
+   "giver": "Gravewarden Sefa",
+   "text": "In the middle of the Grave Fields lies Mordrek, a lord of the old war. When he stands, the fields stand with him. Make sure he does not stand for long.",
+   "reward": {
+    "xp": [
+     "attack",
+     22000
+    ],
+    "gold": 6000,
+    "items": {
+     "great_mana": 4
+    }
+   }
+  },
+  {
+   "name": "The Risen Horn",
+   "giver": "Digmaster Ulla",
+   "text": "On Skull Hill, at the east end of the road, sleeps the biggest skeleton we ever found: a horned giant we call Vorrak. If it wakes, it will flatten this camp. Bring friends, wake it, and break it.",
+   "reward": {
+    "xp": [
+     "attack",
+     40000
+    ],
+    "gold": 12000,
+    "items": {
+     "ancient_relic": 2
+    }
+   }
+  }
+ ],
+ "CHAPTERS": [
+  {
+   "name": "Chapter 1 · Ashen Hollow",
+   "from": "First Steps",
+   "blurb": "A village at the edge of the world, and an adventurer with an axe."
+  },
+  {
+   "name": "Chapter 2 · The Realm",
+   "from": "The Road to Varrow",
+   "blurb": "The King’s Road, the capital, and the towns at the edges of the map."
+  },
+  {
+   "name": "Chapter 3 · Beyond the Sea",
+   "from": "Across the Sea",
+   "blurb": "Dragons, pirates, a tide queen and a molten king."
+  },
+  {
+   "name": "Chapter 4 · Cracks in the Sky",
+   "from": "A Letter from Varrow",
+   "blurb": "A star fell on Kingsvale. The dungeons of the realm began to hum."
+  },
+  {
+   "name": "Chapter 5 · The Star-Eater",
+   "from": "Heart of the Mountain",
+   "blurb": "Seal the four wells of power, gather the realm, and face what came through the sky."
+  },
+  {
+   "name": "Chapter 6 · Homecoming",
+   "from": "Bells for a Hero",
+   "blurb": "The sky is whole again. Time to go home, meet the neighbours, and make a house a home."
+  },
+  {
+   "name": "Chapter 7 · Shards of the Star",
+   "from": "Echoes of a Fallen Star",
+   "blurb": "The Star-Eater’s heart shattered. Its shards are hiding inside the strongest beasts of the realm."
+  },
+  {
+   "name": "Chapter 8 · The Hollow Below",
+   "from": "Carry the Lantern Home",
+   "blurb": "Every shard points home. Something has taken root under Ashen Hollow."
+  },
+  {
+   "name": "Chapter 9 · A Life Well Lived",
+   "from": "Roots",
+   "blurb": "Fields, friends and a fire to come home to. Being a hero is also about the days in between."
+  }
+ ],
+ "TUT_STEPS": [
+  {
+   "id": "move",
+   "t": "Walk to the glowing light. Use the joystick on the left (or WASD).",
+   "at": {
+    "_js": "() => TL2(760, 760)"
+   },
+   "ok": {
+    "_js": "() => Math.hypot(P.x - TUTZ.x - 760, P.y - TUTZ.y - 760) < 90"
+   }
+  },
+  {
+   "id": "look",
+   "t": "Look around: drag a finger on the right side of the screen. Pinch to zoom.",
+   "ok": {
+    "_js": "() => tutS.look > 2.2"
+   }
+  },
+  {
+   "id": "talk",
+   "t": "Talk to Guide Elara: walk up to her and tap the big button.",
+   "at": {
+    "_js": "() => TUT.guide"
+   },
+   "ok": {
+    "_js": "() => P.tutF.talk"
+   }
+  },
+  {
+   "id": "class",
+   "t": "Tap CLASS at the top of the screen. It shows your class, spells and talents.",
+   "ok": {
+    "_js": "() => P.tutF.panel_classPanel"
+   }
+  },
+  {
+   "id": "chop",
+   "t": "Chop a tree in the grove: stand next to one and tap the big button.",
+   "at": {
+    "_js": "() => TUT.grove"
+   },
+   "ok": {
+    "_js": "() => invCount('logs') + invCount('pine_logs') > 0"
+   }
+  },
+  {
+   "id": "mine",
+   "t": "Mine one of the copper rocks with the big button.",
+   "at": {
+    "_js": "() => TUT.rocks"
+   },
+   "ok": {
+    "_js": "() => invCount('copper_ore') > 0"
+   }
+  },
+  {
+   "id": "cook",
+   "t": "Cook the raw trout Elara gave you at her campfire.",
+   "at": {
+    "_js": "() => TUT.fire"
+   },
+   "start": {
+    "_js": "() => addItem('raw_trout', 1)"
+   },
+   "ok": {
+    "_js": "() => P.tutF.cooked"
+   }
+  },
+  {
+   "id": "bag",
+   "t": "Tap BAG to see everything you carry.",
+   "ok": {
+    "_js": "() => P.tutF.panel_bagPanel"
+   }
+  },
+  {
+   "id": "gear",
+   "t": "Tap GEAR, tap the WEAPON slot, tap the training weapon Elara gave you and press Equip. (Tap any item to see its stats and options.)",
+   "start": {
+    "_js": "() => addItem(TUT_WEAP[P.cls])"
+   },
+   "ok": {
+    "_js": "() => Object.values(TUT_WEAP).includes(P.gear.weapon)"
+   }
+  },
+  {
+   "id": "fight",
+   "t": "Defeat 3 training toads in the pen. Tap ATTACK.",
+   "at": {
+    "_js": "() => TUT.pen"
+   },
+   "start": {
+    "_js": "() => { tutS.k0 = P.stats.kills.tutrat || 0; }"
+   },
+   "ok": {
+    "_js": "() => (P.stats.kills.tutrat || 0) - tutS.k0 >= 3"
+   },
+   "prog": {
+    "_js": "() => `${Math.min(3, (P.stats.kills.tutrat || 0) - tutS.k0)}/3`"
+   }
+  },
+  {
+   "id": "spell",
+   "t": "Cast a spell: tap one of the round buttons on the ring around ATTACK. Attack spells need an enemy nearby.",
+   "ok": {
+    "_js": "() => P.tutF.spell"
+   }
+  },
+  {
+   "id": "dodge",
+   "t": "Red circles mean danger! When one appears under you, tap DODGE or run out before it fills.",
+   "at": {
+    "_js": "() => TUT.dodge"
+   },
+   "start": {
+    "_js": "() => { tutS.dodged = 0; tutS.pend = null; tutS.nextT = 0; }"
+   },
+   "ok": {
+    "_js": "() => tutS.dodged >= 2"
+   },
+   "prog": {
+    "_js": "() => `${tutS.dodged}/2`"
+   }
+  },
+  {
+   "id": "potion",
+   "t": "You’re hurt! Tap the red HP button near the bottom of the screen to drink a health potion.",
+   "start": {
+    "_js": "() => { addItem('hp_potion', 2); if (usesMana()) addItem('mana_potion', 1); P.hp = Math.min(P.hp, Math.round(P.maxHp * 0.45)); P.potCd = 0; }"
+   },
+   "ok": {
+    "_js": "() => P.tutF.drink"
+   }
+  },
+  {
+   "id": "map",
+   "t": "Open the map: tap the minimap in the top right corner.",
+   "ok": {
+    "_js": "() => P.tutF.panel_mapPanel"
+   }
+  },
+  {
+   "id": "ferry",
+   "t": "Training complete! Talk to Ferryman Oskar at the dock to sail to Ashen Hollow.",
+   "at": {
+    "_js": "() => TUT.ferry"
+   },
+   "ok": {
+    "_js": "() => P.tut.done"
+   }
+  }
+ ],
+ "ACH": [
+  {
+   "id": "firstblood",
+   "name": "First Blood",
+   "desc": "Defeat your first monster.",
+   "title": "the Brave",
+   "test": {
+    "_js": "() => totalKills() >= 1"
+   }
+  },
+  {
+   "id": "hunter100",
+   "name": "Seasoned Hunter",
+   "desc": "Defeat 100 monsters.",
+   "title": "the Relentless",
+   "test": {
+    "_js": "() => totalKills() >= 100"
+   }
+  },
+  {
+   "id": "explorer",
+   "name": "Explorer",
+   "desc": "Discover every region of the mainland.",
+   "title": "the Wanderer",
+   "test": {
+    "_js": "() => REGIONS.filter(r => r.id !== 'isle' && !r.zone).every(r => P.found.includes('reg_' + r.id))"
+   }
+  },
+  {
+   "id": "sailor",
+   "name": "Across the Sea",
+   "desc": "Set foot on Dragonscale Isle.",
+   "title": "the Seafarer",
+   "test": {
+    "_js": "() => P.found.includes('reg_isle')"
+   }
+  },
+  {
+   "id": "waywalker",
+   "name": "Waywalker",
+   "desc": "Attune every waystone.",
+   "title": "Waywalker",
+   "test": {
+    "_js": "() => WAYS.every(w => P.ways.includes(w.id))"
+   }
+  },
+  {
+   "id": "treasure",
+   "name": "Treasure Hunter",
+   "desc": "Find every hidden treasure chest.",
+   "title": "the Lucky",
+   "test": {
+    "_js": "() => TREASURES.every(t => P.found.includes(t.id))"
+   }
+  },
+  {
+   "id": "forge",
+   "name": "Forgebreaker",
+   "desc": "Defeat Forgemaster Grull.",
+   "title": "Forgebreaker",
+   "test": {
+    "_js": "() => kills('grull') >= 1"
+   }
+  },
+  {
+   "id": "queen",
+   "name": "Queenslayer",
+   "desc": "Defeat Sand Queen Ssera.",
+   "title": "Queenslayer",
+   "test": {
+    "_js": "() => kills('sandqueen') >= 1"
+   }
+  },
+  {
+   "id": "tyrant",
+   "name": "Tyrant’s End",
+   "desc": "Defeat the Tyrant king.",
+   "title": "Primal Hunter",
+   "test": {
+    "_js": "() => kills('tyrant') >= 1"
+   }
+  },
+  {
+   "id": "dragon",
+   "name": "Dragonslayer",
+   "desc": "Defeat Ignirax the Ashen Wyrm.",
+   "title": "Dragonslayer",
+   "test": {
+    "_js": "() => kills('wyrm') >= 1"
+   }
+  },
+  {
+   "id": "dinos",
+   "name": "Dino Hunter",
+   "desc": "Defeat 25 dinosaurs.",
+   "title": "the Dino Hunter",
+   "test": {
+    "_js": "() => ['raptor', 'hornback', 'pterra', 'tyrant'].reduce((n, t) => n + kills(t), 0) >= 25"
+   }
+  },
+  {
+   "id": "beast",
+   "name": "Beastmaster",
+   "desc": "Own 3 pets.",
+   "title": "Beastmaster",
+   "test": {
+    "_js": "() => P.pets.length >= 3"
+   }
+  },
+  {
+   "id": "rider",
+   "name": "Saddled Up",
+   "desc": "Own a mount.",
+   "title": "the Rider",
+   "test": {
+    "_js": "() => P.mounts.length >= 1"
+   }
+  },
+  {
+   "id": "stables",
+   "name": "Horse Lord",
+   "desc": "Own every mount.",
+   "title": "Horse Lord",
+   "test": {
+    "_js": "() => Object.keys(MOUNTS).filter(k => !MOUNTS[k].rare).every(k => P.mounts.includes(k))"
+   }
+  },
+  {
+   "id": "party",
+   "name": "Band of Heroes",
+   "desc": "Travel with a full party.",
+   "title": "Captain",
+   "test": {
+    "_js": "() => P.party.length >= PARTY_MAX"
+   }
+  },
+  {
+   "id": "rich",
+   "name": "Silver Tongue",
+   "desc": "Hold 1 silver in your purse.",
+   "title": "the Wealthy",
+   "test": {
+    "_js": "() => P.money >= 1e6"
+   }
+  },
+  {
+   "id": "rich2",
+   "name": "Golden Touch",
+   "desc": "Hold 1 gold in your purse.",
+   "title": "Tycoon",
+   "test": {
+    "_js": "() => P.money >= 1e9"
+   }
+  },
+  {
+   "id": "artisan",
+   "name": "Artisan",
+   "desc": "Reach level 20 in any gathering or crafting skill.",
+   "title": "Artisan",
+   "test": {
+    "_js": "() => SKILLS.some(s => s !== 'attack' && lv(s) >= 20)"
+   }
+  },
+  {
+   "id": "evolved",
+   "name": "Ascended",
+   "desc": "Reach your class’s final evolution.",
+   "title": "the Ascended",
+   "test": {
+    "_js": "() => !!CP().evo[1]"
+   }
+  },
+  {
+   "id": "bounty",
+   "name": "Bounty Hunter",
+   "desc": "Complete 10 bounties.",
+   "title": "Bounty Hunter",
+   "test": {
+    "_js": "() => (P.stats.bounties || 0) >= 10"
+   }
+  },
+  {
+   "id": "fashion",
+   "name": "Fashion Icon",
+   "desc": "Collect 12 cosmetic pieces.",
+   "title": "the Fabulous",
+   "test": {
+    "_js": "() => P.coll.filter(k => ITEMS[k] && ITEMS[k].cosmetic).length >= 12"
+   }
+  },
+  {
+   "id": "islander",
+   "name": "Island Hopper",
+   "desc": "Reach Coralport in the Tidewake Isles.",
+   "title": "the Islander",
+   "test": {
+    "_js": "() => P.found.includes('town_coralport')"
+   }
+  },
+  {
+   "id": "pirates",
+   "name": "Pirate Hunter",
+   "desc": "Defeat Captain Saltbeard.",
+   "title": "the Pirate Hunter",
+   "test": {
+    "_js": "() => kills('saltbeard') >= 1"
+   }
+  },
+  {
+   "id": "tidequeen",
+   "name": "Queen of the Deep",
+   "desc": "Defeat Thalassa, the Tide Queen.",
+   "title": "Tidebreaker",
+   "test": {
+    "_js": "() => kills('thalassa') >= 1"
+   }
+  },
+  {
+   "id": "emberwalker",
+   "name": "Emberwalker",
+   "desc": "Reach Cinderhold in Emberreach.",
+   "title": "the Emberwalker",
+   "test": {
+    "_js": "() => P.found.includes('town_cinderhold')"
+   }
+  },
+  {
+   "id": "moltenking",
+   "name": "Kingslayer",
+   "desc": "Defeat Pyraxis, the Molten King.",
+   "title": "Kingslayer",
+   "test": {
+    "_js": "() => kills('pyraxis') >= 1"
+   }
+  },
+  {
+   "id": "prof_smith_10",
+   "name": "Journeyman Blacksmith",
+   "desc": "Reach Blacksmith Mastery 10.",
+   "title": "Journeyman Blacksmith",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_smith_20",
+   "name": "Expert Blacksmith",
+   "desc": "Reach Blacksmith Mastery 20.",
+   "title": "Expert Blacksmith",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_smith_30",
+   "name": "Master Blacksmith",
+   "desc": "Reach Blacksmith Mastery 30.",
+   "title": "Master Blacksmith",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_smith_40",
+   "name": "Grandmaster Blacksmith",
+   "desc": "Reach Blacksmith Mastery 40.",
+   "title": "Grandmaster Blacksmith",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_smith_50",
+   "name": "Legendary Blacksmith",
+   "desc": "Reach Blacksmith Mastery 50.",
+   "title": "Legendary Blacksmith",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_chef_10",
+   "name": "Journeyman Chef",
+   "desc": "Reach Chef Mastery 10.",
+   "title": "Journeyman Chef",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_chef_20",
+   "name": "Expert Chef",
+   "desc": "Reach Chef Mastery 20.",
+   "title": "Expert Chef",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_chef_30",
+   "name": "Master Chef",
+   "desc": "Reach Chef Mastery 30.",
+   "title": "Master Chef",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_chef_40",
+   "name": "Grandmaster Chef",
+   "desc": "Reach Chef Mastery 40.",
+   "title": "Grandmaster Chef",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_chef_50",
+   "name": "Legendary Chef",
+   "desc": "Reach Chef Mastery 50.",
+   "title": "Legendary Chef",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_farmer_10",
+   "name": "Journeyman Farmer",
+   "desc": "Reach Farmer Mastery 10.",
+   "title": "Journeyman Farmer",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_farmer_20",
+   "name": "Expert Farmer",
+   "desc": "Reach Farmer Mastery 20.",
+   "title": "Expert Farmer",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_farmer_30",
+   "name": "Master Farmer",
+   "desc": "Reach Farmer Mastery 30.",
+   "title": "Master Farmer",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_farmer_40",
+   "name": "Grandmaster Farmer",
+   "desc": "Reach Farmer Mastery 40.",
+   "title": "Grandmaster Farmer",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_farmer_50",
+   "name": "Legendary Farmer",
+   "desc": "Reach Farmer Mastery 50.",
+   "title": "Legendary Farmer",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_alchemist_10",
+   "name": "Journeyman Alchemist",
+   "desc": "Reach Alchemist Mastery 10.",
+   "title": "Journeyman Alchemist",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_alchemist_20",
+   "name": "Expert Alchemist",
+   "desc": "Reach Alchemist Mastery 20.",
+   "title": "Expert Alchemist",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_alchemist_30",
+   "name": "Master Alchemist",
+   "desc": "Reach Alchemist Mastery 30.",
+   "title": "Master Alchemist",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_alchemist_40",
+   "name": "Grandmaster Alchemist",
+   "desc": "Reach Alchemist Mastery 40.",
+   "title": "Grandmaster Alchemist",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_alchemist_50",
+   "name": "Legendary Alchemist",
+   "desc": "Reach Alchemist Mastery 50.",
+   "title": "Legendary Alchemist",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_tailor_10",
+   "name": "Journeyman Tailor",
+   "desc": "Reach Tailor Mastery 10.",
+   "title": "Journeyman Tailor",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_tailor_20",
+   "name": "Expert Tailor",
+   "desc": "Reach Tailor Mastery 20.",
+   "title": "Expert Tailor",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_tailor_30",
+   "name": "Master Tailor",
+   "desc": "Reach Tailor Mastery 30.",
+   "title": "Master Tailor",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_tailor_40",
+   "name": "Grandmaster Tailor",
+   "desc": "Reach Tailor Mastery 40.",
+   "title": "Grandmaster Tailor",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_tailor_50",
+   "name": "Legendary Tailor",
+   "desc": "Reach Tailor Mastery 50.",
+   "title": "Legendary Tailor",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_miner_10",
+   "name": "Journeyman Miner",
+   "desc": "Reach Miner Mastery 10.",
+   "title": "Journeyman Miner",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_miner_20",
+   "name": "Expert Miner",
+   "desc": "Reach Miner Mastery 20.",
+   "title": "Expert Miner",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_miner_30",
+   "name": "Master Miner",
+   "desc": "Reach Miner Mastery 30.",
+   "title": "Master Miner",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_miner_40",
+   "name": "Grandmaster Miner",
+   "desc": "Reach Miner Mastery 40.",
+   "title": "Grandmaster Miner",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_miner_50",
+   "name": "Legendary Miner",
+   "desc": "Reach Miner Mastery 50.",
+   "title": "Legendary Miner",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_fisher_10",
+   "name": "Journeyman Fisher",
+   "desc": "Reach Fisher Mastery 10.",
+   "title": "Journeyman Fisher",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_fisher_20",
+   "name": "Expert Fisher",
+   "desc": "Reach Fisher Mastery 20.",
+   "title": "Expert Fisher",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_fisher_30",
+   "name": "Master Fisher",
+   "desc": "Reach Fisher Mastery 30.",
+   "title": "Master Fisher",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_fisher_40",
+   "name": "Grandmaster Fisher",
+   "desc": "Reach Fisher Mastery 40.",
+   "title": "Grandmaster Fisher",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_fisher_50",
+   "name": "Legendary Fisher",
+   "desc": "Reach Fisher Mastery 50.",
+   "title": "Legendary Fisher",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_jeweler_10",
+   "name": "Journeyman Jeweler",
+   "desc": "Reach Jeweler Mastery 10.",
+   "title": "Journeyman Jeweler",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_jeweler_20",
+   "name": "Expert Jeweler",
+   "desc": "Reach Jeweler Mastery 20.",
+   "title": "Expert Jeweler",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_jeweler_30",
+   "name": "Master Jeweler",
+   "desc": "Reach Jeweler Mastery 30.",
+   "title": "Master Jeweler",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_jeweler_40",
+   "name": "Grandmaster Jeweler",
+   "desc": "Reach Jeweler Mastery 40.",
+   "title": "Grandmaster Jeweler",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "prof_jeweler_50",
+   "name": "Legendary Jeweler",
+   "desc": "Reach Jeweler Mastery 50.",
+   "title": "Legendary Jeweler",
+   "prof": true,
+   "test": {
+    "_js": "() => mLv(k) >= l"
+   }
+  },
+  {
+   "id": "voidbreaker",
+   "name": "Voidbreaker",
+   "desc": "Finish Chapter 5: defeat the Star-Eater and close the sky.",
+   "title": "the Voidbreaker",
+   "test": {
+    "_js": "() => P.quest.i > QUESTS.findIndex(q => q.name === 'Voidbreaker')"
+   }
+  },
+  {
+   "id": "neighbour",
+   "name": "Good Neighbour",
+   "desc": "Reach three hearts with three friends.",
+   "title": "the Good Neighbour",
+   "test": {
+    "_js": "() => friendCount(3) >= 3"
+   }
+  },
+  {
+   "id": "beloved",
+   "name": "Beloved",
+   "desc": "Become best friends (five hearts) with ten people.",
+   "title": "the Beloved",
+   "test": {
+    "_js": "() => friendCount(5) >= 10"
+   }
+  },
+  {
+   "id": "homebody",
+   "name": "Home Sweet Home",
+   "desc": "Build every comfort at your homestead.",
+   "title": "the Homebody",
+   "test": {
+    "_js": "() => comfortPts() >= COMF_MAX"
+   }
+  },
+  {
+   "id": "laststar",
+   "name": "Starbreaker",
+   "desc": "Defeat Nyxara, the Last Star, in the Hollow Below.",
+   "title": "Starbreaker",
+   "test": {
+    "_js": "() => kills('h_nyx') >= 1"
+   }
+  },
+  {
+   "id": "warden",
+   "name": "Warden of Ashen Hollow",
+   "desc": "Finish the story of Ashen Hollow.",
+   "title": "Warden of Ashen Hollow",
+   "test": {
+    "_js": "() => P.quest.i >= QUESTS.length"
+   }
+  },
+  {
+   "id": "throne",
+   "name": "Throne Breaker",
+   "desc": "Defeat Vaelor in the Ember Throne raid.",
+   "title": "Throne Breaker",
+   "test": {
+    "_js": "() => (P.raidKills || 0) >= 1"
+   }
+  },
+  {
+   "id": "arena10",
+   "name": "Crowd Favourite",
+   "desc": "Win 10 rated arena matches in one season.",
+   "title": "the Crowd Favourite",
+   "test": {
+    "_js": "() => !!P.arena && P.arena.s === seasonKey() && (P.arena.w1 + P.arena.w2) >= 10"
+   }
+  },
+  {
+   "id": "duelist",
+   "name": "Duelist",
+   "desc": "Reach an arena rating of 1650.",
+   "title": "Duelist",
+   "test": {
+    "_js": "() => arenaBest() >= 1650"
+   }
+  },
+  {
+   "id": "gladiator",
+   "name": "Gladiator",
+   "desc": "Reach an arena rating of 1800.",
+   "title": "Gladiator",
+   "test": {
+    "_js": "() => arenaBest() >= 1800"
+   }
+  },
+  {
+   "id": "exalted_ashen",
+   "name": "Exalted: Ashen Hollow",
+   "desc": "Reach Exalted with Ashen Hollow.",
+   "title": "Champion of Ashen Hollow",
+   "test": {
+    "_js": "() => repRankOf(f.id) >= 4"
+   }
+  },
+  {
+   "id": "exalted_varrow",
+   "name": "Exalted: Varrow",
+   "desc": "Reach Exalted with Varrow.",
+   "title": "Champion of Varrow",
+   "test": {
+    "_js": "() => repRankOf(f.id) >= 4"
+   }
+  },
+  {
+   "id": "exalted_highcairn",
+   "name": "Exalted: Highcairn",
+   "desc": "Reach Exalted with Highcairn.",
+   "title": "Champion of Highcairn",
+   "test": {
+    "_js": "() => repRankOf(f.id) >= 4"
+   }
+  },
+  {
+   "id": "exalted_mirewatch",
+   "name": "Exalted: Mirewatch",
+   "desc": "Reach Exalted with Mirewatch.",
+   "title": "Champion of Mirewatch",
+   "test": {
+    "_js": "() => repRankOf(f.id) >= 4"
+   }
+  },
+  {
+   "id": "exalted_sunspire",
+   "name": "Exalted: Sunspire Oasis",
+   "desc": "Reach Exalted with Sunspire Oasis.",
+   "title": "Champion of Sunspire Oasis",
+   "test": {
+    "_js": "() => repRankOf(f.id) >= 4"
+   }
+  },
+  {
+   "id": "exalted_cinderhold",
+   "name": "Exalted: Cinderhold",
+   "desc": "Reach Exalted with Cinderhold.",
+   "title": "Champion of Cinderhold",
+   "test": {
+    "_js": "() => repRankOf(f.id) >= 4"
+   }
+  },
+  {
+   "id": "exalted_coralport",
+   "name": "Exalted: Coralport",
+   "desc": "Reach Exalted with Coralport.",
+   "title": "Champion of Coralport",
+   "test": {
+    "_js": "() => repRankOf(f.id) >= 4"
+   }
+  },
+  {
+   "id": "tamer",
+   "name": "Master Tamer",
+   "desc": "Beat all six pet tamers.",
+   "title": "Master Tamer",
+   "test": {
+    "_js": "() => (P.pbTamers || []).length >= TAMERS.length"
+   }
+  },
+  {
+   "id": "fest_harvest",
+   "name": "The Harvester",
+   "desc": "Earn 100 tokens at the Harvest Fair.",
+   "title": "the Harvester",
+   "test": {
+    "_js": "() => !!(P.fest && P.fest.harvest && P.fest.harvest.earned >= 100)"
+   }
+  },
+  {
+   "id": "fest_lantern",
+   "name": "Lantern-bearer",
+   "desc": "Earn 100 tokens during Lantern Nights.",
+   "title": "the Lantern-bearer",
+   "test": {
+    "_js": "() => !!(P.fest && P.fest.lantern && P.fest.lantern.earned >= 100)"
+   }
+  },
+  {
+   "id": "fest_winter",
+   "name": "The Merry",
+   "desc": "Earn 100 tokens at the Winter Feast.",
+   "title": "the Merry",
+   "test": {
+    "_js": "() => !!(P.fest && P.fest.winter && P.fest.winter.earned >= 100)"
+   }
+  },
+  {
+   "id": "artisan_road",
+   "name": "Master Artisan",
+   "desc": "Walk the whole Artisan’s Road.",
+   "title": "Master Artisan",
+   "test": {
+    "_js": "() => !!P.artisanMaster"
+   }
+  },
+  {
+   "id": "polymath",
+   "name": "Jack of All Trades",
+   "desc": "Take up five professions.",
+   "title": "the Polymath",
+   "test": {
+    "_js": "() => (profState().mains || []).length >= 5"
+   }
+  },
+  {
+   "id": "merchant",
+   "name": "Merchant",
+   "desc": "Earn 1 gold from your market stalls.",
+   "title": "the Merchant",
+   "test": {
+    "_js": "() => (P.stallEarned || 0) >= 1e6"
+   }
+  },
+  {
+   "id": "goodneighbour",
+   "name": "Good Neighbour",
+   "desc": "Help 25 neighbours who asked for a hand at their door.",
+   "title": "the Good Neighbour",
+   "test": {
+    "_js": "() => (P.nb && P.nb.total || 0) >= 25"
+   }
+  }
+ ],
+ "AROAD": [
+  {
+   "t": "talk",
+   "id": "guild",
+   "n": 1,
+   "pay": 20
+  },
+  {
+   "t": "gather",
+   "n": 20,
+   "pay": 30
+  },
+  {
+   "t": "craft",
+   "n": 10,
+   "pay": 50
+  },
+  {
+   "t": "order",
+   "n": 3,
+   "pay": 90
+  },
+  {
+   "t": "mastery",
+   "n": 10,
+   "pay": 150
+  },
+  {
+   "t": "prof",
+   "n": 2,
+   "pay": 120
+  },
+  {
+   "t": "craft",
+   "n": 40,
+   "pay": 250
+  },
+  {
+   "t": "order",
+   "n": 10,
+   "pay": 400
+  },
+  {
+   "t": "mastery",
+   "n": 20,
+   "pay": 800
+  },
+  {
+   "t": "mastery",
+   "n": 30,
+   "pay": 2000,
+   "title": true
+  }
+ ]
+}

@@ -91,6 +91,7 @@ public class AHQuestLog
         RoadEvent(t, id, n, g);
         var q = Current;
         if (q == null || state != "active") return false;
+        Check(g); if (state != "active") return true;
         bool changed = false;
         for (int k = 0; k < q.obj.Count; k++)
         {
@@ -111,6 +112,63 @@ public class AHQuestLog
     {
         var q = Current; if (q == null || state != "offer") return;
         state = "active"; prog = new int[q.obj.Count];
+        Touch();
+        if (AHGame.I != null) Check(AHGame.I);   // goals already met (a level, a home, a place you stand in) count at once
+    }
+
+    // the places a visit goal can name, for the land you are in
+    public static string[] PlacesOf(string area)
+    {
+        switch (area)
+        {
+            case "city": return new[] { "city", "varrow" };
+            case "hc_city": return new[] { "hc_city", "highcairn" };
+            case "mw_city": return new[] { "mw_city", "mirewatch" };
+            case "ss_city": return new[] { "ss_city", "sunspire" };
+            case "ch_city": return new[] { "ch_city", "cinderhold" };
+            case "co_city": return new[] { "co_city", "coralport" };
+            case "meadow": return new[] { "meadow", "ashen" };
+            case "fossil": return new[] { "fossil", "bonewatch" };
+            default: return new[] { area };
+        }
+    }
+
+    // goals that are a state rather than an event (web questCheck): your level, a skill, home comforts, owning a home,
+    // a profession, friends, items to deliver, and the land you stand in. Called when a quest starts, on every quest
+    // event and once a second, so a goal met before the quest began is not lost.
+    public void Check(AHGame g)
+    {
+        var q = Current; var p = g != null ? g.player : null;
+        if (q == null || p == null || state != "active") return;
+        if (prog == null || prog.Length != q.obj.Count) { var np = new int[q.obj.Count]; for (int k = 0; k < np.Length && prog != null && k < prog.Length; k++) np[k] = prog[k]; prog = np; }
+        bool changed = false;
+        var here = PlacesOf(AHGame.AreaId);
+        for (int k = 0; k < q.obj.Count; k++)
+        {
+            var o = q.obj[k]; int v = -1;
+            switch (o.t)
+            {
+                case "level": v = p.level; break;
+                case "skill":
+                    if (o.id == "any") { v = 0; var sk = AHJson.A(AHDB.Rules, "SKILLS"); if (sk != null) foreach (var x in sk) v = Mathf.Max(v, p.Skill(x as string)); }
+                    else v = p.Skill(o.id);
+                    break;
+                case "comfort": v = p.home != null ? AHHome.ComfortPts(p) : 0; break;
+                case "home": v = p.home != null ? 1 : 0; break;
+                case "prof": v = p.profs.Count; break;
+                case "friend": { int h; v = int.TryParse(o.id, out h) ? AHFriends.Count(p, h) : 0; } break;
+                case "deliver": v = p.bag.Count(o.id); break;
+                case "visit": if (System.Array.IndexOf(here, o.id) >= 0) v = o.n; break;
+            }
+            if (v < 0) continue;
+            int nv = Mathf.Min(o.n, v);
+            // deliveries follow the bag both ways; the rest only ever go up
+            if (o.t == "deliver" ? nv != Prog(k) : nv > Prog(k)) { prog[k] = nv; changed = true; }
+        }
+        if (!changed) return;
+        bool all = true;
+        for (int k = 0; k < q.obj.Count; k++) if (Prog(k) < q.obj[k].n) all = false;
+        if (all) { state = "ready"; if (g.ui != null) g.ui.Banner("Quest complete", "Return to " + NpcName); }
         Touch();
     }
 

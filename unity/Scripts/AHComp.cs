@@ -208,7 +208,7 @@ public class AHPetFollow : MonoBehaviour
     {
         var p = g.player; if (p == null || model == null) return;
         float dt = Time.deltaTime;
-        Vector3 goal = p.transform.position - p.transform.forward * 1.5f + p.transform.right * 0.95f;
+        Vector3 goal = p.transform.position - p.transform.forward * 0.3f + p.transform.right * 1.5f;   // at your side, out of the camera's line
         Vector3 d = goal - transform.position; d.y = 0;
         if (d.magnitude > 20f) { transform.position = goal; d = Vector3.zero; }
         float sp = d.magnitude > 0.32f ? Mathf.Min(d.magnitude * 3.2f, 13f) : 0f;
@@ -381,7 +381,7 @@ public class AHAlly : MonoBehaviour
         }
         else
         {
-            goal = p.transform.position - p.transform.forward * 2.2f + p.transform.right * (slot == 0 ? 1.36f : -1.36f);
+            goal = p.transform.position - p.transform.forward * 0.9f + p.transform.right * (slot == 0 ? 2.1f : -2.1f);
             Vector3 off = goal - transform.position; off.y = 0;
             go = off.magnitude > 1f;
             if (!go) transform.rotation = Quaternion.Slerp(transform.rotation, p.transform.rotation, 1f - Mathf.Exp(-dt * 4f));

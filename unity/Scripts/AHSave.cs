@@ -140,6 +140,7 @@ public static class AHSave
 
     public static void Clear()
     {
+        AHTutorial.ClearAll();
         PlayerPrefs.DeleteKey(Key);
         PlayerPrefs.DeleteKey("ah_class");
         PlayerPrefs.DeleteKey("ah_area");
@@ -147,6 +148,11 @@ public static class AHSave
         AHAuction.Clear();
         PlayerPrefs.DeleteKey("ah_level");
         PlayerPrefs.DeleteKey("ah_xp");
+        // the rest of a hero's story: lands seen, treasure X spots and digs, the Fossil Lands gift, the raid lock,
+        // the dungeon finder and the kingdom quests (sound settings stay)
+        foreach (var k in new[] { "ah_seen", "ah_digs", "ah_fossil_dig", "ah_fossil_dug", "ah_fossil_gift", "ah_raid_from", "ah_raid_week", "ah_df", "ah_df_role", "ah_df_runs", "ah_kq" })
+            PlayerPrefs.DeleteKey(k);
+        foreach (var a in new[] { "meadow", "silkwood", "mire", "vale", "frost", "sands", "isle", "tide", "ember", "fossil" }) PlayerPrefs.DeleteKey("ah_dig_" + a);
         PlayerPrefs.Save();
     }
 }

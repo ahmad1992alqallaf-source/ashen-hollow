@@ -190,9 +190,7 @@ public class AHGame : MonoBehaviour
             arriving = false;
             // face the way you were going, with the camera behind you
             player.transform.rotation = Quaternion.Euler(0f, carryYaw, 0f); camYaw = carryYaw;
-            quests.Event("visit", AreaId, 1, this);
-            string town = AreaId == "city" ? "varrow" : AreaId == "hc_city" ? "highcairn" : AreaId == "mw_city" ? "mirewatch" : AreaId == "ss_city" ? "sunspire" : null;
-            if (town != null) quests.Event("visit", town, 1, this);
+            foreach (var place in AHQuestLog.PlacesOf(AreaId)) quests.Event("visit", place, 1, this);
         }
     }
 
@@ -246,7 +244,7 @@ public class AHGame : MonoBehaviour
     public void AddBlocker(Vector3 p, float r) { cPos.Add(new Vector3(p.x, 0f, p.z)); cRad.Add(r); }
 
     // a beast fell to the hero (web killMob -> questEvent('kill', type))
-    public void OnKill(string mob) { quests.Event("kill", mob, 1, this); }
+    public void OnKill(string mob) { quests.Event("kill", mob, 1, this); if (player != null) player.OnTrialKill(mob); }
 
     // web inTown: inside a town's walls (world.json TOWNS, in web units). Safe: no hunger, faster healing, no hunting beasts.
     Rect[] towns;
@@ -776,6 +774,7 @@ public class AHGame : MonoBehaviour
     }
 
     // ---------- every frame ----------
+    float qT;
     void Update()
     {
         if (data == null || player == null) return;
@@ -794,6 +793,13 @@ public class AHGame : MonoBehaviour
         AHWardrobe.Tick(this);
         if (player != null && player.cls != null) AHDaily.Tick(this, Time.deltaTime);
         CheckExits();
+        // quest goals that are a state (level, skills, home, friends, deliveries), and the Riven Crater in Kingsvale
+        qT -= Time.unscaledDeltaTime;
+        if (qT <= 0f)
+        {
+            qT = 1f; quests.Check(this);
+            if (AreaId == "vale") { Vector2 w = ToWeb(player.transform.position); var B = AHDB.Table("monsters", "WORLD_BOSS"); Vector2 c = new Vector2((float)AHJson.N(B, "x", 6336) * AHDB.S, (float)AHJson.N(B, "y", 3472) * AHDB.S); if ((w - c).magnitude < 22f) quests.Event("reach", "rift", 1, this); }
+        }
         if (dirty) { dirtyT -= Time.unscaledDeltaTime; if (dirtyT <= 0f) SaveProgress(); }
         // where you stand and your health change all the time: kept every 15 s, like the web game's autosave
         autoT -= Time.unscaledDeltaTime;
@@ -835,13 +841,14 @@ public class AHGame : MonoBehaviour
         }
         distShown = distShown <= 0f ? dist : Mathf.Lerp(distShown, dist, 1f - Mathf.Exp(-Time.deltaTime * 2.5f));
         float wantPitch = minPitch;
-        if (tiles != null)
-            for (float pt = minPitch; pt <= 74f; pt += 6f)
-            {
-                wantPitch = pt;
-                Vector3 bk = -(Quaternion.Euler(pt, camYaw, 0) * Vector3.forward);
-                if (RockClear(look, bk, distShown) >= distShown * 0.9f) break;
-            }
+        for (float pt = minPitch; pt <= 74f; pt += 6f)
+        {
+            wantPitch = pt;
+            Vector3 bk = -(Quaternion.Euler(pt, camYaw, 0) * Vector3.forward);
+            float cl = AHMountains.Clear(look, bk, distShown);
+            if (tiles != null) cl = Mathf.Min(cl, RockClear(look, bk, distShown));
+            if (cl >= distShown * 0.9f) break;
+        }
         pitchShown = pitchShown <= 0f ? wantPitch : Mathf.Lerp(pitchShown, wantPitch, 1f - Mathf.Exp(-Time.deltaTime * 4f));
         Quaternion q = Quaternion.Euler(pitchShown, camYaw, 0);
         Vector3 back = -(q * Vector3.forward);
@@ -883,6 +890,7 @@ public class AHGame : MonoBehaviour
         float best = want;
         // a zone's rock (cave walls, cliffs): come in front of it (web camOccl)
         if (tiles != null) best = Mathf.Min(best, RockClear(look, back, best));
+        best = Mathf.Min(best, AHMountains.Clear(look, back, best));   // and out of the mountains
         float a = back.x * back.x + back.z * back.z;
         if (a < 1e-4f) return best;
         for (int i = 0; i < cPos.Count; i++)

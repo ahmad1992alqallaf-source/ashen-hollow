@@ -1,0 +1,1352 @@
+{
+ "CROPS": {
+  "wheat": {
+   "id": "wheat",
+   "name": "Wheat",
+   "lvl": 1,
+   "min": 6,
+   "yld": 4,
+   "xp": 12,
+   "seed": 6,
+   "look": "stalk",
+   "c": "#e0c060"
+  },
+  "potato": {
+   "id": "potato",
+   "name": "Potato",
+   "lvl": 1,
+   "min": 8,
+   "yld": 4,
+   "xp": 14,
+   "seed": 6,
+   "look": "root",
+   "c": "#b08a5a"
+  },
+  "carrot": {
+   "id": "carrot",
+   "name": "Carrot",
+   "lvl": 2,
+   "min": 8,
+   "yld": 4,
+   "xp": 16,
+   "seed": 9,
+   "look": "root",
+   "c": "#ff8a2a"
+  },
+  "onion": {
+   "id": "onion",
+   "name": "Onion",
+   "lvl": 3,
+   "min": 10,
+   "yld": 3,
+   "xp": 18,
+   "seed": 9,
+   "look": "root",
+   "c": "#e8d8b0"
+  },
+  "cabbage": {
+   "id": "cabbage",
+   "name": "Cabbage",
+   "lvl": 4,
+   "min": 12,
+   "yld": 2,
+   "xp": 22,
+   "seed": 12,
+   "look": "leafy",
+   "c": "#8ad06a"
+  },
+  "garlic": {
+   "id": "garlic",
+   "name": "Garlic",
+   "lvl": 5,
+   "min": 12,
+   "yld": 3,
+   "xp": 24,
+   "seed": 15,
+   "look": "root",
+   "c": "#f4f0e0"
+  },
+  "tomato": {
+   "id": "tomato",
+   "name": "Tomato",
+   "lvl": 6,
+   "min": 14,
+   "yld": 4,
+   "xp": 28,
+   "seed": 15,
+   "look": "bush",
+   "c": "#e83a2a"
+  },
+  "corn": {
+   "id": "corn",
+   "name": "Corn",
+   "lvl": 7,
+   "min": 15,
+   "yld": 3,
+   "xp": 32,
+   "seed": 18,
+   "look": "stalk",
+   "c": "#ffd84a"
+  },
+  "flax": {
+   "id": "flax",
+   "name": "Flax",
+   "lvl": 8,
+   "min": 15,
+   "yld": 4,
+   "xp": 34,
+   "seed": 18,
+   "look": "flower",
+   "c": "#8aa0ff"
+  },
+  "chili": {
+   "id": "chili",
+   "name": "Chili pepper",
+   "lvl": 9,
+   "min": 16,
+   "yld": 4,
+   "xp": 38,
+   "seed": 24,
+   "look": "bush",
+   "c": "#d0201a"
+  },
+  "strawberry": {
+   "id": "strawberry",
+   "name": "Strawberry",
+   "lvl": 10,
+   "min": 18,
+   "yld": 5,
+   "xp": 44,
+   "seed": 30,
+   "look": "bush",
+   "c": "#ff3a5a"
+  },
+  "sugarcane": {
+   "id": "sugarcane",
+   "name": "Sugarcane",
+   "lvl": 11,
+   "min": 18,
+   "yld": 3,
+   "xp": 46,
+   "seed": 30,
+   "look": "stalk",
+   "c": "#a8d06a"
+  },
+  "pumpkin": {
+   "id": "pumpkin",
+   "name": "Pumpkin",
+   "lvl": 12,
+   "min": 25,
+   "yld": 2,
+   "xp": 60,
+   "seed": 42,
+   "look": "gourd",
+   "c": "#ff8a1a"
+  },
+  "cotton": {
+   "id": "cotton",
+   "name": "Cotton",
+   "lvl": 13,
+   "min": 20,
+   "yld": 3,
+   "xp": 52,
+   "seed": 36,
+   "look": "bush",
+   "c": "#f6f6f2"
+  },
+  "sunpetal": {
+   "id": "sunpetal",
+   "name": "Sunpetal",
+   "lvl": 6,
+   "min": 12,
+   "yld": 3,
+   "xp": 30,
+   "seed": 36,
+   "look": "flower",
+   "c": "#ffd24a"
+  },
+  "frostbloom": {
+   "id": "frostbloom",
+   "name": "Frostbloom",
+   "lvl": 15,
+   "min": 30,
+   "yld": 2,
+   "xp": 70,
+   "seed": 120,
+   "look": "flower",
+   "c": "#bfe6ff"
+  }
+ },
+ "ANIMALS": {
+  "chicken": {
+   "name": "Chicken",
+   "pen": "coop",
+   "price": 150,
+   "feed": [
+    "animal_feed",
+    "wheat",
+    "corn"
+   ],
+   "prod": [
+    [
+     "egg",
+     1
+    ],
+    [
+     "feather",
+     0.5
+    ]
+   ],
+   "every": 10,
+   "butcher": [
+    [
+     "raw_chicken",
+     1
+    ],
+    [
+     "feather",
+     2
+    ],
+    [
+     "bones",
+     1
+    ]
+   ],
+   "xp": 8
+  },
+  "duck": {
+   "name": "Duck",
+   "pen": "pond",
+   "price": 200,
+   "feed": [
+    "animal_feed",
+    "wheat",
+    "corn"
+   ],
+   "prod": [
+    [
+     "duck_egg",
+     1
+    ],
+    [
+     "down_feather",
+     0.4
+    ]
+   ],
+   "every": 14,
+   "butcher": [
+    [
+     "raw_duck",
+     1
+    ],
+    [
+     "down_feather",
+     2
+    ],
+    [
+     "bones",
+     1
+    ]
+   ],
+   "xp": 10
+  },
+  "bee": {
+   "name": "Bee colony",
+   "pen": "apiary",
+   "price": 300,
+   "feed": null,
+   "prod": [
+    [
+     "honey",
+     1
+    ],
+    [
+     "beeswax",
+     0.5
+    ]
+   ],
+   "every": 20,
+   "butcher": null,
+   "xp": 12
+  },
+  "pig": {
+   "name": "Pig",
+   "pen": "sty",
+   "price": 400,
+   "feed": [
+    "animal_feed",
+    "potato",
+    "carrot",
+    "cabbage",
+    "pumpkin",
+    "corn"
+   ],
+   "prod": [
+    [
+     "manure",
+     1
+    ],
+    [
+     "truffle",
+     0.25
+    ]
+   ],
+   "every": 18,
+   "butcher": [
+    [
+     "raw_pork",
+     3
+    ],
+    [
+     "bones",
+     2
+    ],
+    [
+     "pig_hide",
+     1
+    ]
+   ],
+   "xp": 12
+  },
+  "sheep": {
+   "name": "Sheep",
+   "pen": "pasture",
+   "price": 500,
+   "feed": [
+    "animal_feed",
+    "wheat",
+    "cabbage",
+    "corn"
+   ],
+   "prod": [
+    [
+     "wool",
+     1
+    ]
+   ],
+   "every": 20,
+   "butcher": [
+    [
+     "raw_mutton",
+     3
+    ],
+    [
+     "bones",
+     2
+    ],
+    [
+     "wool",
+     2
+    ]
+   ],
+   "xp": 14
+  },
+  "goat": {
+   "name": "Goat",
+   "pen": "goatpen",
+   "price": 450,
+   "feed": [
+    "animal_feed",
+    "cabbage",
+    "carrot",
+    "wheat"
+   ],
+   "prod": [
+    [
+     "goat_milk",
+     1
+    ],
+    [
+     "manure",
+     0.3
+    ]
+   ],
+   "every": 15,
+   "butcher": [
+    [
+     "raw_mutton",
+     2
+    ],
+    [
+     "bones",
+     2
+    ]
+   ],
+   "xp": 14
+  },
+  "cow": {
+   "name": "Cow",
+   "pen": "barn",
+   "price": 800,
+   "feed": [
+    "animal_feed",
+    "wheat",
+    "corn",
+    "cabbage"
+   ],
+   "prod": [
+    [
+     "milk",
+     1
+    ],
+    [
+     "manure",
+     0.6
+    ]
+   ],
+   "every": 15,
+   "butcher": [
+    [
+     "raw_beef",
+     4
+    ],
+    [
+     "bones",
+     3
+    ],
+    [
+     "cowhide",
+     1
+    ]
+   ],
+   "xp": 16
+  }
+ },
+ "DISHES": [
+  [
+   "boiled_eggs",
+   "Boiled eggs",
+   "egg",
+   "#fff4d8",
+   1,
+   {
+    "egg": 2
+   },
+   {
+    "gather": 0.05
+   },
+   10,
+   10,
+   20,
+   12,
+   8
+  ],
+  [
+   "pancakes",
+   "Pancakes",
+   "bread",
+   "#e8b060",
+   3,
+   {
+    "flour": 1,
+    "egg": 1,
+    "milk": 1
+   },
+   {
+    "xp": 0.05
+   },
+   15,
+   14,
+   30,
+   18,
+   14
+  ],
+  [
+   "bone_broth",
+   "Bone broth",
+   "bowl",
+   "#d8b880",
+   3,
+   {
+    "bones": 2,
+    "carrot": 1,
+    "onion": 1
+   },
+   {
+    "hot": 0.003,
+    "mana": 0.2
+   },
+   15,
+   12,
+   30,
+   18,
+   12
+  ],
+  [
+   "honey_porridge",
+   "Honey porridge",
+   "bowl",
+   "#f0d090",
+   4,
+   {
+    "wheat": 2,
+    "milk": 1,
+    "honey": 1
+   },
+   {
+    "hot": 0.005
+   },
+   20,
+   16,
+   40,
+   22,
+   20
+  ],
+  [
+   "cheese_omelette",
+   "Cheese omelette",
+   "dish",
+   "#ffd860",
+   5,
+   {
+    "egg": 3,
+    "cheese": 1,
+    "onion": 1
+   },
+   {
+    "gather": 0.15
+   },
+   20,
+   20,
+   40,
+   26,
+   30
+  ],
+  [
+   "farmers_breakfast",
+   "Farmer’s breakfast",
+   "dish",
+   "#e89a6a",
+   6,
+   {
+    "egg": 2,
+    "raw_pork": 1,
+    "bread": 1,
+    "butter": 1
+   },
+   {
+    "gather": 0.12,
+    "xp": 0.05
+   },
+   25,
+   28,
+   60,
+   30,
+   36
+  ],
+  [
+   "hunter_stew",
+   "Hunter’s stew",
+   "bowl",
+   "#a0522d",
+   7,
+   {
+    "raw_beef": 1,
+    "potato": 1,
+    "carrot": 1,
+    "onion": 1
+   },
+   {
+    "speed": 0.12
+   },
+   20,
+   30,
+   55,
+   34,
+   34
+  ],
+  [
+   "roast_chicken",
+   "Roast chicken",
+   "dish",
+   "#d9904a",
+   8,
+   {
+    "raw_chicken": 1,
+    "garlic": 1,
+    "potato": 2,
+    "butter": 1
+   },
+   {
+    "hp": 0.1
+   },
+   20,
+   34,
+   60,
+   38,
+   40
+  ],
+  [
+   "tomato_soup",
+   "Tomato soup",
+   "bowl",
+   "#d83a2a",
+   8,
+   {
+    "tomato": 2,
+    "onion": 1,
+    "garlic": 1,
+    "cream": 1
+   },
+   {
+    "mana": 0.4
+   },
+   20,
+   22,
+   45,
+   38,
+   30
+  ],
+  [
+   "lamb_skewers",
+   "Spiced lamb skewers",
+   "meat",
+   "#b85a3a",
+   9,
+   {
+    "raw_mutton": 1,
+    "chili": 1,
+    "onion": 1
+   },
+   {
+    "atkspd": 0.12
+   },
+   20,
+   26,
+   45,
+   42,
+   34
+  ],
+  [
+   "goat_cheese_salad",
+   "Goat cheese salad",
+   "dish",
+   "#9ad06a",
+   9,
+   {
+    "goat_cheese": 1,
+    "tomato": 1,
+    "cabbage": 1
+   },
+   {
+    "mana": 0.3,
+    "hot": 0.002
+   },
+   20,
+   18,
+   35,
+   42,
+   36
+  ],
+  [
+   "corn_chowder",
+   "Corn chowder",
+   "bowl",
+   "#f0d060",
+   10,
+   {
+    "corn": 2,
+    "milk": 1,
+    "potato": 1,
+    "butter": 1
+   },
+   {
+    "def": 0.12
+   },
+   20,
+   30,
+   60,
+   46,
+   36
+  ],
+  [
+   "stuffed_cabbage",
+   "Stuffed cabbage rolls",
+   "dish",
+   "#8ab860",
+   10,
+   {
+    "cabbage": 1,
+    "raw_pork": 1,
+    "tomato": 1,
+    "garlic": 1
+   },
+   {
+    "def": 0.08,
+    "hp": 0.06
+   },
+   20,
+   30,
+   55,
+   46,
+   38
+  ],
+  [
+   "shepherds_pie",
+   "Shepherd’s pie",
+   "pie",
+   "#c8904a",
+   11,
+   {
+    "raw_mutton": 1,
+    "potato": 2,
+    "carrot": 1,
+    "butter": 1
+   },
+   {
+    "hp": 0.15
+   },
+   25,
+   40,
+   70,
+   52,
+   46
+  ],
+  [
+   "fisherman_pie",
+   "Fisherman’s pie",
+   "pie",
+   "#e0b070",
+   12,
+   {
+    "raw_salmon": 1,
+    "potato": 2,
+    "milk": 1,
+    "butter": 1
+   },
+   {
+    "hp": 0.08,
+    "mana": 0.3
+   },
+   25,
+   38,
+   65,
+   56,
+   48
+  ],
+  [
+   "steak_frites",
+   "Steak and chips",
+   "dish",
+   "#8a3a2a",
+   12,
+   {
+    "raw_beef": 2,
+    "potato": 2,
+    "butter": 1,
+    "garlic": 1
+   },
+   {
+    "dmg": 0.12
+   },
+   20,
+   44,
+   70,
+   56,
+   52
+  ],
+  [
+   "chili_con_carne",
+   "Chili con carne",
+   "bowl",
+   "#b8301a",
+   13,
+   {
+    "raw_beef": 1,
+    "chili": 2,
+    "tomato": 1,
+    "onion": 1
+   },
+   {
+    "dmg": 0.08,
+    "atkspd": 0.08
+   },
+   20,
+   36,
+   60,
+   60,
+   50
+  ],
+  [
+   "roast_duck",
+   "Honey-roast duck",
+   "dish",
+   "#c87a3a",
+   14,
+   {
+    "raw_duck": 1,
+    "honey": 1,
+    "garlic": 1,
+    "cabbage": 1
+   },
+   {
+    "def": 0.1,
+    "hp": 0.08
+   },
+   25,
+   42,
+   65,
+   66,
+   60
+  ],
+  [
+   "pumpkin_pie",
+   "Pumpkin pie",
+   "pie",
+   "#ff9a2a",
+   15,
+   {
+    "pumpkin": 1,
+    "flour": 1,
+    "egg": 1,
+    "sugar": 1,
+    "butter": 1
+   },
+   {
+    "xp": 0.12
+   },
+   30,
+   30,
+   60,
+   72,
+   70
+  ],
+  [
+   "strawberry_tart",
+   "Strawberry tart",
+   "pie",
+   "#ff4a6a",
+   16,
+   {
+    "strawberry": 2,
+    "flour": 1,
+    "sugar": 1,
+    "cream": 1
+   },
+   {
+    "speed": 0.1,
+    "atkspd": 0.1
+   },
+   20,
+   26,
+   50,
+   78,
+   70
+  ],
+  [
+   "truffle_pasta",
+   "Truffle pasta",
+   "dish",
+   "#e8d8a0",
+   18,
+   {
+    "flour": 1,
+    "egg": 1,
+    "truffle": 1,
+    "cheese": 1,
+    "butter": 1
+   },
+   {
+    "dmg": 0.1,
+    "def": 0.1,
+    "hp": 0.1
+   },
+   30,
+   50,
+   80,
+   90,
+   120
+  ],
+  [
+   "kings_feast",
+   "King’s feast",
+   "dish",
+   "#d9ab3a",
+   20,
+   {
+    "raw_beef": 2,
+    "raw_chicken": 1,
+    "bread": 2,
+    "cheese": 1,
+    "honey": 1
+   },
+   {
+    "dmg": 0.12,
+    "def": 0.12,
+    "hp": 0.12,
+    "speed": 0.08,
+    "xp": 0.08
+   },
+   40,
+   80,
+   100,
+   110,
+   200
+  ]
+ ],
+ "FARM_ST": {
+  "mill": {
+   "name": "Mill",
+   "skill": "farming",
+   "hint": "Grind wheat into flour, sugarcane into sugar and bones into bone meal. Mix feed for your animals."
+  },
+  "compost": {
+   "name": "Compost bin",
+   "skill": "farming",
+   "hint": "Rot manure and straw into rich compost for bigger harvests."
+  },
+  "dairy": {
+   "name": "Dairy",
+   "skill": "cooking",
+   "hint": "Churn milk into butter and cream, and press it into cheese."
+  },
+  "spin": {
+   "name": "Spinning wheel",
+   "skill": "tailoring",
+   "hint": "Spin wool into yarn, and flax and cotton into cloth."
+  },
+  "oven": {
+   "name": "Kitchen",
+   "skill": "cooking",
+   "hint": "Bake bread and cook real dishes. Every dish gives a Well Fed buff (one at a time). Higher Cooking makes fine and masterwork meals more often."
+  },
+  "stall": {
+   "name": "Market stall",
+   "skill": "farming",
+   "hint": ""
+  },
+  "jewel": {
+   "name": "Jeweler’s bench",
+   "skill": "jewelcrafting",
+   "hint": "Cut gems and set them in rings and amulets. Miners find sapphires, rubies, emeralds and diamonds; gold ore comes from gold rocks."
+  }
+ },
+ "HPLOTS": [
+  {
+   "id": "f1",
+   "kind": "field",
+   "name": "Field 1",
+   "x": 185250,
+   "y": 1450,
+   "w": 340,
+   "h": 260,
+   "tier": 1,
+   "cost": {
+    "money": 0
+   },
+   "cx": 185420,
+   "cy": 1580
+  },
+  {
+   "id": "f2",
+   "kind": "field",
+   "name": "Field 2",
+   "x": 185650,
+   "y": 1450,
+   "w": 340,
+   "h": 260,
+   "tier": 1,
+   "cost": {
+    "money": 0
+   },
+   "cx": 185820,
+   "cy": 1580
+  },
+  {
+   "id": "f3",
+   "kind": "field",
+   "name": "Field 3",
+   "x": 186050,
+   "y": 1450,
+   "w": 340,
+   "h": 260,
+   "tier": 2,
+   "cost": {
+    "money": 800
+   },
+   "cx": 186220,
+   "cy": 1580
+  },
+  {
+   "id": "f4",
+   "kind": "field",
+   "name": "Field 4",
+   "x": 185250,
+   "y": 1800,
+   "w": 340,
+   "h": 260,
+   "tier": 2,
+   "cost": {
+    "money": 800
+   },
+   "cx": 185420,
+   "cy": 1930
+  },
+  {
+   "id": "f5",
+   "kind": "field",
+   "name": "Field 5",
+   "x": 185650,
+   "y": 1800,
+   "w": 340,
+   "h": 260,
+   "tier": 3,
+   "cost": {
+    "money": 1500
+   },
+   "cx": 185820,
+   "cy": 1930
+  },
+  {
+   "id": "f6",
+   "kind": "field",
+   "name": "Field 6",
+   "x": 186050,
+   "y": 1800,
+   "w": 340,
+   "h": 260,
+   "tier": 3,
+   "cost": {
+    "money": 1500
+   },
+   "cx": 186220,
+   "cy": 1930
+  },
+  {
+   "id": "coop",
+   "kind": "pen",
+   "name": "Chicken coop",
+   "x": 187150,
+   "y": 280,
+   "w": 300,
+   "h": 240,
+   "tier": 1,
+   "cost": {
+    "money": 1000
+   },
+   "cx": 187300,
+   "cy": 400,
+   "animal": "chicken"
+  },
+  {
+   "id": "pond",
+   "kind": "pen",
+   "name": "Duck pond",
+   "x": 187560,
+   "y": 260,
+   "w": 440,
+   "h": 320,
+   "tier": 1,
+   "cost": {
+    "money": 1200
+   },
+   "cx": 187780,
+   "cy": 420,
+   "animal": "duck"
+  },
+  {
+   "id": "apiary",
+   "kind": "pen",
+   "name": "Apiary",
+   "x": 187200,
+   "y": 1880,
+   "w": 320,
+   "h": 220,
+   "tier": 1,
+   "cost": {
+    "money": 1500
+   },
+   "cx": 187360,
+   "cy": 1990,
+   "animal": "bee"
+  },
+  {
+   "id": "sty",
+   "kind": "pen",
+   "name": "Pigsty",
+   "x": 187150,
+   "y": 660,
+   "w": 300,
+   "h": 250,
+   "tier": 2,
+   "cost": {
+    "money": 2000
+   },
+   "cx": 187300,
+   "cy": 785,
+   "animal": "pig"
+  },
+  {
+   "id": "barn",
+   "kind": "pen",
+   "name": "Cow barn",
+   "x": 187560,
+   "y": 700,
+   "w": 440,
+   "h": 340,
+   "tier": 2,
+   "cost": {
+    "money": 4000
+   },
+   "cx": 187780,
+   "cy": 870,
+   "animal": "cow"
+  },
+  {
+   "id": "pasture",
+   "kind": "pen",
+   "name": "Sheep pasture",
+   "x": 187150,
+   "y": 1420,
+   "w": 380,
+   "h": 300,
+   "tier": 2,
+   "cost": {
+    "money": 2500
+   },
+   "cx": 187340,
+   "cy": 1570,
+   "animal": "sheep"
+  },
+  {
+   "id": "goatpen",
+   "kind": "pen",
+   "name": "Goat pen",
+   "x": 187640,
+   "y": 1420,
+   "w": 340,
+   "h": 290,
+   "tier": 2,
+   "cost": {
+    "money": 2200
+   },
+   "cx": 187810,
+   "cy": 1565,
+   "animal": "goat"
+  },
+  {
+   "id": "compost",
+   "kind": "station",
+   "name": "Compost bin",
+   "x": 185640,
+   "y": 1060,
+   "w": 120,
+   "h": 120,
+   "tier": 1,
+   "cost": {
+    "money": 400
+   },
+   "cx": 185700,
+   "cy": 1120
+  },
+  {
+   "id": "oven",
+   "kind": "station",
+   "name": "Kitchen",
+   "x": 185970,
+   "y": 1060,
+   "w": 120,
+   "h": 120,
+   "tier": 1,
+   "cost": {
+    "money": 1500
+   },
+   "cx": 186030,
+   "cy": 1120
+  },
+  {
+   "id": "mill",
+   "kind": "station",
+   "name": "Mill",
+   "x": 186180,
+   "y": 1060,
+   "w": 120,
+   "h": 120,
+   "tier": 1,
+   "cost": {
+    "money": 2000
+   },
+   "cx": 186240,
+   "cy": 1120
+  },
+  {
+   "id": "dairy",
+   "kind": "station",
+   "name": "Dairy",
+   "x": 186600,
+   "y": 1060,
+   "w": 120,
+   "h": 120,
+   "tier": 2,
+   "cost": {
+    "money": 1800
+   },
+   "cx": 186660,
+   "cy": 1120
+  },
+  {
+   "id": "spin",
+   "kind": "station",
+   "name": "Spinning wheel",
+   "x": 186810,
+   "y": 1060,
+   "w": 120,
+   "h": 120,
+   "tier": 2,
+   "cost": {
+    "money": 1200
+   },
+   "cx": 186870,
+   "cy": 1120
+  },
+  {
+   "id": "house",
+   "kind": "house",
+   "name": "House",
+   "x": 186170,
+   "y": 370,
+   "w": 560,
+   "h": 380,
+   "cx": 186450,
+   "cy": 560,
+   "tier": 1,
+   "cost": {
+    "money": 0
+   }
+  },
+  {
+   "id": "stall",
+   "kind": "station",
+   "name": "Market stall",
+   "x": 187200,
+   "y": 1000,
+   "w": 120,
+   "h": 120,
+   "tier": 1,
+   "cost": {
+    "money": 1000
+   },
+   "cx": 187260,
+   "cy": 1060
+  }
+ ],
+ "HOME": {
+  "arrive": {
+   "x": 185330,
+   "y": 1260
+  },
+  "sign": {
+   "x": 185300,
+   "y": 1150
+  },
+  "well": {
+   "x": 186450,
+   "y": 1010
+  },
+  "deed": 5000,
+  "tiers": [
+   null,
+   {
+    "name": "Tent",
+    "cap": 3,
+    "blurb": "A canvas tent and two fields. Everything starts somewhere."
+   },
+   {
+    "name": "Cottage",
+    "cap": 5,
+    "cost": {
+     "money": 15000
+    },
+    "blurb": "A snug timber cottage with a real bed (Sleep: fills rested XP) and a storage chest. Unlocks the barn, sty, pastures, dairy, spinning wheel and two more fields.",
+    "req": {
+     "cls": 20,
+     "farming": 8
+    }
+   },
+   {
+    "name": "Manor",
+    "cap": 8,
+    "cost": {
+     "money": 80000
+    },
+    "blurb": "A stone manor house. Pens hold 8 animals and you can plough six fields.",
+    "req": {
+     "cls": 30,
+     "farming": 16
+    }
+   }
+  ],
+  "deedLv": 10
+ },
+ "HV": {
+  "plots": {
+   "f1": {
+    "blocks": []
+   },
+   "f2": {
+    "blocks": []
+   },
+   "f3": {
+    "blocks": []
+   },
+   "f4": {
+    "blocks": []
+   },
+   "f5": {
+    "blocks": []
+   },
+   "f6": {
+    "blocks": []
+   },
+   "coop": {
+    "blocks": []
+   },
+   "pond": {
+    "blocks": []
+   },
+   "apiary": {
+    "blocks": []
+   },
+   "sty": {
+    "blocks": []
+   },
+   "barn": {
+    "blocks": []
+   },
+   "pasture": {
+    "blocks": []
+   },
+   "goatpen": {
+    "blocks": []
+   },
+   "compost": {
+    "blocks": []
+   },
+   "oven": {
+    "blocks": []
+   },
+   "mill": {
+    "blocks": []
+   },
+   "dairy": {
+    "blocks": []
+   },
+   "spin": {
+    "blocks": []
+   },
+   "house": {
+    "blocks": []
+   },
+   "stall": {
+    "blocks": []
+   }
+  },
+  "animals": [],
+  "bees": [],
+  "built": true,
+  "signPlate": {
+   "txt": "",
+   "cls": ""
+  }
+ }
+}

@@ -417,6 +417,30 @@ For iPhone you need a Mac with Xcode.
   (loom) use feathers from your hens and the ostriches. Also new: Bearskin mantle and cloak, Bear-claw gauntlets,
   Crocodile-hide boots and jerkin, Crocodile-tooth necklace (jeweller) and the Ram-horn helm (anvil).
 
+## Tester fixes (October)
+
+A tester played through the game before the Android build. What was fixed:
+
+- **Quests no longer get stuck.** The class trials now count when you beat the trial boss, and the 21 quests whose
+  goals were never checked (reach a level or skill, visit a place, buy something, deliver, make friends, build a
+  home) now finish as they should.
+- **Hunger is clear.** The HUD shows "Food N%", and when you are hungry it flashes "Hungry! Eat" and says you are
+  not healing.
+- **Skinning is quicker to learn.** Three times the skinning XP, a little XP even when your level is too low, lower
+  levels for the new animals, and crabs, the coral king and the isle beasts can be skinned. The new animals have
+  monster cards too.
+- **Starting a new game clears everything**, including treasure digs, raids, the dungeon finder and the tips.
+- **Easier to read.** Floating names no longer sit on top of the hero panel or the quest tracker.
+- **Keys:** M opens and closes the map; B or Escape closes any window. E talks to the person you face (and the one
+  with your quest) before a nearby shop counter.
+- **Camera:** it rises over the mountains instead of going inside them, and pets and sellswords walk beside you
+  instead of between you and the camera.
+- **First-time tips** for moving, talking, fighting, skinning, the bag and the map. The first quest no longer
+  mentions an axe you do not have.
+- **Lighter for phones.** Ashen Hollow > Slim Build moves 15 old area models the game no longer loads out of the
+  build (about 60 MB) and keeps the shader variants the game needs. The crocodile, ostrich and ram use about a third
+  fewer triangles, and dungeons light only every other torch on a phone.
+
 ## Credits
 - Heroes (Knight, Mage, Rogue, Barbarian): KayKit Adventurers by Kay Lousberg, CC0.
 - City buildings, walls, towers and props: KayKit Medieval Hexagon Pack by Kay Lousberg (www.kaylousberg.com), CC0.

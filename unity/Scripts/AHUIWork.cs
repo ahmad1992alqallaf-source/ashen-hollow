@@ -55,9 +55,13 @@ public partial class AHUI
         ptrs.Clear();
     }
 
+    int workShutFrame = -1;
+
     void WorkKeys()
     {
         if (!WorkOpen) return;
+        // M closes the map again, B closes any window (Escape too)
+        if ((wkMode == "map" && AHInput.MapKey()) || AHInput.BagKey()) { ShowWork(false); workShutFrame = Time.frameCount; return; }
         if (AHInput.BackKey()) { if (wkMode == "prof" && wkProf != null) { wkProf = null; wkPageI = 0; RenderWork(); } else ShowWork(false); }
 #if ENABLE_INPUT_SYSTEM
         var kb = UnityEngine.InputSystem.Keyboard.current;

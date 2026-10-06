@@ -25,7 +25,7 @@ public partial class AHUI : MonoBehaviour
     Sprite circle, ring, white;
     RectTransform joyBase, joyKnob, atkBtn, dodgeBtn, picker;
     Image hpFill, xpFill, atkImg, shieldFill, manaFill, hungerFill;
-    Text hpText, manaText, lvText, nameText, bannerTitle, bannerSub, clockText, toastText, goldText;
+    Text hpText, manaText, lvText, nameText, bannerTitle, bannerSub, clockText, toastText, goldText, hungerText;
     CanvasGroup bannerGroup, toastGroup;
     float bannerT, toastT, toastShown;
     readonly List<KeyValuePair<string, float>> toastQ = new List<KeyValuePair<string, float>>();
@@ -88,6 +88,8 @@ public partial class AHUI : MonoBehaviour
         manaText = Label(top, "ManaText", "", 14, TextAnchor.MiddleCenter, new Vector2(0, -69), new Vector2(370, 18), Color.white);
         xpFill = Bar(top, "XP", new Vector2(0, -90), new Vector2(370, 10), new Color(0.95f, 0.72f, 0.2f));
         hungerFill = Bar(top, "Hunger", new Vector2(0, -102), new Vector2(260, 8), new Color(0.9f, 0.55f, 0.25f));
+        // the food bar says what it is, and turns into a warning when hunger stops your health coming back
+        hungerText = Label(top, "HungerText", "Food", 14, TextAnchor.MiddleLeft, new Vector2(268, -97), new Vector2(110, 18), new Color(1f, 0.8f, 0.55f));
         clockText = Label(top, "Clock", "", 19, TextAnchor.UpperLeft, new Vector2(0, -114), new Vector2(370, 26), new Color(1f, 1f, 1f, 0.8f));
         goldText = Label(top, "Gold", "", 19, TextAnchor.UpperLeft, new Vector2(0, -138), new Vector2(370, 26), new Color(1f, 0.84f, 0.35f));
 
@@ -421,6 +423,11 @@ public partial class AHUI : MonoBehaviour
             lvText.text = "Lv " + p.level;
             goldText.text = AHItems.MoneyText(p.bag.money, 2);
             hungerFill.fillAmount = p.hunger / 100f;
+            bool starving = p.hunger < 25f;
+            hungerText.text = starving ? "Hungry! Eat" : "Food " + Mathf.RoundToInt(p.hunger) + "%";
+            hungerText.color = starving ? Color.Lerp(new Color(1f, 0.3f, 0.25f), Color.white, Mathf.PingPong(Time.unscaledTime * 2f, 1f) * 0.5f) : new Color(1f, 0.8f, 0.55f);
+            hungerFill.color = starving ? new Color(0.95f, 0.25f, 0.2f) : new Color(0.9f, 0.55f, 0.25f);
+            if (starving && p.hp < p.maxHp) hpText.text += "  (hungry: no healing)";
             clockText.text = g.data.region + " · " + (g.Dark ? "Underground" : g.IsNight ? "Night" : g.DayLight < 0.6f ? "Dusk" : "Day");
             var sps = p.Spells;
             for (int i = 0; i < 6 && i < sps.Length; i++)
@@ -454,6 +461,7 @@ public partial class AHUI : MonoBehaviour
         UpdateQuestUI();
         UpdatePotions();
         ShopKeys();
+        if (Modal == 0) AHTutorial.Tick(g, this, dt);
         Camera cam = g.cam;
         int n = 0;
         if (cam != null && p != null && !PickerOpen)
@@ -465,7 +473,7 @@ public partial class AHUI : MonoBehaviour
                 Vector3 wp = m.transform.position + Vector3.up * (m.type.model == "Wolf_t" ? 1.5f : 1.6f);
                 if ((wp - p.transform.position).sqrMagnitude > 18f * 18f) continue;
                 Vector3 sp = cam.WorldToScreenPoint(wp);
-                if (sp.z <= 0f) continue;
+                if (sp.z <= 0f || UnderHud(sp)) continue;
                 var pl = plates[n++];
                 pl.rt.gameObject.SetActive(true);
                 pl.rt.position = sp;
@@ -516,7 +524,7 @@ public partial class AHUI : MonoBehaviour
     {
         if (CreatorOpen) { CreatorKeys(); }
         else if (WorkOpen) WorkKeys();
-        else if (AHInput.BagKey() && !PickerOpen) ShowBag(!BagOpen);
+        else if (AHInput.BagKey() && !PickerOpen && Time.frameCount != workShutFrame) ShowBag(!BagOpen);
         if (AHInput.BackKey() && BagOpen) ShowBag(false);
         if (AHInput.BackKey() && DialogOpen) ShowDialog(false);
         if (AHInput.TalkKey() && Modal == 0) OnAction();
@@ -932,6 +940,15 @@ public partial class AHUI : MonoBehaviour
         return sb.ToString();
     }
 
+    // floating names stay off the hero panel (top left) and the minimap and tracker (top right)
+    static bool UnderHud(Vector3 sp)
+    {
+        float w = Screen.width, h = Screen.height;
+        if (sp.y > h * 0.50f && sp.x < w * 0.37f) return true;   // name, bars, money, daily and event chips
+        if (sp.y > h * 0.68f && sp.x > w * 0.56f) return true;   // the top buttons and the quest tracker
+        return false;
+    }
+
     AHNpc NearNpc()
     {
         var p = g.player;
@@ -943,9 +960,14 @@ public partial class AHUI : MonoBehaviour
     {
         if (g.player != null && g.player.Busy) return;
         var n = NearNpc();
-        // web interactTarget: whatever is closest, a person or a thing (a shop door, a bank, a chest)
+        // people win over things (a shop door, a bank, a chest) unless the thing is much closer
         var s = g.player != null ? AHGather.Nearest(g.player.transform.position) : null;
-        if (n != null && s != null && s.kind == "use" && (s.pos - g.player.transform.position).sqrMagnitude < (n.transform.position - g.player.transform.position).sqrMagnitude) n = null;
+        if (n != null && s != null && s.kind == "use")
+        {
+            Vector3 pp = g.player.transform.position;
+            float ds = (s.pos - pp).magnitude, dn = n.DistTo(pp);
+            if (n.npcName != g.quests.NpcName && ds < dn * 0.5f) n = null;
+        }
         if (n != null) { g.TalkTo(n); return; }
         if (g.player != null) g.player.Interact();
     }
@@ -1037,7 +1059,7 @@ public partial class AHUI : MonoBehaviour
             {
                 Vector3 wp = pl.n.transform.position + Vector3.up * (pl.n.height + 0.25f);
                 Vector3 sp = g.cam.WorldToScreenPoint(wp);
-                if (sp.z > 0f && (wp - p.transform.position).sqrMagnitude < 26f * 26f)
+                if (sp.z > 0f && !UnderHud(sp) && (wp - p.transform.position).sqrMagnitude < 26f * 26f)
                 {
                     show = true;
                     pl.rt.position = sp;

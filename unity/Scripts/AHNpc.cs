@@ -344,7 +344,19 @@ public class AHNpc : MonoBehaviour
     public static AHNpc Nearest(Vector3 p)
     {
         AHNpc best = null; float bd = float.MaxValue;
-        foreach (var n in All) { float d = n.DistTo(p); if (d < n.reach && d < bd) { bd = d; best = n; } }
+        // closest person in reach, but the one you face and the one with your quest come first
+        var g = AHGame.I; var pl = g != null ? g.player : null;
+        Vector3 fwd = pl != null ? pl.transform.forward : Vector3.zero; fwd.y = 0;
+        string qn = g != null && g.quests != null ? g.quests.NpcName : null;
+        foreach (var n in All)
+        {
+            float d = n.DistTo(p); if (d >= n.reach) continue;
+            float score = d;
+            Vector3 to = n.transform.position - p; to.y = 0;
+            if (fwd.sqrMagnitude > 0.01f && to.sqrMagnitude > 0.01f && Vector3.Dot(fwd.normalized, to.normalized) < 0.3f) score *= 1.8f;
+            if (qn != null && n.npcName == qn) score *= 0.6f;
+            if (score < bd) { bd = score; best = n; }
+        }
         return best;
     }
 

@@ -74,7 +74,7 @@
    "dmg": 16,
    "speed": 150,
    "r": 16,
-   "aggro": 276,
+   "aggro": 150,
    "xp": 170,
    "skinReq": 10,
    "night": true,
@@ -1654,7 +1654,7 @@
    "dmg": 49,
    "speed": 165,
    "r": 15,
-   "aggro": 228,
+   "aggro": 0,
    "xp": 700,
    "noSkin": true,
    "skinReq": 99,
@@ -2049,7 +2049,7 @@
    "r": 20,
    "aggro": 150,
    "xp": 200,
-   "skinReq": 10,
+   "skinReq": 8,
    "slam": true,
    "atkCd": 1.8,
    "drops": [
@@ -2068,7 +2068,7 @@
    "r": 20,
    "aggro": 170,
    "xp": 240,
-   "skinReq": 11,
+   "skinReq": 9,
    "lunge": true,
    "drops": [
     [
@@ -2086,7 +2086,7 @@
    "r": 16,
    "aggro": 0,
    "xp": 230,
-   "skinReq": 13,
+   "skinReq": 11,
    "drops": [
     [
      "ostrich_egg",
@@ -2103,7 +2103,7 @@
    "r": 18,
    "aggro": 0,
    "xp": 300,
-   "skinReq": 15,
+   "skinReq": 13,
    "slam": true,
    "atkCd": 1.7
   }
@@ -2398,7 +2398,8 @@
     "wolf",
     "shadowwolf",
     "goldhorn",
-    "mistfang"
+    "mistfang",
+    "bear"
    ],
    "fx": {
     "hp": 25
@@ -2412,7 +2413,8 @@
     "bogtoad",
     "lurker",
     "mirehulk",
-    "bogmother"
+    "bogmother",
+    "croc"
    ],
    "fx": {
     "evade": 0.02
@@ -2440,7 +2442,8 @@
    "mobs": [
     "icewolf",
     "troll",
-    "rimeclaw"
+    "rimeclaw",
+    "ram"
    ],
    "fx": {
     "def": 6
@@ -2454,7 +2457,8 @@
     "jackal",
     "scorpion",
     "sandqueen",
-    "sandwraith"
+    "sandwraith",
+    "ostrich"
    ],
    "fx": {
     "crit": 0.02
@@ -2469,7 +2473,9 @@
     "pterra",
     "hornback",
     "tyrant",
-    "wyrm"
+    "wyrm",
+    "thickskull",
+    "spikeback"
    ],
    "fx": {
     "dmg": 0.04
@@ -2604,7 +2610,11 @@
   "riftling": "void",
   "voidmaw": "void",
   "thickskull": "isle",
-  "spikeback": "isle"
+  "spikeback": "isle",
+  "bear": "meadow",
+  "croc": "mire",
+  "ostrich": "sands",
+  "ram": "frost"
  },
  "BEASTS": {
   "boar": {

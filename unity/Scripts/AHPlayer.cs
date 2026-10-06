@@ -962,7 +962,7 @@ public class AHPlayer : MonoBehaviour
             ClassXp = System.Math.Max(ClassXp, lim);
             long bk; banked.TryGetValue(cls.id, out bk);
             banked[cls.id] = System.Math.Min(bk + over, wall + 2 < t.Length ? t[wall + 2] - t[wall + 1] : over);
-            if (Time.time - trialWarn > 90f && g.ui != null) { trialWarn = Time.time; g.ui.Toast("Level " + wall + " is a wall. Defeat its trial boss to keep levelling."); }
+            if (Time.time - trialWarn > 90f && g.ui != null) { trialWarn = Time.time; g.ui.Toast("Level " + wall + " is a wall. Defeat " + TrialName(wall) + " to keep levelling. Your extra XP is saved.", 4f); }
         }
         else ClassXp += n;
         int after = level;
@@ -976,9 +976,39 @@ public class AHPlayer : MonoBehaviour
             AHFx.Pillar(transform.position, 0.9f, 4f, new Color(1f, 0.85f, 0.4f, 0.8f), 1f);
             if (anim != null) { anim.Play("Cheer", false, 1f, true); atkT = 0.9f; hitAt = 0f; }
         }
-        g.SaveProgress();
+        // a level-up is saved at once; any other XP rides the game's short save delay (saving on every kill stutters on phones)
+        if (after > before) g.SaveProgress(); else g.MarkDirty();
     }
     float trialWarn = -999f;
+    // the trial boss for a wall level, by name and place ("Old Tusker on Old Mill Road")
+    string TrialName(int lv)
+    {
+        var tr = AHDB.List("classes", "TRIALS");
+        if (tr != null) foreach (var o in tr)
+            if ((int)AHJson.N(o, "lv") == lv)
+            {
+                string mob = AHJson.S(o, "mob"), where = AHJson.S(o, "where");
+                string nm = AHJson.S(AHJson.O(AHDB.Mobs, mob), "name", mob);
+                return nm + (string.IsNullOrEmpty(where) ? "" : " (" + where + ")");
+            }
+        return "its trial boss";
+    }
+    // web: killing a trial boss passes that trial (from five levels below its wall), and the XP banked at the wall is paid
+    public void OnTrialKill(string mob)
+    {
+        var tr = AHDB.List("classes", "TRIALS"); if (tr == null) return;
+        foreach (var o in tr)
+        {
+            int lv = (int)AHJson.N(o, "lv");
+            if (AHJson.S(o, "mob") != mob || trialsDone.Contains(lv) || level < lv - 5) continue;
+            trialsDone.Add(lv);
+            if (g.ui != null) g.ui.Banner("Trial passed", "Level " + lv + " is open to you");
+            AHSound.Play("level");
+            long bk; banked.TryGetValue(cls.id, out bk); banked[cls.id] = 0;
+            if (bk > 0) GainClassXp((int)System.Math.Min(bk, int.MaxValue), false);
+            g.SaveProgress();
+        }
+    }
     [System.NonSerialized] public List<int> trialsDone = new List<int>();
     int NextTrialLevel()
     {
@@ -1076,11 +1106,11 @@ public class AHPlayer : MonoBehaviour
         int req = m.type.skinReq;
         m.Skinned();
         bag.Add("raw_meat");
-        if (Skill("skinning") < req) { if (g.ui != null) g.ui.Toast("Requires Skinning " + req + ": you only got the meat."); }
+        if (Skill("skinning") < req) { GainXp("skinning", 10, false); if (g.ui != null) g.ui.Toast("Requires Skinning " + req + ": you only got the meat (and a little skinning practice)."); }
         else
         {
             if (m.type.skin != null) foreach (var id in m.type.skin) bag.Add(id);
-            GainXp("skinning", 20 + req * 8, false);
+            GainXp("skinning", (20 + req * 8) * 3, false);   // three times the web rate: the higher beasts were out of reach for most heroes
             g.OnSkin(m.type.id);
         }
     }

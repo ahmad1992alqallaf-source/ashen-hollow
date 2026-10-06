@@ -104,10 +104,13 @@ public static class AHDungeonDress
         Light(t, new Vector3(0, 2.4f, 0.15f), flame, 9f, 1.7f).gameObject.AddComponent<AHTorchFlicker>().col = flame;
         Torches++;
     }
+    static int lit;
     static Light Light(Transform parent, Vector3 local, Color c, float range, float intensity)
     {
         var lg = new GameObject("Flame"); lg.transform.SetParent(parent, false); lg.transform.localPosition = local;
         var li = lg.AddComponent<Light>(); li.type = LightType.Point; li.color = c; li.range = range; li.intensity = intensity; li.shadows = LightShadows.None;
+        // on a phone only every other wall torch casts light, and candles none: the flames still burn
+        if (Application.isMobilePlatform && (range < 5f || (lit++ & 1) == 1)) li.enabled = false;
         return li;
     }
 }
