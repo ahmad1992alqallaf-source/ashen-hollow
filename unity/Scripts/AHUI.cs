@@ -555,7 +555,7 @@ public partial class AHUI : MonoBehaviour
     {
         int modal = Modal;
         foreach (var t in taps)
-            if (t.layer == modal && t.rt.gameObject.activeInHierarchy && Inside(t.rt, q.pos, 4f * k)) { pt.tap = t; return Role.Tap; }
+            if (t.layer == modal && t.rt != null && t.rt.gameObject.activeInHierarchy && Inside(t.rt, q.pos, 4f * k)) { pt.tap = t; return Role.Tap; }
         if (modal != 0) return Role.None;
         if (q.id == -2) return Role.Cam;
         for (int i = 0; i < 6; i++)

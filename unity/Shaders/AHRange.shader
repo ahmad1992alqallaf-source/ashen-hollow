@@ -41,7 +41,7 @@ Shader "AshenHollow/Range"
             }
             half4 frag(Varyings i) : SV_Target
             {
-                float3 n = normalize(i.normalWS);
+                float3 n = SafeNormalize(i.normalWS);   // a few ridge triangles are degenerate: normalize() would give NaN
                 Light L = GetMainLight();
                 half ndl = saturate(dot(n, L.direction));
                 half3 amb = SampleSH(n);
@@ -50,7 +50,9 @@ Shader "AshenHollow/Range"
                 // aerial perspective: further is bluer and paler; the far range (vertex alpha) a little more so
                 half h = saturate((d - _HazeNear) / max(1.0, _HazeFar - _HazeNear)) * _HazeMax + (1.0 - i.color.a) * 0.18;
                 col = lerp(col, _Haze.rgb, saturate(h));
-                return half4(col, 1);
+                // never let a NaN out: one NaN pixel blooms into a white flash over the whole screen
+                if (any(isnan(col)) || any(isinf(col))) col = _Haze.rgb;
+                return half4(max(col, 0), 1);
             }
             ENDHLSL
         }

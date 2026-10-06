@@ -748,7 +748,7 @@ public class AHGame : MonoBehaviour
         if (cd == null) cd = cam.gameObject.AddComponent<UniversalAdditionalCameraData>();
         cd.requiresColorOption = CameraOverrideOption.On;
         cd.requiresDepthOption = CameraOverrideOption.On;
-        cd.renderPostProcessing = true;
+        cd.renderPostProcessing = true; cd.stopNaN = true;   // a stray NaN pixel (a broken mesh or shader) becomes black instead of blooming into a white flash
         Shader.SetGlobalVectorArray("_AH_Ripples", ripples);
     }
 
