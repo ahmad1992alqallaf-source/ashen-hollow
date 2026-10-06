@@ -305,7 +305,14 @@ public class AHMob : MonoBehaviour
             model.transform.localPosition = baseLocal + Vector3.up * height * 0.85f;
         }
         else if (floatUp > 0f) { model.transform.localPosition = baseLocal; model.transform.localRotation = Quaternion.Euler(0, g.ModelYaw + yawOff, 90f); }   // the wraith drops
-        else if (model.GetComponent<AHSerpentBody>() == null) model.transform.localRotation = Quaternion.Euler(0, g.ModelYaw, 90f);   // the serpent slumps by itself
+        else if (model.GetComponent<AHSerpentBody>() == null)
+        {
+            // no death clip: lie it on its side, lifted by half its width so it rests on the ground instead of in it
+            var rs = model.GetComponentsInChildren<Renderer>(); float half = 0.3f;
+            if (rs.Length > 0) { var bb = rs[0].bounds; foreach (var r in rs) bb.Encapsulate(r.bounds); half = Mathf.Min(bb.size.x, bb.size.z) * 0.5f / Mathf.Max(0.01f, transform.lossyScale.y); }
+            model.transform.localRotation = Quaternion.Euler(0, g.ModelYaw + yawOff, 0) * Quaternion.Euler(0, 0, 90f);
+            model.transform.localPosition = baseLocal + Vector3.up * half;
+        }
         g.OnKill(type.id);
         AHSpark.Burst(transform.position + Vector3.up * 0.6f, new Color(0.9f, 0.85f, 0.75f, 0.7f), 18, 2f, 0.7f, 0.2f, 1.2f);
         if (by != null) AHLoot.OnKill(g, this, by);

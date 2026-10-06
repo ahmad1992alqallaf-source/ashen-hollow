@@ -38,7 +38,7 @@ public partial class AHUI : MonoBehaviour
     readonly List<TapBtn> taps = new List<TapBtn>();
 
     enum Role { Joy, Attack, Dodge, Cam, Spell, Tap, None }
-    class Ptr { public Role role; public Vector2 start, last; public int index; public TapBtn tap; }
+    class Ptr { public Role role; public Vector2 start, last; public int index; public TapBtn tap; public bool dragged; }
     readonly Dictionary<int, Ptr> ptrs = new Dictionary<int, Ptr>();
     readonly HashSet<int> seen = new HashSet<int>();
     readonly List<int> gone = new List<int>();
@@ -82,6 +82,14 @@ public partial class AHUI : MonoBehaviour
     void FitSafe()
     {
         if (safeRt == null) return;
+        // wide phones scale the HUD by height; near-square screens (unfolded phones, tablets) by width, so the HUD
+        // keeps its layout instead of piling up in the middle
+        var sc = GetComponent<CanvasScaler>();
+        if (sc != null && Screen.height > 0)
+        {
+            float a = (float)Screen.width / Screen.height, m = Mathf.InverseLerp(1.3f, 1.75f, a);
+            if (Mathf.Abs(sc.matchWidthOrHeight - m) > 0.001f) { sc.matchWidthOrHeight = m; safeNow = new Rect(-1, -1, 0, 0); }
+        }
         Rect sa = Screen.safeArea; if (sa == safeNow || Screen.width <= 0 || Screen.height <= 0) return;
         safeNow = sa;
         Vector2 size = new Vector2(Screen.width, Screen.height);
@@ -154,8 +162,8 @@ public partial class AHUI : MonoBehaviour
         Anchor(atkLabel.rectTransform, new Vector2(1, 0), AtkPos);
         for (int i = 0; i < 6; i++)
         {
-            float a = (100f + i * 30f) * Mathf.Deg2Rad;
-            Vector2 pos = i < 5 ? AtkPos + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 132f : new Vector2(-140f, 44f);   // the sixth: the ultimate (level 60 form)
+            float a = (98f + i * 33f) * Mathf.Deg2Rad;   // far enough apart that a thumb never hits the neighbour
+            Vector2 pos = i < 5 ? AtkPos + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 146f : new Vector2(-140f, 44f);   // the sixth: the ultimate (level 60 form)
             var b = new SpellBtn();
             b.rt = Img("Spell" + i, transform, circle, new Vector2(1, 0), pos, new Vector2(76, 76), new Color(0.3f, 0.2f, 0.15f, 0.92f));
             b.bg = b.rt.GetComponent<Image>();
@@ -584,6 +592,9 @@ public partial class AHUI : MonoBehaviour
                 ptrs[q.id] = pt;
             }
             if (pt.role == Role.Cam) camDelta += (q.pos - pt.last) / k;
+            // a finger dragged over a scrolling list scrolls it, and then doesn't count as a tap
+            if ((q.pos - pt.start).magnitude > 14f * k) pt.dragged = true;
+            if (CreatorOpen && Inside(crBody, pt.start, 0f)) CrScrollBy((q.pos.y - pt.last.y) / k);
             pt.last = q.pos;
         }
 
@@ -606,6 +617,7 @@ public partial class AHUI : MonoBehaviour
         else pinchLast = 0f;
         float wheel = AHInput.Wheel();
         if (Mathf.Abs(wheel) > 0.01f && Modal == 0) zoom *= Mathf.Pow(0.9f, wheel);
+        if (Mathf.Abs(wheel) > 0.01f && CreatorOpen) CrScrollBy(-wheel * 40f);
 
         // released fingers: taps fire when lifted over their button
         gone.Clear();
@@ -614,7 +626,7 @@ public partial class AHUI : MonoBehaviour
         {
             Ptr pt = ptrs[id];
             ptrs.Remove(id);
-            if (pt.role == Role.Tap && pt.tap != null && Inside(pt.tap.rt, pt.last, 8f * k)) pt.tap.act();
+            if (pt.role == Role.Tap && pt.tap != null && !(pt.dragged && pt.tap.group == "cr") && Inside(pt.tap.rt, pt.last, 8f * k)) pt.tap.act();
         }
 
         // joystick
@@ -637,7 +649,7 @@ public partial class AHUI : MonoBehaviour
     class BagSlot { public RectTransform rt; public Image bg, icon, glyph; public Text abbr, count, hint; }
     BagSlot[] bagSlots;
     readonly Dictionary<string, BagSlot> gearSlots = new Dictionary<string, BagSlot>();
-    Text bagGold, bagInfo, bagInfoSub, gearStats;
+    Text bagGold, bagInfo, bagInfoSub, gearStats, bagActText, bagDropText; RectTransform bagAct, bagDrop; bool dropAsk;
     string bagSel, gearSel;
     const float WinW = 860f, WinH = 540f;
 
@@ -693,10 +705,17 @@ public partial class AHUI : MonoBehaviour
             int col = i % 7, row = i / 7, idx = i;
             bagSlots[i] = MakeSlot("Slot" + i, new Vector2(-196 + col * 76, 166 - row * 76), 70, 2, () => OnBagSlot(idx));
         }
-        bagInfo = Label(bagWin, "Info", "", 21, TextAnchor.UpperCenter, new Vector2(WinW / 2f - 260f + 30f, -400), new Vector2(560, 30), Color.white);
+        bagInfo = Label(bagWin, "Info", "", 21, TextAnchor.UpperLeft, new Vector2(200, -396), new Vector2(420, 30), Color.white);
         bagInfo.fontStyle = FontStyle.Bold;
-        bagInfoSub = Label(bagWin, "InfoSub", "", 16, TextAnchor.UpperCenter, new Vector2(WinW / 2f - 260f + 30f, -432), new Vector2(560, 90), new Color(1f, 0.9f, 0.75f, 0.9f));
-        bagInfoSub.horizontalOverflow = HorizontalWrapMode.Wrap;
+        bagInfoSub = Label(bagWin, "InfoSub", "", 16, TextAnchor.UpperLeft, new Vector2(200, -424), new Vector2(420, 110), new Color(1f, 0.9f, 0.75f, 0.95f));
+        bagInfoSub.horizontalOverflow = HorizontalWrapMode.Wrap; bagInfoSub.verticalOverflow = VerticalWrapMode.Overflow; bagInfoSub.supportRichText = true;
+        // what you can do with the chosen item: a big button (equip, eat, drink, use, take off) and Drop
+        bagAct = Img("Act", bagWin, white, new Vector2(1f, 1f), new Vector2(-110, -420), new Vector2(170, 50), new Color(0.22f, 0.5f, 0.26f, 1f));
+        bagActText = Center(Label(bagAct, "T", "", 20, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(170, 36), Color.white)); bagActText.fontStyle = FontStyle.Bold;
+        taps.Add(new TapBtn { rt = bagAct, layer = 2, act = BagAction });
+        bagDrop = Img("Drop", bagWin, white, new Vector2(1f, 1f), new Vector2(-110, -478), new Vector2(170, 42), new Color(0.42f, 0.18f, 0.14f, 1f));
+        bagDropText = Center(Label(bagDrop, "T", "Drop", 18, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(170, 32), Color.white));
+        taps.Add(new TapBtn { rt = bagDrop, layer = 2, act = BagDrop });
         bagRoot.gameObject.SetActive(false);
     }
 
@@ -715,7 +734,7 @@ public partial class AHUI : MonoBehaviour
     {
         var p = g.player; var bag = p.bag;
         string id = i < bag.order.Count ? bag.order[i] : null;
-        gearSel = null;
+        gearSel = null; dropAsk = false;
         if (id == null) { bagSel = null; RefreshBag(); return; }
         var d = AHItems.Get(id);
         if (bagSel == id && d != null)
@@ -741,6 +760,43 @@ public partial class AHUI : MonoBehaviour
         if (gearSel == slot) { string msg = bag.Unequip(slot); if (msg != null) Toast(msg); gearSel = null; }
         else gearSel = slot;
         RefreshBag();
+    }
+
+    // the big button does what a second tap on the item does
+    void BagAction()
+    {
+        var bag = g.player.bag;
+        if (bagSel != null) { int i = bag.order.IndexOf(bagSel); if (i >= 0) OnBagSlot(i); }
+        else if (gearSel != null) OnGearSlot(gearSel);
+    }
+
+    // Drop asks once ("Drop 1?"), then throws one away
+    void BagDrop()
+    {
+        var p = g.player; var bag = p.bag;
+        if (bagSel == null || bag.Count(bagSel) <= 0) return;
+        if (!dropAsk) { dropAsk = true; RefreshBag(); return; }
+        var d = AHItems.Get(bagSel);
+        if (bag.Take(bagSel)) { Toast("Dropped " + (d != null ? d.name : bagSel) + "."); g.MarkDirty(); }
+        dropAsk = false;
+        if (bag.Count(bagSel) <= 0) bagSel = null;
+        RefreshBag();
+    }
+
+    // gear against what you wear in that slot: "+3 attack · −2 armor"
+    static string Compare(ItemDef a, ItemDef worn)
+    {
+        if (worn == null) return "<color=#8fe08a>Empty slot: all gain.</color>";
+        var parts = new List<string>();
+        Action<float, string, bool> add = (v, what, pct) =>
+        {
+            if (Mathf.Abs(v) < 0.0001f) return;
+            string n = pct ? Mathf.RoundToInt(v * 100) + "%" : Mathf.RoundToInt(v).ToString();
+            parts.Add((v > 0 ? "<color=#8fe08a>+" : "<color=#ff8a7a>−") + n.TrimStart('-') + " " + what + "</color>");
+        };
+        add(a.atk - worn.atk, "attack", false); add(a.def - worn.def, "armor", false); add(a.hp - worn.hp, "max HP", false);
+        add(a.dmg - worn.dmg, "damage", true); add(a.cdr - worn.cdr, "cooldowns", true); add(a.heal - worn.heal, "healing", true);
+        return parts.Count == 0 ? "Same as what you wear." : string.Join(" · ", parts.ToArray());
     }
 
     static void PaintSlot(BagSlot b, ItemDef d, int n, bool selected)
@@ -771,26 +827,40 @@ public partial class AHUI : MonoBehaviour
         var s = p.stat;
         gearStats.text = "Attack +" + s.atk + "   Armor " + s.def + " (−" + Mathf.RoundToInt(p.ArmorCut * 100) + "%)\nMax HP " + Mathf.CeilToInt(p.maxHp) + "   Attack lv " + p.Skill("attack") + "\nSkinning lv " + p.Skill("skinning");
 
-        ItemDef sd = null; int n = 0; string text = "";
+        ItemDef sd = null; int n = 0; string text = "", act = null;
         if (bagSel != null && bag.Count(bagSel) > 0)
         {
             sd = AHItems.Get(bagSel); n = bag.Count(bagSel);
-            if (sd.IsGear) text = AHItems.WhoUses(sd.id) + " · " + AHItems.StatLine(sd) + SetLine(sd, bag) + "\n" + (AHItems.CanUse(sd.id, p.cls.id) ? "Tap again to equip." : "Your class can’t use this.");
-            else if (sd.IsFood) text = "Restores " + sd.foodHp + " HP and " + sd.foodHunger + " hunger." + (sd.meal ? " Well fed: " + AHMeal.Describe(sd.id) + "." : "") + " Tap again to eat.";
-            else if (sd.potion) text = PotionText(sd.id) + " Tap again to drink.";
-            else if (sd.id.StartsWith("card_")) text = "Monster card. " + (p.prog.cards.Contains(AHJson.S(AHItems.Raw(sd.id), "card")) ? "Already in your collection: sell or trade it." : "Tap again to add it to your collection: +1% damage against this monster.");
+            if (sd.IsGear)
+            {
+                var wornD = AHItems.Get(bag.Worn(sd.slot));
+                text = AHItems.SlotName(sd.slot) + " · " + AHItems.WhoUses(sd.id) + "\n" + AHItems.StatLine(sd) + SetLine(sd, bag)
+                    + "\nVs " + (wornD != null ? wornD.name : "nothing worn") + ": " + Compare(sd, wornD)
+                    + (AHItems.CanUse(sd.id, p.cls.id) ? "" : "\n<color=#ff8a7a>Your class can’t use this.</color>");
+                act = AHItems.CanUse(sd.id, p.cls.id) ? "Equip" : null;
+            }
+            else if (sd.IsFood) { text = "Restores " + sd.foodHp + " HP and " + sd.foodHunger + " hunger." + (sd.meal ? " Well fed: " + AHMeal.Describe(sd.id) + "." : ""); act = "Eat"; }
+            else if (sd.potion) { text = PotionText(sd.id); act = "Drink"; }
+            else if (sd.id.StartsWith("card_")) { bool has = p.prog.cards.Contains(AHJson.S(AHItems.Raw(sd.id), "card")); text = "Monster card. " + (has ? "Already in your collection: sell or trade it." : "Add it to your collection: +1% damage against this monster."); act = has ? null : "Collect"; }
             else if (sd.id == "enh_stone") text = "Used to enhance weapons and armor from +1 to +9 (Menu → Enhance gear).";
             else if (sd.id == "lucky_charm") text = "Use one while enhancing: if the attempt fails, the item keeps its level.";
             else if (AHPower.GemText(sd.id) != "") text = "Gem · fits a gear socket: " + AHPower.GemText(sd.id) + " (Menu → Gem sockets).";
-            else if (sd.id == "mystery_sack") text = (sd.note ?? "What could be inside?") + " Tap again to open.";
+            else if (sd.id == "mystery_sack") { text = sd.note ?? "What could be inside?"; act = "Open"; }
+            else if (AHTreasure.IsMap(sd.id)) { text = sd.note ?? "A treasure map."; act = "Read"; }
+            else if (sd.reins != null) { text = sd.note ?? "Reins: learn this mount."; act = "Learn"; }
             else text = sd.note ?? "";
         }
         else if (gearSel != null && bag.Worn(gearSel) != null)
         {
             sd = AHItems.Get(bag.Worn(gearSel)); n = 1;
-            text = AHItems.SlotName(gearSel) + " · " + AHItems.StatLine(sd) + SetLine(sd, bag) + "\nWorn. Tap again to take it off.";
+            text = AHItems.SlotName(gearSel) + " · worn\n" + AHItems.StatLine(sd) + SetLine(sd, bag); act = "Take off";
         }
-        if (sd == null) { bagInfo.text = "Tap an item"; bagInfo.color = Color.white; bagInfoSub.text = bag.UsedSlots + " of " + bag.SlotsMax + " slots used"; }
+        bagAct.gameObject.SetActive(sd != null && act != null);
+        if (act != null) bagActText.text = act;
+        bagDrop.gameObject.SetActive(bagSel != null && sd != null);
+        if (bagSel == null) dropAsk = false;
+        bagDropText.text = dropAsk ? "Drop 1? Tap again" : "Drop";
+        if (sd == null) { bagInfo.text = "Tap an item"; bagInfo.color = Color.white; bagInfoSub.text = bag.UsedSlots + " of " + bag.SlotsMax + " slots used. Tap an item to see what it does."; }
         else
         {
             bagInfo.text = sd.name + (n > 1 ? "  ×" + n : "");

@@ -19,6 +19,7 @@ public static class AHPeople
         { "Levelup", "Yes" }, { "Ride", "Sitting_Idle_Loop" },
     };
 
+    public static Color OutfitColor(AHLook look) { return look == null ? Color.white : LookColor("CLOTH", look.cloth, 0); }
     static Color LookColor(string list, int i, int field = 0)
     {
         var l = AHJson.A(AHJson.O(AHDB.Rules, "LOOK"), list);
@@ -76,7 +77,7 @@ public static class AHPeople
         Color clothMain = LookColor("CLOTH", look.cloth, 0), clothHi = LookColor("CLOTH", look.cloth, 1);
         Color skinRef = LookColor("SKIN", 1);
         Color skinK = new Color(skin.r / Mathf.Max(0.05f, skinRef.r), skin.g / Mathf.Max(0.05f, skinRef.g), skin.b / Mathf.Max(0.05f, skinRef.b));
-        Color clothK = Color.Lerp(Color.white, Color.Lerp(clothMain, clothHi, 0.6f) * 2.4f, 0.5f) * Color.Lerp(Color.white, cls.tint, 0.5f);
+        Color clothK = Color.Lerp(Color.white, Color.Lerp(clothMain, clothHi, 0.6f) * 2.6f, 0.85f) * Color.Lerp(Color.white, cls.tint, 0.25f);   // strong enough to show on the dark cloth
         foreach (var r in rig.GetComponentsInChildren<Renderer>(true))
         {
             var mats = r.materials; bool ch = false;
@@ -131,10 +132,24 @@ public static class AHPeople
     public static void Grip(string name, bool right, out Quaternion q, out Vector3 p)
     {
         float palm = right ? 0.035f : -0.035f;
-        if (name.Contains("Shield")) { q = new Quaternion(0.7071068f, 0f, 0.7071068f, 0f); p = new Vector3(right ? -0.09f : 0.09f, 0.05f, 0f); return; }
-        if (name.Contains("Crossbow")) { q = new Quaternion(0f, -0.7071068f, -0.7071068f, 0f); p = new Vector3(palm, 0.085f, 0f); return; }
-        if (name.Contains("Staff")) { q = new Quaternion(0.976296f, 0f, 0f, 0.2164396f); p = new Vector3(palm, 0.085f, 0f); return; }
-        q = new Quaternion(0.5f, 0.5f, 0.5f, 0.5f); p = new Vector3(palm, 0.085f, 0f);
+        q = new Quaternion(0.5f, 0.5f, 0.5f, 0.5f); p = new Vector3(palm, 0.085f, 0f);   // through the fist, out of the thumb side
+        if (name.Contains("Shield")) { q = new Quaternion(0.7071068f, 0f, 0.7071068f, 0f); p = new Vector3(right ? -0.13f : 0.13f, 0.05f, 0f); return; }
+        if (name.Contains("Crossbow")) { q = new Quaternion(0f, -0.7071068f, -0.7071068f, 0f); return; }
+        if (name.Contains("Staff")) { q = Quaternion.AngleAxis(-12f, Vector3.right) * q; return; }   // upright from the fist, tipped a little forward
+        if (name.Contains("Spellbook")) { p = new Vector3(right ? 0.07f : -0.07f, 0.09f, 0f); return; }   // held at its edge against the palm
+    }
+
+    // how long each kind of weapon is in the hand, in metres (the KayKit sets come in different sizes)
+    static float TargetLen(string n)
+    {
+        if (n.Contains("Staff")) return 1.65f;
+        if (n.Contains("2H_Sword")) return 1.3f;
+        if (n.Contains("Crossbow")) return 0.8f;
+        if (n.Contains("Shield")) return 0.62f;
+        if (n.Contains("Spellbook")) return 0.32f;
+        if (n.Contains("Knife") || n.Contains("Wand")) return 0.45f;
+        if (n.Contains("Sword") || n.Contains("Axe") || n.Contains("Mace")) return 0.95f;
+        return 0f;
     }
 
     static void Grab(Transform src, string name, Transform hand, Quaternion rot, Vector3 offset)
@@ -151,6 +166,16 @@ public static class AHPeople
         w.localScale = new Vector3(ws.x / Mathf.Max(1e-5f, hs.x), ws.y / Mathf.Max(1e-5f, hs.y), ws.z / Mathf.Max(1e-5f, hs.z));
         foreach (var r in w.GetComponentsInChildren<Renderer>(true)) { r.enabled = true; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On; }
         w.gameObject.SetActive(true);
+        // every weapon its own true size, whatever hat the KayKit figure it came from wore
+        float L = TargetLen(name); var mf = w.GetComponentInChildren<MeshFilter>();
+        if (L > 0f && mf != null && mf.sharedMesh != null)
+        {
+            var mb = mf.sharedMesh.bounds; float len = Mathf.Max(mb.size.x, Mathf.Max(mb.size.y, mb.size.z)) * mf.transform.lossyScale.y;
+            if (len > 1e-4f) w.localScale *= L / len;
+            // the staff and the book have their origin in the middle: hold the staff low, the book by its edge
+            if (name.Contains("Staff")) w.localPosition += w.localRotation * Vector3.up * (mb.extents.y * 0.45f * w.localScale.y);
+            if (name.Contains("Spellbook")) w.localPosition += w.localRotation * Vector3.up * (mb.extents.y * 0.8f * w.localScale.y);
+        }
         w.name = "Weapon_" + name;
     }
 

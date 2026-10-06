@@ -181,6 +181,7 @@ public static class AHCity
                 go.transform.localScale = Vector3.one * k;
                 Bounds mb = Measure(go);
                 go.transform.position = new Vector3(centre.x - (mb.center.x - go.transform.position.x), centre.y - (mb.min.y - go.transform.position.y), centre.z - (mb.center.z - go.transform.position.z));
+                g.AddBlockBox(Measure(go), 0.35f);   // a solid stall
                 AHModel.SetShadows(go); Landmarked++;
             }
         if (wells != null)
@@ -194,6 +195,7 @@ public static class AHCity
                 Vector3 p = g.W(x, z); p.y = world.position.y;
                 Vector3 dir = mid - p; dir.y = 0f; if (dir.sqrMagnitude < 0.01f) dir = Vector3.forward;
                 go.transform.position = p; go.transform.rotation = Quaternion.LookRotation(dir.normalized); go.transform.localScale = Vector3.one * 4.6f;
+                { var wb = Measure(go); g.AddBlocker(wb.center, Mathf.Min(wb.size.x, wb.size.z) * 0.42f); }   // a solid well
                 AHModel.SetShadows(go); Landmarked++;
             }
         var lamps = AHJson.A(here, "lamps");

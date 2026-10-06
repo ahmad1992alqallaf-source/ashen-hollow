@@ -410,7 +410,8 @@ public class AHPlayer : MonoBehaviour
     void Update()
     {
         float dt = Time.deltaTime;
-        if (dt <= 0f) return;
+        // the game is paused while you make or restyle your hero: keep them breathing instead of a stiff T-pose
+        if (dt <= 0f) { if (anim != null && g.ui != null && g.ui.CreatorOpen) { anim.Play("Idle", true); anim.Tick(Time.unscaledDeltaTime); } return; }
         if (anim != null) anim.Tick(dt);
         if (dead)
         {
@@ -458,7 +459,7 @@ public class AHPlayer : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, g.Face(move), 1f - Mathf.Exp(-dt * 14f));
             moving = true;
         }
-        transform.position = g.Resolve(pos, Radius, AHGame.Wade);
+        transform.position = g.Resolve(g.PushFromPeople(pos, Radius), Radius, AHGame.Wade);
         Moving = moving && dodgeT <= 0f;
         UpdateWading(dt, moving);
 
@@ -703,7 +704,8 @@ public class AHPlayer : MonoBehaviour
         if (cls.mana && mana < sp.cost) { if (g.ui != null) g.ui.Toast("Not enough mana for " + sp.name + " (" + sp.cost + ")."); return; }   // web: mana is checked first
         if (needsTarget && t == null) { if (g.ui != null) g.ui.Toast(sp.name + " needs an enemy in range."); return; }
         if (cls.mana) { mana -= sp.cost; lastCast = Time.time; }
-        if (t != null) { target = t; if (needsTarget) FaceTarget(t); }
+        // cone spells and jumps turn to the enemy too (on a phone you have let go of the stick, so you may face away)
+        if (t != null) { target = t; if (needsTarget || sp.kind == SpellKind.Arc || sp.kind == SpellKind.Leap) FaceTarget(t); }
         cds[i] = AHEvo.Cd(this, sp);
         var el = AHSpellLook.Element(sp);
         AHSound.Spell(el, false);
@@ -716,6 +718,8 @@ public class AHPlayer : MonoBehaviour
         {
             case SpellKind.Strike:
                 pose = cls.ranged ? "Interact" : "1H_Melee_Attack";
+                // Execute and Assassinate finish off a wounded enemy: much harder below 30% health
+                if ((sp.id == "execute" || sp.id == "assassinate") && t.hp < t.type.hp * 0.3f) sp = sp.Scale(sp.id == "execute" ? 1.5f : 1.7f);
                 Hit(t, sp);
                 AHFx.Pop(t.transform.position + Vector3.up * 0.8f, 1.4f, sp.color);
                 break;
@@ -748,10 +752,13 @@ public class AHPlayer : MonoBehaviour
                 break;
             case SpellKind.Multi:
                 {
+                    // your target first, then up to four enemies close to it
                     int shots = 0;
-                    foreach (var m in g.mobs)
+                    var pool = new List<AHMob> { t };
+                    foreach (var m in g.mobs) if (m != t && !m.dead && (m.transform.position - t.transform.position).magnitude < 8.8f && pool.Count < 5) pool.Add(m);
+                    foreach (var m in pool)
                     {
-                        if (m.dead || Dist(m) > sp.range || shots >= 3) continue;
+                        if (m.dead || shots >= 5) continue;
                         int dmg = Roll(sp.mult);
                         bool first = shots == 0; AHFx.Shoot(Hand, m, sp.color, 0.16f, 22f, el, x => { if (first) AHSound.Spell(el, true); x.Hurt(dmg, this); });
                         shots++;
@@ -823,8 +830,7 @@ public class AHPlayer : MonoBehaviour
                 }
                 break;
             case SpellKind.Heal:
-                hp = Mathf.Min(maxHp, hp + maxHp * sp.value);
-                if (g.ui != null) g.ui.Float(me + Vector3.up * 2f, "+" + Mathf.RoundToInt(maxHp * sp.value), new Color(0.6f, 1f, 0.5f));
+                Heal(maxHp * sp.value);   // with your healing bonuses
                 AHFx.Pillar(me, 0.7f, 3f, sp.color, 0.7f);
                 pose = "Cheer";
                 break;
@@ -834,7 +840,9 @@ public class AHPlayer : MonoBehaviour
                 pose = "Cheer";
                 break;
             case SpellKind.Shield:
-                shield = maxHp * sp.value * (sp.id == "barrier" ? 1f + AHEvo.Pass(this, "barrier") : 1f); shieldT = sp.time;
+                // some shields keep their size in 'mult' (Iron Will, Barkskin, Shield Wall...): they used to give nothing
+                shield = maxHp * (sp.value > 0f ? sp.value : sp.mult) * (sp.id == "barrier" ? 1f + AHEvo.Pass(this, "barrier") : 1f); shieldT = sp.time;
+                AHFx.Ring(me, 0.5f, 2.2f, sp.color, 0.5f);
                 pose = "Cheer";
                 break;
             case SpellKind.Invuln:
@@ -843,7 +851,9 @@ public class AHPlayer : MonoBehaviour
                 pose = "Cheer";
                 break;
             case SpellKind.Buff:
-                dmgBuff = sp.value; dmgBuffT = sp.time;
+                // a weaker buff never replaces a stronger one that is still running
+                if (dmgBuffT <= 0f || sp.value >= dmgBuff) { dmgBuff = sp.value; dmgBuffT = sp.time; } else dmgBuffT = Mathf.Max(dmgBuffT, 1f);
+                if (sp.id == "timewarp") for (int k = 0; k < cds.Length; k++) if (k != i) cds[k] = Mathf.Max(0f, cds[k] - 8f);   // Time Warp: other spells ready sooner
                 AHFx.Ring(me, 0.5f, 3.5f, sp.color, 0.5f);
                 if (sp.id == "cry") hp = Mathf.Min(maxHp, hp + maxHp * 0.15f);
                 pose = "Cheer";

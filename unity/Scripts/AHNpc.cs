@@ -133,6 +133,28 @@ public class AHNpc : MonoBehaviour
     }
 
     // ---------- the town ----------
+    // the area models still hold the old box-built people the web game drew (a body, a head, a spear, all little
+    // blocks). Our real townsfolk now stand on the same spots, so the two overlapped: hide the old figure wherever a
+    // townsperson stands.
+    public static void HideOldFigures(AHGame game)
+    {
+        var w = game.World; if (w == null || All.Count == 0) return;
+        int n = 0;
+        foreach (var r in w.GetComponentsInChildren<Renderer>(false))
+        {
+            if (!r.enabled) continue;
+            var b = r.bounds;
+            if (b.size.y > 2.4f || Mathf.Max(b.size.x, b.size.z) > 1.4f) continue;   // only person-sized bits
+            foreach (var p in All)
+            {
+                if (p == null) continue;
+                Vector3 d = b.center - p.home; d.y = 0f;
+                if (d.magnitude < 0.75f && b.min.y < p.home.y + 2.3f) { r.enabled = false; n++; break; }
+            }
+        }
+        if (n > 0) Debug.Log("Ashen Hollow: " + n + " old box townsfolk pieces hidden");
+    }
+
     public static void SpawnTown(AHGame game)
     {
         All.Clear();

@@ -282,8 +282,12 @@ public static class AHWardrobe
     public static void Dress(AHPlayer p, GameObject rig)
     {
         if (rig == null || p == null || p.prog == null) return;
+        dye = AHPeople.OutfitColor(p.look); dyeOn = p.look != null;
         DressWith(rig, p.transform, s => Shown(p, s), () => p.Moving);
+        dyeOn = false;
     }
+    // the outfit colour chosen in the look editor dyes the cloth and leather of worn gear (metal keeps its own colour)
+    static Color dye = Color.white; static bool dyeOn;
 
     // dresses any rig of the hero's kind: 'shown' gives the item id for a slot (or null), 'moving' drives the cape
     public static void DressWith(GameObject rig, Transform hold, Func<string, string> shown, Func<bool> moving)
@@ -302,7 +306,8 @@ public static class AHWardrobe
             var d = AHItems.Get(id);
             var go = new GameObject("Outfit_" + d.slot); go.transform.position = at; go.transform.rotation = face;
             go.transform.SetParent(bone, true);
-            return new Kit { root = go.transform, k = k, col = d.color, metal = Metal.Contains(d.form ?? ""), glow = d.form == "molten" || d.form == "ember" || d.form == "halo" ? 1.6f : 0f };
+            bool isMetal = Metal.Contains(d.form ?? "");
+            return new Kit { root = go.transform, k = k, col = dyeOn && !isMetal ? Color.Lerp(d.color, dye, 0.55f) : d.color, metal = isMetal, glow = d.form == "molten" || d.form == "ember" || d.form == "halo" ? 1.6f : 0f };
         };
 
         // ---- head ----

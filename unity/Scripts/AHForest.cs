@@ -99,7 +99,19 @@ public static class AHForest
             for (int i = 0; i < Trees.Count; i++) { Vector3 d = Trees[i].pos - s.pos; d.y = 0; float m = d.magnitude; if (m < bd) { bd = m; best = i; } }
             s.forest = best;
         }
-        Debug.Log("Ashen Hollow: " + Trees.Count + " trees planted");
+        // every other tree can be chopped too, and none can be walked through: a solid trunk for each
+        var linked = new HashSet<int>(); foreach (var s in AHGather.Spots) if (s.kind == "chop" && s.forest >= 0) linked.Add(s.forest);
+        var treeRules = AHJson.O(AHDB.Rules, "TREES");
+        for (int i = 0; i < Trees.Count; i++)
+        {
+            var t = Trees[i]; Vector3 at = new Vector3(t.pos.x, 0f, t.pos.z);
+            float trunk = Mathf.Clamp(t.go.localScale.x * 0.22f, 0.3f, 0.65f);
+            g.AddBlocker(at, trunk);
+            if (linked.Contains(i)) continue;
+            string type = t.go.name == "Pine" ? "pine" : "tree";
+            AHGather.Spots.Add(new AHSpot { kind = "chop", type = type, pos = at, r = trunk, reach = trunk + 1.4f, forest = i, name = AHJson.S(AHJson.O(treeRules, type), "name", type) });
+        }
+        Debug.Log("Ashen Hollow: " + Trees.Count + " trees planted, all of them choppable");
     }
 
     static Renderer Part(GameObject go, string name)

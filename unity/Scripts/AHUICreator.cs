@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 public partial class AHUI
 {
-    RectTransform crRoot, crPanel, crBody;
+    RectTransform crRoot, crPanel, crBody, crContent; float crScroll; Text crMore;
     readonly List<GameObject> crItems = new List<GameObject>();
     readonly Dictionary<string, Image> crTabImgs = new Dictionary<string, Image>();
     Text crTitle, crSub, crHint, crBeginText;
@@ -71,9 +71,14 @@ public partial class AHUI
             var tab = Img("Tab_" + k, crPanel, white, new Vector2(0f, 1f), new Vector2(20 + 46 + i * 94, -96), new Vector2(90, 38), new Color(0.22f, 0.16f, 0.11f, 1f));
             Center(Label(tab, "T", CrTabNames[i], 17, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(90, 30), Color.white));
             crTabImgs[k] = tab.GetComponent<Image>();
-            taps.Add(new TapBtn { rt = tab, layer = 4, act = () => { crTab = k; crTyping = false; RenderCreator(); } });
+            taps.Add(new TapBtn { rt = tab, layer = 4, act = () => { crTab = k; crTyping = false; crScroll = 0f; RenderCreator(); } });
         }
         crBody = Box("Body", crPanel, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(20, -124), new Vector2(560, 400));
+        // the choices scroll inside the body: drag them up and down (or use the mouse wheel)
+        crBody.gameObject.AddComponent<RectMask2D>();
+        var hit = crBody.gameObject.AddComponent<Image>(); hit.color = new Color(0f, 0f, 0f, 0f);
+        crContent = Box("Content", crBody, new Vector2(0f, 1f), new Vector2(0f, 1f), Vector2.zero, new Vector2(560, 400));
+        crMore = Label(crPanel, "More", "▼ drag up for more", 14, TextAnchor.MiddleRight, new Vector2(400, -506), new Vector2(180, 20), new Color(1f, 0.85f, 0.4f, 0.9f));
         crHint = Label(crPanel, "Hint", "", 14, TextAnchor.UpperLeft, new Vector2(20, -528), new Vector2(380, 60), new Color(1f, 1f, 1f, 0.6f));
         crHint.horizontalOverflow = HorizontalWrapMode.Wrap;
         var begin = Img("Begin", crPanel, white, new Vector2(1f, 0f), new Vector2(-90, 40), new Vector2(160, 54), new Color(0.22f, 0.5f, 0.26f, 1f));
@@ -151,7 +156,7 @@ public partial class AHUI
 
     Text CrLabel(string s, int size, Color c, float h = 26f)
     {
-        var t = Label(crBody, "L", s, size, TextAnchor.UpperLeft, new Vector2(0, -crY), new Vector2(560, h), c);
+        var t = Label(crContent, "L", s, size, TextAnchor.UpperLeft, new Vector2(0, -crY), new Vector2(560, h), c);
         t.horizontalOverflow = HorizontalWrapMode.Wrap;
         crItems.Add(t.gameObject);
         crY += h;
@@ -169,7 +174,7 @@ public partial class AHUI
             float w = sw.HasValue ? 34f : Mathf.Max(56f, it.Value.Length * 9.5f + 26f);
             if (x + w > 560f) { x = 0f; crY += h + 6f; }
             bool sel = on(val);
-            var chip = Img("Chip", crBody, sw.HasValue ? white : white, new Vector2(0f, 1f), new Vector2(x + w / 2f, -crY - h / 2f), new Vector2(w, h),
+            var chip = Img("Chip", crContent, sw.HasValue ? white : white, new Vector2(0f, 1f), new Vector2(x + w / 2f, -crY - h / 2f), new Vector2(w, h),
                 sw.HasValue ? sw.Value : (sel ? new Color(0.62f, 0.42f, 0.18f, 1f) : new Color(0.24f, 0.18f, 0.13f, 1f)));
             if (sw.HasValue && sel) { var ring2 = Img("Sel", chip, ring, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(w + 10, h + 10), new Color(1f, 0.85f, 0.4f)); }
             else if (sw.HasValue) { Img("Edge", chip, white, new Vector2(0.5f, 0f), new Vector2(0, 1), new Vector2(w, 2), new Color(0f, 0f, 0f, 0.4f)); }
@@ -258,12 +263,12 @@ public partial class AHUI
         else if (crTab == "name")
         {
             CrLabel("Name", 19, new Color(1f, 0.85f, 0.55f));
-            var box = Img("NameBox", crBody, white, new Vector2(0f, 1f), new Vector2(190, -crY - 24), new Vector2(380, 46), crTyping ? new Color(0.3f, 0.24f, 0.16f, 1f) : new Color(0.18f, 0.14f, 0.1f, 1f));
+            var box = Img("NameBox", crContent, white, new Vector2(0f, 1f), new Vector2(190, -crY - 24), new Vector2(380, 46), crTyping ? new Color(0.3f, 0.24f, 0.16f, 1f) : new Color(0.18f, 0.14f, 0.1f, 1f));
             var nt = Label(box, "T", (string.IsNullOrEmpty(p.heroName) ? (crTyping ? "" : "Your hero’s name") : p.heroName) + (crTyping ? "_" : ""), 22, TextAnchor.MiddleLeft, new Vector2(12, -8), new Vector2(360, 32),
                 string.IsNullOrEmpty(p.heroName) && !crTyping ? new Color(1f, 1f, 1f, 0.4f) : Color.white);
             crItems.Add(box.gameObject);
             taps.Add(new TapBtn { rt = box, layer = 4, group = "cr", act = StartTyping });
-            var rnd = Img("Random", crBody, white, new Vector2(0f, 1f), new Vector2(460, -crY - 24), new Vector2(150, 46), new Color(0.24f, 0.18f, 0.13f, 1f));
+            var rnd = Img("Random", crContent, white, new Vector2(0f, 1f), new Vector2(460, -crY - 24), new Vector2(150, 46), new Color(0.24f, 0.18f, 0.13f, 1f));
             Center(Label(rnd, "T", "Random", 18, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(150, 30), Color.white));
             crItems.Add(rnd.gameObject);
             taps.Add(new TapBtn { rt = rnd, layer = 4, group = "cr", act = () => { p.heroName = RandomName(p.look.sex); crTyping = false; RenderCreator(); } });
@@ -305,9 +310,19 @@ public partial class AHUI
             }
             crHint.text = crTab == "face" ? "Skin, hair, brows and outfit show on your hero. Eye shape, nose, ears and markings are kept for a later face." : "Your hero changes as you choose.";
         }
+        CrScrollBy(0f);
     }
 
     void CrY(float dy) { crY += dy; }
+
+    void CrScrollBy(float dy)
+    {
+        if (crContent == null) return;
+        float max = Mathf.Max(0f, crY - crBody.rect.height + 10f);
+        crScroll = Mathf.Clamp(crScroll + dy, 0f, max);
+        crContent.anchoredPosition = new Vector2(crContent.anchoredPosition.x, crScroll);
+        crMore.gameObject.SetActive(crScroll < max - 2f);
+    }
 
     // ---------- typing the name: the phone keyboard, or the computer's keys in the editor ----------
     void StartTyping()

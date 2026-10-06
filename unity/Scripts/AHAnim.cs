@@ -109,7 +109,7 @@ public class AHAnim
         int i = Find(name);
         if (i < 0 || legacy != null || !graph.IsValid() || i >= t0s.Count) return;
         cur = i; curLoop = false;
-        plays[i].SetTime(t0s[i] + (t1s[i] - t0s[i]) * frac);
+        plays[i].SetTime(t0s[i] + (t1s[i] - t0s[i]) * Mathf.Min(frac, 0.995f));
         plays[i].SetSpeed(0);
     }
 
@@ -155,7 +155,9 @@ public class AHAnim
         if (len > 0 && t > b)
         {
             if (curLoop) plays[cur].SetTime(a + (t - a) % len);
-            else { plays[cur].SetTime(b); plays[cur].SetSpeed(0); }
+            // stop a hair before the end: a clip imported as looping samples its end as its first frame, which stood
+            // dead beasts back up
+            else { plays[cur].SetTime(System.Math.Max(a, b - 1.0 / 60.0)); plays[cur].SetSpeed(0); }
         }
     }
 

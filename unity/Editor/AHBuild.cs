@@ -13,8 +13,9 @@ public static class AHBuild
     [MenuItem("Ashen Hollow/Android Settings Only")]
     public static void Settings()
     {
-        PlayerSettings.companyName = "Ashen Hollow";
-        PlayerSettings.productName = "Ashen Hollow";
+        // keep Unity's original names: the editor keeps your saved hero under them (changing them hides the save)
+        PlayerSettings.companyName = "DefaultCompany";
+        PlayerSettings.productName = "AshenHollow";
         PlayerSettings.SetApplicationIdentifier(UnityEditor.Build.NamedBuildTarget.Android, "com.ashenhollow.game");
         PlayerSettings.bundleVersion = "0.3.0";
         PlayerSettings.Android.bundleVersionCode = Mathf.Max(PlayerSettings.Android.bundleVersionCode, 3);
@@ -26,6 +27,7 @@ public static class AHBuild
         PlayerSettings.SetScriptingBackend(UnityEditor.Build.NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
         PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
         PlayerSettings.SetManagedStrippingLevel(UnityEditor.Build.NamedBuildTarget.Android, ManagedStrippingLevel.Minimal);
+        PlayerSettings.stripEngineCode = false;   // the game makes colliders and other engine parts in code, which stripping removed on phones
         EditorUserBuildSettings.androidBuildSubtarget = MobileTextureSubtarget.ASTC;
         EditorUserBuildSettings.buildAppBundle = false;   // an .apk you can copy straight to a phone
         AssetDatabase.SaveAssets();
@@ -33,7 +35,13 @@ public static class AHBuild
     }
 
     [MenuItem("Ashen Hollow/Build Android APK")]
-    public static void BuildApk()
+    public static void BuildApk() { Build(false); }
+
+    // builds, installs on the phone picked as Run Device (USB debugging on) and starts it
+    [MenuItem("Ashen Hollow/Build And Run On Phone")]
+    public static void BuildAndRun() { Build(true); }
+
+    static void Build(bool run)
     {
         Settings();
         string scene = null;
@@ -46,7 +54,7 @@ public static class AHBuild
             locationPathName = "Builds/AshenHollow.apk",
             target = BuildTarget.Android,
             targetGroup = BuildTargetGroup.Android,
-            options = BuildOptions.None
+            options = run ? BuildOptions.AutoRunPlayer : BuildOptions.None
         };
         var report = BuildPipeline.BuildPlayer(opts);
         var s = report.summary;

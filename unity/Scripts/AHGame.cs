@@ -59,6 +59,7 @@ public class AHGame : MonoBehaviour
         I = this;
         Application.targetFrameRate = 60;
         QualitySettings.vSyncCount = 0;
+        if (Application.isMobilePlatform) PhoneQuality();
         Screen.autorotateToPortrait = false;
         Screen.autorotateToPortraitUpsideDown = false;
         Screen.autorotateToLandscapeLeft = true;
@@ -66,6 +67,21 @@ public class AHGame : MonoBehaviour
         Screen.orientation = ScreenOrientation.AutoRotation;
         Screen.sleepTimeout = SleepTimeout.NeverSleep;   // the phone screen stays on while you play
         Build();
+    }
+
+    // phones: 30 frames a second, a slightly lower render size on very sharp screens and shorter shadows, so the
+    // phone stays cool and the battery lasts (the picture still looks the same at arm's length)
+    void PhoneQuality()
+    {
+        Application.targetFrameRate = 30;
+        var urp = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+        if (urp != null)
+        {
+            int longSide = Mathf.Max(Screen.width, Screen.height);
+            urp.renderScale = longSide > 2000 ? 0.7f : longSide > 1600 ? 0.8f : 0.9f;
+            urp.shadowDistance = Mathf.Min(urp.shadowDistance, 30f);
+            urp.msaaSampleCount = 1;
+        }
     }
 
     // ---------- positions: web metres to Unity ----------
@@ -161,6 +177,7 @@ public class AHGame : MonoBehaviour
             mobs.Add(AHMob.Create(this, t, W(s.x, s.z)));
         }
         AHNpc.SpawnTown(this);
+        AHNpc.HideOldFigures(this);   // the web version's box-built townsfolk still stood in the area models
         ui = AHUI.Create(this);
         AHTreasure.Setup(this);         // the treasure X you marked here (and the explorer's map on your first Fossil Lands visit): needs the hero and the UI
         AHSound.Ensure(this);
@@ -191,6 +208,14 @@ public class AHGame : MonoBehaviour
             arriving = false;
             // face the way you were going, with the camera behind you
             player.transform.rotation = Quaternion.Euler(0f, carryYaw, 0f); camYaw = carryYaw;
+            // come in at a land's edge: turn to face into the land (toward its heart), never out at the border
+            Vector3 pp = player.transform.position, heart = W(data.spawn.x, data.spawn.z), into = heart - pp; into.y = 0f;
+            float edge = Mathf.Min(Mathf.Min(pp.x - area.xMin, area.xMax - pp.x), Mathf.Min(pp.z - area.yMin, area.yMax - pp.z));
+            if (edge < 18f && into.sqrMagnitude > 4f && Vector3.Dot(player.transform.forward, into.normalized) < 0.5f)
+            {
+                player.transform.rotation = Quaternion.LookRotation(into.normalized);
+                camYaw = player.transform.eulerAngles.y;
+            }
             foreach (var place in AHQuestLog.PlacesOf(AreaId)) quests.Event("visit", place, 1, this);
         }
     }
@@ -242,7 +267,25 @@ public class AHGame : MonoBehaviour
     [System.NonSerialized] public AHQuestLog quests = new AHQuestLog();
 
     // something solid the hero and the beasts walk around
+    // townsfolk are solid: the hero walks around them, not through them (they move, so this is checked live)
+    public Vector3 PushFromPeople(Vector3 p, float r)
+    {
+        foreach (var n in AHNpc.All)
+        {
+            if (n == null) continue;
+            Vector3 np = n.transform.position; float dx = p.x - np.x, dz = p.z - np.z, rr = 0.35f + r, d2 = dx * dx + dz * dz;
+            if (d2 < rr * rr && d2 > 1e-6f) { float d = Mathf.Sqrt(d2); p.x = np.x + dx / d * rr; p.z = np.z + dz / d * rr; }
+        }
+        return p;
+    }
+
     public void AddBlocker(Vector3 p, float r) { cPos.Add(new Vector3(p.x, 0f, p.z)); cRad.Add(r); }
+    // a solid box on the ground (a market stall, a booth), from its world bounds, shrunk a little so you can still reach the counter
+    public void AddBlockBox(Bounds b, float shrink = 0.25f)
+    {
+        float w = Mathf.Max(0.2f, b.size.x - shrink * 2f), d = Mathf.Max(0.2f, b.size.z - shrink * 2f);
+        rects.Add(new Rect(b.center.x - w / 2f, b.center.z - d / 2f, w, d));
+    }
 
     // a beast fell to the hero (web killMob -> questEvent('kill', type))
     public void OnKill(string mob) { quests.Event("kill", mob, 1, this); if (player != null) player.OnTrialKill(mob); }
@@ -675,8 +718,8 @@ public class AHGame : MonoBehaviour
         RenderSettings.ambientMode = AmbientMode.Trilight;
         RenderSettings.fog = true;
         RenderSettings.fogMode = FogMode.Linear;
-        RenderSettings.fogStartDistance = 28f;
-        RenderSettings.fogEndDistance = 95f;
+        RenderSettings.fogStartDistance = 42f;   // far enough that the land doesn't wash out into a pale haze
+        RenderSettings.fogEndDistance = 135f;   // just inside the camera's 140 m reach, so nothing pops
         skyMat = LoadMat("AH/Materials/Sky", "AshenHollow/Sky");
         if (skyMat != null) RenderSettings.skybox = skyMat;
     }
@@ -736,6 +779,7 @@ public class AHGame : MonoBehaviour
             if (d2 < rr * rr && d2 > 1e-6f) { float d = Mathf.Sqrt(d2); p.x = cPos[i].x + dx / d * rr; p.z = cPos[i].z + dz / d * rr; }
         }
         foreach (var b in rects) p = PushOutOf(b, p, r);
+
         foreach (var b in doors) p = PushOutOf(b, p, r);
         foreach (var l in lakes)
         {
@@ -810,6 +854,11 @@ public class AHGame : MonoBehaviour
     void LateUpdate()
     {
         if (player == null || cam == null) return;
+        // a near-square screen (an unfolded phone, a tablet) gets a taller view so it shows as much side to side
+        // as a normal phone instead of looking zoomed in
+        float aspect = Screen.height > 0 ? (float)Screen.width / Screen.height : 1.78f;
+        float wantFov = Mathf.Max(58f, 2f * Mathf.Atan(Mathf.Tan(37.5f * Mathf.Deg2Rad) / Mathf.Max(0.5f, aspect)) * Mathf.Rad2Deg);
+        if (Mathf.Abs(cam.fieldOfView - wantFov) > 0.05f && !(ui != null && ui.CreatorOpen)) cam.fieldOfView = wantFov;
         if (ui != null)
         {
             camYaw += ui.camDelta.x * 0.22f;

@@ -978,6 +978,50 @@ public static class AHMenu
         Debug.Log("Ashen Hollow: bag test: items put back" + (lost.Length > 0 ? ", no room for " + lost : " (all)"));
     }
 
+    [MenuItem("Ashen Hollow/Test: Describe Captain Mara")]   // her model, renderers and where they are, to HeroShots/mara.txt
+    public static void DescribeMara()
+    {
+        if (!Application.isPlaying) return;
+        var go = GameObject.Find("Captain Mara"); var sb = new System.Text.StringBuilder();
+        if (go == null) sb.AppendLine("no Captain Mara");
+        else
+        {
+            sb.AppendLine("pos " + go.transform.position + " active " + go.activeInHierarchy + " children " + go.transform.childCount);
+            foreach (Transform c in go.transform) sb.AppendLine(" child " + c.name + " active " + c.gameObject.activeSelf + " local " + c.localPosition + " scale " + c.localScale + " rot " + c.localEulerAngles);
+            foreach (var r in go.GetComponentsInChildren<Renderer>(true))
+                sb.AppendLine("  r " + r.name + " en " + r.enabled + " act " + r.gameObject.activeInHierarchy + " b " + r.bounds.center + " " + r.bounds.size + " mat " + (r.sharedMaterial != null ? r.sharedMaterial.name + "/" + r.sharedMaterial.shader.name : "none"));
+        }
+        if (go != null)
+        {
+            // everything else whose box covers her spot
+            Vector3 at = go.transform.position + Vector3.up;
+            foreach (var top in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+                foreach (var r in top.GetComponentsInChildren<Renderer>(false))
+                {
+                    if (r.transform.IsChildOf(go.transform)) continue;
+                    var b = r.bounds; b.Expand(0.6f);
+                    if (b.Contains(at)) sb.AppendLine("covers: " + top.name + " / " + (r.transform.parent != null ? r.transform.parent.name + "/" : "") + r.name + " b " + r.bounds.center + " " + r.bounds.size);
+                }
+        }
+        System.IO.Directory.CreateDirectory("HeroShots");
+        System.IO.File.WriteAllText("HeroShots/mara.txt", sb.ToString());
+        Debug.Log("Mara described");
+    }
+
+    [MenuItem("Ashen Hollow/Test: Arrive In Meadow From Mill Road")]   // the same arrival as walking in from Old Mill Road
+    public static void ArriveMeadow()
+    {
+        if (!Application.isPlaying || AHGame.I == null) return;
+        AHGame.I.Travel("meadow", 89.6f, 53.12f, Mathf.PI);
+    }
+
+    [MenuItem("Ashen Hollow/Test: Open Look Editor")]   // the mirror: change hair, skin, outfit on the running hero
+    public static void OpenLook()
+    {
+        if (!Application.isPlaying || AHGame.I == null || AHGame.I.ui == null) return;
+        AHGame.I.ui.OpenCreator("mirror");
+    }
+
     [MenuItem("Ashen Hollow/Test: Go To Throne")]   // stand in front of the nearest throne and take a picture of it
     static void GoThrone()
     {
