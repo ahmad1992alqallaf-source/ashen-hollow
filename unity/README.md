@@ -435,6 +435,8 @@ A tester played through the game before the Android build. What was fixed:
   with your quest) before a nearby shop counter.
 - **Camera:** it rises over the mountains instead of going inside them, and pets and sellswords walk beside you
   instead of between you and the camera.
+- **Kills show "+N XP"** over the body, so you know the monster died. The night wolves in Hollow Meadow now
+  prowl the far east, away from where you start.
 - **First-time tips** for moving, talking, fighting, skinning, the bag and the map. The first quest no longer
   mentions an axe you do not have.
 - **Lighter for phones.** Ashen Hollow > Slim Build moves 15 old area models the game no longer loads out of the

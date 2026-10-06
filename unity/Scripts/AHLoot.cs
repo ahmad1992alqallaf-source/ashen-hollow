@@ -21,7 +21,9 @@ public static class AHLoot
         Vector3 at = m.transform.position;
 
         // XP (web: gainXp('attack', xp * killXpMult, 'kill'))
-        p.GainXp("attack", Mathf.Max(1, Mathf.RoundToInt(t.xp * KillXpMult(t.lvl, p.level))), true);
+        int kxp = Mathf.Max(1, Mathf.RoundToInt(t.xp * KillXpMult(t.lvl, p.level)));
+        p.GainXp("attack", kxp, true);
+        if (g.ui != null) g.ui.Float(at + Vector3.up * 2.2f, "+" + kxp + " XP", new Color(0.65f, 0.9f, 1f));   // so you know it died
 
         // drops (web rollDrops: each [id, chance])
         var got = new List<string>();
