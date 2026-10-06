@@ -187,7 +187,17 @@ public partial class AHUI
             var shb = top.Find("ShieldBg") as RectTransform; var hpb = top.Find("HPBg") as RectTransform;
             if (shb != null && hpb != null) { shb.sizeDelta = hpb.sizeDelta; var sf = shb.Find("Shield") as RectTransform; if (sf != null) sf.sizeDelta = hpb.sizeDelta - new Vector2(10, 8); }
             foreach (var tn in new[] { "HPText", "ManaText" }) { var t = top.Find(tn) as RectTransform; if (t != null) t.sizeDelta = new Vector2(330, t.sizeDelta.y + 4); }
-            var hgT = top.Find("HungerText") as RectTransform; var hgB = top.Find("HungerBg") as RectTransform; if (hgT != null && hgB != null) hgT.anchoredPosition = new Vector2(hgB.anchoredPosition.x + hgB.sizeDelta.x + 8f, hgT.anchoredPosition.y);
+            // the food bar sits clear below the experience bar, a little shorter, with its word to its right
+            var hgT = top.Find("HungerText") as RectTransform; var hgB = top.Find("HungerBg") as RectTransform; var xpB = top.Find("XPBg") as RectTransform;
+            if (hgT != null && hgB != null)
+            {
+                float below = xpB != null ? xpB.anchoredPosition.y - xpB.sizeDelta.y - 4f : hgB.anchoredPosition.y;
+                hgB.anchoredPosition = new Vector2(hgB.anchoredPosition.x, below); hgB.sizeDelta = new Vector2(220f, hgB.sizeDelta.y);
+                var hf = hgB.Find("Hunger") as RectTransform; if (hf != null) hf.sizeDelta = hgB.sizeDelta - new Vector2(10, 8);
+                hgT.anchoredPosition = new Vector2(hgB.anchoredPosition.x + hgB.sizeDelta.x + 8f, below + 3f); hgT.sizeDelta = new Vector2(140f, 18f);
+                hungerText.fontSize = 13;
+                foreach (var ln in new[] { "Clock", "Gold" }) { var l = top.Find(ln) as RectTransform; if (l != null) l.anchoredPosition += new Vector2(0f, -8f); }
+            }
             var lvT = top.Find("Level") as RectTransform; if (lvT != null) lvT.gameObject.SetActive(false);   // the level sits on the portrait now
             hpFill.color = new Color(0.86f, 0.16f, 0.14f); manaFill.color = new Color(0.22f, 0.5f, 1f); xpFill.color = new Color(0.62f, 0.42f, 1f);   // experience in violet
             // tap your portrait or name to see your stats
