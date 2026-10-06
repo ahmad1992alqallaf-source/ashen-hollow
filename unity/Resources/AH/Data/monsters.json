@@ -3399,7 +3399,7 @@
    "files": [
     "b_bear"
    ],
-   "size": 2.6,
+   "size": 2.5,
    "attack": [
     "Attack"
    ],
@@ -3451,16 +3451,16 @@
    "files": [
     "b_ram"
    ],
-   "size": 1.9,
+   "size": 1.7,
    "attack": [
-    "Attack_Headbutt"
+    "Attack"
    ],
    "long": true,
    "noTint": true,
    "idle": "Idle",
    "walk": "Walk",
    "move": "Gallop",
-   "hit": "Idle",
+   "hit": "Idle_HitReact_Left",
    "death": "Death",
    "moveRate": 0.9
   }
