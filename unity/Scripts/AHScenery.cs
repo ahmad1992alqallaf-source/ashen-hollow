@@ -627,7 +627,16 @@ public static class AHScenery
             { var go = Menhir(root, Mathf.Max(2.2f, b.size.y * 1.05f), Mathf.RoundToInt(sp.x * 3 + sp.z)); go.transform.position = new Vector3(b.center.x, b.min.y, b.center.z); AHModel.SetShadows(go); n++; }
         foreach (var sp in Spots(g, "throne"))
             if (Take(world, sp, 3.5f, 4f, 6.5f, out b, out face))
-            { var go = AHStations.Throne(root); go.transform.localScale = Vector3.one * 0.6f; go.transform.position = new Vector3(b.center.x, b.min.y, b.center.z); go.transform.rotation = Face(go.transform.position, face); AHModel.SetShadows(go); n++; }
+            {
+                var go = AHStations.Throne(root); go.transform.localScale = Vector3.one * 0.6f; go.transform.position = new Vector3(b.center.x, b.min.y, b.center.z); go.transform.rotation = Face(go.transform.position, face); AHModel.SetShadows(go); n++;
+                // an obsidian cluster made from the old throne's dark pieces would sit on the seat: clear the dais
+                foreach (var rg in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+                {
+                    if (rg.name != "Crystals") continue;
+                    foreach (Transform c in rg.transform)
+                    { Vector3 d = c.position - go.transform.position; d.y = 0; if (d.magnitude < 3.6f) Object.Destroy(c.gameObject); }
+                }
+            }
         foreach (var sp in Spots(g, "brazier"))
             if (Take(world, sp, 1.9f, 3.8f, 2.6f, out b, out face))
             { var go = AHStations.Brazier(root, 1.2f, Mathf.RoundToInt(sp.x)); go.transform.localScale = Vector3.one * 1.7f; go.transform.position = new Vector3(b.center.x, b.min.y, b.center.z); n++; }

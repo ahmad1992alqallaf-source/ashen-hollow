@@ -977,4 +977,30 @@ public static class AHMenu
         foreach (var kv in stash) if (!bag.Add(kv.Key, kv.Value)) lost += kv.Key + " x" + kv.Value + " ";
         Debug.Log("Ashen Hollow: bag test: items put back" + (lost.Length > 0 ? ", no room for " + lost : " (all)"));
     }
+
+    [MenuItem("Ashen Hollow/Test: Go To Throne")]   // stand in front of the nearest throne and take a picture of it
+    static void GoThrone()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        var th = GameObject.Find("Ember Throne"); bool temp = false;
+        if (th == null)
+        {   // none in this land: put one down beside you for the picture
+            th = AHStations.Throne(null); temp = true;
+            Vector3 fw = g.player.transform.forward; fw.y = 0; fw.Normalize();
+            th.transform.position = g.Resolve(g.player.transform.position + fw * 14f, 0.3f); th.transform.rotation = Quaternion.LookRotation(-fw);
+        }
+        Vector3 f = th.transform.forward; f.y = 0; f.Normalize();
+        if (!temp) { g.player.transform.position = g.Resolve(th.transform.position + f * 9f, 0.3f); g.player.transform.rotation = Quaternion.LookRotation(-f); }
+        var go = new GameObject("ThroneCam"); var cam = go.AddComponent<Camera>(); cam.fieldOfView = 40f;
+        if (g.cam != null) { cam.clearFlags = g.cam.clearFlags; cam.backgroundColor = g.cam.backgroundColor; }
+        float s = th.transform.lossyScale.y;
+        cam.transform.position = th.transform.position + f * 11f * s + Vector3.up * 4f * s + th.transform.right * 4f * s; cam.transform.LookAt(th.transform.position + Vector3.up * 3f * s);
+        var rt = new RenderTexture(900, 700, 24); cam.targetTexture = rt; cam.Render();
+        var tex = new Texture2D(900, 700, TextureFormat.RGB24, false); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, 900, 700), 0, 0); tex.Apply(); RenderTexture.active = null;
+        string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
+        System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, "throne_" + AHGame.AreaId + ".png"), tex.EncodeToPNG());
+        cam.targetTexture = null; Object.Destroy(go); Object.Destroy(rt); Object.Destroy(tex);
+        if (temp) Object.Destroy(th);
+        Debug.Log("Ashen Hollow: throne picture taken in " + AHGame.AreaId);
+    }
 }

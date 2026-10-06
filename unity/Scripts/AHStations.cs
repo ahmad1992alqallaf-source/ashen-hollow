@@ -476,26 +476,34 @@ public static class AHStations
         P.Add(dk, Cube, new Vector3(0, 0.82f, -0.6f), Quaternion.identity, new Vector3(4.2f, 0.25f, 2.8f));
         P.Add(gold, Cube, new Vector3(0, 0.41f, 2.5f), Quaternion.identity, new Vector3(7.02f, 0.05f, 0.05f));
         P.Add(red, Cube, new Vector3(0, 0.42f, 1.6f), Quaternion.identity, new Vector3(1.6f, 0.03f, 2.4f));   // the carpet up the steps
-        // the seat and its back
-        P.Add(st, Cube, new Vector3(0, 1.45f, -0.6f), Quaternion.identity, new Vector3(2.4f, 1.0f, 1.8f));
-        P.Add(red, Cube, new Vector3(0, 1.98f, -0.55f), Quaternion.identity, new Vector3(2.0f, 0.12f, 1.5f));
-        P.Add(dk, Cube, new Vector3(0, 3.6f, -1.35f), Quaternion.identity, new Vector3(2.6f, 4.4f, 0.5f));
-        P.Add(red, Cube, new Vector3(0, 3.2f, -1.08f), Quaternion.identity, new Vector3(1.7f, 2.6f, 0.06f));
-        P.Add(dk, Cube, new Vector3(0, 6.0f, -1.35f), Quaternion.Euler(0, 0, 45), new Vector3(1.85f, 1.85f, 0.5f));   // the pointed top
-        P.Add(gold, Sph, new Vector3(0, 6.5f, -1.1f), Quaternion.identity, Vector3.one * 0.55f);
-        P.Add(gold, Cube, new Vector3(0, 1.4f + 4.4f / 2f + 0.05f, -1.08f), Quaternion.identity, new Vector3(2.7f, 0.1f, 0.1f));
+        // the seat: the carved skull throne (Models/Town/throne_arcadia) when it is there, else one built of blocks
+        var tm = Resources.Load<GameObject>("AH/Models/Town/throne_arcadia"); bool fancy = tm != null;
+        if (!fancy)
+        {
+            // the seat and its back
+            P.Add(st, Cube, new Vector3(0, 1.45f, -0.6f), Quaternion.identity, new Vector3(2.4f, 1.0f, 1.8f));
+            P.Add(red, Cube, new Vector3(0, 1.98f, -0.55f), Quaternion.identity, new Vector3(2.0f, 0.12f, 1.5f));
+            P.Add(dk, Cube, new Vector3(0, 3.6f, -1.35f), Quaternion.identity, new Vector3(2.6f, 4.4f, 0.5f));
+            P.Add(red, Cube, new Vector3(0, 3.2f, -1.08f), Quaternion.identity, new Vector3(1.7f, 2.6f, 0.06f));
+            P.Add(dk, Cube, new Vector3(0, 6.0f, -1.35f), Quaternion.Euler(0, 0, 45), new Vector3(1.85f, 1.85f, 0.5f));   // the pointed top
+            P.Add(gold, Sph, new Vector3(0, 6.5f, -1.1f), Quaternion.identity, Vector3.one * 0.55f);
+            P.Add(gold, Cube, new Vector3(0, 1.4f + 4.4f / 2f + 0.05f, -1.08f), Quaternion.identity, new Vector3(2.7f, 0.1f, 0.1f));
+        }
         foreach (float sx in new[] { -1f, 1f })
         {
-            P.Add(gold, Cube, new Vector3(sx * 1.32f, 3.6f, -1.08f), Quaternion.identity, new Vector3(0.1f, 4.4f, 0.1f));
-            // armrests
-            P.Add(dk, Cube, new Vector3(sx * 1.35f, 2.25f, -0.5f), Quaternion.identity, new Vector3(0.4f, 0.3f, 1.9f));
-            P.Add(st, Cube, new Vector3(sx * 1.35f, 1.6f, -0.5f), Quaternion.identity, new Vector3(0.35f, 1.1f, 1.7f));
-            P.Add(gold, Sph, new Vector3(sx * 1.35f, 2.45f, 0.45f), Quaternion.identity, Vector3.one * 0.38f);
-            // horns curling out from the back
-            for (int i = 0; i < 18; i++)
+            if (!fancy)
             {
-                float k = i / 17f;
-                P.Add(bone, Sph, new Vector3(sx * (1.35f + k * 1.25f), 5.1f + Mathf.Sin(k * 2.6f) * 1.15f, -1.3f + k * 0.45f), Quaternion.identity, Vector3.one * (0.46f - k * 0.36f));
+                P.Add(gold, Cube, new Vector3(sx * 1.32f, 3.6f, -1.08f), Quaternion.identity, new Vector3(0.1f, 4.4f, 0.1f));
+                // armrests
+                P.Add(dk, Cube, new Vector3(sx * 1.35f, 2.25f, -0.5f), Quaternion.identity, new Vector3(0.4f, 0.3f, 1.9f));
+                P.Add(st, Cube, new Vector3(sx * 1.35f, 1.6f, -0.5f), Quaternion.identity, new Vector3(0.35f, 1.1f, 1.7f));
+                P.Add(gold, Sph, new Vector3(sx * 1.35f, 2.45f, 0.45f), Quaternion.identity, Vector3.one * 0.38f);
+                // horns curling out from the back
+                for (int i = 0; i < 18; i++)
+                {
+                    float k = i / 17f;
+                    P.Add(bone, Sph, new Vector3(sx * (1.35f + k * 1.25f), 5.1f + Mathf.Sin(k * 2.6f) * 1.15f, -1.3f + k * 0.45f), Quaternion.identity, Vector3.one * (0.46f - k * 0.36f));
+                }
             }
             // side braziers
             P.Add(dk, Cyl, new Vector3(sx * 3.0f, 1.0f, 0.8f), Quaternion.identity, new Vector3(0.45f, 0.6f, 0.45f));
@@ -503,6 +511,14 @@ public static class AHStations
             P.Add(ember, Sph, new Vector3(sx * 3.0f, 1.72f, 0.8f), Quaternion.identity, new Vector3(0.7f, 0.18f, 0.7f));
         }
         P.Build(root.transform);
+        if (fancy)
+        {
+            var t = Object.Instantiate(tm, root.transform, false); t.name = "Skull throne";
+            var rs = t.GetComponentsInChildren<Renderer>(); Bounds bb = rs[0].bounds; foreach (var r in rs) bb.Encapsulate(r.bounds);
+            float k = 5.4f / Mathf.Max(0.01f, bb.size.y);
+            t.transform.localScale = Vector3.one * k; t.transform.localPosition = new Vector3(0f, 0.95f, -0.75f);
+            foreach (var r in rs) r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+        }
         var rnd = new System.Random(77);
         Flames(root.transform, new Vector3(-3.0f, 1.75f, 0.8f), 0.9f, 5, rnd);
         Flames(root.transform, new Vector3(3.0f, 1.75f, 0.8f), 0.9f, 5, rnd);

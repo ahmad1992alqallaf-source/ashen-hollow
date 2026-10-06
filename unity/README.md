@@ -395,6 +395,9 @@ For iPhone you need a Mac with Xcode.
   **Ashfall warden**, and the six-limbed demone is the **Voidling** (Voidmaw's adds). Made by `tools/rig/` (reduce,
   fit the skeleton, skin by bone distance, cut the triangles that tear in motion); the models stay out of the repo
   (Resources/AH/Models/Demon).
+- **The skull throne**: Vaelor's Ember Throne in the raid and the throne in Emberreach are now the carved
+  'Arcadia throne' (red velvet, skulls) on the old dais with its braziers (Models/Town/throne_arcadia, read from
+  its .3ds by `tools/animals/t3ds2glb.py`). "Test: Go To Throne" takes its picture.
 - **Fixes**: a treasure X marked before you left a land is diggable again when you come back (it was placed before the
   hero existed), and the Fossil Lands welcome map now really arrives. Digging with a full bag says to make room and
   keeps the map. Emberreach's floating orange slab (a lava streak of the old volcano) is gone.
@@ -405,8 +408,9 @@ For iPhone you need a Mac with Xcode.
   only fights back) and the **Mountain ram** (Frostfang Reach, Whitepine; lv 21, headbutts back). Hollow Meadow,
   now wider, has a few more boars and deer. The bear, the crocodile and the ram are the realistic black bear,
   American alligator and bighorn sheep from the 'Ultimate Animal Pack' you supplied (static sculpts), rigged to the
-  Quaternius wolf's skeleton and clips by `tools/animals/qrig.py` (q_bear, q_croc, q_ram); the ostrich is built
-  from the raptor rig (mk_ostrich). `tools/animals/add_animals.py` adds the data and spawns.
+  Quaternius wolf's skeleton and clips by `tools/animals/qrig.py` (q_bear, q_croc, q_ram); the ostrich is the
+  'African ostrich' model, reduced and moved onto the raptor's skeleton and clips by `tools/animals/grig.py`
+  (r_ostrich). `tools/animals/add_animals.py` adds the data and spawns.
 - **Skins**: bear pelt and claw, crocodile hide and tooth, ostrich plume and feathers, ram wool and horn. Bears
   sometimes drop honey, crocodiles a tooth, ostriches an **ostrich egg** (cook a Sunscar omelette at the oven).
 - **Feathers now build things**: the Plume-fletched longbow (anvil), the Plumed hunter's hat and the Feather cloak
@@ -435,6 +439,8 @@ For iPhone you need a Mac with Xcode.
   supplied; no licence note in the files, check its page before release (not in the public repository).
 - The devil ('Realistic devil demon, game ready'), the black demon and 'demone hipoly': free downloads without licence
   notes in their files; check their pages before release (not in the public repository).
+- 'African ostrich (Revised version)' by Андрей (sketchfab.com/andrey.tnt12561), CC-BY 4.0; reduced and rigged to
+  the raptor clips for Ashen Hollow. 'Arcadia throne': free download without a licence note; check its page.
 - 'Hellish imp 01' (the imps, Magma imps and Riftlings) by GAMEBR0VIP (sketchfab.com/GAMEBR0VIP), CC-BY 4.0; reduced, given a
   loincloth and rigged to the Quaternius humanoid animations for Ashen Hollow.
 - 'Sea Serpent' by Sammy The Citipati (sketchfab.com/SammyTheCitipati), CC-BY 4.0.
