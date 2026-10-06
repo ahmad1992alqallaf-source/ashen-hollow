@@ -523,7 +523,7 @@ public static class AHMenu
     }
 
     // a monster stood a few metres in front of you, alive (breathing, idling) but harmless; again for the next one
-    static readonly string[] showIds = { "bear", "croc", "ostrich", "ram", "m_flameguard", "emberwarden", "voidling", "grull", "pyraxis", "imp", "magmaimp", "troll", "f_hrimgar", "f_glacius", "lurker", "mirehulk", "bogmother", "w_bogking", "w_rotfang", "sandqueen", "thalassa", "voidmaw", "m_ignis" };
+    static readonly string[] showIds = { "bogtoad", "lurker", "bear", "croc", "ostrich", "ram", "m_flameguard", "emberwarden", "voidling", "grull", "pyraxis", "imp", "magmaimp", "troll", "f_hrimgar", "f_glacius", "lurker", "mirehulk", "bogmother", "w_bogking", "w_rotfang", "sandqueen", "thalassa", "voidmaw", "m_ignis" };
     static int showAt; static GameObject showGo;   // the list starts again after each script reload (new animals come first)
     [MenuItem("Ashen Hollow/Test: Display Monster Here")]
     static void ShowMonster()
@@ -1013,6 +1013,34 @@ public static class AHMenu
     {
         if (!Application.isPlaying || AHGame.I == null) return;
         AHGame.I.Travel("meadow", 89.6f, 53.12f, Mathf.PI);
+    }
+
+    [MenuItem("Ashen Hollow/Test: Describe Exits")]   // what stands at each way out of this land, to HeroShots/exits.txt
+    public static void DescribeExits()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.data == null) return;
+        var sb = new System.Text.StringBuilder();
+        foreach (var e in g.data.exits)
+        {
+            Vector3 c = g.W(e.x, e.z); sb.AppendLine("exit to " + e.to + " at " + c);
+            foreach (var top in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+                foreach (var r in top.GetComponentsInChildren<Renderer>(false))
+                {
+                    var b = r.bounds; Vector3 d = b.center - c; d.y = 0; if (d.magnitude > 9f || r.name.StartsWith("AH_GROUND") || Mathf.Max(b.size.x, b.size.z) > 20f) continue;
+                    var mf = r.GetComponent<MeshFilter>(); int tri = mf != null && mf.sharedMesh != null ? mf.sharedMesh.triangles.Length / 3 : -1;
+                    Color col = Color.white; var m = r.sharedMaterial; if (m != null) { if (m.HasProperty("baseColorFactor")) col = m.GetColor("baseColorFactor"); else if (m.HasProperty("_BaseColor")) col = m.GetColor("_BaseColor"); }
+                    sb.AppendLine("  " + top.name + " / " + (r.transform.parent != null ? r.transform.parent.name + "/" : "") + r.name + " c " + b.center + " s " + b.size + " tri " + tri + " col " + ColorUtility.ToHtmlStringRGB(col));
+                }
+        }
+        System.IO.Directory.CreateDirectory("HeroShots"); System.IO.File.WriteAllText("HeroShots/exits.txt", sb.ToString());
+        Debug.Log("Exits described");
+    }
+
+    [MenuItem("Ashen Hollow/Test: Toggle Fog %&g")]   // to see whether the haze is fog
+    public static void ToggleFog()
+    {
+        RenderSettings.fog = !RenderSettings.fog;
+        Debug.Log("Fog " + RenderSettings.fog + " mode " + RenderSettings.fogMode + " start " + RenderSettings.fogStartDistance + " end " + RenderSettings.fogEndDistance + " density " + RenderSettings.fogDensity + " colour " + RenderSettings.fogColor);
     }
 
     [MenuItem("Ashen Hollow/Test: Open Look Editor")]   // the mirror: change hair, skin, outfit on the running hero

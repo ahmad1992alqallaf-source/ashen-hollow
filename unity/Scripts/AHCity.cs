@@ -643,7 +643,10 @@ public static class AHCity
     };
     public static void Outskirts(AHGame g, Transform world)
     {
-        Color col; if (world == null || !Land.TryGetValue(AHGame.AreaId, out col)) return;
+        Color col; if (world == null) return;
+        // the wild lands too: past their mountains you used to see a blank grey edge of the world. Their land
+        // colour comes from the edge of their own painted ground map.
+        if (!Land.TryGetValue(AHGame.AreaId, out col) && (AHDungeon.IsDungeon(AHGame.AreaId) || !EdgeColour(out col))) return;
         Renderer ground = null; foreach (var r in world.GetComponentsInChildren<Renderer>(true)) if (r.name.StartsWith("AH_GROUND")) { ground = r; break; }
         if (ground == null) return;
         var gm = AHGame.LoadMat("AH/Materials/Ground", "AshenHollow/Ground"); if (gm == null) return;
@@ -656,6 +659,27 @@ public static class AHCity
         go.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
         go.transform.localScale = new Vector3(900f, 900f, 1f);
         var mr = go.GetComponent<MeshRenderer>(); mr.sharedMaterial = gm; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+    }
+
+    // the average colour round the rim of a land's ground map (its grass, sand or snow), slightly darkened like distance
+    static bool EdgeColour(out Color col)
+    {
+        col = Color.green;
+        var png = Resources.Load<TextAsset>(AHGame.AreaPath + AHGame.AreaId + "_ground"); if (png == null) return false;
+        var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false); if (!tex.LoadImage(png.bytes)) return false;
+        var px = tex.GetPixels32(); int w = tex.width, h = tex.height; Object.Destroy(tex);
+        double r = 0, gg = 0, b = 0; int n = 0;
+        // a ring a little inside the image, past any black margin
+        for (int i = 0; i < w * h; i += 7)
+        {
+            int x = i % w, y = i / w; float ex = Mathf.Min(x, w - 1 - x) / (float)w, ey = Mathf.Min(y, h - 1 - y) / (float)h;
+            if (Mathf.Min(ex, ey) > 0.22f) continue;
+            var c = px[i]; if (c.r + c.g + c.b < 60) continue;   // the black margin outside the land
+            r += c.r; gg += c.g; b += c.b; n++;
+        }
+        if (n < 20) return false;
+        col = new Color((float)(r / n / 255.0) * 0.92f, (float)(gg / n / 255.0) * 0.92f, (float)(b / n / 255.0) * 0.92f);
+        return true;
     }
 
     // street life in front of the buildings: crates and sacks at the market, a weapon rack at the smithy, barrels at

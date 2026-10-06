@@ -15,6 +15,7 @@ Shader "AshenHollow/Ground"
         _PaveScale ("Cobble tiles per metre", Float) = 0.25
         _PaveAmt ("Paving", Range(0, 1)) = 0
         _PaveRect ("Paved area (x0, z0, x1, z1)", Vector) = (0, 0, 0, 0)
+        _PaveGrass ("Pave over grass too", Range(0, 1)) = 0
     }
     SubShader
     {
@@ -33,6 +34,10 @@ Shader "AshenHollow/Ground"
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            // grass and dirt are matt: no sky mirrored at low angles (it washed the land out, pale as snow, when you
+            // looked toward the sun) and no sun glints
+            #define _ENVIRONMENTREFLECTIONS_OFF 1
+            #define _SPECULARHIGHLIGHTS_OFF 1
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
@@ -46,6 +51,7 @@ Shader "AshenHollow/Ground"
                 float _PaveScale;
                 half _PaveAmt;
                 float4 _PaveRect;
+                half _PaveGrass;
             CBUFFER_END
 
             struct Attributes { float4 positionOS : POSITION; float3 normalOS : NORMAL; float2 uv : TEXCOORD0; };
@@ -85,7 +91,7 @@ Shader "AshenHollow/Ground"
                 float3 a0 = albedo;
                 float inRect = step(_PaveRect.x, p.x) * step(p.x, _PaveRect.z) * step(_PaveRect.y, p.y) * step(p.y, _PaveRect.w);
                 float green = saturate((a0.g - max(a0.r, a0.b)) * 14.0), blue = saturate((a0.b - a0.r - 0.06) * 8.0);
-                float pm = _PaveAmt * inRect * (1.0 - green) * (1.0 - blue);
+                float pm = _PaveAmt * inRect * lerp(1.0 - green, 1.0, _PaveGrass) * (1.0 - blue);
                 float2 g = 0;
                 if (pm > 0.001)
                 {
@@ -148,6 +154,7 @@ Shader "AshenHollow/Ground"
                 float _PaveScale;
                 half _PaveAmt;
                 float4 _PaveRect;
+                half _PaveGrass;
             CBUFFER_END
             struct Attributes { float4 positionOS : POSITION; };
             struct Varyings { float4 positionCS : SV_POSITION; };
@@ -172,6 +179,7 @@ Shader "AshenHollow/Ground"
                 float _PaveScale;
                 half _PaveAmt;
                 float4 _PaveRect;
+                half _PaveGrass;
             CBUFFER_END
             struct Attributes { float4 positionOS : POSITION; float3 normalOS : NORMAL; };
             struct Varyings { float4 positionCS : SV_POSITION; float3 normalWS : TEXCOORD0; };

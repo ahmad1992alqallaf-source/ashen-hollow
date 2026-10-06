@@ -276,6 +276,56 @@ public static class AHWardrobe
         cloaks[key] = m; return m;
     }
 
+    // the robe's skirt: rings of cloth from the waist to just above the ankles, each vertex held by the pelvis at the
+    // top and more and more by the thigh, then the calf, of its own side further down
+    static bool Skirt(GameObject rig, Transform hold, Material mat, float k, float ground)
+    {
+        Transform pel = Bone(rig, "pelvis"), tl = Bone(rig, "thigh_l"), tr = Bone(rig, "thigh_r"), cl = Bone(rig, "calf_l"), cr = Bone(rig, "calf_r");
+        if (pel == null || tl == null || tr == null || cl == null || cr == null) return false;
+        var go = new GameObject("Outfit_robe"); go.transform.SetParent(rig.transform, false);
+        Vector3 lr = tl.position - tr.position; lr.y = 0f; float half = lr.magnitude * 0.5f; Vector3 side = lr.sqrMagnitude > 1e-6f ? lr.normalized : hold.right * -1f;
+        Vector3 fwd = hold.forward; fwd.y = 0f; fwd.Normalize();
+        Vector3 c = (tl.position + tr.position) * 0.5f;
+        float top = pel.position.y + 0.05f * k, hem = ground + 0.13f * k;
+        const int nu = 22, nv = 10;
+        var verts = new List<Vector3>(); var bw = new List<BoneWeight>(); var tris = new List<int>();
+        for (int face = 0; face < 2; face++)
+        {
+            int b0 = verts.Count; float inset = face == 0 ? 0f : -0.008f * k;
+            for (int j = 0; j <= nv; j++)
+                for (int i = 0; i <= nu; i++)
+                {
+                    float v = j / (float)nv, th = i / (float)nu * Mathf.PI * 2f, flare = Mathf.Pow(v, 0.85f);
+                    float rs = Mathf.Lerp(half + 0.085f * k, half + 0.19f * k, flare) + inset, rf = Mathf.Lerp(0.115f * k, 0.2f * k, flare) + inset;
+                    float wave = 1f + 0.035f * v * Mathf.Sin(th * 7f);   // soft folds toward the hem
+                    Vector3 wp = c + side * Mathf.Cos(th) * rs * wave + fwd * Mathf.Sin(th) * rf * wave; wp.y = Mathf.Lerp(top, hem, v);
+                    verts.Add(go.transform.InverseTransformPoint(wp));
+                    float sd = Mathf.Cos(th), fl = Mathf.Clamp01(0.5f + 0.8f * sd), fr = 1f - fl;
+                    float leg = Mathf.SmoothStep(0f, 0.9f, Mathf.InverseLerp(0.08f, 0.95f, v)), cs = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.45f, 1f, v));
+                    var ws = new[] { 1f - leg, leg * (1f - cs) * fl, leg * (1f - cs) * fr, leg * cs * fl, leg * cs * fr };
+                    // keep the four biggest (a skinned vertex takes four bones)
+                    int drop = 0; for (int q = 1; q < 5; q++) if (ws[q] < ws[drop]) drop = q;
+                    ws[drop] = 0f; float sum = 0f; foreach (var x in ws) sum += x;
+                    var w4 = new List<KeyValuePair<int, float>>(); for (int q = 0; q < 5; q++) if (q != drop) w4.Add(new KeyValuePair<int, float>(q, ws[q] / Mathf.Max(1e-5f, sum)));
+                    bw.Add(new BoneWeight { boneIndex0 = w4[0].Key, weight0 = w4[0].Value, boneIndex1 = w4[1].Key, weight1 = w4[1].Value, boneIndex2 = w4[2].Key, weight2 = w4[2].Value, boneIndex3 = w4[3].Key, weight3 = w4[3].Value });
+                }
+            for (int j = 0; j < nv; j++)
+                for (int i = 0; i < nu; i++)
+                {
+                    int a = b0 + j * (nu + 1) + i, b = a + nu + 1;
+                    if (face == 0) tris.AddRange(new[] { a, b, a + 1, a + 1, b, b + 1 }); else tris.AddRange(new[] { a, a + 1, b, a + 1, b + 1, b });
+                }
+        }
+        var bones = new[] { pel, tl, tr, cl, cr };
+        var mesh = new Mesh { name = "robe_skirt" };
+        mesh.SetVertices(verts); mesh.SetTriangles(tris, 0); mesh.boneWeights = bw.ToArray();
+        var bp = new Matrix4x4[bones.Length]; for (int i = 0; i < bones.Length; i++) bp[i] = bones[i].worldToLocalMatrix * go.transform.localToWorldMatrix;
+        mesh.bindposes = bp; mesh.RecalculateNormals(); mesh.RecalculateBounds();
+        var smr = go.AddComponent<SkinnedMeshRenderer>(); smr.sharedMesh = mesh; smr.bones = bones; smr.rootBone = pel; smr.sharedMaterial = mat;
+        smr.localBounds = new Bounds(Vector3.zero, Vector3.one * 3f);
+        return true;
+    }
+
     static Transform Bone(GameObject rig, string name) { foreach (var t in rig.GetComponentsInChildren<Transform>(true)) if (t.name == name) return t; return null; }
 
     // called right after the hero model is built (still in its rest pose)
@@ -386,8 +436,10 @@ public static class AHWardrobe
             }
             else if (f == "robe" && pelvis != null)
             {
+                // a skirt of cloth skinned to the hips, thighs and calves: it walks with the legs instead of
+                // swinging out as one stiff cone
                 var K = start(pelvis, pelvis.position, cid);
-                K.Mesh(frustum, new Vector3(0, -0.62f, 0), new Vector3(0.27f, 0.68f, 0.24f), Vector3.zero);
+                if (!Skirt(rig, hold, K.Mat, k, ground)) K.Mesh(frustum, new Vector3(0, -0.62f, 0), new Vector3(0.27f, 0.68f, 0.24f), Vector3.zero);
                 K.Mesh(torus, new Vector3(0, 0.04f, 0), new Vector3(0.32f, 0.8f, 0.27f), Vector3.zero, K.Dark);
             }
         }
@@ -500,8 +552,8 @@ public class AHCapeSwing : MonoBehaviour
     {
         if (who == null || bone == null) return;
         bool m = moving != null && moving();
-        float want = m ? 26f : 0f; tilt = Mathf.Lerp(tilt, want, Time.deltaTime * 5f); ph += Time.deltaTime * (m ? 9f : 1.6f);
-        float sway = Mathf.Sin(ph) * (m ? 4f : 1.5f);
+        float want = m ? 13f : 0f; tilt = Mathf.Lerp(tilt, want, Time.deltaTime * 4f); ph += Time.deltaTime * (m ? 8f : 1.6f);
+        float sway = Mathf.Sin(ph) * (m ? 2.5f : 1.2f);
         transform.position = bone.position;
         transform.rotation = who.rotation * Quaternion.Euler((tilt + sway) * amt, 0, Mathf.Sin(ph * 0.5f) * 2f * amt);
     }

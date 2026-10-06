@@ -719,8 +719,8 @@ public class AHGame : MonoBehaviour
         RenderSettings.ambientMode = AmbientMode.Trilight;
         RenderSettings.fog = true;
         RenderSettings.fogMode = FogMode.Linear;
-        RenderSettings.fogStartDistance = 42f;   // far enough that the land doesn't wash out into a pale haze
-        RenderSettings.fogEndDistance = 135f;   // just inside the camera's 140 m reach, so nothing pops
+        RenderSettings.fogStartDistance = 70f;   // the big meadows read clear across; only the far hills soften
+        RenderSettings.fogEndDistance = 190f;   // just inside the camera's reach, so nothing pops
         skyMat = LoadMat("AH/Materials/Sky", "AshenHollow/Sky");
         if (skyMat != null) RenderSettings.skybox = skyMat;
     }
@@ -737,7 +737,7 @@ public class AHGame : MonoBehaviour
         }
         cam.fieldOfView = 58f;
         cam.nearClipPlane = 0.1f;
-        cam.farClipPlane = 140f;
+        cam.farClipPlane = 195f;
         cam.clearFlags = CameraClearFlags.Skybox;
         // the water shows the ground through it: keep the scene's colour and depth for it
         var cd = cam.GetComponent<UniversalAdditionalCameraData>();

@@ -113,6 +113,7 @@ public class AHMob : MonoBehaviour
     float moveRate = 1f, wakeT, idleRate = 1f;
     bool hop, flip; Vector3 baseScale; float yawOff, floatUp;
     float hopT; const float HopCycle = 0.95f, HopAir = 0.55f;   // a toad's hop: 55% in the air, the rest sitting
+    float fallT = 1f, fallDur = 0.55f, fallHop; Quaternion fallR0, fallR1; Vector3 fallP0, fallP1;   // a beast without a death clip falling over
 
     // real voices (monsters.json BEASTS "sounds": {"aggro": [...], "attack": [...], "hurt": [...], "death": [...]},
     // clips in Resources/AH/Audio): a roar when it spots you, growls as it attacks, yelps when hit, a death cry
@@ -297,22 +298,27 @@ public class AHMob : MonoBehaviour
         dead = true; hp = 0f; windup = 0f; skinned = false; corpseT = 40f; respawnT = 0f; voiceT = 0f; Voice("death", 1f);
         burnT = poisonT = slowT = rootT = stunT = 0f;
         if (hasClips && anim.Has("Death")) anim.Play("Death", false, 1f, true);
-        else if (flip)
+        else
         {
-            // crabs, turtles and toads end up on their backs, legs in the air
-            if (hasClips) anim.Hold("Idle", 0.3f);
-            model.transform.localScale = baseScale;
-            model.transform.localRotation = Quaternion.Euler(0, g.ModelYaw + yawOff, 180f);
-            model.transform.localPosition = baseLocal + Vector3.up * height * 0.85f;
-        }
-        else if (floatUp > 0f) { model.transform.localPosition = baseLocal; model.transform.localRotation = Quaternion.Euler(0, g.ModelYaw + yawOff, 90f); }   // the wraith drops
-        else if (model.GetComponent<AHSerpentBody>() == null)
-        {
-            // no death clip: lie it on its side, lifted by half its width so it rests on the ground instead of in it
-            var rs = model.GetComponentsInChildren<Renderer>(); float half = 0.3f;
-            if (rs.Length > 0) { var bb = rs[0].bounds; foreach (var r in rs) bb.Encapsulate(r.bounds); half = Mathf.Min(bb.size.x, bb.size.z) * 0.5f / Mathf.Max(0.01f, transform.lossyScale.y); }
-            model.transform.localRotation = Quaternion.Euler(0, g.ModelYaw + yawOff, 0) * Quaternion.Euler(0, 0, 90f);
-            model.transform.localPosition = baseLocal + Vector3.up * half;
+            // no death clip: every beast still falls, over half a second with a little bounce, instead of snapping
+            fallR0 = model.transform.localRotation; fallP0 = model.transform.localPosition; fallT = 0f; fallHop = 0f;
+            if (flip)
+            {
+                // crabs, turtles and toads flip onto their backs, legs in the air, with a hop
+                if (hasClips) anim.Hold("Idle", 0.3f);
+                model.transform.localScale = baseScale;
+                fallR1 = Quaternion.Euler(0, g.ModelYaw + yawOff, 180f); fallP1 = baseLocal + Vector3.up * height * 0.85f; fallHop = height * 0.6f; fallDur = 0.6f;
+            }
+            else if (floatUp > 0f) { fallR1 = Quaternion.Euler(0, g.ModelYaw + yawOff, 90f); fallP1 = baseLocal; fallDur = 0.7f; }   // the wraith drops out of the air
+            else if (model.GetComponent<AHSerpentBody>() == null)
+            {
+                // tip onto its side, lifted by half its width so it rests on the ground instead of in it
+                var rs = model.GetComponentsInChildren<Renderer>(); float half = 0.3f;
+                if (rs.Length > 0) { var bb = rs[0].bounds; foreach (var r in rs) bb.Encapsulate(r.bounds); half = Mathf.Min(bb.size.x, bb.size.z) * 0.5f / Mathf.Max(0.01f, transform.lossyScale.y); }
+                float side = (Mathf.Abs(home.x * 13f + home.z * 7f) % 2f) < 1f ? 90f : -90f;   // some fall left, some right
+                fallR1 = Quaternion.Euler(0, g.ModelYaw + yawOff, 0) * Quaternion.Euler(0, 0, side); fallP1 = baseLocal + Vector3.up * half; fallDur = 0.55f;
+            }
+            else fallT = 1f;   // the serpent slumps by itself
         }
         g.OnKill(type.id);
         AHSpark.Burst(transform.position + Vector3.up * 0.6f, new Color(0.9f, 0.85f, 0.75f, 0.7f), 18, 2f, 0.7f, 0.2f, 1.2f);
@@ -338,7 +344,7 @@ public class AHMob : MonoBehaviour
 
     void Revive()
     {
-        dead = false; away = false; skinned = false; provoked = false; hp = type.hp; state = State.Wander;
+        dead = false; away = false; skinned = false; provoked = false; hp = type.hp; state = State.Wander; fallT = 1f;
         transform.position = home;
         model.SetActive(true);
         model.transform.localRotation = Quaternion.Euler(0, g.ModelYaw + (type.model == "Wolf_t" ? g.wolfYawFix : AHMobPeople.Is(type.id) ? g.heroYawFix : yawOff), 0);
@@ -366,6 +372,13 @@ public class AHMob : MonoBehaviour
         if (anim != null) anim.Tick(dt);
         if (dead)
         {
+            if (fallT < 1f && !away)
+            {
+                fallT = Mathf.Min(1f, fallT + dt / fallDur);
+                float e = fallT < 0.8f ? Mathf.Pow(fallT / 0.8f, 2f) : 1f - Mathf.Sin((fallT - 0.8f) / 0.2f * Mathf.PI) * 0.06f;   // gathers speed, lands with a little bounce
+                model.transform.localRotation = Quaternion.SlerpUnclamped(fallR0, fallR1, Mathf.Min(e, 1.04f));
+                model.transform.localPosition = Vector3.Lerp(fallP0, fallP1, Mathf.Clamp01(e)) + Vector3.up * Mathf.Sin(Mathf.Clamp01(fallT) * Mathf.PI) * fallHop;
+            }
             bool nightOk = (!type.night || g.IsNight) && !evHold;
             if (!away)
             {
@@ -488,7 +501,19 @@ public class AHMob : MonoBehaviour
         }
 
         // looks
-        if (hasClips)
+        if (hasClips && hop && stunT <= 0f && windup <= 0f && atkCd < 1.0f)
+        {
+            // rigged toads: the hop clip follows the hop itself (legs spring as it leaves the ground, trail in the air,
+            // reach for the landing), and the leap's height comes from here
+            if (hopT > 0f)
+            {
+                anim.Hold("Walk", hopT);
+                float air = hopT < HopAir ? hopT / HopAir : -1f;
+                model.transform.localPosition = baseLocal + Vector3.up * (air >= 0f ? Mathf.Sin(air * Mathf.PI) * height * 0.55f : 0f);
+            }
+            else { anim.Play("Idle", true, idleRate); model.transform.localPosition = baseLocal; }
+        }
+        else if (hasClips)
         {
             if (stunT > 0f) anim.Play("Idle", true, 0.3f);
             else if (windup <= 0f && atkCd < 1.0f) {

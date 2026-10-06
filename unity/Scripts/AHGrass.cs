@@ -109,6 +109,7 @@ public class AHGrass : MonoBehaviour
                 Color32 c;
                 if (!Sample(x, z, out c) || !IsGrass(c)) continue;
                 if (g.Blocked(g.W(x, z), 0.1f) || AHHome.NoGrass(x, z)) continue;
+                { Vector3 wp = g.W(x, z); if (AHVillage.Paved.width > 0f && AHVillage.Paved.Contains(new Vector2(wp.x, wp.z))) continue; }   // the cobbled village
                 float s = 0.65f + Fr(h * 31.1f) * 0.75f, sy = s * (0.8f + Fr(h * 17.3f) * 0.7f), rot = h * 40f;
                 Color baseC = new Color(c.r / 255f * 1.05f, c.g / 255f * 1.12f, c.b / 255f * 0.95f).linear;
                 Tuft(verts, cols, tris, g.W(x, z) - origin, s, sy, rot, baseC);

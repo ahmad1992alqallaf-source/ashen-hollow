@@ -651,12 +651,31 @@ public static class AHScenery
             if (!r.enabled || r.name.StartsWith("AH_")) continue; var rb = r.bounds;
             if (Mathf.Abs(rb.size.y - 5.5f) < 0.2f && Mathf.Abs(rb.size.x - 1.4f) < 0.15f && Mathf.Abs(rb.size.z - 1.4f) < 0.15f) posts.Add(r);
         }
+        var postAt = new List<Vector3>();
         foreach (var r in posts)
         {
             var rb = r.bounds; r.enabled = false;
             HideNear(world, new Vector3(rb.center.x, rb.min.y, rb.center.z), 0.9f, 1.8f, 1.2f);   // its cap
             var go = GatePost(root, 5.2f, Mathf.RoundToInt(rb.center.x * 3 + rb.center.z)); go.transform.position = new Vector3(rb.center.x, rb.min.y, rb.center.z); AHModel.SetShadows(go); n++;
+            postAt.Add(go.transform.position);
         }
+        // each pair of posts across a road becomes a gate: a stone arch with a keystone and a banner in the land's
+        // colours, instead of the web game's flat grey slab and blue square
+        for (int i = 0; i < postAt.Count; i++)
+            for (int j = i + 1; j < postAt.Count; j++)
+            {
+                Vector3 a = postAt[i], c2 = postAt[j], d = c2 - a; d.y = 0f; float span = d.magnitude;
+                if (span < 3.5f || span > 8f) continue;
+                Vector3 gmid = (a + c2) * 0.5f;
+                foreach (var rd in world.GetComponentsInChildren<Renderer>(true))
+                {
+                    if (!rd.enabled || rd.name.StartsWith("AH_")) continue;
+                    var bb = rd.bounds; Vector3 off = bb.center - gmid; off.y = 0f;
+                    if (off.magnitude < 1.4f && bb.min.y > gmid.y + 3.4f && Mathf.Max(bb.size.x, bb.size.z) < 7.5f && bb.size.y < 2f) rd.enabled = false;
+                }
+                var arch = GateArch(root, span, Mathf.RoundToInt(gmid.x * 7 + gmid.z));
+                arch.transform.position = gmid; arch.transform.rotation = Quaternion.LookRotation(Vector3.Cross(d.normalized, Vector3.up)); AHModel.SetShadows(arch); n++;
+            }
         // the lava vents (their own list in the web game)
         if (worldData == null) { var ta = Resources.Load<TextAsset>("AH/Data/world"); if (ta != null) worldData = AHJson.Parse(ta.text); }
         var vents = AHJson.A(worldData, "VENTS");
@@ -681,13 +700,56 @@ public static class AHScenery
         if (n > 0) Debug.Log("Ashen Hollow: " + n + " plain old props rebuilt (basalt, stalls, cauldrons, looms, benches, pillars, stones, vents)"); else Object.Destroy(root.gameObject);
     }
 
+    // the arch between two gate posts: dressed stones in a shallow curve springing from the posts, a carved keystone,
+    // an iron rod with a cloth banner in the land's colour (gold-trimmed, with a sun disc), and a lantern at each end
+    static GameObject GateArch(Transform parent, float span, int seed)
+    {
+        var root = new GameObject("Gate arch"); root.transform.SetParent(parent, false);
+        var P = new Parts(); var rnd = new System.Random(seed);
+        Material st = Mat("gp_stone", C(0xB8B1A3), 0.12f), st2 = Mat("gp_stone2", C(0x9C9486), 0.12f), iron = Mat("gp_iron", C(0x2A2A2E), 0.45f), glow = Mat("gp_glow", C(0xFFC860), 0.3f);
+        string col; Color land = AHCity.ColourOf(AHGame.AreaId, out col) ? (col == "red" ? C(0x8E2E22) : col == "blue" ? C(0x2E4E8A) : col == "yellow" ? C(0xB08A2E) : C(0x3E6E34)) : C(0x3E6E34);
+        Material cloth = Mat("gate_cloth_" + ColorUtility.ToHtmlStringRGB(land), land, 0.1f), gold = Mat("gate_gold", C(0xE0B040), 0.55f);
+        // local x runs across the road between the posts, z along it, y up
+        float half = span * 0.5f - 0.55f, spring = 4.6f, rise = 1.0f; int nb = 9;
+        for (int k = 0; k < nb; k++)
+        {
+            float t0 = k / (float)nb * Mathf.PI, t1 = (k + 1) / (float)nb * Mathf.PI, t = (t0 + t1) * 0.5f;
+            Vector3 p0 = new Vector3(-Mathf.Cos(t0) * half, spring + Mathf.Sin(t0) * rise, 0), p1 = new Vector3(-Mathf.Cos(t1) * half, spring + Mathf.Sin(t1) * rise, 0);
+            Vector3 pc = (p0 + p1) * 0.5f, tan = (p1 - p0); float len = tan.magnitude;
+            bool key = k == nb / 2;
+            var rot = Quaternion.FromToRotation(Vector3.right, tan.normalized);
+            P.Add(key ? st2 : (k % 2 == 0 ? st : st2), Cube, pc + Vector3.up * 0.25f, rot * Quaternion.Euler(((float)rnd.NextDouble() - 0.5f) * 2f, 0, 0),
+                new Vector3(len * 1.04f, key ? 0.95f : 0.62f, key ? 1.2f : 1.0f));
+        }
+        P.Add(gold, Sph, new Vector3(0, spring + rise + 0.25f, 0.62f), Quaternion.identity, new Vector3(0.32f, 0.32f, 0.08f));   // the keystone's boss
+        // the banner on its rod
+        float ry = spring + rise - 0.45f;
+        P.Add(iron, Cube, new Vector3(0, ry, 0.25f), Quaternion.identity, new Vector3(2.0f, 0.06f, 0.06f));
+        P.Add(cloth, Cube, new Vector3(0, ry - 0.95f, 0.25f), Quaternion.identity, new Vector3(1.5f, 1.8f, 0.04f));
+        P.Add(gold, Cube, new Vector3(0, ry - 1.88f, 0.25f), Quaternion.identity, new Vector3(1.54f, 0.12f, 0.05f));
+        foreach (float sx in new[] { -1f, 1f }) P.Add(gold, Cube, new Vector3(sx * 0.73f, ry - 0.95f, 0.25f), Quaternion.identity, new Vector3(0.06f, 1.8f, 0.05f));
+        P.Add(gold, Sph, new Vector3(0, ry - 0.85f, 0.28f), Quaternion.identity, new Vector3(0.62f, 0.62f, 0.06f));
+        P.Add(cloth, Sph, new Vector3(0, ry - 0.85f, 0.3f), Quaternion.identity, new Vector3(0.4f, 0.4f, 0.06f));
+        // a small lantern under each end of the arch
+        foreach (float sx in new[] { -1f, 1f })
+        {
+            Vector3 lp = new Vector3(sx * (half - 0.35f), spring - 0.45f, 0.3f);
+            P.Add(iron, Cube, lp + Vector3.up * 0.3f, Quaternion.identity, new Vector3(0.03f, 0.35f, 0.03f));
+            P.Add(iron, Cube, lp + Vector3.up * 0.12f, Quaternion.identity, new Vector3(0.24f, 0.04f, 0.24f));
+            P.Add(glow, Cube, lp, Quaternion.identity, new Vector3(0.16f, 0.24f, 0.16f));
+            P.Add(iron, Cube, lp - Vector3.up * 0.14f, Quaternion.identity, new Vector3(0.22f, 0.04f, 0.22f));
+        }
+        P.Build(root.transform);
+        return root;
+    }
+
     // a gate post: a stepped plinth, a shaft of dressed blocks with a slight taper, a moulded cap and an iron lantern
     // on a bracket that glows at night
     static GameObject GatePost(Transform parent, float h, int seed)
     {
         var root = new GameObject("Gate post"); root.transform.SetParent(parent, false);
         var P = new Parts(); var rnd = new System.Random(seed);
-        Material st = Mat("gp_stone", C(0x9A948A), 0.12f), st2 = Mat("gp_stone2", C(0x7E786E), 0.12f), iron = Mat("gp_iron", C(0x2A2A2E), 0.45f), glow = Mat("gp_glow", C(0xFFC860), 0.3f);
+        Material st = Mat("gp_stone", C(0xB8B1A3), 0.12f), st2 = Mat("gp_stone2", C(0x9C9486), 0.12f), iron = Mat("gp_iron", C(0x2A2A2E), 0.45f), glow = Mat("gp_glow", C(0xFFC860), 0.3f);
         glow.EnableKeyword("_EMISSION"); glow.SetColor("_EmissionColor", C(0xFFB040).linear * 2f);
         P.Add(st2, Cube, new Vector3(0, 0.2f, 0), Quaternion.identity, new Vector3(1.7f, 0.4f, 1.7f));
         P.Add(st, Cube, new Vector3(0, 0.5f, 0), Quaternion.identity, new Vector3(1.45f, 0.2f, 1.45f));

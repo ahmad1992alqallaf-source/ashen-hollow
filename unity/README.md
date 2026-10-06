@@ -464,6 +464,19 @@ Played on a real Android phone (an Honor foldable). Fixed from that test:
 - Phone builds keep the physics module (it was stripped, which broke a few things on phones only).
 - Ashen Hollow > Build And Run On Phone installs and starts the game on a phone plugged in with USB debugging.
 
+## Village, gates, robes and frogs (October)
+
+- The new village buildings stand on cobbles: the whole square and its ring of buildings is paved (no grass on it).
+- Gates between lands: lighter stone posts joined by a stone arch with a keystone, a banner in the land's colour
+  and two lanterns, instead of the web map's grey slab and blue square.
+- Past the edge of every outdoor land you now see more of its grass, sand or snow, not a blank grey wall.
+- Fog starts much further away, so wide lands read clear instead of pale; the ground no longer shines like a mirror.
+- Robes are real cloth: a skirt skinned to the hips, thighs and calves, so it walks with the legs. Capes swing less.
+- Toads and the lurker family have their own skeleton and animations (idle, hop, attack, hit, death): made with
+  tools/frogrig.py. The hop follows the game's own hop, so legs spring, trail and land in step.
+- Every monster without a death animation now falls over (on its side, onto its back, or out of the air) with a
+  little bounce, instead of snapping.
+
 ## Credits
 - Heroes (Knight, Mage, Rogue, Barbarian): KayKit Adventurers by Kay Lousberg, CC0.
 - City buildings, walls, towers and props: KayKit Medieval Hexagon Pack by Kay Lousberg (www.kaylousberg.com), CC0.

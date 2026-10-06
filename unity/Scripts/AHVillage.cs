@@ -11,6 +11,8 @@ public static class AHVillage
 {
     // lots kept clear of trees: AHForest asks before it plants
     public static readonly List<Bounds> Lots = new List<Bounds>();
+    // the cobbled village (world x, z): no grass grows on it
+    public static Rect Paved;
 
     struct Plan { public float x, z, size; public string kind, name; public Plan(float x, float z, string kind, float size, string name) { this.x = x; this.z = z; this.kind = kind; this.size = size; this.name = name; } }
 
@@ -19,16 +21,16 @@ public static class AHVillage
     static readonly Dictionary<string, Plan[]> Plans = new Dictionary<string, Plan[]>
     {
         { "meadow", new[] {
-            new Plan(17f, 29f, "tavern", 10f, "The Ashen Hearth inn"),
-            new Plan(29.5f, 28.5f, "church", 9f, "Guild hall"),
-            new Plan(41.5f, 29f, "blacksmith", 9f, "Smithy"),
-            new Plan(5.5f, 41f, "tower_A", 6.5f, "Bank tower"),
-            new Plan(5.5f, 53.5f, "home_A", 8f, "Cottage"),
-            new Plan(5.5f, 66f, "home_B", 8f, "Cottage"),
-            new Plan(51.5f, 41f, "barracks", 9f, "Barracks"),
-            new Plan(17f, 77.5f, "tower_B", 6.5f, "Auction tower"),
-            new Plan(44f, 78f, "lumbermill", 9f, "Lumber mill"),
-            new Plan(5.5f, 78.5f, "home_A", 7.5f, "Cottage"),
+            new Plan(17f, 30f, "tavern", 10f, "The Ashen Hearth inn"),
+            new Plan(29.5f, 30.5f, "church", 9f, "Guild hall"),
+            new Plan(41.5f, 30.5f, "blacksmith", 9f, "Smithy"),
+            new Plan(7f, 41f, "tower_A", 6.5f, "Bank tower"),
+            new Plan(6.5f, 53.5f, "home_A", 8f, "Cottage"),
+            new Plan(6.5f, 66f, "home_B", 8f, "Cottage"),
+            new Plan(50.5f, 41f, "barracks", 9f, "Barracks"),
+            new Plan(17f, 75.5f, "tower_B", 6.5f, "Auction tower"),
+            new Plan(44f, 76.5f, "lumbermill", 9f, "Lumber mill"),
+            new Plan(6.5f, 76.5f, "home_A", 7.5f, "Cottage"),
         } },
     };
 
@@ -40,7 +42,7 @@ public static class AHVillage
 
     public static void Setup(AHGame g, Transform world)
     {
-        Lots.Clear();
+        Lots.Clear(); Paved = new Rect();
         Plan[] plans; if (world == null || !Plans.TryGetValue(AHGame.AreaId, out plans)) return;
         string col; if (!AHCity.ColourOf(AHGame.AreaId, out col)) col = "green";
         Rect[] roads; Roads.TryGetValue(AHGame.AreaId, out roads);
@@ -92,6 +94,24 @@ public static class AHVillage
             built++;
         }
         if (built > 0) Debug.Log("Ashen Hollow: " + built + " village buildings around the square");
+        if (built > 0) PaveVillage(g, world);
+    }
+
+    // cobbles under the square and the whole ring of buildings, so they stand in the village, not out on the grass
+    static void PaveVillage(AHGame g, Transform world)
+    {
+        Renderer ground = null; foreach (var r in world.GetComponentsInChildren<Renderer>(true)) if (r.name.StartsWith("AH_GROUND")) { ground = r; break; }
+        if (ground == null) return;
+        var m = ground.sharedMaterial; if (m == null || !m.HasProperty("_PaveMap")) return;
+        var cob = Resources.Load<Texture2D>("AH/Textures/cobble"); if (cob == null) return;
+        float x0 = float.MaxValue, z0 = float.MaxValue, x1 = float.MinValue, z1 = float.MinValue;
+        foreach (var b in Lots) { x0 = Mathf.Min(x0, b.min.x); z0 = Mathf.Min(z0, b.min.z); x1 = Mathf.Max(x1, b.max.x); z1 = Mathf.Max(z1, b.max.z); }
+        Vector3 h = g.W(g.data.spawn.x, g.data.spawn.z);
+        x0 = Mathf.Min(x0, h.x - 8f); z0 = Mathf.Min(z0, h.z - 8f); x1 = Mathf.Max(x1, h.x + 8f); z1 = Mathf.Max(z1, h.z + 8f);
+        m.SetTexture("_PaveMap", cob); m.SetFloat("_PaveScale", 0.16f); m.SetFloat("_PaveAmt", 1f); m.SetFloat("_PaveGrass", 1f);
+        Paved = new Rect(x0 - 0.6f, z0 - 0.6f, x1 - x0 + 1.2f, z1 - z0 + 1.2f);
+        m.SetVector("_PaveRect", new Vector4(x0 - 0.6f, z0 - 0.6f, x1 + 0.6f, z1 + 0.6f));
+        Debug.Log("Ashen Hollow: village square cobbled");
     }
 
     public static bool InLots(Vector3 p)
