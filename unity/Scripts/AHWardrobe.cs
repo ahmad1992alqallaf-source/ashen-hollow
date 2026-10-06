@@ -302,7 +302,8 @@ public static class AHWardrobe
         };
         Func<float, float, float, float, float, Vector4> fit = (y, rs, rf, w, band) =>
         {
-            var r = reach(y, band); return new Vector4(y, Mathf.Max(rs, r.x * 1.12f + 0.03f * k), Mathf.Max(rf, r.y * 1.12f + 0.03f * k), w);
+            var r = reach(y, band); float ks = w >= 0f ? 1.18f : 1.12f;   // the legs swing out a little when standing: more room at the sides
+            return new Vector4(y, Mathf.Max(rs, r.x * ks + 0.03f * k), Mathf.Max(rf, r.y * 1.15f + 0.03f * k), w);
         };
         // rings from the chest down: height, side radius, front radius, how much of the legs it follows (<0 bodice)
         var ring = new List<Vector4>();
@@ -315,7 +316,7 @@ public static class AHWardrobe
         {
             // fitted over the hips, then an A-line that opens out to a wide hem, so the legs never push through
             float v = j / (float)nv, fl = Mathf.Pow(v, 1.1f), y = Mathf.Lerp(hipY, hem, v);
-            var R = fit(y, Mathf.Lerp(wr.y + 0.05f * k, half + 0.27f * k, fl), Mathf.Lerp(wr.z + 0.015f * k, 0.235f * k, fl), v, 0.07f * k);
+            var R = fit(y, Mathf.Lerp(wr.y + 0.03f * k, half + 0.13f * k, fl), Mathf.Lerp(wr.z + 0.01f * k, 0.15f * k, fl), v, 0.07f * k);
             R.y = Mathf.Max(R.y, prevS); R.z = Mathf.Max(R.z, prevF); prevS = R.y; prevF = R.z;
             ring.Add(R);
         }
@@ -337,8 +338,8 @@ public static class AHWardrobe
                     if (R.w < 0f) { float up = -R.w; ws[5] = up; ws[6] = 1f - up; }
                     else
                     {
-                        float sd = Mathf.Cos(th), fl = Mathf.Clamp01(0.5f + 0.8f * sd), fr = 1f - fl;
-                        float leg = Mathf.SmoothStep(0f, 0.6f, Mathf.InverseLerp(0.1f, 0.95f, v)), cs = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.45f, 1f, v));
+                        float sd = Mathf.Cos(th), fl = Mathf.Clamp01(0.5f + 1.2f * sd), fr = 1f - fl;
+                        float leg = Mathf.SmoothStep(0f, 0.92f, Mathf.InverseLerp(0.05f, 0.8f, v)), cs = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.45f, 1f, v));
                         ws[0] = 1f - leg; ws[1] = leg * (1f - cs) * fl; ws[2] = leg * (1f - cs) * fr; ws[3] = leg * cs * fl; ws[4] = leg * cs * fr;
                         if (j == 2) { ws[0] = 0.6f; ws[6] = 0.4f; }
                     }
@@ -380,6 +381,45 @@ public static class AHWardrobe
         }
         UnityEngine.Object.Destroy(baked);
         return pts;
+    }
+
+    // the wizard hat (head-local, the brim at the brow): brim ring, then the crown rising and leaning back
+    static Mesh wizHat;
+    static Mesh WizardHat
+    {
+        get
+        {
+            if (wizHat != null) return wizHat;
+            var v = new List<Vector3>(); var tr = new List<int>();
+            const int nu = 28; float y0 = 0.085f, zc = -0.025f;
+            var rows = new List<Vector3>();   // (radius, height, back lean) per ring, brim edge first
+            rows.Add(new Vector3(0.27f, y0 - 0.035f, 0f)); rows.Add(new Vector3(0.21f, y0 - 0.008f, 0f)); rows.Add(new Vector3(0.15f, y0, 0f)); rows.Add(new Vector3(0.128f, y0 + 0.004f, 0f));
+            const int nc = 12;
+            for (int j = 1; j <= nc; j++)
+            {
+                float t = j / (float)nc;
+                rows.Add(new Vector3(0.128f * (1f - t) * (1f - 0.25f * t) + 0.004f, y0 + 0.004f + t * 0.36f - Mathf.Pow(t, 3f) * 0.06f, Mathf.Pow(t, 2.2f) * 0.17f));
+            }
+            for (int face = 0; face < 2; face++)
+            {
+                int b0 = v.Count;
+                for (int j = 0; j < rows.Count; j++)
+                    for (int i = 0; i <= nu; i++)
+                    {
+                        float a = i / (float)nu * Mathf.PI * 2f; var R = rows[j]; float r = R.x * (face == 1 ? 0.985f : 1f);
+                        float droop = j == 0 ? 0.012f * Mathf.Sin(a * 3f) : 0f;   // a soft wavy brim edge
+                        v.Add(new Vector3(Mathf.Sin(a) * r, R.y + droop, zc + Mathf.Cos(a) * r * 1.05f - R.z));
+                    }
+                for (int j = 0; j < rows.Count - 1; j++)
+                    for (int i = 0; i < nu; i++)
+                    {
+                        int a = b0 + j * (nu + 1) + i, b = a + nu + 1;
+                        if (face == 0) tr.AddRange(new[] { a, b, a + 1, a + 1, b, b + 1 }); else tr.AddRange(new[] { a, a + 1, b, a + 1, b + 1, b });
+                    }
+            }
+            wizHat = new Mesh { name = "wizard_hat" }; wizHat.SetVertices(v); wizHat.SetTriangles(tr, 0); wizHat.RecalculateNormals(); wizHat.RecalculateBounds();
+            return wizHat;
+        }
     }
 
     // a cloth hood that follows the head with the face left open, falling to a short cape over the shoulders (a
@@ -472,16 +512,23 @@ public static class AHWardrobe
         if (hd != null)
         {
             var K = start(head, head.position + hold.up * 0.08f * k, hid); string f = hd.form ?? "helm";
-            bool covers = f == "helm" || f == "forgehelm" || f == "hood" || f == "mhood" || f == "cowl";
+            bool covers = f == "helm" || f == "forgehelm" || f == "hood" || f == "cowl" || f == "antlers";
             if (f == "helm" || f == "forgehelm")
             {
                 K.Prim(PrimitiveType.Sphere, new Vector3(0, 0.1f, -0.045f), new Vector3(0.27f, 0.22f, 0.28f), Vector3.zero);
                 K.Mesh(torus, new Vector3(0, 0.085f, -0.04f), new Vector3(0.275f, 0.5f, 0.285f), Vector3.zero, K.Dark);
                 if (f == "forgehelm") K.Prim(PrimitiveType.Cube, new Vector3(0, 0.22f, -0.05f), new Vector3(0.03f, 0.07f, 0.24f), Vector3.zero, K.Dark);
             }
-            else if (f == "hood" || f == "mhood" || f == "cowl")
+            else if (f == "mhood")
             {
-                K.Mesh(Hood(f == "mhood", f == "cowl"), Vector3.zero, Vector3.one, Vector3.zero);
+                // the mage's wizard hat: a wide soft brim and a tall crown that bends back at the tip, with a band
+                K.Mesh(WizardHat, Vector3.zero, Vector3.one, Vector3.zero);
+                K.Mesh(torus, new Vector3(0, 0.09f, -0.025f), new Vector3(0.262f, 0.45f, 0.272f), Vector3.zero, K.Dark);
+                K.Prim(PrimitiveType.Cube, new Vector3(0, 0.09f, 0.112f), new Vector3(0.045f, 0.035f, 0.012f), Vector3.zero, K.Gold);
+            }
+            else if (f == "hood" || f == "cowl")
+            {
+                K.Mesh(Hood(false, f == "cowl"), Vector3.zero, Vector3.one, Vector3.zero);
             }
             else if (f == "crown" || f == "circlet")
             {
@@ -492,6 +539,7 @@ public static class AHWardrobe
             else if (f == "halo") K.Mesh(torus, new Vector3(0, 0.3f, -0.04f), new Vector3(0.26f, 0.7f, 0.26f), Vector3.zero);
             else if (f == "horns" || f == "antlers")
             {
+                if (f == "antlers") K.Mesh(Hood(false, false), Vector3.zero, Vector3.one, Vector3.zero);   // the druid's hood, the antlers growing through it
                 foreach (int sx in new[] { -1, 1 })
                 {
                     if (f == "horns") { K.Mesh(frustum, new Vector3(sx * 0.075f, 0.05f, -0.02f), new Vector3(0.05f, 0.12f, 0.05f), new Vector3(-10, 0, -sx * 62)); K.Mesh(cone, new Vector3(sx * 0.17f, 0.1f, -0.03f), new Vector3(0.075f, 0.17f, 0.075f), new Vector3(-20, 0, -sx * 18)); }
