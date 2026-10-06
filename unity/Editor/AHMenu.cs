@@ -1075,4 +1075,6 @@ public static class AHMenu
         if (temp) Object.Destroy(th);
         Debug.Log("Ashen Hollow: throne picture taken in " + AHGame.AreaId);
     }
+    [MenuItem("Ashen Hollow/Test: Class Lineup %&l")]   // every class, man and woman, in starter outfit, to HeroShots/lineup_*.png
+    static void ClassLineup() { var g = AHGame.I; if (Application.isPlaying && g != null && g.player != null) AHLineup.Run(g); }
 }
