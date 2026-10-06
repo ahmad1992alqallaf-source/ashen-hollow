@@ -639,6 +639,34 @@
         "max": 3
        }
       ]
+     },
+     {
+      "id": "phoenix",
+      "name": "Phoenix",
+      "blurb": "Burns, falls, and rises again from its own ashes.",
+      "ult": "phoenixburst",
+      "pass": {
+       "cheat": true,
+       "burn": 0.2
+      },
+      "tal": [
+       {
+        "id": "ph_ash",
+        "name": "Ember Heart",
+        "per": {
+         "hp": 10
+        },
+        "max": 3
+       },
+       {
+        "id": "ph_flare",
+        "name": "Solar Flare",
+        "per": {
+         "evo": 0.1
+        },
+        "max": 3
+       }
+      ]
      }
     ]
    },
@@ -2120,6 +2148,14 @@
    "at": 0.4,
    "pose": "slam",
    "desc": "A totem of living magma for 18 seconds that hurls fire at the two nearest enemies every second (1.8× each)."
+  },
+  "phoenixburst": {
+   "name": "Phoenix Burst",
+   "cd": 32,
+   "dur": 0.7,
+   "at": 0.35,
+   "pose": "nova",
+   "desc": "Burst into phoenix fire: 3× damage to everything near you and sets it burning for 5s."
   }
  },
  "BOOK": {
@@ -4118,6 +4154,17 @@
    "",
    0,
    "ff5a1a"
+  ],
+  "phoenixburst": [
+   "Nova",
+   3.0,
+   7.6,
+   0,
+   0,
+   0,
+   "Burn",
+   5,
+   "ffa030"
   ]
  },
  "DESC": {

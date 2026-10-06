@@ -273,6 +273,8 @@ public partial class AHUI
         }
         else if (classTab == "tal")
         {
+            rows[0](0); RenderTalentTree(p, free); return;   // the painted tree (AHTalentTree)
+#pragma warning disable CS0162
             wkHint.text = "A talent point every 3 levels: " + AHEvo.Points(p) + " earned, " + free + " free. Tier II opens with a path, tier III with a form.";
             foreach (var t in AHEvo.Tiers(p))
             {
@@ -287,6 +289,7 @@ public partial class AHUI
                 }
             }
             rows.Add(s => Row(s, "Reset talents", new Color(1f, 1f, 1f, 0.7f), "Take back every point, free.", "", new WkBtn { label = "Reset", on = AHEvo.Spent(p) > 0, col = Plain, act = () => { AHEvo.ResetTalents(g); RenderWork(); } }));
+#pragma warning restore CS0162
         }
         else
         {

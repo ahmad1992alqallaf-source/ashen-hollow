@@ -518,6 +518,13 @@ Played on a real Android phone (an Honor foldable). Fixed from that test:
   in Menu), smaller see-through quest tracker, smaller spells hugging the attack button, purple XP bar, and tapping
   your name or portrait opens your stats.
 - **Feet:** the body's own shoes are hidden under boots, so no second shoe pokes out.
+- **Talents are a real tree.** Tier I talents grow on the trunk and roots; the trunk forks into the class's two
+  paths (level 30), each branch carrying its Tier II talents, and each branch splits into two twigs for the forms
+  (level 60) with the Tier III talents in the leaves. Roads not taken wither grey. Tap a talent to read it, then Learn.
+  Art made by `tools/talenttree/build.py`.
+- **Pyromancer** gets the second form it was missing: **Phoenix** (ultimate Phoenix Burst; once every 2 minutes a
+  killing blow leaves you at 30% HP). That "cheat death" gift now works for every form that has it.
+- **Boots** are tall, covering the shin, and bend with the knee.
 
 ## Credits
 - Heroes (Knight, Mage, Rogue, Barbarian): KayKit Adventurers by Kay Lousberg, CC0.

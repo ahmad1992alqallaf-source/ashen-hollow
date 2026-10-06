@@ -138,7 +138,7 @@ public partial class AHUI
     void RenderWork()
     {
         if (!WorkOpen) return;
-        ClearRows();
+        ClearRows(); SetPager(true);
         var p = g.player;
         if (wkMode == "craft") RenderCraft(p);
         else if (wkMode == "shop") RenderShop(p);

@@ -941,6 +941,7 @@ public class AHPlayer : MonoBehaviour
     }
 
     // web hurtPlayer: level gap and night make beasts hit harder, then armour, damage reduction and shields
+    float cheatAt;
     public void Hurt(float raw, AHMob src)
     {
         if (dead) return;
@@ -967,6 +968,13 @@ public class AHPlayer : MonoBehaviour
         AHSound.Play("hurt");
         if (src != null && !src.dead && AHEvo.Pass(this, "thorns") > 0f) src.Hurt(Mathf.Max(1, Mathf.RoundToInt(hit * AHEvo.Pass(this, "thorns"))), this, true);
         if (g.ui != null) g.ui.Float(transform.position + Vector3.up * 2f, "-" + hit, new Color(1f, 0.48f, 0.42f));
+        // "cheat death" forms (Phoenix and others): once every 2 minutes a killing blow leaves you at 30% instead
+        if (hp <= 0f && AHEvo.Pass(this, "cheat") > 0f && Time.time >= cheatAt)
+        {
+            cheatAt = Time.time + 120f; hp = Mathf.Max(1f, maxHp * 0.3f);
+            if (g.ui != null) { g.ui.Float(transform.position + Vector3.up * 2.4f, "Death cheated!", new Color(1f, 0.75f, 0.3f)); g.ui.Toast("You rise again! (again in 2 minutes)"); }
+            return;
+        }
         if (hp <= 0f)
         {
             hp = 0f; dead = true; deadT = 1.8f; whirlT = 0f; stealthT = 0f; SetGhost(false);
