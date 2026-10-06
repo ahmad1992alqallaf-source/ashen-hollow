@@ -64,6 +64,7 @@ public class AHGame : MonoBehaviour
         Screen.autorotateToLandscapeLeft = true;
         Screen.autorotateToLandscapeRight = true;
         Screen.orientation = ScreenOrientation.AutoRotation;
+        Screen.sleepTimeout = SleepTimeout.NeverSleep;   // the phone screen stays on while you play
         Build();
     }
 
@@ -840,12 +841,15 @@ public class AHGame : MonoBehaviour
             minPitch = Mathf.Max(minPitch, 34f);
         }
         distShown = distShown <= 0f ? dist : Mathf.Lerp(distShown, dist, 1f - Mathf.Exp(-Time.deltaTime * 2.5f));
+        if (occArea != AreaId) { occArea = AreaId; occAge = 0f; occ.Clear(); }
+        float oa = occAge; occAge += Time.deltaTime;
+        if ((oa < 1.5f && occAge >= 1.5f) || (oa < 6f && occAge >= 6f)) BuildOccluders();
         float wantPitch = minPitch;
         for (float pt = minPitch; pt <= 74f; pt += 6f)
         {
             wantPitch = pt;
             Vector3 bk = -(Quaternion.Euler(pt, camYaw, 0) * Vector3.forward);
-            float cl = AHMountains.Clear(look, bk, distShown);
+            float cl = Mathf.Min(AHMountains.Clear(look, bk, distShown), OccClear(look, bk, distShown));
             if (tiles != null) cl = Mathf.Min(cl, RockClear(look, bk, distShown));
             if (cl >= distShown * 0.9f) break;
         }
@@ -870,6 +874,37 @@ public class AHGame : MonoBehaviour
     }
 
     // how far back along 'back' before a rock tile (web zone tiles), up to 'want'
+    // big solid things (cliffs, boulders, buildings, waystones) as boxes, gathered a moment after a land loads
+    readonly List<Bounds> occ = new List<Bounds>();
+    string occArea; float occAge;
+    void BuildOccluders()
+    {
+        occ.Clear();
+        foreach (var top in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+        foreach (var r in top.GetComponentsInChildren<MeshRenderer>(false))
+        {
+            if (!r.enabled || !r.gameObject.activeInHierarchy) continue;
+            var b = r.bounds; float lo = Mathf.Min(b.size.x, b.size.z), hi = Mathf.Max(b.size.x, b.size.z);
+            if (b.size.y < 2.2f || lo < 1.0f || hi > 45f) continue;
+            var root = r.transform.root; string rn = root.name;
+            if (rn == "Forest" || rn.StartsWith("Grass") || root == transform) continue;
+            if (r.GetComponentInParent<AHMob>() != null || r.GetComponentInParent<AHNpc>() != null || r.GetComponentInParent<AHPlayer>() != null) continue;
+            b.extents = new Vector3(b.extents.x * 0.85f, b.extents.y, b.extents.z * 0.85f);   // rocks are rounder than their box
+            occ.Add(b);
+        }
+    }
+    float OccClear(Vector3 look, Vector3 back, float want)
+    {
+        float best = want; var ray = new Ray(look, back);
+        foreach (var b in occ)
+        {
+            Vector3 d = b.center - look; float r = b.extents.magnitude + want;
+            if (d.sqrMagnitude > r * r || b.Contains(look)) continue;
+            float hit; if (b.IntersectRay(ray, out hit) && hit < best) best = Mathf.Max(0.8f, hit - 0.35f);
+        }
+        return best;
+    }
+
     float RockClear(Vector3 look, Vector3 back, float want)
     {
         for (float t = 0.6f; t < want; t += 0.35f)
@@ -891,6 +926,7 @@ public class AHGame : MonoBehaviour
         // a zone's rock (cave walls, cliffs): come in front of it (web camOccl)
         if (tiles != null) best = Mathf.Min(best, RockClear(look, back, best));
         best = Mathf.Min(best, AHMountains.Clear(look, back, best));   // and out of the mountains
+        best = Mathf.Min(best, OccClear(look, back, best));            // and in front of cliffs, boulders and walls
         float a = back.x * back.x + back.z * back.z;
         if (a < 1e-4f) return best;
         for (int i = 0; i < cPos.Count; i++)

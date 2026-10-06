@@ -59,7 +59,42 @@ public partial class AHUI : MonoBehaviour
         var ui = go.AddComponent<AHUI>();
         ui.g = game;
         ui.Build();
+        ui.WrapSafe();
         return ui;
+    }
+
+    // ---------- the phone's safe area ----------
+    // Everything the HUD drew goes into one box that matches the screen's safe area, so nothing sits under a
+    // camera hole, a notch or rounded corners. Full-screen layers (the fade, dimmers) still reach the edges.
+    RectTransform safeRt; Rect safeNow; readonly List<RectTransform> fullLayers = new List<RectTransform>();
+    void WrapSafe()
+    {
+        var go = new GameObject("SafeArea", typeof(RectTransform));
+        safeRt = (RectTransform)go.transform; safeRt.SetParent(transform, false);
+        var kids = new List<Transform>(); foreach (Transform c in transform) if (c != safeRt) kids.Add(c);
+        foreach (var c in kids)
+        {
+            var rt = c as RectTransform; c.SetParent(safeRt, false);
+            if (rt != null && rt.anchorMin == Vector2.zero && rt.anchorMax == Vector2.one && rt.offsetMin == Vector2.zero && rt.offsetMax == Vector2.zero) fullLayers.Add(rt);
+        }
+        safeNow = new Rect(-1, -1, 0, 0); FitSafe();
+    }
+    void FitSafe()
+    {
+        if (safeRt == null) return;
+        Rect sa = Screen.safeArea; if (sa == safeNow || Screen.width <= 0 || Screen.height <= 0) return;
+        safeNow = sa;
+        Vector2 size = new Vector2(Screen.width, Screen.height);
+        safeRt.anchorMin = new Vector2(sa.xMin / size.x, sa.yMin / size.y);
+        safeRt.anchorMax = new Vector2(sa.xMax / size.x, sa.yMax / size.y);
+        safeRt.offsetMin = safeRt.offsetMax = Vector2.zero;
+        float k = canvas != null && canvas.scaleFactor > 0f ? canvas.scaleFactor : 1f;
+        foreach (var rt in fullLayers)
+        {
+            if (rt == null) continue;
+            rt.offsetMin = new Vector2(-sa.xMin, -sa.yMin) / k;
+            rt.offsetMax = new Vector2(size.x - sa.xMax, size.y - sa.yMax) / k;
+        }
     }
 
     // ---------- building ----------
@@ -408,6 +443,7 @@ public partial class AHUI : MonoBehaviour
     // ---------- every frame ----------
     void Update()
     {
+        FitSafe();
         ReadPointers();
         float dt = Time.unscaledDeltaTime;
         var p = g.player;

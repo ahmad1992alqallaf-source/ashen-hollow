@@ -14,7 +14,8 @@ public static class AHMountains
     static readonly float[] width = new float[3], liteW = new float[3];
     static Transform root; static Dictionary<Color, Material> mats;
     // every peak as a simple cone (centre, foot radius, base, height) so the camera can keep out of the rock
-    static readonly List<Vector4> cones = new List<Vector4>();
+    static readonly List<Vector4> cones = new List<Vector4>();   // x, z, foot radius
+    static readonly List<Vector2> coneY = new List<Vector2>();   // base, height
 
     // how far the camera can sit back from look along dir before it would be inside a mountain
     public static float Clear(Vector3 look, Vector3 dir, float want)
@@ -23,12 +24,14 @@ public static class AHMountains
         for (float t = 0.6f; t <= want; t += 0.4f)
         {
             Vector3 q = look + dir * t;
-            foreach (var c in cones)
+            for (int i = 0; i < cones.Count; i++)
             {
-                float dx = q.x - c.x, dz = q.z - c.z, r2 = dx * dx + dz * dz, R = c.y;
+                var c = cones[i];
+                float dx = q.x - c.x, dz = q.z - c.y, r2 = dx * dx + dz * dz, R = c.z;
                 if (r2 >= R * R) continue;
-                float top = c.z + c.w * (1f - Mathf.Sqrt(r2) / R) * 0.92f;
-                if (q.y < top + 0.5f) return Mathf.Max(0.6f, t - 0.4f);
+                // a crag bulges more than a cone: treat it as a dome
+                float top = coneY[i].x + coneY[i].y * (1f - r2 / (R * R));
+                if (q.y < top + 0.8f) return Mathf.Max(0.6f, t - 0.4f);
             }
         }
         return want;
@@ -36,7 +39,7 @@ public static class AHMountains
 
     public static void Setup(AHGame g, Transform world)
     {
-        cones.Clear();
+        cones.Clear(); coneY.Clear();
         if (world == null) return;
         for (int i = 0; i < 3; i++) if (prefabs[i] == null)
         {
@@ -175,7 +178,12 @@ public static class AHMountains
         go.position = new Vector3(b.center.x, b.min.y - 0.35f, b.center.z);
         go.rotation = Quaternion.Euler(0f, (float)rnd.NextDouble() * 360f, 0f);
         go.localScale = new Vector3(sxz, h * 1.06f + 0.35f, sxz);
-        cones.Add(new Vector4(b.center.x, Mathf.Max(b.size.x, b.size.z) * 0.54f, b.min.y, h * 1.06f));
+        {   // the real size of the placed crag
+            var rs = go.GetComponentsInChildren<Renderer>(); Bounds rb = rs.Length > 0 ? rs[0].bounds : b;
+            foreach (var rr in rs) rb.Encapsulate(rr.bounds);
+            cones.Add(new Vector4(rb.center.x, rb.center.z, Mathf.Max(rb.size.x, rb.size.z) * 0.5f, 0f));
+            coneY.Add(new Vector2(rb.min.y, rb.size.y));
+        }
         Material mat;
         if (!mats.TryGetValue(col, out mat))
         {
