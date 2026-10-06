@@ -80,6 +80,9 @@ public static class AHVRoid
         v.transform.localPosition = Vector3.zero; v.transform.localRotation = Quaternion.identity;
         var an = v.GetComponent<Animator>(); if (an == null || an.avatar == null || !an.avatar.isHuman) { Object.Destroy(v); return false; }
         an.enabled = false;   // posed by the link, not by its own animator
+        // the hair's spring bones are switched off: driven by a pose copied from another rig they can run away
+        // (strands stretched across the screen, NaN pixels flashing white); the hair stays styled as made
+        foreach (var c in v.GetComponentsInChildren<MonoBehaviour>(true)) if (c != null && c.GetType().Name == "VRMSpringBone") c.enabled = false;
         foreach (var smr in v.GetComponentsInChildren<SkinnedMeshRenderer>(true)) { smr.updateWhenOffscreen = true; smr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On; }
         // the old body vanishes (its bones keep moving)
         // (only the body's own meshes: anything hanging from a bone, like the weapon in the hand, stays)
