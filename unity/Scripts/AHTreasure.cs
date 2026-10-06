@@ -180,12 +180,21 @@ public static class AHTreasure
     public static void OnKill(AHGame g, AHMob m, AHPlayer by)
     {
         var L = Here; if (L == null || by == null || m == null || m.type == null) return;
-        bool boss = AHJson.B(AHJson.O(AHDB.Mobs, m.type.id), "boss");
-        double chance = boss ? 0.3 : L.area == "fossil" ? 0.035 : 0.02;
-        if (rnd.NextDouble() < chance)
+        var d = AHJson.O(AHDB.Mobs, m.type.id);
+        bool boss = AHJson.B(d, "boss") || AHJson.B(d, "elite") || AHJson.B(d, "world") || AHJson.Has(d, "boss2");
+        bool rare = AHJson.B(d, "rare"); if (!rare && AHEvents.Rares != null) foreach (var r in AHEvents.Rares) if (AHJson.S(r, "type") == m.type.id) rare = true;
+        double chance;
+        if (L.area == "fossil")
+        {
+            // the Fossil Lands keep their maps on their strongest: bosses, rare beasts and the high-level dead (level 50+)
+            chance = boss ? 0.35 : rare ? 0.2 : m.type.lvl >= FossilMapLevel ? 0.05 : 0.0;
+        }
+        else chance = boss ? 0.3 : rare ? 0.15 : 0.02;
+        if (chance > 0 && rnd.NextDouble() < chance)
         {
             if (by.bag.Add(L.map)) { g.MarkDirty(); g.ui.Toast("A treasure map! It is in your bag.", 2.2f); }
             else g.ui.Toast("A treasure map blew away: your bag is full.", 2.2f);
         }
     }
+    public const int FossilMapLevel = 50;
 }

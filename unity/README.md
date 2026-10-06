@@ -380,8 +380,8 @@ For iPhone you need a Mac with Xcode.
   "Test: Toggle Wider Areas" shows a land as it was.
 - **Danger warning**: walking into a land far above your level shows a warning.
 - **Treasure maps**: every wild land has its own (Hollow Meadow, Silkwood, Duskmire, Kingsvale, Frostfang, Sunscar,
-  Dragonscale, Tidewake, Emberreach, Fossil Lands). Its beasts drop them (bosses often); your first visit to the Fossil
-  Lands gives you one. Read a map in its land (tap it twice in the bag): a red X with a pale light appears, also on
+  Dragonscale, Tidewake, Emberreach, Fossil Lands). Its beasts drop them (bosses and rare beasts often). In the Fossil Lands only
+  bosses, rare beasts and level 50+ monsters drop them; your first visit there gives you one. Read a map in its land (tap it twice in the bag): a red X with a pale light appears, also on
   your map. Dig there (keep 4 bag slots free) for silver, ore and gems for the land's level, its herbs, potions, a card
   of one of its beasts and sometimes another map. One dig in a hundred gives the reins of the land's rare mount; in
   the Fossil Lands that is the new **Fossilized raptor**, a mount of bare bone. Deeds: X Marks the Spot (5 Fossil
