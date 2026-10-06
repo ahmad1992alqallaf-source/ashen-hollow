@@ -399,6 +399,18 @@ For iPhone you need a Mac with Xcode.
   hero existed), and the Fossil Lands welcome map now really arrives. Digging with a full bag says to make room and
   keeps the map. Emberreach's floating orange slab (a lava streak of the old volcano) is gone.
 
+## Hunting update (October)
+- **New animals to hunt and skin**: the **Brown bear** (Silkwood, Whitepine; lv 12, guards its ground), the **Mire
+  crocodile** (Duskmire, the Causeway; lv 14, lunges), the **Ostrich** (Sunscar Wastes, Scorchwind; lv 17, fast,
+  only fights back) and the **Mountain ram** (Frostfang Reach, Whitepine; lv 21, headbutts back). Hollow Meadow,
+  now wider, has a few more boars and deer. Models are reshaped from the Quaternius animals and the raptor rig by
+  `tools/animals/` (mk_bear, mk_croc, mk_ostrich, mk_ram); `tools/animals/add_animals.py` adds the data and spawns.
+- **Skins**: bear pelt and claw, crocodile hide and tooth, ostrich plume and feathers, ram wool and horn. Bears
+  sometimes drop honey, crocodiles a tooth, ostriches an **ostrich egg** (cook a Sunscar omelette at the oven).
+- **Feathers now build things**: the Plume-fletched longbow (anvil), the Plumed hunter's hat and the Feather cloak
+  (loom) use feathers from your hens and the ostriches. Also new: Bearskin mantle and cloak, Bear-claw gauntlets,
+  Crocodile-hide boots and jerkin, Crocodile-tooth necklace (jeweller) and the Ram-horn helm (anvil).
+
 ## Credits
 - Heroes (Knight, Mage, Rogue, Barbarian): KayKit Adventurers by Kay Lousberg, CC0.
 - City buildings, walls, towers and props: KayKit Medieval Hexagon Pack by Kay Lousberg (www.kaylousberg.com), CC0.

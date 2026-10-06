@@ -523,8 +523,8 @@ public static class AHMenu
     }
 
     // a monster stood a few metres in front of you, alive (breathing, idling) but harmless; again for the next one
-    static readonly string[] showIds = { "m_flameguard", "emberwarden", "voidling", "grull", "pyraxis", "imp", "magmaimp", "troll", "f_hrimgar", "f_glacius", "lurker", "mirehulk", "bogmother", "w_bogking", "w_rotfang", "sandqueen", "thalassa", "voidmaw", "m_ignis" };
-    static int showAt; static GameObject showGo;
+    static readonly string[] showIds = { "bear", "croc", "ostrich", "ram", "m_flameguard", "emberwarden", "voidling", "grull", "pyraxis", "imp", "magmaimp", "troll", "f_hrimgar", "f_glacius", "lurker", "mirehulk", "bogmother", "w_bogking", "w_rotfang", "sandqueen", "thalassa", "voidmaw", "m_ignis" };
+    static int showAt; static GameObject showGo;   // the list starts again after each script reload
     [MenuItem("Ashen Hollow/Test: Display Monster Here")]
     static void ShowMonster()
     {

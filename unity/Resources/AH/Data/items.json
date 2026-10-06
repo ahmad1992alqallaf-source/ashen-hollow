@@ -10122,6 +10122,196 @@
    "name": "Treasure map: Emberreach",
    "icon": "cloth",
    "c": "#c9a24a"
+  },
+  "bear_pelt": {
+   "name": "Bear pelt",
+   "icon": "hide",
+   "c": "#5b3b24"
+  },
+  "bear_claw": {
+   "name": "Bear claw",
+   "icon": "fang",
+   "c": "#e8dcc0"
+  },
+  "croc_hide": {
+   "name": "Crocodile hide",
+   "icon": "hide",
+   "c": "#4a5a32"
+  },
+  "croc_tooth": {
+   "name": "Crocodile tooth",
+   "icon": "fang",
+   "c": "#efe6cf"
+  },
+  "ostrich_plume": {
+   "name": "Ostrich plume",
+   "icon": "feather",
+   "c": "#f6f1e6"
+  },
+  "ram_horn": {
+   "name": "Ram horn",
+   "icon": "bone",
+   "c": "#cdbb92"
+  },
+  "ostrich_egg": {
+   "name": "Ostrich egg",
+   "icon": "egg",
+   "c": "#f2ead8",
+   "food": {
+    "hp": 20,
+    "hunger": 30
+   }
+  },
+  "sunscar_omelette": {
+   "name": "Sunscar omelette",
+   "icon": "dish",
+   "c": "#ffd060",
+   "food": {
+    "hp": 60,
+    "hunger": 70
+   }
+  },
+  "bear_mantle": {
+   "name": "Bearskin mantle",
+   "slot": "shoulders",
+   "style": "wolf",
+   "form": "fur",
+   "stats": {
+    "def": 7,
+    "hp": 15
+   },
+   "rarity": "crafted",
+   "set": null,
+   "c": "#5b3b24",
+   "icon": "g_shoulders"
+  },
+  "bear_cloak": {
+   "name": "Bearskin cloak",
+   "slot": "cape",
+   "style": "wolf",
+   "form": "cloak",
+   "stats": {
+    "def": 7,
+    "hp": 20,
+    "atk": 1
+   },
+   "rarity": "crafted",
+   "set": null,
+   "c": "#5b3b24",
+   "icon": "g_cape"
+  },
+  "bearclaw_gloves": {
+   "name": "Bear-claw gauntlets",
+   "slot": "hands",
+   "style": "leather",
+   "form": "gloves",
+   "stats": {
+    "def": 5,
+    "atk": 2
+   },
+   "rarity": "crafted",
+   "set": null,
+   "c": "#6a4a30",
+   "icon": "g_hands"
+  },
+  "croc_boots": {
+   "name": "Crocodile-hide boots",
+   "slot": "feet",
+   "style": "leather",
+   "form": "boots",
+   "stats": {
+    "def": 7,
+    "hp": 5
+   },
+   "rarity": "crafted",
+   "set": null,
+   "c": "#4a5a32",
+   "icon": "g_feet"
+  },
+  "croc_vest": {
+   "name": "Crocodile-scale jerkin",
+   "slot": "chest",
+   "style": "leather",
+   "form": "vest",
+   "stats": {
+    "def": 12,
+    "hp": 15
+   },
+   "rarity": "crafted",
+   "set": null,
+   "c": "#4a5a32",
+   "icon": "g_chest"
+  },
+  "croc_necklace": {
+   "name": "Crocodile-tooth necklace",
+   "slot": "amulet",
+   "style": "jewel",
+   "form": "chain",
+   "stats": {
+    "hp": 20,
+    "atk": 2
+   },
+   "rarity": "crafted",
+   "set": null,
+   "c": "#efe6cf",
+   "icon": "g_amulet"
+  },
+  "plumed_hat": {
+   "name": "Plumed hunter’s hat",
+   "slot": "head",
+   "style": "leather",
+   "form": "hood",
+   "stats": {
+    "def": 5,
+    "hp": 10,
+    "atk": 1
+   },
+   "rarity": "crafted",
+   "set": null,
+   "c": "#f6f1e6",
+   "icon": "g_head"
+  },
+  "feather_cloak": {
+   "name": "Feather cloak",
+   "slot": "cape",
+   "style": "wolf",
+   "form": "cloak",
+   "stats": {
+    "def": 8,
+    "hp": 18,
+    "cdr": 3
+   },
+   "rarity": "crafted",
+   "set": null,
+   "c": "#f4f0e6",
+   "icon": "g_cape"
+  },
+  "ramhorn_helm": {
+   "name": "Ram-horn helm",
+   "slot": "head",
+   "style": "iron",
+   "form": "helm",
+   "stats": {
+    "def": 10,
+    "hp": 10
+   },
+   "rarity": "crafted",
+   "set": null,
+   "c": "#cdbb92",
+   "icon": "g_head"
+  },
+  "fletched_bow": {
+   "name": "Plume-fletched longbow",
+   "slot": "weapon",
+   "style": "iron",
+   "form": "bow",
+   "stats": {
+    "atk": 11
+   },
+   "rarity": "crafted",
+   "set": null,
+   "c": "#7a5a34",
+   "icon": "bow"
   }
  },
  "QUALITY": {
@@ -11977,7 +12167,25 @@
   "reins_tidelizard": 2000,
   "reins_emberlizard": 2000,
   "reins_voidwing": 2000,
-  "reins_gladiator": 2000
+  "reins_gladiator": 2000,
+  "bear_pelt": 40,
+  "bear_claw": 30,
+  "croc_hide": 45,
+  "croc_tooth": 30,
+  "ostrich_plume": 35,
+  "ram_horn": 40,
+  "ostrich_egg": 25,
+  "sunscar_omelette": 70,
+  "bear_mantle": 160,
+  "bear_cloak": 190,
+  "bearclaw_gloves": 170,
+  "croc_boots": 190,
+  "croc_vest": 240,
+  "croc_necklace": 180,
+  "plumed_hat": 210,
+  "feather_cloak": 280,
+  "ramhorn_helm": 260,
+  "fletched_bow": 260
  },
  "AH_POOL": {
   "gear": [
@@ -13217,7 +13425,25 @@
   "reins_tidelizard": "mats",
   "reins_emberlizard": "mats",
   "reins_voidwing": "mats",
-  "reins_gladiator": "mats"
+  "reins_gladiator": "mats",
+  "bear_pelt": "mats",
+  "bear_claw": "mats",
+  "croc_hide": "mats",
+  "croc_tooth": "mats",
+  "ostrich_plume": "mats",
+  "ram_horn": "mats",
+  "ostrich_egg": "food",
+  "sunscar_omelette": "food",
+  "bear_mantle": "gear",
+  "bear_cloak": "gear",
+  "bearclaw_gloves": "gear",
+  "croc_boots": "gear",
+  "croc_vest": "gear",
+  "croc_necklace": "gear",
+  "plumed_hat": "gear",
+  "feather_cloak": "gear",
+  "ramhorn_helm": "gear",
+  "fletched_bow": "gear"
  },
  "AH_OK": [
   "raw_meat",

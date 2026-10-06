@@ -2039,6 +2039,73 @@
    "atkCd": 2.2,
    "skinReq": 17,
    "dino": true
+  },
+  "bear": {
+   "name": "Brown bear",
+   "lvl": 12,
+   "hp": 230,
+   "dmg": 15,
+   "speed": 120,
+   "r": 20,
+   "aggro": 150,
+   "xp": 200,
+   "skinReq": 10,
+   "slam": true,
+   "atkCd": 1.8,
+   "drops": [
+    [
+     "honey",
+     0.2
+    ]
+   ]
+  },
+  "croc": {
+   "name": "Mire crocodile",
+   "lvl": 14,
+   "hp": 270,
+   "dmg": 18,
+   "speed": 95,
+   "r": 20,
+   "aggro": 170,
+   "xp": 240,
+   "skinReq": 11,
+   "lunge": true,
+   "drops": [
+    [
+     "croc_tooth",
+     0.15
+    ]
+   ]
+  },
+  "ostrich": {
+   "name": "Ostrich",
+   "lvl": 17,
+   "hp": 200,
+   "dmg": 16,
+   "speed": 190,
+   "r": 16,
+   "aggro": 0,
+   "xp": 230,
+   "skinReq": 13,
+   "drops": [
+    [
+     "ostrich_egg",
+     0.25
+    ]
+   ]
+  },
+  "ram": {
+   "name": "Mountain ram",
+   "lvl": 21,
+   "hp": 320,
+   "dmg": 22,
+   "speed": 140,
+   "r": 18,
+   "aggro": 0,
+   "xp": 300,
+   "skinReq": 15,
+   "slam": true,
+   "atkCd": 1.7
   }
  },
  "MOB_SKINS": {
@@ -3327,6 +3394,75 @@
    "hit": "Hit_Chest",
    "death": "Death01",
    "moveRate": 1.0
+  },
+  "bear": {
+   "files": [
+    "b_bear"
+   ],
+   "size": 2.6,
+   "attack": [
+    "Attack"
+   ],
+   "long": true,
+   "noTint": true,
+   "idle": "Idle",
+   "walk": "Walk",
+   "move": "Gallop",
+   "hit": "Idle_HitReact_Left",
+   "death": "Death",
+   "moveRate": 0.9
+  },
+  "croc": {
+   "files": [
+    "b_croc"
+   ],
+   "size": 4.2,
+   "attack": [
+    "Attack"
+   ],
+   "long": true,
+   "noTint": true,
+   "idle": "Idle",
+   "walk": "Walk",
+   "move": "Gallop",
+   "hit": "Idle_HitReact_Left",
+   "death": "Death",
+   "moveRate": 0.7
+  },
+  "ostrich": {
+   "files": [
+    "b_ostrich"
+   ],
+   "size": 2.4,
+   "long": false,
+   "noTint": true,
+   "idle": "RaptorArmature|Raptor_Idle1_Anim",
+   "walk": "RaptorArmature|Raptor_Walk_Anim",
+   "move": "RaptorArmature|Raptor_Run1_Anim",
+   "attack": [
+    "RaptorArmature|Raptor_Bite1_Anim",
+    "RaptorArmature|Raptor_Bite2_Anim"
+   ],
+   "hit": "RaptorArmature|Raptor_Hit1_Anim",
+   "death": "RaptorArmature|Raptor_Death1_Anim",
+   "moveRate": 0.8
+  },
+  "ram": {
+   "files": [
+    "b_ram"
+   ],
+   "size": 1.9,
+   "attack": [
+    "Attack_Headbutt"
+   ],
+   "long": true,
+   "noTint": true,
+   "idle": "Idle",
+   "walk": "Walk",
+   "move": "Gallop",
+   "hit": "Idle",
+   "death": "Death",
+   "moveRate": 0.9
   }
  }
 }
