@@ -128,7 +128,7 @@ public static class AHWardrobe
         int n0 = v.Count; for (int i = 0; i < n0; i++) v.Add(v[i]);   // a second copy of the side for the inside face
         for (int i = 0; i < seg; i++) { int a = i * 2; tr.AddRange(new[] { a, a + 1, a + 2, a + 2, a + 1, a + 3 }); int c = n0 + a; tr.AddRange(new[] { c, c + 2, c + 1, c + 2, c + 3, c + 1 }); }
         int cb = v.Count; v.Add(Vector3.zero); for (int i = 0; i < seg; i++) tr.AddRange(new[] { cb, i * 2, i * 2 + 2 });
-        m.SetVertices(v); m.SetTriangles(tr, 0); m.RecalculateNormals(); m.RecalculateBounds(); return m;
+        m.SetVertices(v); m.SetTriangles(tr, 0); m.RecalculateNormals(); m.RecalculateBounds(); AHGearTex.AutoUV(m, 2f); return m;
     }
     // ---- feathered wing meshes (span along +X, the leading edge arching up, feathers hanging down and out) ----
     static Mesh wingF, wingC, wingA;
@@ -141,7 +141,15 @@ public static class AHWardrobe
         int j = v.Count; v.Add(a); v.Add(b); v.Add(c); v.Add(d);
         tr.AddRange(new[] { j, j + 2, j + 1, j, j + 3, j + 2 });
     }
-    static Mesh Done(List<Vector3> v, List<int> tr) { var m = new Mesh(); m.SetVertices(v); m.SetTriangles(tr, 0); m.RecalculateNormals(); m.RecalculateBounds(); return m; }
+    static Mesh Done(List<Vector3> v, List<int> tr) { var m = new Mesh(); m.SetVertices(v); m.SetTriangles(tr, 0); m.RecalculateNormals(); m.RecalculateBounds(); AHGearTex.AutoUV(m, 6f); return m; }
+    // UVs for a grid mesh laid out face by face, row by row, (cols + 1) vertices a row: the texture repeats
+    // uTiles times around and vTiles times down
+    static void GridUV(Mesh m, int cols, int rows, float uTiles, float vTiles)
+    {
+        var uv = new Vector2[m.vertexCount]; int per = (cols + 1) * rows;
+        for (int i = 0; i < uv.Length; i++) { int q = i % per, r = q / (cols + 1), c = q % (cols + 1); uv[i] = new Vector2(c / (float)cols * uTiles, r / (float)Mathf.Max(1, rows - 1) * vTiles); }
+        m.uv = uv; m.RecalculateTangents();
+    }
     public static Mesh WingFeathers
     {
         get
@@ -210,24 +218,28 @@ public static class AHWardrobe
                 int a = i * (side + 1) + j, b = a + side + 1;
                 tr.AddRange(new[] { a, a + 1, b, b, a + 1, b + 1 });
             }
-        m.SetVertices(v); m.SetTriangles(tr, 0); m.RecalculateNormals(); m.RecalculateBounds(); return m;
+        m.SetVertices(v); m.SetTriangles(tr, 0); m.RecalculateNormals(); m.RecalculateBounds(); AHGearTex.AutoUV(m, 2f); return m;
     }
 
     class Kit
     {
-        public Transform root; public float k; public Color col; public bool metal; public float glow;
+        public Transform root; public float k; public Color col; public bool metal; public float glow; public AHGearTex.Kind kind = AHGearTex.Kind.Cloth;
         Material mat, dark, gold;
-        public Material Mat { get { if (mat == null) mat = Make(col, metal, glow); return mat; } }
-        public Material Dark { get { if (dark == null) dark = Make(Color.Lerp(col, Color.black, 0.45f), metal, 0); return dark; } }
-        public Material Gold { get { if (gold == null) gold = Make(new Color(1f, 0.8f, 0.3f), true, 0); return gold; } }
+        public Material Mat { get { if (mat == null) mat = Make(col, metal, glow, kind); return mat; } }
+        public Material Dark { get { if (dark == null) dark = Make(Color.Lerp(col, Color.black, 0.45f), metal, 0, metal ? AHGearTex.Kind.Metal : AHGearTex.Kind.Leather); return dark; } }
+        public Material Gold { get { if (gold == null) gold = Make(new Color(1f, 0.8f, 0.3f), true, 0, AHGearTex.Kind.Metal); return gold; } }
         // one material per colour and finish, shared by every piece that wears it (so the figures batch together)
         static readonly Dictionary<string, Material> made = new Dictionary<string, Material>();
-        static Material Make(Color c, bool metal, float glow)
+        static Material Make(Color c, bool metal, float glow, AHGearTex.Kind kind)
         {
-            string key = ColorUtility.ToHtmlStringRGBA(c) + (metal ? "m" : "") + glow.ToString("0.00"); Material cm;
+            string key = ColorUtility.ToHtmlStringRGBA(c) + (metal ? "m" : "") + glow.ToString("0.00") + kind; Material cm;
             if (made.TryGetValue(key, out cm) && cm != null) return cm;
             var m = new Material(lit); m.SetColor("_BaseColor", c); m.enableInstancing = true; made[key] = m;
-            m.SetFloat("_Metallic", metal ? 0.75f : 0f); m.SetFloat("_Smoothness", metal ? 0.62f : 0.18f);
+            // the surface: woven cloth, grained leather or brushed metal (AHGearTex), lit with its own normal map
+            m.SetTexture("_BaseMap", AHGearTex.Base(kind)); m.SetTexture("_BumpMap", AHGearTex.Normal(kind)); m.EnableKeyword("_NORMALMAP");
+            m.SetFloat("_BumpScale", kind == AHGearTex.Kind.Metal ? 0.6f : 1f);
+            m.SetFloat("_Metallic", metal ? 0.65f : 0f);
+            m.SetFloat("_Smoothness", metal ? 0.5f : kind == AHGearTex.Kind.Leather ? 0.34f : 0.12f);
             if (glow > 0) { m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", c * glow); }
             return m;
         }
@@ -272,7 +284,7 @@ public static class AHWardrobe
                     if (side == 0) t.AddRange(new[] { p, p + 1, q + 1, p, q + 1, q }); else t.AddRange(new[] { p, q + 1, p + 1, p, q, q + 1 });
                 }
         }
-        m = new Mesh { name = "cloak" }; m.SetVertices(v); m.SetTriangles(t, 0); m.RecalculateNormals(); m.RecalculateBounds();
+        m = new Mesh { name = "cloak" }; m.SetVertices(v); m.SetTriangles(t, 0); m.RecalculateNormals(); m.RecalculateBounds(); GridUV(m, nu, nv + 1, 4f, Mathf.Max(1f, L * (v1 - v0) * 6f));
         cloaks[key] = m; return m;
     }
 
@@ -359,7 +371,7 @@ public static class AHWardrobe
         var mesh = new Mesh { name = "robe" };
         mesh.SetVertices(verts); mesh.SetTriangles(tris, 0); mesh.boneWeights = bw.ToArray();
         var bp = new Matrix4x4[bones.Length]; for (int i = 0; i < bones.Length; i++) bp[i] = bones[i].worldToLocalMatrix * go.transform.localToWorldMatrix;
-        mesh.bindposes = bp; mesh.RecalculateNormals(); mesh.RecalculateBounds();
+        mesh.bindposes = bp; mesh.RecalculateNormals(); mesh.RecalculateBounds(); GridUV(mesh, nu, rows, 7f, (chestY - hem) * 6f);
         var smr = go.AddComponent<SkinnedMeshRenderer>(); smr.sharedMesh = mesh; smr.bones = bones; smr.rootBone = pel; smr.sharedMaterial = mat;
         smr.localBounds = new Bounds(Vector3.zero, Vector3.one * 3f);
         return true;
@@ -417,7 +429,7 @@ public static class AHWardrobe
                         if (face == 0) tr.AddRange(new[] { a, b, a + 1, a + 1, b, b + 1 }); else tr.AddRange(new[] { a, a + 1, b, a + 1, b + 1, b });
                     }
             }
-            wizHat = new Mesh { name = "wizard_hat" }; wizHat.SetVertices(v); wizHat.SetTriangles(tr, 0); wizHat.RecalculateNormals(); wizHat.RecalculateBounds();
+            wizHat = new Mesh { name = "wizard_hat" }; wizHat.SetVertices(v); wizHat.SetTriangles(tr, 0); wizHat.RecalculateNormals(); wizHat.RecalculateBounds(); GridUV(wizHat, nu, rows.Count, 8f, 4f);
             return wizHat;
         }
     }
@@ -469,8 +481,16 @@ public static class AHWardrobe
                     if (face == 0) tr.AddRange(new[] { a, a + 1, b, a + 1, b + 1, b }); else tr.AddRange(new[] { a, b, a + 1, a + 1, b, b + 1 });
                 }
         }
-        m = new Mesh { name = "hood" }; m.SetVertices(v); m.SetTriangles(tr, 0); m.RecalculateNormals(); m.RecalculateBounds();
+        m = new Mesh { name = "hood" }; m.SetVertices(v); m.SetTriangles(tr, 0); m.RecalculateNormals(); m.RecalculateBounds(); GridUV(m, nu, nv + 1, 6f, 3f);
         hoods[key] = m; return m;
+    }
+
+    // boots, gloves, leg wraps, vests, coats and quivers are leather; robes, hoods, hats, mantles and capes are cloth
+    static bool Leathery(ItemDef d)
+    {
+        string f = d.form ?? "";
+        if (d.slot == "feet" || d.slot == "hands" || d.slot == "legs") return true;
+        return f == "vest" || f == "coat" || f == "quiver" || f == "fur" || f == "tricorn";
     }
 
     static Transform Bone(GameObject rig, string name) { foreach (var t in rig.GetComponentsInChildren<Transform>(true)) if (t.name == name) return t; return null; }
@@ -504,7 +524,8 @@ public static class AHWardrobe
             var go = new GameObject("Outfit_" + d.slot); go.transform.position = at; go.transform.rotation = face;
             go.transform.SetParent(bone, true);
             bool isMetal = Metal.Contains(d.form ?? "");
-            return new Kit { root = go.transform, k = k, col = dyeOn && !isMetal ? Color.Lerp(d.color, dye, 0.55f) : d.color, metal = isMetal, glow = d.form == "molten" || d.form == "ember" || d.form == "halo" ? 1.6f : 0f };
+            var kind = isMetal ? AHGearTex.Kind.Metal : Leathery(d) ? AHGearTex.Kind.Leather : AHGearTex.Kind.Cloth;
+            return new Kit { root = go.transform, k = k, kind = kind, col = dyeOn && !isMetal ? Color.Lerp(d.color, dye, 0.55f) : d.color, metal = isMetal, glow = d.form == "molten" || d.form == "ember" || d.form == "halo" ? 1.6f : 0f };
         };
 
         // ---- head ----
@@ -512,7 +533,7 @@ public static class AHWardrobe
         if (hd != null)
         {
             var K = start(head, head.position + hold.up * 0.08f * k, hid); string f = hd.form ?? "helm";
-            bool covers = f == "helm" || f == "forgehelm" || f == "hood" || f == "cowl" || f == "antlers";
+            bool covers = f == "helm" || f == "forgehelm" || f == "hood" || f == "cowl";
             if (f == "helm" || f == "forgehelm")
             {
                 K.Prim(PrimitiveType.Sphere, new Vector3(0, 0.1f, -0.045f), new Vector3(0.27f, 0.22f, 0.28f), Vector3.zero);
@@ -539,7 +560,6 @@ public static class AHWardrobe
             else if (f == "halo") K.Mesh(torus, new Vector3(0, 0.3f, -0.04f), new Vector3(0.26f, 0.7f, 0.26f), Vector3.zero);
             else if (f == "horns" || f == "antlers")
             {
-                if (f == "antlers") K.Mesh(Hood(false, false), Vector3.zero, Vector3.one, Vector3.zero);   // the druid's hood, the antlers growing through it
                 foreach (int sx in new[] { -1, 1 })
                 {
                     if (f == "horns") { K.Mesh(frustum, new Vector3(sx * 0.075f, 0.05f, -0.02f), new Vector3(0.05f, 0.12f, 0.05f), new Vector3(-10, 0, -sx * 62)); K.Mesh(cone, new Vector3(sx * 0.17f, 0.1f, -0.03f), new Vector3(0.075f, 0.17f, 0.075f), new Vector3(-20, 0, -sx * 18)); }
@@ -658,13 +678,15 @@ public static class AHWardrobe
     // a chest piece colours the clothes of the body under it
     static void TintCloth(GameObject rig, Color c)
     {
+        // the piece's colour, kept light enough that the clothes' own texture still shows through
+        float hh, ss, vv; Color.RGBToHSV(c, out hh, out ss, out vv); Color lift = Color.HSVToRGB(hh, Mathf.Min(ss, 0.75f), Mathf.Clamp(vv * 1.5f, 0.6f, 0.95f));
         foreach (var r in rig.GetComponentsInChildren<Renderer>(true))
         {
             if (r.name == "Piece") continue; var mats = r.materials; bool ch = false;
             foreach (var m in mats)
             {
                 if (m == null || !(m.name.Contains("Peasant") || m.name.Contains("Ranger"))) continue;
-                foreach (var prop in new[] { "baseColorFactor", "_BaseColor" }) if (m.HasProperty(prop)) { var b = m.GetColor(prop); var t2 = Color.Lerp(b, c.linear * 1.6f, 0.55f); t2.a = b.a; m.SetColor(prop, t2); ch = true; }
+                foreach (var prop in new[] { "baseColorFactor", "_BaseColor" }) if (m.HasProperty(prop)) { var b = m.GetColor(prop); var t2 = Color.Lerp(b, lift, 0.55f); t2.a = b.a; m.SetColor(prop, t2); ch = true; }
             }
             if (ch) r.materials = mats;
         }

@@ -34,6 +34,13 @@ public class AHLineup : MonoBehaviour
                 AHWardrobe.DressWith(rig, h, s => { string v; return kit.TryGetValue(s, out v) && AHItems.Get(v ?? "") != null ? v : null; }, () => false);
                 if (a != null) a.Play("Idle", true);
                 holders.Add(h); anims.Add(a); names.Add(id + "_" + sex);
+                if (sex == "m" && (id == "ranger" || id == "mage"))
+                {
+                    var sb = new System.Text.StringBuilder(id + " materials: ");
+                    foreach (var r in rig.GetComponentsInChildren<Renderer>(true))
+                        if (r.name != "Piece") foreach (var m in r.sharedMaterials) if (m != null) sb.Append(r.name + "/" + m.name + "[" + m.shader.name + "] " + (m.HasProperty("baseColorFactor") ? ColorUtility.ToHtmlStringRGB(m.GetColor("baseColorFactor")) : "-") + (m.HasProperty("baseColorTexture") && m.GetTexture("baseColorTexture") != null ? " tex" : "") + "; ");
+                    System.IO.File.WriteAllText(System.IO.Path.Combine(Application.dataPath, "../HeroShots/mats_" + id + ".txt"), sb.ToString());
+                }
             }
     }
 

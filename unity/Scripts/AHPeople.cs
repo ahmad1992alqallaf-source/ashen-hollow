@@ -77,7 +77,11 @@ public static class AHPeople
         Color clothMain = LookColor("CLOTH", look.cloth, 0), clothHi = LookColor("CLOTH", look.cloth, 1);
         Color skinRef = LookColor("SKIN", 1);
         Color skinK = new Color(skin.r / Mathf.Max(0.05f, skinRef.r), skin.g / Mathf.Max(0.05f, skinRef.g), skin.b / Mathf.Max(0.05f, skinRef.b));
-        Color clothK = Color.Lerp(Color.white, Color.Lerp(clothMain, clothHi, 0.6f) * 2.6f, 0.85f) * Color.Lerp(Color.white, cls.tint, 0.25f);   // strong enough to show on the dark cloth
+        // the outfit colour as a dye over the outfit's own painted texture: its hue, but never so dark that the
+        // stitching, leather and folds of the clothes vanish into black
+        float dh, ds, dv; Color.RGBToHSV(Color.Lerp(clothMain, clothHi, 0.6f), out dh, out ds, out dv);
+        Color dyeC = Color.HSVToRGB(dh, Mathf.Min(ds * 1.1f, 0.7f), Mathf.Clamp(dv * 2.4f, 0.62f, 0.95f));
+        Color clothK = Color.Lerp(Color.white, dyeC, 0.7f) * Color.Lerp(Color.white, cls.tint, 0.2f);
         foreach (var r in rig.GetComponentsInChildren<Renderer>(true))
         {
             var mats = r.materials; bool ch = false;
