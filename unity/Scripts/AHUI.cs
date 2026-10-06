@@ -376,8 +376,10 @@ public partial class AHUI : MonoBehaviour
         bannerT = 3.2f;
     }
 
+    public string lastToast;   // for tests
     public void Toast(string s, float time = 1.4f)
     {
+        lastToast = s;
         if (toastText == null || string.IsNullOrEmpty(s)) return;
         float t = Mathf.Max(time, 1.4f + s.Length * 0.025f);
         // a message that has only just appeared is not wiped out: the new one waits its turn (at most 3 wait)

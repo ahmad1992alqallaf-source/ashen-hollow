@@ -858,7 +858,7 @@ public static class AHScenery
             foreach (var r in world.GetComponentsInChildren<Renderer>(true))
             {
                 if (!r.enabled || r.name.StartsWith("AH_")) continue; var rb = r.bounds;
-                if (Mathf.Max(rb.size.x, rb.size.z) > 12f || rb.center.y < b.min.y + 1f) continue;
+                if ((Mathf.Max(rb.size.x, rb.size.z) > 12f && r.transform.parent != cone.transform.parent) || rb.center.y < b.min.y + 1f) continue;   // its own long streaks too
                 float t = Mathf.Clamp01((rb.center.y - b.min.y) / b.size.y);
                 Vector2 d = new Vector2(rb.center.x - b.center.x, rb.center.z - b.center.z);
                 if (d.magnitude < b.size.x * 0.5f * (1f - t) + 1.2f) r.enabled = false;

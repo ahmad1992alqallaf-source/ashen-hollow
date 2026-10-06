@@ -390,6 +390,14 @@ For iPhone you need a Mac with Xcode.
 - **Bosses**: Forgemaster Grull and Pyraxis are the rigged demon from the "Demon Horror Creature with Weapon" Unity
   package you supplied (Resources/AH/Models/Demon). The regular imps are the Hellish imp.
 - **Cities**: the old web awnings and porches baked into each city's big model are trimmed away inside the rebuilt lots.
+- **Three more demons, rigged**: the static sculpts you supplied are now animated monsters (walk, run, attack, hit,
+  death on the Quaternius humanoid clips): the horned devil is **Flameguard Kaross**, the black demon is the
+  **Ashfall warden**, and the six-limbed demone is the **Voidling** (Voidmaw's adds). Made by `tools/rig/` (reduce,
+  fit the skeleton, skin by bone distance, cut the triangles that tear in motion); the models stay out of the repo
+  (Resources/AH/Models/Demon).
+- **Fixes**: a treasure X marked before you left a land is diggable again when you come back (it was placed before the
+  hero existed), and the Fossil Lands welcome map now really arrives. Digging with a full bag says to make room and
+  keeps the map. Emberreach's floating orange slab (a lava streak of the old volcano) is gone.
 
 ## Credits
 - Heroes (Knight, Mage, Rogue, Barbarian): KayKit Adventurers by Kay Lousberg, CC0.
@@ -409,6 +417,8 @@ For iPhone you need a Mac with Xcode.
   before release.
 - 'Demon Horror Creature with Weapon' (Grull and Pyraxis): from the Unity package you supplied; check its licence before
   release (it is not in the public repository).
+- The devil ('Realistic devil demon, game ready'), the black demon and 'demone hipoly': free downloads without licence
+  notes in their files; check their pages before release (not in the public repository).
 - 'Hellish imp 01' (the imps, Magma imps and Riftlings) by GAMEBR0VIP (sketchfab.com/GAMEBR0VIP), CC-BY 4.0; reduced, given a
   loincloth and rigged to the Quaternius humanoid animations for Ashen Hollow.
 - 'Sea Serpent' by Sammy The Citipati (sketchfab.com/SammyTheCitipati), CC-BY 4.0.

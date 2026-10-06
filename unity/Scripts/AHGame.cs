@@ -135,7 +135,6 @@ public class AHGame : MonoBehaviour
         AHMountains.Setup(this, world); // craggy rock mountains instead of the plain cones
         AHTents.Setup(this, world);     // striped pavilions and ridge tents instead of the pyramids
         AHScenery.Setup(this, world);   // wooden footbridges and broken stone columns
-        AHTreasure.Setup(this);         // the Fossil Lands treasure X (and the explorer's map on your first visit)
 
         SetupLightAndSky();
         SetupCamera();
@@ -162,6 +161,7 @@ public class AHGame : MonoBehaviour
         }
         AHNpc.SpawnTown(this);
         ui = AHUI.Create(this);
+        AHTreasure.Setup(this);         // the treasure X you marked here (and the explorer's map on your first Fossil Lands visit): needs the hero and the UI
         AHSound.Ensure(this);
         AHFinder.Setup(this);
         AHDungeon.Setup(this, world);

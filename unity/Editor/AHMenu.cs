@@ -523,7 +523,7 @@ public static class AHMenu
     }
 
     // a monster stood a few metres in front of you, alive (breathing, idling) but harmless; again for the next one
-    static readonly string[] showIds = { "grull", "pyraxis", "imp", "magmaimp", "troll", "f_hrimgar", "f_glacius", "lurker", "mirehulk", "bogmother", "w_bogking", "w_rotfang", "sandqueen", "thalassa", "voidmaw", "m_ignis" };
+    static readonly string[] showIds = { "m_flameguard", "emberwarden", "voidling", "grull", "pyraxis", "imp", "magmaimp", "troll", "f_hrimgar", "f_glacius", "lurker", "mirehulk", "bogmother", "w_bogking", "w_rotfang", "sandqueen", "thalassa", "voidmaw", "m_ignis" };
     static int showAt; static GameObject showGo;
     [MenuItem("Ashen Hollow/Test: Display Monster Here")]
     static void ShowMonster()
@@ -538,6 +538,7 @@ public static class AHMenu
             foreach (var o in mts) if (AHJson.S(o, "id") == id) { t = new AHMobType { id = id, name = AHJson.S(o, "name", id), model = AHJson.S(o, "model"), hp = 10, lvl = 1, radius = 0.5f }; break; }
             if (t != null) break;
         }
+        if (t == null && AHJson.O(AHDB.Mobs, id) != null) t = new AHMobType { id = id, name = AHJson.S(AHJson.O(AHDB.Mobs, id), "name", id), hp = 10, lvl = 1, radius = 0.5f };   // one that only comes as a boss's add
         if (t == null) return;
         var p = g.player.transform; Vector3 f = g.cam != null ? -g.cam.transform.forward : -p.forward; f.y = 0; f.Normalize();
         var m = AHMob.Create(g, t, g.Resolve(p.position - f * 6f, 0.2f)); m.enabled = false;
@@ -950,5 +951,30 @@ public static class AHMenu
         if (mid == null) { TravelTo("fossil"); Debug.Log("Ashen Hollow: no treasure maps here; run this again once in the Fossil Lands"); return; }
         g.player.bag.Add(mid, 1); AHTreasure.Read(g, mid);
         foreach (var s in AHGather.Spots) if (s.name == "Dig for treasure") { g.player.transform.position = g.Resolve(s.pos + Vector3.right * 1.5f, 0.3f); if (s.use != null) s.use(); return; }
+    }
+
+    [MenuItem("Ashen Hollow/Test: Treasure Full Bag")]   // dig with a full bag, then with room
+    static void TreasureFullBag()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        var bag = g.player.bag; string mid = AHTreasure.MapHere;
+        if (mid == null) { Debug.Log("Ashen Hollow: bag test: no treasure maps in this land"); return; }
+        var stash = new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, int>>();
+        System.Action<int> free = (k) => {
+            for (int i = bag.order.Count - 1; i >= 0 && k > 0; i--) { string id = bag.order[i]; int n = bag.Count(id); if (n <= 0 || id == mid) continue; bag.Take(id, n); stash.Add(new System.Collections.Generic.KeyValuePair<string, int>(id, n)); k--; }
+        };
+        while (bag.Count(mid) <= 0 && !bag.Add(mid, 1)) free(1);
+        AHTreasure.Read(g, mid);
+        AHSpot s = null; foreach (var x in AHGather.Spots) if (x.name == "Dig for treasure") s = x;
+        if (s == null) { Debug.Log("Ashen Hollow: bag test: no X placed"); return; }
+        g.player.transform.position = g.Resolve(s.pos + Vector3.right * 1.5f, 0.3f);
+        int used0 = bag.UsedSlots; long m0 = bag.money; g.ui.lastToast = null; s.use();
+        Debug.Log("Ashen Hollow: bag test FULL: slots " + used0 + "/" + bag.SlotsMax + " -> toast '" + g.ui.lastToast + "', map kept " + (bag.Count(mid) > 0) + ", silver change " + (bag.money - m0));
+        free(4);
+        used0 = bag.UsedSlots; m0 = bag.money; g.ui.lastToast = null; s.use();
+        Debug.Log("Ashen Hollow: bag test ROOM: slots " + used0 + " -> " + bag.UsedSlots + ", toast '" + g.ui.lastToast + "', map used " + (bag.Count(mid) <= 0) + ", silver change " + (bag.money - m0));
+        string lost = "";
+        foreach (var kv in stash) if (!bag.Add(kv.Key, kv.Value)) lost += kv.Key + " x" + kv.Value + " ";
+        Debug.Log("Ashen Hollow: bag test: items put back" + (lost.Length > 0 ? ", no room for " + lost : " (all)"));
     }
 }

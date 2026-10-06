@@ -3280,6 +3280,53 @@
     "": "Demon/demon"
    },
    "size": 3.0
+  },
+  "m_flameguard": {
+   "path": "Demon/mDevil",
+   "size": 1.6,
+   "attack": [
+    "Sword_Attack",
+    "Sword_Regular_Combo",
+    "Spell_Simple_Shoot"
+   ],
+   "noTint": true,
+   "long": false,
+   "idle": "Idle_Loop",
+   "walk": "Walk_Loop",
+   "move": "Jog_Fwd_Loop",
+   "hit": "Hit_Chest",
+   "death": "Death01",
+   "moveRate": 1.0
+  },
+  "emberwarden": {
+   "path": "Demon/mBlackDemon",
+   "size": 1.65,
+   "attack": [
+    "Sword_Attack",
+    "Spell_Simple_Shoot"
+   ],
+   "long": false,
+   "idle": "Idle_Loop",
+   "walk": "Walk_Loop",
+   "move": "Jog_Fwd_Loop",
+   "hit": "Hit_Chest",
+   "death": "Death01",
+   "moveRate": 1.0
+  },
+  "voidling": {
+   "path": "Demon/mDemone",
+   "size": 1.25,
+   "attack": [
+    "Sword_Attack",
+    "Spell_Simple_Shoot"
+   ],
+   "long": false,
+   "idle": "Idle_Loop",
+   "walk": "Walk_Loop",
+   "move": "Jog_Fwd_Loop",
+   "hit": "Hit_Chest",
+   "death": "Death01",
+   "moveRate": 1.0
   }
  }
 }
