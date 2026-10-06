@@ -70,6 +70,28 @@ public static class AHVRoid
         srcAvatars[body] = av; return av;
     }
 
+    // tint the VRoid materials by kind (VRoid names them ..._HAIR, ..._SKIN, ..._CLOTH); a plain colour dyes the
+    // texture: a dark hair colour gives dark hair, the skin tone only nudges (the face is painted)
+    public static void Dye(GameObject v, Color hair, Color skin, Color cloth)
+    {
+        foreach (var r in v.GetComponentsInChildren<Renderer>(true))
+        {
+            var mats = r.materials; bool ch = false;
+            foreach (var m in mats)
+            {
+                if (m == null) continue; string n = m.name.ToUpperInvariant(); Color k;
+                if (n.Contains("_HAIR")) k = Color.Lerp(hair * 1.6f, Color.white, 0.15f);
+                else if (n.Contains("_SKIN") || n.Contains("_FACE")) k = Color.Lerp(Color.white, skin * 1.25f, 0.45f);
+                else if (n.Contains("_CLOTH")) k = Color.Lerp(Color.white, cloth * 1.4f, 0.75f);
+                else continue;
+                k.a = 1f;
+                foreach (var pr in new[] { "_Color", "_BaseColor" }) if (m.HasProperty(pr)) { var c0 = m.GetColor(pr); m.SetColor(pr, new Color(k.r, k.g, k.b, c0.a)); }
+                ch = true;
+            }
+            if (ch) r.materials = mats;
+        }
+    }
+
     // swap the hero's look for the VRoid body; returns false (and changes nothing) if it can't
     public static bool Link(GameObject rig, Transform holder, string body, GameObject model)
     {

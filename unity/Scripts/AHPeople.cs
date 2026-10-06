@@ -108,7 +108,12 @@ public static class AHPeople
         if (wm != null) Arm(rig, wm, main, off, g);
         // a VRoid body, if one has been made for this hero (AHVRoid)
         var vm = AHVRoid.ModelFor(cls, look);
-        if (vm != null) AHVRoid.Link(rig, holder, body, vm);
+        if (vm != null && AHVRoid.Link(rig, holder, body, vm))
+        {
+            // the look editor's colours dye the VRoid body too: hair, skin and the outfit
+            var vr = holder.Find("VRoid");
+            if (vr != null) AHVRoid.Dye(vr.gameObject, hair, skin, Color.Lerp(clothMain, clothHi, 0.4f));
+        }
         return rig;
     }
 

@@ -1079,6 +1079,8 @@ public static class AHMenu
     static void ClassLineup() { var g = AHGame.I; if (Application.isPlaying && g != null && g.player != null) AHLineup.Run(g); }
     [MenuItem("Ashen Hollow/Test: HUD Shot %&h")]   // the game view with the HUD, to HeroShots/hud.png
     static void HudShot() { if (!Application.isPlaying) return; string d = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(d); ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(d, "hud.png"), 2); Debug.Log("Ashen Hollow: HUD shot saved"); }
+    [MenuItem("Ashen Hollow/Test: Open Mirror (look editor) %&m")]
+    static void Mirror() { var g = AHGame.I; if (Application.isPlaying && g != null && g.ui != null) g.ui.OpenCreator("mirror"); }
     [MenuItem("Ashen Hollow/Test: Talent Tree %&t")]
     static void TalentTree() { var g = AHGame.I; if (Application.isPlaying && g != null && g.ui != null) g.ui.OpenClassWin("tal"); }
     [MenuItem("Ashen Hollow/Test: Toggle Auto Quest %&u")]
