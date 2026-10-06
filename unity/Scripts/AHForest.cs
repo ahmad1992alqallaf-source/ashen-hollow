@@ -14,7 +14,7 @@ using UnityEngine;
 
 public static class AHForest
 {
-    public class Tree { public Transform go, crown, trunk; public Vector3 pos; public float phase, sway; }
+    public class Tree { public Transform go, crown, trunk; public Vector3 pos; public float phase, sway; public GameObject stump; public float girth; }
     public static readonly List<Tree> Trees = new List<Tree>();
     static object data;
     static readonly GameObject[] prefabs = new GameObject[6];
@@ -54,6 +54,7 @@ public static class AHForest
 
         var root = new GameObject("Forest").transform;
         var rnd = new System.Random(AHGame.AreaId.GetHashCode());
+        var dream = AHDreamSet.UseIn(AHGame.AreaId) ? AHDreamSet.Get() : null;
         foreach (var o in list)
         {
             var a = o as List<object>;
@@ -63,6 +64,13 @@ public static class AHForest
             int shade = lum < 0.93f ? 0 : lum > 1.07f ? 2 : 1;
             var pf = prefabs[k * 3 + rnd.Next(3)];
             if (AHVillage.InLots(g.W(x, z))) continue;   // a village building stands here now
+            if (k == 0 && dream != null)
+            {
+                // a Dreamscape tree: big round oaks with a few birches between them, its own painted colours and wind
+                Vector3 dp = g.W(x, z); dp.y += y0;
+                var dt = DreamTree(dream, root, dp, h, rnd);
+                if (dt != null) { Trees.Add(dt); continue; }
+            }
             var go = Object.Instantiate(pf, root, false).transform; go.name = k == 0 ? "Tree" : "Pine";
             foreach (var col in go.GetComponentsInChildren<Collider>(true)) Object.Destroy(col);
             Vector3 p = g.W(x, z); p.y += y0;
@@ -85,6 +93,7 @@ public static class AHForest
                 Vector3 p = src.pos + new Vector3(Mathf.Cos(ang), 0f, Mathf.Sin(ang)) * dist;
                 if (!g.InArea(p) || g.Blocked(p, 1.2f) || AHVillage.InLots(p)) continue;
                 bool near = false; foreach (var t2 in Trees) { Vector3 dd = t2.pos - p; dd.y = 0; if (dd.sqrMagnitude < 4f) { near = true; break; } } if (near) continue;
+                if (src.stump != null) { var dt = DreamTree(dream, root, p, 5.5f, rnd); if (dt != null) Trees.Add(dt); continue; }
                 var go = Object.Instantiate(src.go.gameObject, root, false).transform; go.name = src.go.name;
                 go.position = p; go.rotation = Quaternion.Euler(0f, (float)rnd.NextDouble() * 360f, 0f); go.localScale = src.go.localScale * (0.8f + (float)rnd.NextDouble() * 0.3f);
                 Trees.Add(new Tree { go = go, crown = Part(go.gameObject, "Crown") != null ? Part(go.gameObject, "Crown").transform : null, trunk = Part(go.gameObject, "Trunk") != null ? Part(go.gameObject, "Trunk").transform : null, pos = p, phase = (float)rnd.NextDouble() * 6.28f, sway = 0.6f + (float)rnd.NextDouble() * 0.8f });
@@ -106,13 +115,48 @@ public static class AHForest
         for (int i = 0; i < Trees.Count; i++)
         {
             var t = Trees[i]; Vector3 at = new Vector3(t.pos.x, 0f, t.pos.z);
-            float trunk = Mathf.Clamp(t.go.localScale.x * 0.22f, 0.3f, 0.65f);
+            float trunk = t.girth > 0f ? t.girth : Mathf.Clamp(t.go.localScale.x * 0.22f, 0.3f, 0.65f);
             g.AddBlocker(at, trunk);
             if (linked.Contains(i)) continue;
             string type = t.go.name == "Pine" ? "pine" : "tree";
             AHGather.Spots.Add(new AHSpot { kind = "chop", type = type, pos = at, r = trunk, reach = trunk + 1.4f, forest = i, name = AHJson.S(AHJson.O(treeRules, type), "name", type) });
         }
         Debug.Log("Ashen Hollow: " + Trees.Count + " trees planted, all of them choppable");
+    }
+
+    // a Dreamscape tree on this spot, about h metres tall (h < 0: copy the size of 'like'); felled it leaves the pack's stump
+    static Tree DreamTree(AHDreamSet d, Transform root, Vector3 p, float h, System.Random rnd, Transform like = null)
+    {
+        if (d == null || d.trees == null || d.trees.Length == 0) return null;
+        bool birch = d.birches != null && d.birches.Length > 0 && rnd.NextDouble() < 0.3;
+        var arr = birch ? d.birches : d.trees; var pf = arr[rnd.Next(arr.Length)]; if (pf == null) return null;
+        var holder = new GameObject("Tree").transform; holder.SetParent(root, false); holder.position = p;
+        var t = Object.Instantiate(pf, holder, false).transform; t.name = "Crown";
+        t.localRotation = Quaternion.Euler(0f, (float)rnd.NextDouble() * 360f, 0f);
+        foreach (var col in t.GetComponentsInChildren<Collider>(true)) Object.Destroy(col);
+        // size: as tall as the old tree, a little more (the pack's trees are broad, they look best big)
+        var b = Bounds(t.gameObject); float nat = Mathf.Max(0.5f, b.size.y);
+        float want = Mathf.Clamp(h * (birch ? 1.45f : 1.3f), 4f, 16f) * (0.9f + (float)rnd.NextDouble() * 0.2f);
+        t.localScale = Vector3.one * (want / nat);
+        GameObject stump = null;
+        if (d.stump != null)
+        {
+            stump = Object.Instantiate(d.stump, holder, false); stump.name = "Trunk";
+            foreach (var col in stump.GetComponentsInChildren<Collider>(true)) Object.Destroy(col);
+            var sb = Bounds(stump); stump.transform.localScale = Vector3.one * Mathf.Clamp(want * 0.11f / Mathf.Max(0.2f, sb.size.x), 0.3f, 3f);
+            stump.SetActive(false);
+        }
+        holder.localScale = Vector3.one; AHModel.SetShadows(holder.gameObject);
+        // the forest's code reads a tree's girth from its scale: a holder sized like an old tree of this height
+        var tree = new Tree { go = holder, crown = t, trunk = null, pos = p, phase = 0f, sway = 0f, stump = stump };
+        holder.localScale = Vector3.one; tree.girth = Mathf.Clamp(want * 0.05f, 0.3f, 0.65f);
+        return tree;
+    }
+    static Bounds Bounds(GameObject go)
+    {
+        var b = new Bounds(go.transform.position, Vector3.zero); bool any = false;
+        foreach (var r in go.GetComponentsInChildren<Renderer>(true)) { if (!any) { b = r.bounds; any = true; } else b.Encapsulate(r.bounds); }
+        return b;
     }
 
     static Renderer Part(GameObject go, string name)
@@ -127,6 +171,7 @@ public static class AHForest
         if (s.forest < 0 || s.forest >= Trees.Count) return false;
         var t = Trees[s.forest];
         if (t.crown != null) t.crown.gameObject.SetActive(!felled);
+        if (t.stump != null) t.stump.SetActive(felled);
         if (t.trunk != null) t.trunk.localScale = new Vector3(1f, felled ? 0.22f : 1f, 1f);
         if (felled) AHSpark.Burst(t.pos + Vector3.up * 1.2f, new Color(0.55f, 0.75f, 0.35f, 0.8f), 14, 2.5f, 0.8f, 0.14f, 0.6f);
         return true;
@@ -142,7 +187,7 @@ public class AHForestWind : MonoBehaviour
         var trees = AHForest.Trees;
         for (int i = 0; i < trees.Count; i++)
         {
-            var tr = trees[i]; if (tr.crown == null || !tr.crown.gameObject.activeSelf) continue;
+            var tr = trees[i]; if (tr.crown == null || tr.stump != null || !tr.crown.gameObject.activeSelf) continue;   // Dreamscape trees sway in their own shader
             float a = Mathf.Sin(t * 1.1f * tr.sway + tr.phase) * 1.4f, b = Mathf.Sin(t * 0.7f + tr.phase * 1.7f) * 1.0f;
             tr.crown.localRotation = Quaternion.Euler(a, 0f, b);
         }

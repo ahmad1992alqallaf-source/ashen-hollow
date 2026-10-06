@@ -534,6 +534,12 @@ Played on a real Android phone (an Honor foldable). Fixed from that test:
   playing every animation and `AHVRoid` copies its pose onto the VRoid body through Unity's humanoid system each
   frame; gear on the old bones moves onto the matching VRoid bones. `hero_m` is the first (a dark-haired rogue look).
 
+- **Dreamscape meadow (test).** Hollow Meadow uses Polyart's *Dreamscape Nature: Meadows* (Asset Store, kept in the
+  Unity project): its big round oaks and birches replace the leafy trees (felled ones leave the pack's stump), and
+  bushes, flowers, grass drifts, mushrooms and stones are scattered over the open ground (`AHDreamScatter`). Build the
+  set with *Ashen Hollow → Dreamscape: Build Set* after importing the pack and its "MeadowsURP" materials package.
+  Turn it off with PlayerPrefs `ah_dreamscape` = 0.
+
 ## Credits
 - Heroes (Knight, Mage, Rogue, Barbarian): KayKit Adventurers by Kay Lousberg, CC0.
 - City buildings, walls, towers and props: KayKit Medieval Hexagon Pack by Kay Lousberg (www.kaylousberg.com), CC0.

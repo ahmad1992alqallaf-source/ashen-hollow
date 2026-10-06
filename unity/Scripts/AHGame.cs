@@ -154,6 +154,7 @@ public class AHGame : MonoBehaviour
         AHRange.Build(this, world);     // great mountain ranges on the horizon, past the border crags
         AHTents.Setup(this, world);     // striped pavilions and ridge tents instead of the pyramids
         AHScenery.Setup(this, world);   // wooden footbridges and broken stone columns
+        AHDreamScatter.Setup(this, world);  // Dreamscape bushes, flowers, grass and rocks (lands that use the pack)
 
         SetupLightAndSky();
         SetupCamera();

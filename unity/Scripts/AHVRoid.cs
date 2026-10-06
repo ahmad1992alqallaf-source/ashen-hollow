@@ -108,7 +108,9 @@ public class AHVRoidLink : MonoBehaviour
     {
         src = srcRoot; dst = dstRoot;
         hs = new HumanPoseHandler(srcAv, srcRoot); hd = new HumanPoseHandler(dstAv, dstRoot);
-        foreach (var t in srcRoot.GetComponentsInChildren<Transform>(true)) skeleton.Add(t);
+        // the skeleton is only the body's own bones (a weapon already in the hand is not part of it, and moves)
+        var bones = new HashSet<string>(); foreach (var sb in srcAv.humanDescription.skeleton) bones.Add(sb.name);
+        foreach (var t in srcRoot.GetComponentsInChildren<Transform>(true)) if (bones.Contains(t.name)) skeleton.Add(t);
         // pair the bones the wardrobe hangs things on
         var dstAnim = dstRoot.GetComponent<Animator>();
         foreach (HumanBodyBones hb in System.Enum.GetValues(typeof(HumanBodyBones)))
