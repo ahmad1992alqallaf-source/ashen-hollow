@@ -203,8 +203,9 @@ public partial class AHUI
         wkTitle.text = "Menu";
         wkHint.text = "Level " + p.level + " " + p.cls.name + " · " + AHItems.MoneyText(p.bag.money) + (AHFinder.In ? " · in a group run of " + AHFinder.NameOf(AHFinder.Run) + " as " + AHFinder.RoleName(AHFinder.Role) : "");
         var rows = new List<Action<int>>();
-        rows.Add(s => Row(s, "Map", new Color(0.5f, 0.83f, 1f), "The map of " + g.data.region + " · waystones attuned: " + AHWays.KnownCount(p), "",
-            new WkBtn { label = "Open", on = true, col = Go, act = OpenMap }));
+        // the map has its own button on the top row now; the class can be changed here
+        rows.Add(s => Row(s, "Change class", p.cls.color, "Now: " + p.cls.name + " · switch to another class", "",
+            new WkBtn { label = "Choose", on = true, col = Plain, act = () => { ShowWork(false); ShowPicker(true); } }));
         rows.Add(s => Row(s, "Class: " + AHEvo.Title(p), p.cls.color, "Evolution at 30 and 60 · talents (" + (AHEvo.Points(p) - AHEvo.Spent(p)) + " free) · spellbook", "",
             new WkBtn { label = "Open", on = true, col = AHEvo.Points(p) > AHEvo.Spent(p) || (p.level >= 30 && AHEvo.CP(p).path == null) || (p.level >= 60 && AHEvo.CP(p).form == null) ? Go : Plain, act = () => OpenClassWin() }));
         rows.Add(s => Row(s, "Dungeon Finder", new Color(1f, 0.8f, 0.45f), "Pick a role and a dungeon or the raid; followers fill the open roles.", "Group runs completed: " + AHFinder.Runs,

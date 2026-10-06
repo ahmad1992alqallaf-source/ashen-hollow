@@ -109,9 +109,9 @@ public partial class AHUI
         if (rowIcon != null) { var ic = Img("Icon", bg, rowIcon, new Vector2(0f, 0.5f), new Vector2(36f, 0f), new Vector2(54, 54), rowIconDim ? new Color(0.5f, 0.5f, 0.5f, 1f) : Color.white); ic.GetComponent<Image>().preserveAspect = true; tx = 72f; }
         else if (rowItem != null)   // an item: its coloured circle with its picture
         {
-            var ic = Img("Item", bg, circle, new Vector2(0f, 0.5f), new Vector2(36f, 0f), new Vector2(52, 52), new Color(rowItem.color.r * 0.85f, rowItem.color.g * 0.85f, rowItem.color.b * 0.85f, 1f));
-            var gs = AHItemIcons.Get(rowItem);
-            if (gs != null) { var gl = Img("Glyph", ic, gs, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(36, 36), Color.white); gl.GetComponent<Image>().preserveAspect = true; }
+            var gs = AHItemIcons.Best(rowItem); bool full = AHItemIcons.Full(rowItem, gs);
+            var ic = Img("Item", bg, circle, new Vector2(0f, 0.5f), new Vector2(36f, 0f), new Vector2(52, 52), full ? new Color(0.2f, 0.15f, 0.11f, 1f) : new Color(rowItem.color.r * 0.85f, rowItem.color.g * 0.85f, rowItem.color.b * 0.85f, 1f));
+            if (gs != null) { var gl = Img("Glyph", ic, gs, new Vector2(0.5f, 0.5f), Vector2.zero, full ? new Vector2(50, 50) : new Vector2(36, 36), Color.white); gl.GetComponent<Image>().preserveAspect = true; }
             tx = 72f;
         }
         rowIcon = null; rowIconDim = false; rowItem = null;

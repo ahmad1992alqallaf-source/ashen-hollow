@@ -576,7 +576,7 @@ public static class AHWardrobe
             go.transform.SetParent(bone, true);
             bool isMetal = Metal.Contains(d.form ?? "");
             var kind = isMetal ? AHGearTex.Kind.Metal : Leathery(d) ? AHGearTex.Kind.Leather : AHGearTex.Kind.Cloth;
-            return new Kit { root = go.transform, k = k, kind = kind, col = dyeOn && !isMetal ? Color.Lerp(d.color, dye, 0.55f) : d.color, metal = isMetal, glow = d.form == "molten" || d.form == "ember" || d.form == "halo" ? 1.6f : 0f };
+            return new Kit { root = go.transform, k = k, kind = kind, col = dyeOn && !isMetal ? Color.Lerp(d.color, dye, 0.55f) : d.color, metal = isMetal, glow = d.form == "molten" || d.form == "ember" || d.form == "halo" ? 1.6f : d.rarity == "legend" ? 0.55f : d.rarity == "set" ? 0.18f : 0f };   // legendary and set pieces shine a little
         };
 
         // ---- head ----
@@ -680,6 +680,8 @@ public static class AHWardrobe
         string lid = shown("legs"); var ld = lid != null ? AHItems.Get(lid) : null;
         if (ld != null) foreach (var side in new[] { "l", "r" }) { var cb = Bone(rig, "calf_" + side); var ft = Bone(rig, "foot_" + side); if (cb == null || ft == null) continue; var K = start(cb, Vector3.Lerp(cb.position, ft.position, 0.42f) + hold.forward * 0.03f * k, lid); K.Prim(PrimitiveType.Sphere, Vector3.zero, new Vector3(0.1f, 0.26f, 0.1f), Vector3.zero); K.Prim(PrimitiveType.Sphere, new Vector3(0, 0.15f, 0.02f), new Vector3(0.1f, 0.08f, 0.09f), Vector3.zero, K.Dark); }
         string fid = shown("feet"); var fd = fid != null ? AHItems.Get(fid) : null;
+        // boots replace the body's own shoes (they used to poke out of the toe as a second black shoe)
+        if (fd != null) foreach (var r in rig.GetComponentsInChildren<Renderer>(true)) if (r.name.Contains("Feet")) r.enabled = false;
         if (fd != null) foreach (var side in new[] { "l", "r" }) { var ft = Bone(rig, "foot_" + side); if (ft == null) continue; var K = start(ft, new Vector3(ft.position.x, ground, ft.position.z) + hold.forward * 0.035f * k, fid); K.Prim(PrimitiveType.Sphere, new Vector3(0, 0.055f, 0.04f), new Vector3(0.115f, 0.1f, 0.27f), Vector3.zero); K.Mesh(shell, new Vector3(0, 0.04f, -0.015f), new Vector3(0.06f, 0.18f, 0.064f), Vector3.zero); K.Mesh(torus, new Vector3(0, 0.215f, -0.015f), new Vector3(0.13f, 0.4f, 0.135f), Vector3.zero, K.Dark); }
 
         // ---- cape ----

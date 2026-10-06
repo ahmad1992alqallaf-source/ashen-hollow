@@ -648,7 +648,7 @@ public partial class AHUI : MonoBehaviour
 
     // ---------- bag window (web: Bag + Gear): worn gear on the left, the 28-slot bag on the right ----------
     RectTransform bagRoot, bagWin;
-    class BagSlot { public RectTransform rt; public Image bg, icon, glyph; public Text abbr, count, hint; }
+    class BagSlot { public RectTransform rt; public Image bg, icon, glyph, frame; public Text abbr, count, hint; }
     BagSlot[] bagSlots;
     readonly Dictionary<string, BagSlot> gearSlots = new Dictionary<string, BagSlot>();
     Text bagGold, bagInfo, bagInfoSub, gearStats, bagActText, bagDropText; RectTransform bagAct, bagDrop; bool dropAsk;
@@ -804,14 +804,26 @@ public partial class AHUI : MonoBehaviour
     static void PaintSlot(BagSlot b, ItemDef d, int n, bool selected)
     {
         b.icon.enabled = d != null;
-        if (d != null) b.icon.color = new Color(d.color.r * 0.85f, d.color.g * 0.85f, d.color.b * 0.85f, 1f);
-        var gs = d != null ? AHItemIcons.Get(d) : null;
-        if (b.glyph != null) { b.glyph.enabled = gs != null; b.glyph.sprite = gs; }
+        var gs = AHItemIcons.Best(d);   // gear: its photograph; everything else: its own picture
+        if (d != null) b.icon.color = AHItemIcons.Full(d, gs) ? new Color(0.16f + d.color.r * 0.12f, 0.12f + d.color.g * 0.1f, 0.09f + d.color.b * 0.1f, 0.9f) : new Color(d.color.r * 0.85f, d.color.g * 0.85f, d.color.b * 0.85f, 1f);
+        if (b.glyph != null)
+        {
+            b.glyph.enabled = gs != null; b.glyph.sprite = gs;
+            float k = AHItemIcons.Full(d, gs) ? 0.94f : 0.7f;   // its own picture fills the socket
+            b.glyph.rectTransform.sizeDelta = b.rt.sizeDelta * k;
+        }
         b.abbr.text = d != null && gs == null ? d.Abbr : "";
         b.abbr.color = d != null && (d.color.r + d.color.g + d.color.b) > 2.1f ? new Color(0.15f, 0.1f, 0.08f) : Color.white;
         b.count.text = n > 1 ? n.ToString("#,0") : "";
         if (b.hint != null) b.hint.enabled = d == null;
-        b.bg.color = selected ? new Color(0.55f, 0.38f, 0.18f, 1f) : d != null ? Color.Lerp(new Color(0.2f, 0.15f, 0.11f, 1f), AHItems.Quality(d), 0.18f) : new Color(0.2f, 0.15f, 0.11f, 1f);
+        if (b.frame != null)
+        {
+            // the socket stays dark; the frame shows the item's quality, and glows gold when chosen
+            b.bg.color = selected ? new Color(1f, 0.85f, 0.55f, 1f) : Color.white;
+            var q = d != null ? AHItems.Quality(d) : new Color(0.8f, 0.65f, 0.4f);
+            b.frame.color = selected ? new Color(1f, 0.85f, 0.4f, 1f) : d != null ? new Color(q.r, q.g, q.b, 0.95f) : new Color(0.8f, 0.65f, 0.4f, 0.25f);
+        }
+        else b.bg.color = selected ? new Color(0.55f, 0.38f, 0.18f, 1f) : d != null ? Color.Lerp(new Color(0.2f, 0.15f, 0.11f, 1f), AHItems.Quality(d), 0.18f) : new Color(0.2f, 0.15f, 0.11f, 1f);
     }
 
     public void RefreshBag()
@@ -862,6 +874,7 @@ public partial class AHUI : MonoBehaviour
         bagDrop.gameObject.SetActive(bagSel != null && sd != null);
         if (bagSel == null) dropAsk = false;
         bagDropText.text = dropAsk ? "Drop 1? Tap again" : "Drop";
+        RefreshPreview(sd);
         if (sd == null) { bagInfo.text = "Tap an item"; bagInfo.color = Color.white; bagInfoSub.text = bag.UsedSlots + " of " + bag.SlotsMax + " slots used. Tap an item to see what it does."; }
         else
         {

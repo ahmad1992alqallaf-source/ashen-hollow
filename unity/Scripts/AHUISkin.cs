@@ -70,7 +70,7 @@ public partial class AHUI
                 else if (e <= 4) { float t = (e - 2) / 2f; c = Color.Lerp(new Color(1f, 0.88f, 0.5f), new Color(0.6f, 0.4f, 0.14f), t); a = 1f; }
                 else if (e == 6) { c = new Color(0.85f, 0.65f, 0.3f); a = 0.8f; }
                 // the corner diamonds
-                foreach (var cx in new[] { 0, n - 1 }) foreach (var cy in new[] { 0, n - 1 })
+                if (n >= 40) foreach (var cx in new[] { 0, n - 1 }) foreach (var cy in new[] { 0, n - 1 })
                     {
                         float dd = Mathf.Abs(x - (cx == 0 ? 7 : n - 8)) + Mathf.Abs(y - (cy == 0 ? 7 : n - 8));
                         if (dd < 5f) { c = Color.Lerp(new Color(1f, 0.95f, 0.7f), new Color(0.75f, 0.2f, 0.12f), dd / 5f); a = 1f; }
@@ -114,18 +114,48 @@ public partial class AHUI
 
         // ---- the round buttons along the top and the side ----
         var lacquer = new Color(0.55f, 0.16f, 0.13f);
-        foreach (var n in new[] { "ClassBtn", "BagBtn", "PetsBtn", "MenuBtn" }) SkinRound(FindUI(n), 70f, lacquer);
+        // the top row: MAP, MENU, PETS, BAG (the CLASS button is gone: you pick your class when you make your hero,
+        // and can change it from the Menu); a small arrow at the corner slides the whole row and the tags away
+        var clsB = FindUI("ClassBtn"); if (clsB != null) { clsB.gameObject.SetActive(false); taps.RemoveAll(t => t.rt == clsB); }
+        var mapB = Img("MapBtn", transform, circle, new Vector2(1, 1), Vector2.zero, new Vector2(64, 64), lacquer);
+        Center(Label(mapB, "T", "MAP", 15, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(64, 30), Color.white));
+        taps.Add(new TapBtn { rt = mapB, act = OpenMap });
+        string[] row = { "BagBtn", "PetsBtn", "MenuBtn", "MapBtn" };
+        for (int i = 0; i < row.Length; i++)
+        {
+            var b = FindUI(row[i]); if (b == null) continue;
+            SkinRound(b, 62f, lacquer);
+            b.anchorMin = b.anchorMax = new Vector2(1, 1); b.anchoredPosition = new Vector2(-112 - i * 74, -46);
+            foreach (var t in b.GetComponentsInChildren<Text>(true)) t.fontSize = 14;
+            slide.Add(b);
+        }
+        slideBtn = Img("SlideBtn", transform, ornDisc, new Vector2(1, 1), new Vector2(-46, -46), new Vector2(46, 46), new Color(0.4f, 0.28f, 0.14f));
+        Img("Rim", slideBtn, ornRing, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(52, 52), Color.white);
+        slideText = Center(Label(slideBtn, "T", "▶", 20, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(46, 40), Gold));
+        taps.Insert(0, new TapBtn { rt = slideBtn, act = () => { slideHidden = !slideHidden; try { PlayerPrefs.SetInt("ah_hud_tucked", slideHidden ? 1 : 0); } catch { } } });
+        try { slideHidden = PlayerPrefs.GetInt("ah_hud_tucked", 0) == 1; } catch { }
         SkinRound(FindUI("RideBtn"), 64f, new Color(0.55f, 0.38f, 0.18f));
         SkinRound(FindUI("PotHeal"), 62f, new Color(0.75f, 0.12f, 0.12f));
         SkinRound(FindUI("PotMana"), 62f, new Color(0.18f, 0.3f, 0.8f));
         SkinRound(dodgeBtn, 86f, new Color(0.2f, 0.42f, 0.8f));
-        for (int i = 0; i < 6; i++) if (spellBtns[i] != null) { SkinRound(spellBtns[i].rt, 76f, new Color(0.3f, 0.2f, 0.25f)); if (spellBtns[i].cool != null) spellBtns[i].cool.transform.SetSiblingIndex(spellBtns[i].rt.Find("Rim").GetSiblingIndex()); }
+        // smaller skills, ringed tight around the attack seal (no gap); the ultimate below-right of it
+        for (int i = 0; i < 6; i++)
+        {
+            var sb = spellBtns[i]; if (sb == null) continue;
+            SkinRound(sb.rt, 60f, new Color(0.3f, 0.2f, 0.25f));
+            if (sb.cool != null) { sb.cool.transform.SetSiblingIndex(sb.rt.Find("Rim").GetSiblingIndex()); sb.cool.rectTransform.sizeDelta = new Vector2(56, 56); }
+            if (sb.icon != null) sb.icon.rectTransform.sizeDelta = new Vector2(54, 54);
+            if (sb.secs != null) sb.secs.fontSize = 21;
+            if (sb.label != null) sb.label.fontSize = 16;
+            float a = (i < 5 ? 96f + i * 38f : 290f) * Mathf.Deg2Rad;
+            sb.rt.anchoredPosition = AtkPos + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 98f;
+        }
 
         // ---- the attack button: a big round seal instead of the diamond ----
-        atkBtn.localRotation = Quaternion.identity; atkBtn.sizeDelta = new Vector2(128, 128);
+        atkBtn.localRotation = Quaternion.identity; atkBtn.sizeDelta = new Vector2(118, 118);
         atkImg.sprite = ornDisc; atkImg.color = new Color(0.62f, 0.12f, 0.1f);
         foreach (Transform c in atkBtn) c.gameObject.SetActive(false);
-        Img("Rim", atkBtn, ornRing, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(140, 140), Color.white);
+        Img("Rim", atkBtn, ornRing, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(128, 128), Color.white);
         var atkGlow = Img("Glow", atkBtn, glow, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(100, 100), new Color(1f, 0.6f, 0.3f, 0.35f)); atkGlow.SetSiblingIndex(0);
         var atkLab = FindUI("AttackLabel"); if (atkLab != null) { var t = atkLab.GetComponent<Text>(); t.text = "ATTACK"; t.fontSize = 22; t.fontStyle = FontStyle.Bold; t.color = new Color(1f, 0.92f, 0.7f); atkLab.SetAsLastSibling(); }
 
@@ -159,27 +189,33 @@ public partial class AHUI
             foreach (var tn in new[] { "HPText", "ManaText" }) { var t = top.Find(tn) as RectTransform; if (t != null) t.sizeDelta = new Vector2(330, t.sizeDelta.y + 4); }
             var hgT = top.Find("HungerText") as RectTransform; var hgB = top.Find("HungerBg") as RectTransform; if (hgT != null && hgB != null) hgT.anchoredPosition = new Vector2(hgB.anchoredPosition.x + hgB.sizeDelta.x + 8f, hgT.anchoredPosition.y);
             var lvT = top.Find("Level") as RectTransform; if (lvT != null) lvT.gameObject.SetActive(false);   // the level sits on the portrait now
-            hpFill.color = new Color(0.86f, 0.16f, 0.14f); manaFill.color = new Color(0.22f, 0.5f, 1f); xpFill.color = new Color(1f, 0.78f, 0.25f);
+            hpFill.color = new Color(0.86f, 0.16f, 0.14f); manaFill.color = new Color(0.22f, 0.5f, 1f); xpFill.color = new Color(0.62f, 0.42f, 1f);   // experience in violet
+            // tap your portrait or name to see your stats
+            taps.Add(new TapBtn { rt = por, act = OpenStats });
+            taps.Add(new TapBtn { rt = nameText.rectTransform, act = OpenStats });
+            // the whole corner a little smaller
+            top.localScale = Vector3.one * 0.8f;
             nameText.color = new Color(1f, 0.93f, 0.78f); nameText.fontStyle = FontStyle.Bold;
         }
 
         // ---- the quest tracker: a gold-edged panel on the left with AUTO ----
-        questPanel = Img("QuestPanel", transform, panel9, new Vector2(0, 1), new Vector2(178, -252), new Vector2(340, 98), Color.white);
+        // small and see-through, so the world shows behind it
+        questPanel = Img("QuestPanel", transform, panel9, new Vector2(0, 1), new Vector2(150, -196), new Vector2(284, 70), new Color(1f, 1f, 1f, 0.55f));
         questPanel.GetComponent<Image>().type = Image.Type.Sliced;
-        var tagRt = Img("Tag", questPanel, tag9, new Vector2(0, 1), new Vector2(40, -18), new Vector2(64, 24), Color.white);
+        var tagRt = Img("Tag", questPanel, tag9, new Vector2(0, 1), new Vector2(32, -14), new Vector2(50, 19), new Color(1f, 1f, 1f, 0.85f));
         tagRt.GetComponent<Image>().type = Image.Type.Sliced;
-        panelTag = Center(Label(tagRt, "T", "MAIN", 14, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(64, 24), Gold)); panelTag.fontStyle = FontStyle.Bold;
+        panelTag = Center(Label(tagRt, "T", "MAIN", 11, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(50, 19), Gold)); panelTag.fontStyle = FontStyle.Bold;
         foreach (var t in new[] { trackTitle, trackLine })
         {
             t.transform.SetParent(questPanel, false);
             t.rectTransform.anchorMin = t.rectTransform.anchorMax = t.rectTransform.pivot = new Vector2(0, 1);
             t.alignment = TextAnchor.UpperLeft; t.horizontalOverflow = HorizontalWrapMode.Wrap; t.verticalOverflow = VerticalWrapMode.Truncate;
         }
-        trackTitle.rectTransform.anchoredPosition = new Vector2(78, -7); trackTitle.rectTransform.sizeDelta = new Vector2(176, 24); trackTitle.fontSize = 17; trackTitle.color = Gold;
-        trackLine.rectTransform.anchoredPosition = new Vector2(14, -36); trackLine.rectTransform.sizeDelta = new Vector2(312, 56); trackLine.fontSize = 16;
-        autoBtn = Img("AutoBtn", questPanel, tag9, new Vector2(1, 1), new Vector2(-40, -18), new Vector2(68, 26), Color.white);
+        trackTitle.rectTransform.anchoredPosition = new Vector2(62, -5); trackTitle.rectTransform.sizeDelta = new Vector2(160, 20); trackTitle.fontSize = 14; trackTitle.color = Gold;
+        trackLine.rectTransform.anchoredPosition = new Vector2(10, -27); trackLine.rectTransform.sizeDelta = new Vector2(266, 40); trackLine.fontSize = 13;
+        autoBtn = Img("AutoBtn", questPanel, tag9, new Vector2(1, 1), new Vector2(-32, -14), new Vector2(56, 21), Color.white);
         autoImg = autoBtn.GetComponent<Image>(); autoImg.type = Image.Type.Sliced;
-        autoText = Center(Label(autoBtn, "T", "AUTO", 15, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(68, 26), Gold)); autoText.fontStyle = FontStyle.Bold;
+        autoText = Center(Label(autoBtn, "T", "AUTO", 12, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(56, 21), Gold)); autoText.fontStyle = FontStyle.Bold;
         taps.Insert(0, new TapBtn { rt = autoBtn, act = () => AHAuto.Toggle(g) });
         taps.Add(new TapBtn { rt = questPanel, act = () => { if (g.quests.Current != null) OpenQuest(); } });
         RefreshAuto();
@@ -189,9 +225,13 @@ public partial class AHUI
         {
             var c = FindUI(n); if (c == null) continue;
             var im = c.GetComponent<Image>(); im.sprite = tag9; im.type = Image.Type.Sliced; im.color = Color.white;
-            c.anchorMin = c.anchorMax = new Vector2(1, 1); c.anchoredPosition = new Vector2(-118, n == "DailyChip" ? -118 : -156); c.sizeDelta = new Vector2(196, 32);
+            c.anchorMin = c.anchorMax = new Vector2(1, 1); c.anchoredPosition = new Vector2(-130, n == "DailyChip" ? -100 : -134); c.sizeDelta = new Vector2(190, 28);
+            foreach (var t in c.GetComponentsInChildren<Text>(true)) t.fontSize = 14;
+            slide.Add(c);
         }
-        var buffs = FindUI("Buffs"); if (buffs != null) buffs.anchoredPosition = new Vector2(22, -186);
+        foreach (var r in slide) slideHome[r] = r.anchoredPosition;
+        SkinBag();
+        var buffs = FindUI("Buffs"); if (buffs != null) buffs.anchoredPosition = new Vector2(22, -146);
 
         // ---- the action button and the windows ----
         if (talkBtn != null) { var ti = talkBtn.GetComponent<Image>(); ti.sprite = tag9; ti.type = Image.Type.Sliced; ti.color = new Color(0.55f, 1f, 0.6f); }
@@ -202,7 +242,74 @@ public partial class AHUI
         }
         if (bannerTitle != null) { bannerTitle.color = Gold; var o = bannerTitle.gameObject.AddComponent<Outline>(); o.effectColor = new Color(0.25f, 0.1f, 0.02f, 0.9f); o.effectDistance = new Vector2(2, -2); }
     }
-    Text portraitSign, portraitLv;
+    Text portraitSign, portraitLv, slideText;
+    RectTransform slideBtn; bool slideHidden; float slideK;
+    readonly System.Collections.Generic.List<RectTransform> slide = new System.Collections.Generic.List<RectTransform>();
+    readonly System.Collections.Generic.Dictionary<RectTransform, Vector2> slideHome = new System.Collections.Generic.Dictionary<RectTransform, Vector2>();
+    Sprite slot9, frame9; RawImage preview; Image previewGlow;
+    void RefreshPreview(ItemDef sd)
+    {
+        if (preview == null) return;
+        var tex = sd != null && BagOpen ? AHItemStudio.View(sd) : null;
+        if (tex == null) AHItemStudio.StopView();
+        preview.enabled = tex != null; preview.texture = tex;
+        var q = sd != null ? AHItems.Quality(sd) : Color.clear; previewGlow.color = tex != null ? new Color(q.r, q.g, q.b, 0.75f) : Color.clear;
+    }
+
+    // the bag: carved inset panels behind the gear and the bag grid, slots as dark sockets with a frame in the item's
+    // quality colour, round gloss behind each icon, and proper buttons
+    void SkinBag()
+    {
+        if (bagWin == null) return;
+        slot9 = MakePanel(32, 8, new Color(0.13f, 0.09f, 0.08f), new Color(0.07f, 0.05f, 0.05f), 0.95f);
+        frame9 = MakeFrame(32, 4);
+        var t = bagWin.Find("Edge"); if (t != null) t.gameObject.SetActive(false);
+        System.Action<string, Vector2, Vector2> inset = (nm, pos, size) =>
+        {
+            var r = Img(nm, bagWin, panel9, new Vector2(0.5f, 0.5f), pos, size, new Color(1f, 1f, 1f, 0.8f)); r.GetComponent<Image>().type = Image.Type.Sliced; r.SetSiblingIndex(0);
+        };
+        inset("GearInset", new Vector2(-334, 12), new Vector2(170, 372));
+        inset("BagInset", new Vector2(32, 54), new Vector2(556, 326));
+        inset("InfoInset", new Vector2(80, -200), new Vector2(660, 112));
+        System.Action<BagSlot> skin = b =>
+        {
+            if (b == null) return;
+            b.bg.sprite = slot9; b.bg.type = Image.Type.Sliced;
+            var f = Img("Frame", b.rt, frame9, new Vector2(0.5f, 0.5f), Vector2.zero, b.rt.sizeDelta + new Vector2(4, 4), new Color(1f, 1f, 1f, 0.25f));
+            f.GetComponent<Image>().type = Image.Type.Sliced; f.SetSiblingIndex(1); b.frame = f.GetComponent<Image>();
+            b.icon.sprite = ornDisc;
+        };
+        if (bagSlots != null) foreach (var b in bagSlots) skin(b);
+        foreach (var kv in gearSlots) skin(kv.Value);
+        foreach (var nm in new[] { "Act", "Drop" })
+        {
+            var r = bagWin.Find(nm) as RectTransform; if (r == null) continue;
+            var im = r.GetComponent<Image>(); im.sprite = tag9; im.type = Image.Type.Sliced; im.color = nm == "Act" ? new Color(0.55f, 1f, 0.6f) : new Color(1f, 0.6f, 0.55f);
+        }
+        // the inspect view: the selected piece worn by your hero, turning, in a glow of its quality
+        previewGlow = Img("PreviewGlow", bagWin, glow, new Vector2(0.5f, 0.5f), new Vector2(-188, -200), new Vector2(150, 150), new Color(1f, 1f, 1f, 0f)).GetComponent<Image>();
+        var pv = Box("Preview", bagWin, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-188, -200), new Vector2(112, 112));
+        preview = pv.gameObject.AddComponent<RawImage>(); preview.raycastTarget = false; preview.enabled = false;
+        bagInfo.rectTransform.anchoredPosition = new Vector2(306, -396); bagInfo.rectTransform.sizeDelta = new Vector2(330, 30);
+        bagInfoSub.rectTransform.anchoredPosition = new Vector2(306, -424); bagInfoSub.rectTransform.sizeDelta = new Vector2(330, 110);
+        AHItemStudio.Changed = () => { if (BagOpen) RefreshBag(); };
+        var cl = bagWin.Find("Close") as RectTransform; if (cl != null) SkinRound(cl, 50f, new Color(0.7f, 0.15f, 0.12f));
+        var title = bagWin.Find("Title") as RectTransform; if (title != null) { var tt = title.GetComponent<Text>(); tt.color = Gold; var o = title.gameObject.AddComponent<Outline>(); o.effectColor = new Color(0.25f, 0.1f, 0.02f, 0.9f); }
+    }
+    // a frame only (clear in the middle), tinted per item quality
+    static Sprite MakeFrame(int n, int w)
+    {
+        var tex = new Texture2D(n, n, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+        var px = new Color[n * n];
+        for (int y = 0; y < n; y++) for (int x = 0; x < n; x++)
+            {
+                int e = Mathf.Min(Mathf.Min(x, n - 1 - x), Mathf.Min(y, n - 1 - y));
+                float a = e < w ? 1f : 0f, v = e == 0 ? 0.55f : e == w - 1 ? 0.7f : 1f;
+                px[y * n + x] = new Color(v, v, v, a);
+            }
+        tex.SetPixels(px); tex.Apply();
+        return Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect, new Vector4(w + 2, w + 2, w + 2, w + 2));
+    }
 
     // the AUTO button lights up while auto quest runs
     public void RefreshAuto()
@@ -220,6 +327,11 @@ public partial class AHUI
         if (portraitLv != null) portraitLv.text = p.level.ToString();
         if (panelTag != null) panelTag.text = g.quests.Current != null ? "MAIN" : "ROAD";
         if (autoBtn != null && autoBtn.gameObject.activeSelf != (g.quests.Current != null)) autoBtn.gameObject.SetActive(g.quests.Current != null);
+        // the top row slides away to the right (and back) with the arrow
+        slideK = Mathf.MoveTowards(slideK, slideHidden ? 1f : 0f, Time.unscaledDeltaTime * 4f);
+        float ease = slideK * slideK * (3f - 2f * slideK);
+        foreach (var r in slide) { Vector2 h; if (r != null && slideHome.TryGetValue(r, out h)) r.anchoredPosition = h + new Vector2(520f * ease, 0f); }
+        if (slideText != null) slideText.text = slideHidden ? "◀" : "▶";
         if (AHAuto.On && autoText != null) autoText.color = Color.Lerp(new Color(0.6f, 1f, 0.6f), Color.white, 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 5f));
     }
 }

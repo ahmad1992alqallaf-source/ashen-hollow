@@ -503,6 +503,22 @@ Played on a real Android phone (an Honor foldable). Fixed from that test:
 - **Gear textures** (AHGearTex): woven cloth, grained leather, brushed metal, made in code. Wizard hats for mages,
   fitted hoods, full robes, shaped boots, dragon wings (bone fingers and a membrane) and larger feathered wings.
 
+## Bag, icons and HUD polish (October)
+
+- **Every item has its own picture.** Each fish is its own fish (trout, salmon, flatfish tuna, eel, angler swordfish,
+  lava eel with a flame), each gem its own cut and colour (sapphire, ruby, emerald, diamond, pearl in its oyster, void
+  and obsidian crystals), every potion a different bottle. Dishes sit on a plate, soups in a bowl, seed bags show their
+  crop, reins show the mount's head and a saddle, treasure maps carry their land's mark, hides show the animal, and
+  monster cards show the monster in the land's colour. Fine food has a silver star, Masterwork two gold stars.
+  Pictures: `Resources/AH/Icons/item_icons_id.png`, built by `tools/icons/build.py` from game-icons.net (CC BY 3.0).
+- **Gear is photographed.** A little studio dresses a stand-in in just that piece (only the right glove, boot or
+  knife) and takes its picture for the bag. Selecting gear shows your hero turning on a stand wearing it.
+- **Bag:** dark sockets with quality-coloured frames, gear and bag panels, a bigger info box.
+- **HUD:** the top buttons slide away with ▶ / ◀, MAP has its own button, the class button is gone ("Change class" is
+  in Menu), smaller see-through quest tracker, smaller spells hugging the attack button, purple XP bar, and tapping
+  your name or portrait opens your stats.
+- **Feet:** the body's own shoes are hidden under boots, so no second shoe pokes out.
+
 ## Credits
 - Heroes (Knight, Mage, Rogue, Barbarian): KayKit Adventurers by Kay Lousberg, CC0.
 - City buildings, walls, towers and props: KayKit Medieval Hexagon Pack by Kay Lousberg (www.kaylousberg.com), CC0.

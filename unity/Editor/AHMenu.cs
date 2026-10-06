@@ -1101,4 +1101,6 @@ public static class AHMenu
         cam.targetTexture = null; Object.Destroy(go); Object.Destroy(rt); Object.Destroy(tex); Object.Destroy(sheet);
         Debug.Log("Ashen Hollow: horizon shots saved");
     }
+    [MenuItem("Ashen Hollow/Test: Class Feet Running %&y")]
+    static void ClassFeet() { var g = AHGame.I; if (Application.isPlaying && g != null && g.player != null) AHLineup.Run(g, true); }
 }

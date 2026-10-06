@@ -12,9 +12,10 @@ public class AHLineup : MonoBehaviour
     readonly List<string> names = new List<string>();
     float t;
 
-    public static void Run(AHGame g)
+    public static bool Feet;   // close-ups of the feet while running (to check boots)
+    public static void Run(AHGame g, bool feet = false)
     {
-        var go = new GameObject("Lineup"); go.AddComponent<AHLineup>().Build(g);
+        Feet = feet; var go = new GameObject("Lineup"); go.AddComponent<AHLineup>().Build(g);
     }
 
     void Build(AHGame g)
@@ -32,7 +33,7 @@ public class AHLineup : MonoBehaviour
                 if (rig == null) { Destroy(h.gameObject); continue; }
                 var kit = AHPlayer.Starter(id);
                 AHWardrobe.DressWith(rig, h, s => { string v; return kit.TryGetValue(s, out v) && AHItems.Get(v ?? "") != null ? v : null; }, () => false);
-                if (a != null) a.Play("Idle", true);
+                if (a != null) a.Play(Feet ? "Running_A" : "Idle", true);
                 holders.Add(h); anims.Add(a); names.Add(id + "_" + sex);
                 if (sex == "m" && (id == "ranger" || id == "mage"))
                 {
@@ -55,12 +56,12 @@ public class AHLineup : MonoBehaviour
         var sheet = new Texture2D(480 * 2, 480, TextureFormat.RGB24, false); var tex = new Texture2D(480, 480, TextureFormat.RGB24, false);
         for (int i = 0; i < holders.Count; i++)
         {
-            Vector3 c = holders[i].position + Vector3.up * 0.95f;
+            Vector3 c = holders[i].position + Vector3.up * (Feet ? 0.3f : 0.95f);
             float[] yaw = { 30f, 90f };
             for (int v = 0; v < 2; v++)
             {
                 Vector3 d = Quaternion.Euler(0, yaw[v], 0) * holders[i].forward;
-                cam.transform.position = c + d * 4.2f + Vector3.up * 0.3f; cam.transform.LookAt(c);
+                cam.transform.position = c + d * (Feet ? 1.6f : 4.2f) + Vector3.up * 0.3f; cam.transform.LookAt(c);
                 cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, 480, 480), 0, 0); tex.Apply(); RenderTexture.active = null;
                 sheet.SetPixels(v * 480, 0, 480, 480, tex.GetPixels());
             }
