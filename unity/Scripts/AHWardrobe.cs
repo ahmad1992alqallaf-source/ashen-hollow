@@ -682,7 +682,27 @@ public static class AHWardrobe
         string fid = shown("feet"); var fd = fid != null ? AHItems.Get(fid) : null;
         // boots replace the body's own shoes (they used to poke out of the toe as a second black shoe)
         if (fd != null) foreach (var r in rig.GetComponentsInChildren<Renderer>(true)) if (r.name.Contains("Feet")) r.enabled = false;
-        if (fd != null) foreach (var side in new[] { "l", "r" }) { var ft = Bone(rig, "foot_" + side); if (ft == null) continue; var K = start(ft, new Vector3(ft.position.x, ground, ft.position.z) + hold.forward * 0.035f * k, fid); K.Prim(PrimitiveType.Sphere, new Vector3(0, 0.055f, 0.04f), new Vector3(0.115f, 0.1f, 0.27f), Vector3.zero); K.Mesh(shell, new Vector3(0, 0.04f, -0.015f), new Vector3(0.06f, 0.18f, 0.064f), Vector3.zero); K.Mesh(torus, new Vector3(0, 0.215f, -0.015f), new Vector3(0.13f, 0.4f, 0.135f), Vector3.zero, K.Dark); }
+        // the body's "Feet" part runs up the shin, so the boots are tall: a foot on the foot bone and a shaft on the shin
+        // bone from the ankle to just under the knee (it bends with the knee as you walk), with a turned-down cuff
+        if (fd != null) foreach (var side in new[] { "l", "r" })
+        {
+            var ft = Bone(rig, "foot_" + side); if (ft == null) continue;
+            var K = start(ft, new Vector3(ft.position.x, ground, ft.position.z) + hold.forward * 0.035f * k, fid);
+            K.Prim(PrimitiveType.Sphere, new Vector3(0, 0.055f, 0.04f), new Vector3(0.115f, 0.1f, 0.27f), Vector3.zero);
+            var cb = Bone(rig, "calf_" + side);
+            Vector3 ankle = ft.position, knee = cb != null ? cb.position : ft.position + Vector3.up * 0.42f * k;
+            if (cb == null || (knee - ankle).magnitude < 0.1f * k) { K.Mesh(shell, new Vector3(0, 0.04f, -0.015f), new Vector3(0.06f, 0.18f, 0.064f), Vector3.zero); K.Mesh(torus, new Vector3(0, 0.215f, -0.015f), new Vector3(0.13f, 0.4f, 0.135f), Vector3.zero, K.Dark); continue; }
+            var S = start(cb, ankle, fid);
+            Vector3 up = (knee - ankle).normalized;
+            float pk = Mathf.Max(1e-4f, S.root.lossyScale.x);
+            Vector3 bot = new Vector3(ankle.x, Mathf.Min(ankle.y, ground + 0.06f * k), ankle.z) - up * 0.02f * k;
+            var sh = S.Mesh(shell, Vector3.zero, Vector3.one, Vector3.zero);
+            sh.position = bot; sh.rotation = Quaternion.FromToRotation(Vector3.up, up) * Quaternion.LookRotation(Vector3.ProjectOnPlane(hold.forward, Vector3.up));
+            float shaft = (knee - bot).magnitude * 0.9f;
+            sh.localScale = new Vector3(0.068f * k, shaft, 0.074f * k) / pk;
+            var cuff = S.Mesh(torus, Vector3.zero, Vector3.one, Vector3.zero, S.Dark);
+            cuff.position = bot + up * shaft; cuff.rotation = sh.rotation; cuff.localScale = new Vector3(0.15f * k, 0.45f * k, 0.16f * k) / pk;
+        }
 
         // ---- cape ----
         string kid = shown("cape"); var kd = kid != null ? AHItems.Get(kid) : null;
