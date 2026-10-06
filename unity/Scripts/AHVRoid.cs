@@ -129,13 +129,33 @@ public class AHVRoidLink : MonoBehaviour
     {
         if (hs == null) return;
         hs.GetHumanPose(ref pose);
-        // keep the body on the holder: the old rig's root carries the height and facing
+        // a broken frame (the old rig hidden, scaled to nothing or mid-teleport) can give NaN muscles: a NaN pose
+        // turns the whole body into NaN pixels that bloom into a white flash, so such frames are skipped
+        if (!Ok(pose.bodyPosition) || float.IsNaN(pose.bodyRotation.x) || float.IsNaN(pose.bodyRotation.w)) return;
+        if (pose.muscles != null) for (int i = 0; i < pose.muscles.Length; i++) if (float.IsNaN(pose.muscles[i]) || float.IsInfinity(pose.muscles[i])) return;
         hd.SetHumanPose(ref pose);
     }
+
+    Vector3 lastPos;
+    void ResetSprings()
+    {
+        foreach (var c in dst.GetComponentsInChildren<MonoBehaviour>(true))
+        {
+            if (c == null || c.GetType().Name != "VRMSpringBone") continue;
+            var m = c.GetType().GetMethod("Setup"); if (m != null) m.Invoke(c, new object[] { true });
+        }
+    }
+    static bool Ok(Vector3 v) { return !(float.IsNaN(v.x) || float.IsNaN(v.y) || float.IsNaN(v.z) || float.IsInfinity(v.x) || float.IsInfinity(v.y) || float.IsInfinity(v.z)); }
 
     void LateUpdate()
     {
         if (src == null || dst == null) { Destroy(this); return; }
+        // the VRoid body shows and hides with the old one (riding, dying, cutscenes)
+        if (dst.gameObject.activeSelf != src.gameObject.activeInHierarchy) dst.gameObject.SetActive(src.gameObject.activeInHierarchy);
+        if (!src.gameObject.activeInHierarchy) return;
+        // a big jump (entering a land, a teleport) would fling the hair springs and blow them up: reset them
+        if ((dst.position - lastPos).sqrMagnitude > 9f) ResetSprings();
+        lastPos = dst.position;
         Copy();
         // gear added to the old bones since last frame moves onto the VRoid bones (where it stays)
         int kids = 0; foreach (var kv in boneMap) kids += kv.Key.childCount;
