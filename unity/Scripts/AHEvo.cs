@@ -2,7 +2,7 @@
 //  - Evolutions: at level 30 each class picks one of two paths (a new spell replaces one of the five, plus lasting
 //    passives); at level 60 one of two forms of that path (an ultimate, a sixth button, and more passives).
 //    The choices are permanent. (The Pyromancer's Phoenix form is not part of this port.)
-//  - Talents: a point every 3 levels; tier I is open from the start, tier II with a path, tier III with a form.
+//  - Talents: two points every 3 levels (they replace the old stat points); tier I is open from the start, tier II with a path, tier III with a form.
 //  - The spellbook: a new spell every 5 levels (ten per class). Choose which five go on your ring.
 // Data: Resources/AH/Data/evo.json, taken from the web game; "U" says how each spell plays here (kind, multiplier, size).
 using System;
@@ -40,7 +40,8 @@ public static class AHEvo
         t.Add(new Tier { name = "Tier III", req = f != null ? AHJson.S(f, "name") + " talents" : "Choose a form at level 60 to unlock", nodes = f != null ? AHJson.A(f, "tal") : new List<object>(), open = f != null });
         return t;
     }
-    public static int Points(AHPlayer p) { return p.level / 3; }
+    // two points every three levels (the old stat points were folded in here)
+    public static int Points(AHPlayer p) { return p.level * 2 / 3; }
     public static int Spent(AHPlayer p) { long n = 0; foreach (var e in CP(p).tal) n += e.v; return (int)n; }
     public static int Rank(AHPlayer p, string id) { return (int)AHProgress.Get(CP(p).tal, id); }
     public static void Learn(AHGame g, object node)
@@ -79,6 +80,10 @@ public static class AHEvo
         { "arc", v => "basic bolts have " + Pc(v) + " chance to chain" }, { "smite", v => "Holy Fire heals you for " + Pc(v) + " of its damage" },
         { "rage", v => "+20% damage while below half HP" }, { "explode", v => "enemies you kill explode in fire" }, { "cheat", v => "once every 2 minutes, survive a killing blow" },
         { "crit", v => Pc(v) + " chance to land a critical hit" }, { "evade", v => Pc(v) + " chance to evade attacks" },
+        { "stunHit", v => "attacks stun for 1.2s (" + Pc(v) + " chance)" }, { "fearHit", v => "attacks terrify for 2.5s (" + Pc(v) + " chance)" },
+        { "venom", v => "attacks poison for " + Pc(v) + " of your power a second" }, { "ranged", v => "you fight at range with throwing knives" },
+        { "pctHeal", v => "heals restore +" + Pc(v) + " of max HP" }, { "manaHeal", v => "heals draw on " + Pc(v) + " of your max mana" },
+        { "healShield", v => "heals also shield for " + Pc(v) + " of the heal" }, { "totem", v => "totems last +" + Pc(v) },
     };
     static string Pc(float v) { return Mathf.RoundToInt(v * 100) + "%"; }
     public static string PassText(object fx, int times = 1)

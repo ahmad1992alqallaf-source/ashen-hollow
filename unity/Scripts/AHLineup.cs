@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class AHLineup : MonoBehaviour
 {
-    static readonly string[] Classes = { "warrior", "mage", "priest", "rogue", "ranger", "druid" };
+    static readonly string[] Classes = { "warrior", "mage", "priest", "rogue", "ranger", "druid", "shaman" };
     readonly List<Transform> holders = new List<Transform>();
     readonly List<AHAnim> anims = new List<AHAnim>();
     readonly List<string> names = new List<string>();

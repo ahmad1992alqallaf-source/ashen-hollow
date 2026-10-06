@@ -205,6 +205,57 @@ public static class AHWardrobe
         }
     }
 
+    // ---- dragon pinions (span along +X): an arm up to the wrist, four long finger bones fanning out from it, and a
+    // leathery membrane between them with a scalloped trailing edge ----
+    static Mesh dragonM, dragonB;
+    static readonly Vector3 DW = new Vector3(0.42f, 0.34f, 0f);
+    static readonly Vector3[] DF = { new Vector3(0.98f, 0.62f, -0.02f), new Vector3(1.12f, 0.2f, -0.03f), new Vector3(0.98f, -0.22f, -0.03f), new Vector3(0.66f, -0.5f, -0.02f) };
+    static readonly Vector3 DR = new Vector3(0.04f, -0.38f, 0f);
+    public static Mesh DragonMembrane
+    {
+        get
+        {
+            if (dragonM != null) return dragonM;
+            var v = new List<Vector3>(); var tr = new List<int>();
+            System.Action<Vector3, Vector3, Vector3> tri = (a, b, c) => { int i = v.Count; v.Add(a); v.Add(b); v.Add(c); tr.AddRange(new[] { i, i + 1, i + 2 }); int j = v.Count; v.Add(a); v.Add(b); v.Add(c); tr.AddRange(new[] { j, j + 2, j + 1 }); };
+            var pts = new List<Vector3>(DF); pts.Add(DR);
+            // the fan between each pair of neighbours, the edge sagging toward the wrist between the bone tips
+            for (int i = 0; i + 1 < pts.Count; i++)
+            {
+                Vector3 a = pts[i], b = pts[i + 1];
+                const int n = 4; Vector3 prev = a;
+                for (int k2 = 1; k2 <= n; k2++)
+                {
+                    float t = k2 / (float)n; Vector3 e = Vector3.Lerp(a, b, t); e = Vector3.Lerp(e, DW, 0.22f * Mathf.Sin(t * Mathf.PI)); e.z -= 0.03f * Mathf.Sin(t * Mathf.PI);
+                    tri(DW, prev, e); prev = e;
+                }
+            }
+            tri(Vector3.zero, DW, DR);                         // the inner panel down to the back
+            tri(Vector3.zero, new Vector3(0.2f, 0.12f, 0f), DW);   // the leading edge web
+            return dragonM = Done(v, tr);
+        }
+    }
+    public static Mesh DragonBones
+    {
+        get
+        {
+            if (dragonB != null) return dragonB;
+            var v = new List<Vector3>(); var tr = new List<int>();
+            System.Action<Vector3, Vector3, float, float> bone = (a, b, r0, r1) =>
+            {
+                Vector3 d = (b - a).normalized, sd = Vector3.Cross(d, Vector3.forward).normalized, up = Vector3.Cross(d, sd);
+                int i0 = v.Count;
+                for (int k2 = 0; k2 < 6; k2++) { float an = k2 / 6f * Mathf.PI * 2f; Vector3 o = sd * Mathf.Cos(an) + up * Mathf.Sin(an); v.Add(a + o * r0); v.Add(b + o * r1); }
+                for (int k2 = 0; k2 < 6; k2++) { int p0 = i0 + k2 * 2, p1 = i0 + ((k2 + 1) % 6) * 2; tr.AddRange(new[] { p0, p1, p0 + 1, p1, p1 + 1, p0 + 1 }); }
+            };
+            bone(Vector3.zero, DW, 0.028f, 0.022f);
+            foreach (var f in DF) bone(DW, f, 0.016f, 0.004f);
+            // a claw at the wrist
+            bone(DW, DW + new Vector3(0.05f, 0.1f, 0f), 0.02f, 0.002f);
+            return dragonB = Done(v, tr);
+        }
+    }
+
     static Mesh Torus(float R, float r, int seg = 28, int side = 8)
     {
         var m = new Mesh(); var v = new List<Vector3>(); var tr = new List<int>();
@@ -652,16 +703,27 @@ public static class AHWardrobe
             else if (f == "wings")
             {
                 var back = K.root;
+                bool dragon = kid.Contains("wyrm") || kid.Contains("magma") || kid.Contains("drake");
                 foreach (int sx in new[] { -1, 1 })
                 {
-                    // each wing: an arm rising out from the shoulder blade, with feathers hanging from it
-                    var w = new GameObject("Wing").transform; w.SetParent(back, false); w.localPosition = new Vector3(sx * 0.06f, 0.0f, -0.19f) * k; w.localRotation = Quaternion.Euler(0, sx * 24f, 0); K.root = w;
-                    // a feathered wing: a curved arm along the leading edge, layered coverts over long flight feathers that
-                    // fan out and grow toward the tip; it flaps slowly, faster while you run
-                    var ws = new Vector3(sx * 0.56f, 0.56f, 0.56f);
-                    K.Mesh(WingFeathers, Vector3.zero, ws, Vector3.zero, K.Mat);
-                    K.Mesh(WingCoverts, new Vector3(0, 0, -0.004f), ws, Vector3.zero, K.Dark);
-                    K.Mesh(WingArm, new Vector3(0, 0, -0.008f), ws, Vector3.zero, K.Gold);
+                    // each wing rises from the shoulder blade, swept back and lifted, half open at rest; it beats slowly,
+                    // harder while you run. Feathered wings for most; dragon pinions (bone fingers and a membrane) for
+                    // the wyrm and magma wings
+                    var w = new GameObject("Wing").transform; w.SetParent(back, false);
+                    w.localPosition = new Vector3(sx * 0.05f, 0.08f, -0.17f) * k; w.localRotation = Quaternion.Euler(-8f, sx * 32f, sx * 16f); K.root = w;
+                    if (dragon)
+                    {
+                        var ws = new Vector3(sx * 0.95f, 0.95f, 0.95f);
+                        K.Mesh(DragonMembrane, Vector3.zero, ws, Vector3.zero, K.Mat);
+                        K.Mesh(DragonBones, new Vector3(0, 0, -0.006f), ws, Vector3.zero, K.Dark);
+                    }
+                    else
+                    {
+                        var ws = new Vector3(sx * 0.85f, 0.85f, 0.85f);
+                        K.Mesh(WingFeathers, Vector3.zero, ws, Vector3.zero, K.Mat);
+                        K.Mesh(WingCoverts, new Vector3(0, 0, -0.004f), ws, Vector3.zero, K.Dark);
+                        K.Mesh(WingArm, new Vector3(0, 0, -0.008f), ws, Vector3.zero, K.Gold);
+                    }
                     w.gameObject.AddComponent<AHWingFlap>().Setup(sx, moving);
                     K.root = back;
                 }

@@ -34,7 +34,7 @@ public class AHMob : MonoBehaviour
     bool hasClips;
 
     // conditions
-    float burnT, burnDps, poisonT, poisonDps, slowT, rootT, stunT, dotTick;
+    float burnT, burnDps, poisonT, poisonDps, slowT, rootT, stunT, fearT, dotTick;
     AHPlayer dotBy;
 
     public static AHMob Create(AHGame game, AHMobType t, Vector3 pos)
@@ -282,6 +282,8 @@ public class AHMob : MonoBehaviour
             case AHStatus.Slow: slowT = time; break;
             case AHStatus.Root: rootT = time; AHFx.Ring(transform.position, type.radius + 0.4f, type.radius + 0.6f, new Color(0.4f, 0.8f, 0.3f), time); break;
             case AHStatus.Stun: stunT = time; windup = 0f; AHFx.Ring(transform.position + Vector3.up * 1.4f, 0.3f, 0.5f, new Color(1f, 0.9f, 0.4f), time); break;
+            // fear: it turns and runs from you, unable to fight back (bosses and elites shake it off sooner)
+            case AHStatus.Fear: fearT = time * (type.elite || AHEvents.IsWorldBoss(type.id) ? 0.35f : 1f); windup = 0f; AHFx.Ring(transform.position + Vector3.up * 1.6f, 0.25f, 0.45f, new Color(0.6f, 0.35f, 0.9f), fearT); break;
         }
     }
 
@@ -296,7 +298,7 @@ public class AHMob : MonoBehaviour
     void Die(AHPlayer by)
     {
         dead = true; hp = 0f; windup = 0f; skinned = false; corpseT = 40f; respawnT = 0f; voiceT = 0f; Voice("death", 1f);
-        burnT = poisonT = slowT = rootT = stunT = 0f;
+        burnT = poisonT = slowT = rootT = stunT = fearT = 0f;
         if (hasClips && anim.Has("Death")) anim.Play("Death", false, 1f, true);
         else
         {
@@ -354,7 +356,7 @@ public class AHMob : MonoBehaviour
 
     void Conditions(float dt)
     {
-        burnT -= dt; poisonT -= dt; slowT -= dt; rootT -= dt; stunT -= dt; calmT -= dt;
+        burnT -= dt; poisonT -= dt; slowT -= dt; rootT -= dt; stunT -= dt; fearT -= dt; calmT -= dt;
         if (burnT <= 0f) burnDps = 0f;
         if (poisonT <= 0f) poisonDps = 0f;
         if (burnDps + poisonDps <= 0f) return;
@@ -433,6 +435,12 @@ public class AHMob : MonoBehaviour
             case State.Chase:
                 if (p.dead || (pos - home).magnitude > 16f || g.InTown(p.transform.position)) { state = State.Return; break; }
                 if (stunT > 0f) break;
+                if (fearT > 0f)
+                {
+                    dir = -toP / Mathf.Max(dist, 1e-4f); spd = type.speed * 0.9f;
+                    transform.rotation = Quaternion.Slerp(transform.rotation, g.Face(dir), 1f - Mathf.Exp(-dt * 10f));
+                    break;
+                }
                 if (windup > 0f)
                 {
                     // a lunge: dodge out of the red circle in time (web: 13 damage)

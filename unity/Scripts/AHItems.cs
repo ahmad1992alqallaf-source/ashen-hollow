@@ -122,7 +122,7 @@ public static class AHItems
         var it = Get(id);
         if (it == null || !it.IsGear) return false;
         if (it.cosmetic) return true;
-        if (it.slot == "weapon") return AHJson.S(AHJson.O(AHDB.Rules, "WEAPON_CLASS"), it.form ?? "") == cls;
+        if (it.slot == "weapon") { if (AHJson.S(AHJson.O(AHDB.Rules, "WEAPON_CLASS"), it.form ?? "") == cls) return true; var also = AHJson.A(AHJson.O(AHDB.Rules, "WEAPON_ALSO"), cls); return also != null && also.Contains(it.form ?? ""); }
         string armor = AHJson.S(AHJson.O(AHDB.Rules, "ARMOR_OF"), it.style ?? "", "leather");
         var who = AHJson.A(AHJson.O(AHDB.Rules, "ARMOR_CLASSES"), armor);
         return who != null && who.Contains(cls);

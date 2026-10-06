@@ -311,7 +311,7 @@ public static class AHMenu
     [MenuItem("Ashen Hollow/Test: Make It Night")] static void Night() { var g = AHGame.I; if (Application.isPlaying && g != null) g.SetTimeOfDay(0.75f); }
     [MenuItem("Ashen Hollow/Test: Make It Day")] static void Day() { var g = AHGame.I; if (Application.isPlaying && g != null) g.SetTimeOfDay(0.25f); }
     // renders the hero from the front, side and back into HeroShots/ next to Assets (for checking outfits up close)
-    [MenuItem("Ashen Hollow/Test: Hero Snapshots")]
+    [MenuItem("Ashen Hollow/Test: Hero Snapshots %&k")]
     static void HeroShots()
     {
         var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
@@ -1077,4 +1077,28 @@ public static class AHMenu
     }
     [MenuItem("Ashen Hollow/Test: Class Lineup %&l")]   // every class, man and woman, in starter outfit, to HeroShots/lineup_*.png
     static void ClassLineup() { var g = AHGame.I; if (Application.isPlaying && g != null && g.player != null) AHLineup.Run(g); }
+    [MenuItem("Ashen Hollow/Test: HUD Shot %&h")]   // the game view with the HUD, to HeroShots/hud.png
+    static void HudShot() { if (!Application.isPlaying) return; string d = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(d); ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(d, "hud.png"), 2); Debug.Log("Ashen Hollow: HUD shot saved"); }
+    [MenuItem("Ashen Hollow/Test: Toggle Auto Quest %&u")]
+    static void AutoQ() { var g = AHGame.I; if (Application.isPlaying && g != null) AHAuto.Toggle(g); }
+    [MenuItem("Ashen Hollow/Test: Horizon Shots %&j")]   // four views out from the hero at head height, to HeroShots/horizon.png
+    static void HorizonShots()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        var go = new GameObject("HorizonCam"); var cam = go.AddComponent<Camera>(); cam.CopyFrom(g.cam); cam.fieldOfView = 62f;
+        int W = 800, H = 450; var rt = new RenderTexture(W, H, 24); cam.targetTexture = rt;
+        var sheet = new Texture2D(W * 2, H * 2, TextureFormat.RGB24, false); var tex = new Texture2D(W, H, TextureFormat.RGB24, false);
+        for (int k = 0; k < 4; k++)
+        {
+            cam.transform.position = g.player.transform.position + Vector3.up * 5f;
+            cam.transform.rotation = Quaternion.Euler(-4f, k * 90f, 0f);
+            cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, W, H), 0, 0); tex.Apply(); RenderTexture.active = null;
+            sheet.SetPixels((k % 2) * W, (1 - k / 2) * H, W, H, tex.GetPixels());
+        }
+        sheet.Apply();
+        string d = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(d);
+        System.IO.File.WriteAllBytes(System.IO.Path.Combine(d, "horizon.png"), sheet.EncodeToPNG());
+        cam.targetTexture = null; Object.Destroy(go); Object.Destroy(rt); Object.Destroy(tex); Object.Destroy(sheet);
+        Debug.Log("Ashen Hollow: horizon shots saved");
+    }
 }

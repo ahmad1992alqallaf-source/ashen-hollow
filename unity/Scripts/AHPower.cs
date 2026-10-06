@@ -89,7 +89,7 @@ public static class AHPower
                 }
         // web cardDrop
         if (m.add || SetOf(t.id) == null) return;
-        bool boss = t.id == AHDungeon.BossOf(AHGame.AreaId) || t.id == "grull" || t.id == AHRaid.Boss || t.id == AHEvents.BossType;
+        bool boss = t.id == AHDungeon.BossOf(AHGame.AreaId) || t.id == "grull" || t.id == AHRaid.Boss || AHEvents.IsWorldBoss(t.id);
         float ch = boss ? 0.2f : (t.elite || t.rare || AHEvents.IsEvent(t.id)) ? 0.05f : 0.006f;
         if (UnityEngine.Random.value < ch && p.bag.Add("card_" + t.id))
             g.ui.Banner(AHItems.Get("card_" + t.id).name + "!", p.prog.cards.Contains(t.id) ? "A spare for trading" : "Add it to your collection (tap it twice in the bag)");
@@ -99,11 +99,12 @@ public static class AHPower
     public static readonly string[] StatK = { "str", "end", "dex", "int", "spr" };
     public static readonly string[] StatName = { "Strength", "Endurance", "Dexterity", "Intelligence", "Spirit" };
     public static readonly string[] StatTxt = { "Physical damage +0.3% (warriors, rogues, rangers)", "Max HP +0.6% and +0.4 armor", "Evasion +0.1% and attack speed +0.15%", "Magic damage +0.3% and healing +0.3% (mages, priests, druids)", "Critical chance +0.12% and max mana +1%" };
-    static readonly string[] Magic = { "mage", "priest", "druid" };
+    static readonly string[] Magic = { "mage", "priest", "druid", "shaman" };
     public static bool IsMagic(AHPlayer p) { return Array.IndexOf(Magic, p.cls.id) >= 0; }
     public static int Pts(AHPlayer p, string k) { return (int)AHProgress.Get(p.prog.sp, p.cls.id + ":" + k); }
     public static int Spent(AHPlayer p) { int n = 0; foreach (var k in StatK) n += Pts(p, k); return n; }
-    public static int Free(AHPlayer p) { return Mathf.Max(0, p.level - Spent(p)); }
+    // stat points were folded into talents (AHEvo): none are given any more; old points stay saved but do nothing
+    public static int Free(AHPlayer p) { return 0; }
     public static void Spend(AHGame g, string k)
     {
         var p = g.player; if (Free(p) <= 0) return;
@@ -135,12 +136,6 @@ public static class AHPower
         var ss = Sets; if (ss != null) foreach (var S0 in ss) if (SetDone(p, S0)) add(AHJson.O(S0, "fx"));
         foreach (var e in p.prog.gems) { var parts = e.Split(':'); if (parts.Length == 3 && p.bag.Worn(parts[0]) != null) { var r = AHJson.A(GemFx, parts[2]); if (r != null) add(r[0]); } }
         if (p.cls == null) return;
-        bool magic = IsMagic(p);
-        s.dmg += (magic ? Pts(p, "int") : Pts(p, "str")) * 0.003f;
-        s.hpK += Pts(p, "end") * 0.006f; s.def += Mathf.RoundToInt(Pts(p, "end") * 0.4f);
-        s.evade += Pts(p, "dex") * 0.001f; s.aspd += Pts(p, "dex") * 0.0015f;
-        if (magic) s.heal += Pts(p, "int") * 0.003f;
-        s.crit += Pts(p, "spr") * 0.0012f; s.manaK += Pts(p, "spr") * 0.01f;
     }
 }
 
@@ -201,20 +196,20 @@ public partial class AHUI
         for (int i = from; i < Mathf.Min(rows.Count, from + RowsPerPage); i++) rows[i](i - from);
     }
 
+    // the Stats page now only shows what your gear and talents add up to, against the caps
     void RenderStats(AHPlayer p)
     {
-        int free = AHPower.Free(p);
-        wkTitle.text = "Stats · " + free + " point" + (free != 1 ? "s" : "") + " to spend";
-        var s = p.stat;
-        wkHint.text = "One point every class level. " + p.cls.name + "s like " + (AHPower.IsMagic(p) ? "INT and " + (p.cls.id == "druid" ? "END" : "SPR") : "STR and " + (p.cls.id == "warrior" ? "END" : "DEX")) + ". Now: +" + Mathf.RoundToInt(s.dmg * 100) + "% damage, " + (s.crit * 100).ToString("0.0") + "% crit, " + (s.evade * 100).ToString("0.0") + "% evasion, Max HP " + Mathf.CeilToInt(p.maxHp) + ".";
-        var rows = new List<Action<int>>();
-        for (int i = 0; i < AHPower.StatK.Length; i++)
-        {
-            string k = AHPower.StatK[i]; int ii = i;
-            rows.Add(r => Row(r, AHPower.StatName[ii] + " · " + AHPower.Pts(p, k), new Color(1f, 0.8f, 0.45f), AHPower.StatTxt[ii], "", new WkBtn { label = "+1", on = free > 0, col = Go, act = () => { AHPower.Spend(g, k); RenderWork(); } }));
-        }
-        rows.Add(r => Row(r, "Reset points", new Color(1f, 1f, 1f, 0.7f), "Take back every point for this class, free.", "", new WkBtn { label = "Reset", on = AHPower.Spent(p) > 0, col = Plain, act = () => { AHPower.ResetPts(g); RenderWork(); } }));
-        int from = Paged(rows.Count);
-        for (int i = from; i < Mathf.Min(rows.Count, from + RowsPerPage); i++) rows[i](i - from);
+        var st = p.stat; int fr = AHEvo.Points(p) - AHEvo.Spent(p);
+        wkTitle.text = "Stats";
+        wkHint.text = "Stats come from your gear, gems, sets and talents. Each one has a cap so no build runs away. Talents: " + fr + " free.";
+        var lines = new List<Action<int>>();
+        Action<string, float, float, bool> line = (nm, v, cap, pc) => lines.Add(r => Row(r, nm + "  " + (pc ? (v * 100f).ToString("0.#") + "%" : v.ToString("0")), v >= cap - 1e-4f ? new Color(1f, 0.55f, 0.4f) : new Color(1f, 0.85f, 0.55f), "Cap " + (pc ? (cap * 100f).ToString("0") + "%" : cap.ToString("0")) + (v >= cap - 1e-4f ? " · capped" : ""), ""));
+        line("Damage bonus", st.dmg, AHPlayer.Cap.dmg, true); line("Critical chance", st.crit, AHPlayer.Cap.crit, true);
+        line("Evasion", st.evade, AHPlayer.Cap.evade, true); line("Attack speed", st.aspd, AHPlayer.Cap.aspd, true);
+        line("Cooldowns shorter", st.cdr, AHPlayer.Cap.cdr, true); line("Healing bonus", st.heal, AHPlayer.Cap.heal, true);
+        line("Max HP bonus", st.hpK, AHPlayer.Cap.hpK, true); line("Max mana bonus", st.manaK, AHPlayer.Cap.manaK, true);
+        lines.Add(r => Row(r, "Talents", new Color(1f, 0.8f, 0.45f), fr + " points free · a point every 3 levels plus one more every 3", "", new WkBtn { label = "Open", on = true, col = fr > 0 ? Go : Plain, act = () => OpenClassWin("tal") }));
+        int f0 = Paged(lines.Count);
+        for (int i = f0; i < Mathf.Min(lines.Count, f0 + RowsPerPage); i++) lines[i](i - f0);
     }
 }

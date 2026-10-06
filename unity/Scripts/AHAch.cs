@@ -59,6 +59,15 @@ public static class AHAch
             A("delver", "Delver", "Complete 5 Dungeon Finder runs.", "the Delver", p => AHFinder.Runs >= 5);
             A("wellfed", "Gourmand", "Eat a masterwork meal.", "the Gourmand", p => p.prog.Stat("master_meals") >= 1);
             A("artisan_road", "Master Artisan", "Walk the whole Artisan’s Road.", "Master Artisan", p => { var r = AHQuestLog.Road; return r != null && AHGame.I != null && AHGame.I.quests.roadI >= r.Count; });
+            // world bosses: a deed for each, and one for felling them all
+            foreach (var B in AHEvents.Bosses)
+            {
+                string ty = AHJson.S(B, "type"); if (ty == "wyrm" || ty == "pyraxis") continue;   // these two have their own deeds above
+                string nm = AHEvents.MobName(ty), sh = nm.Split(',')[0];
+                A("wb_" + ty, sh + "’s Bane", "Defeat " + nm + ", a world boss.", sh + "’s Bane", p => K(p, ty) >= 1);
+            }
+            A("wb_all", "Bosshunter", "Defeat every world boss.", "the Bosshunter", p => { foreach (var B in AHEvents.Bosses) if (K(p, AHJson.S(B, "type")) < 1) return false; return true; });
+            A("rares10", "Rare Collector", "Defeat 10 rare monsters.", "the Collector", p => { long n = 0; var rs = AHEvents.Rares; if (rs != null) foreach (var r in rs) n += K(p, AHJson.S(r, "type")); return n >= 10; });
             foreach (var f in AHRep.Factions) { var ff = f; A("exalted_" + f.id, "Exalted: " + f.name, "Reach Exalted with " + f.name + ".", "Champion of " + f.name, p => AHRep.Rank(p, ff.id) >= 4); }
             var profs = AHPlayer.Profs as Dictionary<string, object>;
             string[] rk = { "Journeyman", "Expert", "Master", "Grandmaster", "Legendary" }; int[] lv = { 10, 20, 30, 40, 50 };

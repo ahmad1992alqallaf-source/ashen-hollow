@@ -1,7 +1,7 @@
 // Ashen Hollow: the six classes and their first five spells, matching the web game
 using UnityEngine;
 
-public enum AHStatus { None, Burn, Poison, Slow, Root, Stun }
+public enum AHStatus { None, Burn, Poison, Slow, Root, Stun, Fear }
 
 public enum SpellKind
 {
@@ -17,7 +17,8 @@ public enum SpellKind
     Blink,       // jump forward
     StepBehind,  // appear behind the target
     Leap,        // jump back, away from danger
-    Heal, Hot, Shield, Invuln, Buff, Stealth, Bear
+    Heal, Hot, Shield, Invuln, Buff, Stealth, Bear,
+    Totem        // the shaman's totems: planted at your feet, pulsing heal, war-fury or fire (AHTotem)
 }
 
 public class SpellDef
@@ -129,6 +130,20 @@ public static class AHClasses
                     new SpellDef("rejuv", "Rejuvenation", "REJ", SpellKind.Hot, 12).V(0.4f).T(10f).C(0x9be37a),
                     new SpellDef("moonfire", "Moonfire", "MOO", SpellKind.Bolt, 8).M(1f).Rg(12f).S(AHStatus.Burn, 6f).C(0xb58cff),
                     new SpellDef("bearform", "Bear Form", "BEA", SpellKind.Bear, 30).V(0.25f).T(15f).C(0x8a5a3a),
+                }
+            },
+            new ClassDef
+            {
+                // totems carry the fight: heal and war-fury for you and your party; agility (evasion), not shields, keeps
+                // the shaman alive, so it heals well without becoming unkillable
+                id = "shaman", name = "Shaman", role = "Totems, healing and the storm", model = "Barbarian_t", hp = 92, ranged = true, mana = true, range = 10.5f, atkMult = 0.85f, color = AHGame.Hex(0x3fc8d8), tint = new Color(0.75f, 0.95f, 1f),
+                spells = new[]
+                {
+                    new SpellDef("lbolt", "Lightning Bolt", "LBO", SpellKind.Bolt, 4).M(2f).Rg(11f).C(0x8ad8ff),
+                    new SpellDef("healtotem", "Healing Totem", "HTO", SpellKind.Totem, 14).V(0.05f).R(6f).T(12f).C(0x7ae0a0),
+                    new SpellDef("wartotem", "War Totem", "WTO", SpellKind.Totem, 20).V(0.25f).R(7f).T(12f).C(0xff8a4a),
+                    new SpellDef("chainheal", "Chain Heal", "CHH", SpellKind.Heal, 9).V(0.2f).C(0x7ae0a0),
+                    new SpellDef("earthshock", "Earth Shock", "ESH", SpellKind.Strike, 8).M(1.4f).Rg(11f).S(AHStatus.Slow, 3f).C(0xc8a060),
                 }
             },
         };

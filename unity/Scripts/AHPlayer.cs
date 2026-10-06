@@ -241,11 +241,29 @@ public class AHPlayer : MonoBehaviour
         pass = AHEvo.CalcPass(this);
         stat.dmg += AHEvo.Pass(this, "dmg"); stat.hp += Mathf.RoundToInt(AHEvo.Pass(this, "hp")); stat.heal += AHEvo.Pass(this, "heal");
         stat.crit += AHEvo.Pass(this, "crit"); stat.evade += AHEvo.Pass(this, "evade"); stat.aspd += AHEvo.Pass(this, "atkspd");
+        if (cls != null && cls.id == "shaman") stat.evade += 0.08f;   // agility, not shields: the shaman's defence
+        ApplyCaps(stat);
         RebuildRing();
         maxHp = MaxHpFor(level);
         hp = Mathf.Min(hp, maxHp);
         maxMana = MaxManaFor(level);
         mana = Mathf.Min(mana, maxMana);
+    }
+
+    // how much a heal of 'pct' restores, by class (see the Heal spell)
+    public float HealAmount(float pct)
+    {
+        if (cls.id == "druid") return maxHp * pct * (1f + AHEvo.Pass(this, "pctHeal"));
+        if (cls.id == "priest") return maxHp * pct * (0.6f + 0.8f * (maxMana > 0f ? Mathf.Clamp01(mana / maxMana) : 0.5f)) * (1f + AHEvo.Pass(this, "manaHeal"));
+        return maxHp * pct;
+    }
+
+    // stat caps, so stacked gear, gems, sets and talents can't run away (shown on the Stats page)
+    public static readonly AHStats Cap = new AHStats { dmg = 2f, crit = 0.5f, evade = 0.4f, aspd = 0.75f, cdr = 0.4f, heal = 1.5f, hpK = 1f, manaK = 1f };
+    public static void ApplyCaps(AHStats s)
+    {
+        s.dmg = Mathf.Min(s.dmg, Cap.dmg); s.crit = Mathf.Min(s.crit, Cap.crit); s.evade = Mathf.Min(s.evade, Cap.evade); s.aspd = Mathf.Min(s.aspd, Cap.aspd);
+        s.cdr = Mathf.Min(s.cdr, Cap.cdr); s.heal = Mathf.Min(s.heal, Cap.heal); s.hpK = Mathf.Min(s.hpK, Cap.hpK); s.manaK = Mathf.Min(s.manaK, Cap.manaK);
     }
 
     // web STARTERS: the outfit each class starts in
@@ -283,7 +301,7 @@ public class AHPlayer : MonoBehaviour
 
     // web maxManaOf: 100 + 3 a class level + 1.5 per point of gear attack
     public float MaxManaFor(int lv) { return cls != null && cls.mana ? Mathf.Round((100f + (lv - 1) * 3f + stat.atk * 1.5f) * (1f + stat.manaK)) : 0f; }
-    float lastCast = -99f;
+    float lastCast = -99f, autoTake;
     // web: P.maxHp = cls.hp * (1 + (lv - 1) * 0.04) + gear hp + (lv - 1) * 3
     public float MaxHpFor(int lv) { return Mathf.Round(((cls != null ? cls.hp : 100f) * (1f + (lv - 1) * 0.04f) + stat.hp + (lv - 1) * 3f) * AHFinder.HpK * (1f + AHMeal.Fx(this, "hp")) * (1f + stat.hpK)); }
     // web damage(): base 4 + Attack level * 0.7 + gear attack, times buffs; Power is that without the dice
@@ -330,10 +348,13 @@ public class AHPlayer : MonoBehaviour
     public float SpeedMult { get { return (Elix("swift") ? 1.25f : 1f) * (Elix("dragon") ? 1.15f : 1f) * (1f + AHMeal.Fx(this, "speed")); } }
     public int PotionCount(bool mana) { int n = 0; foreach (var k in mana ? ManaOrder : HealOrder) n += bag.Count(k); return n; }
 
-    public void Heal(float n)
+    // raw: a heal that is a straight share of max HP (the druid's), not boosted by the healing stat
+    public void Heal(float n, bool raw = false)
     {
-        n = Mathf.Round(n * (1f + stat.heal));
-        float before = hp; hp = Mathf.Min(maxHp, hp + n); if (n >= maxHp * 0.08f) AHSound.Play("heal");
+        n = Mathf.Round(raw ? n : n * (1f + stat.heal));
+        float before = hp; hp = Mathf.Min(maxHp, hp + n);
+        if (hp - before < 0.5f) return;   // already full: no "+0 HP" and no flash
+        if (n >= maxHp * 0.08f) AHSound.Play("heal");
         if (g.ui != null) g.ui.Float(transform.position + Vector3.up * 2.3f, "+" + Mathf.RoundToInt(hp - before) + " HP", new Color(0.61f, 0.89f, 0.48f));
         AHFx.Pillar(transform.position, 0.6f, 2.2f, new Color(0.5f, 1f, 0.5f, 0.5f), 0.6f);
     }
@@ -430,6 +451,13 @@ public class AHPlayer : MonoBehaviour
         if (keys.sqrMagnitude > stick.sqrMagnitude) stick = keys;
         Vector3 move = g.CamForward() * stick.y + g.CamRight() * stick.x;
         if (move.sqrMagnitude > 1f) move.Normalize();
+        // AUTO quest steers when you are not (moving the stick takes over)
+        if (AHAuto.On)
+        {
+            autoTake = stick.sqrMagnitude > 0.09f ? autoTake + dt : 0f;
+            if (autoTake > 0.2f) { Debug.Log("Ashen Hollow: auto off, stick " + stick); AHAuto.Stop(g, "Auto quest off: you took the controls."); }
+            else move = AHAuto.Steer(this, dt);
+        }
 
         bool wantDodge = (g.ui != null && g.ui.dodgePressed) || AHInput.DodgeKey();
         if (wantDodge && dodgeCd <= 0f)
@@ -464,18 +492,18 @@ public class AHPlayer : MonoBehaviour
         UpdateWading(dt, moving);
 
         // keep a target: the one you hit, or the nearest in reach
-        if (target != null && (target.dead || Dist(target) > cls.range + 8f)) target = null;
-        if (target == null) target = Nearest(cls.ranged ? cls.range : 4f);
+        if (target != null && (target.dead || Dist(target) > Range + 8f)) target = null;
+        if (target == null) target = Nearest(Ranged ? Range : 4f);
         targetRing.SetActive(target != null);
         if (target != null) targetRing.transform.position = target.transform.position + Vector3.up * 0.06f;
 
         // basic attack
-        bool wantAtk = (g.ui != null && g.ui.attackHeld) || AHInput.AttackKey();
+        bool wantAtk = (g.ui != null && g.ui.attackHeld) || AHInput.AttackKey() || (AHAuto.On && AHAuto.WantAttack);
         if (wantAtk && atkCd <= 0f && dodgeT <= 0f) Attack();
 
         // spells
         for (int i = 0; i < Spells.Length && i < 6; i++)
-            if (((g.ui != null && g.ui.spellPressed[i]) || AHInput.SpellKey(i)) && cds[i] <= 0f && dodgeT <= 0f) Cast(i);
+            if (((g.ui != null && g.ui.spellPressed[i]) || AHInput.SpellKey(i) || AHAuto.WantCast(i)) && cds[i] <= 0f && dodgeT <= 0f) Cast(i);
 
         if (atkT > 0f)
         {
@@ -483,10 +511,10 @@ public class AHPlayer : MonoBehaviour
             if (hitAt > 0f)
             {
                 hitAt -= dt;
-                if (hitAt <= 0f && !cls.ranged)
+                if (hitAt <= 0f && !Ranged)
                 {
-                    AHMob t = hitTarget != null && !hitTarget.dead ? hitTarget : Nearest(cls.range);
-                    if (t != null && Dist(t) < cls.range + 0.3f) t.Hurt(Roll(cls.atkMult), this);
+                    AHMob t = hitTarget != null && !hitTarget.dead ? hitTarget : Nearest(Range);
+                    if (t != null && Dist(t) < Range + 0.3f) { t.Hurt(Roll(cls.atkMult), this); OnHitFx(t); }
                 }
             }
         }
@@ -552,7 +580,7 @@ public class AHPlayer : MonoBehaviour
         {
             if (missingPoses.Add(key)) Debug.LogWarning("Ashen Hollow: cast animation " + key + " (" + d.clip + ") not found, using the plain one");
             // older animation sets: fall back to the original swing or cast
-            if (anim.Play(cls.ranged ? "Shoot" : "1H_Melee_Attack", false, 1.6f, true)) { atkT = Mathf.Max(atkT, 0.45f); hitAt = 0f; }
+            if (anim.Play(Ranged ? "Shoot" : "1H_Melee_Attack", false, 1.6f, true)) { atkT = Mathf.Max(atkT, 0.45f); hitAt = 0f; }
             return;
         }
         anim.Play(d.clip, false, d.speed, true);
@@ -645,26 +673,40 @@ public class AHPlayer : MonoBehaviour
     void FaceTarget(AHMob t) { if (t != null) transform.rotation = g.Face(t.transform.position - transform.position); }
     public Vector3 Hand { get { return transform.position + Vector3.up * 1.1f + transform.forward * 0.4f; } }
 
+    // the Shadowshot rogue fights at range (throwing knives); every other class as its class says
+    public bool Ranged { get { return cls.ranged || AHEvo.Pass(this, "ranged") > 0f; } }
+    public float Range { get { return !cls.ranged && Ranged ? 13f : cls.range; } }
+    // on-hit effects from paths and talents: stun (melee rogue), poison and fear (ranged rogue)
+    void OnHitFx(AHMob m)
+    {
+        if (m == null || m.dead) return;
+        float st = AHEvo.Pass(this, "stunHit"), fe = AHEvo.Pass(this, "fearHit"), ve = AHEvo.Pass(this, "venom");
+        if (st > 0f && Random.value < st) m.AddStatus(AHStatus.Stun, 1.2f, 0f, this);
+        if (fe > 0f && Random.value < fe) m.AddStatus(AHStatus.Fear, 2.5f, 0f, this);
+        if (ve > 0f) m.AddStatus(AHStatus.Poison, 5f, Power * ve, this);
+    }
+
     void Attack()
     {
         if (mounted) AHComp.Dismount(g, true);
-        AHSound.Play(cls.ranged ? "whoosh" : "swing");
-        AHMob t = cls.ranged ? (target != null && Dist(target) <= cls.range ? target : Nearest(cls.range)) : Nearest(cls.range + 0.4f);
+        AHSound.Play(Ranged ? "whoosh" : "swing");
+        AHMob t = Ranged ? (target != null && Dist(target) <= Range ? target : Nearest(Range)) : Nearest(Range + 0.4f);
         if (t != null) { target = t; FaceTarget(t); }
-        atkCd = cls.atkCd; atkT = cls.ranged ? 0.35f : 0.5f; hitAt = 0.22f; hitTarget = t;
+        atkCd = cls.atkCd; atkT = Ranged ? 0.35f : 0.5f; hitAt = 0.22f; hitTarget = t;
         if (anim != null)
         {
             // melee: alternate a forward cut and a sideways slash; the ranger fires the crossbow two-handed
-            string clip = cls.ranged ? (cls.id == "ranger" && anim.Has("Pistol_Shoot") ? "Pistol_Shoot" : "Shoot")
+            string clip = Ranged ? (cls.id == "ranger" && anim.Has("Pistol_Shoot") ? "Pistol_Shoot" : "Shoot")
                 : anim.Has("Sword_Regular_A") ? ((swingN++ & 1) == 0 ? "Sword_Regular_A" : "Sword_Regular_B") : "1H_Melee_Attack";
-            float spd = clip == "Pistol_Shoot" ? 1.3f : clip.StartsWith("Sword_Regular") ? (cls.atkCd < 0.6f ? 1.4f : 1.05f) : cls.ranged ? 1.8f : (cls.atkCd < 0.6f ? 2f : 1.5f);
+            float spd = clip == "Pistol_Shoot" ? 1.3f : clip.StartsWith("Sword_Regular") ? (cls.atkCd < 0.6f ? 1.4f : 1.05f) : Ranged ? 1.8f : (cls.atkCd < 0.6f ? 2f : 1.5f);
             anim.Play(clip, false, spd, true); poseT = 0f;
         }
-        if (cls.ranged && t != null)
+        if (Ranged && t != null)
         {
             int dmg = Roll(cls.atkMult);
-            System.Action<AHMob> hitFn = m => { m.Hurt(dmg, this); AHEvo.Arc(this, m, dmg); };
-            if (cls.id == "ranger") AHFx.Shoot(Hand, t, new Color(1f, 0.95f, 0.8f), 0.18f, 26f, SpellEl.Arrow, hitFn);   // the crossbow fires real bolts
+            System.Action<AHMob> hitFn = m => { m.Hurt(dmg, this); AHEvo.Arc(this, m, dmg); OnHitFx(m); };
+            if (cls.id == "rogue") AHFx.Shoot(Hand, t, new Color(0.55f, 0.95f, 0.45f), 0.14f, 24f, SpellEl.Arrow, hitFn);   // poisoned throwing knives
+            else if (cls.id == "ranger") AHFx.Shoot(Hand, t, new Color(1f, 0.95f, 0.8f), 0.18f, 26f, SpellEl.Arrow, hitFn);   // the crossbow fires real bolts
             else AHFx.Shoot(Hand, t, cls.color, 0.18f, 20f, SpellEl.Arcane, hitFn);
         }
         BreakStealth();
@@ -717,7 +759,7 @@ public class AHPlayer : MonoBehaviour
         switch (sp.kind)
         {
             case SpellKind.Strike:
-                pose = cls.ranged ? "Interact" : "1H_Melee_Attack";
+                pose = Ranged ? "Interact" : "1H_Melee_Attack";
                 // Execute and Assassinate finish off a wounded enemy: much harder below 30% health
                 if ((sp.id == "execute" || sp.id == "assassinate") && t.hp < t.type.hp * 0.3f) sp = sp.Scale(sp.id == "execute" ? 1.5f : 1.7f);
                 Hit(t, sp);
@@ -830,12 +872,20 @@ public class AHPlayer : MonoBehaviour
                 }
                 break;
             case SpellKind.Heal:
-                Heal(maxHp * sp.value);   // with your healing bonuses
+                {
+                    // druid: a true percentage of max HP (talents add to the percentage, nothing crits);
+                    // priest: the fuller your mana, the stronger the heal, and it leaves a holy shield behind;
+                    // shaman and the rest: with your healing bonuses
+                    float amt = HealAmount(sp.value);
+                    Heal(amt, cls.id == "druid");
+                    if (cls.id == "priest") { float sh = amt * (0.3f + AHEvo.Pass(this, "healShield")); if (sh > shield) { shield = sh; shieldT = 6f; } AHFx.Ring(me, 0.5f, 2f, new Color(1f, 0.9f, 0.5f), 0.5f); }
+                    if (cls.id == "shaman" || cls.id == "priest" || cls.id == "druid") AHComp.HealParty(g, me, 9f, sp.value * (cls.id == "shaman" ? 1f : 0.6f));
+                }
                 AHFx.Pillar(me, 0.7f, 3f, sp.color, 0.7f);
                 pose = "Cheer";
                 break;
             case SpellKind.Hot:
-                hotT = sp.time; hotRate = maxHp * sp.value / sp.time;
+                hotT = sp.time; hotRate = HealAmount(sp.value) / sp.time;
                 AHFx.Pillar(me, 0.6f, 2.5f, sp.color, 0.6f);
                 pose = "Cheer";
                 break;
@@ -865,6 +915,10 @@ public class AHPlayer : MonoBehaviour
                 AHFx.Ring(me, 0.5f, 3.2f, new Color(0.42f, 0.35f, 0.54f), 0.5f);
                 if (g.ui != null) g.ui.Float(me + Vector3.up * 2.3f, "Vanished", new Color(0.78f, 0.65f, 1f));
                 pose = null;
+                break;
+            case SpellKind.Totem:
+                AHTotem.Plant(this, sp, me + transform.forward * 1.2f, sp.time * (1f + AHEvo.Pass(this, "totem")));
+                pose = "Cheer";
                 break;
             case SpellKind.Bear:
                 bearT = sp.time;

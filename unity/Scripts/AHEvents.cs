@@ -1,6 +1,7 @@
 // Ashen Hollow: timed events, as in the web game (v66, RARES / WORLD_BOSS / rareWin / bossWin / evTick / renderEvents).
-// Seven rare monsters, each out for 25 minutes every 2 hours (staggered), and Voidmaw, the world boss, who descends on
-// the Riven Crater in Kingsvale twice a day (1 pm and 9 pm, for 45 minutes). Each can be slain once per appearance.
+// Seven rare monsters, each out for 25 minutes 8 to 10 times a day (staggered), and nine world bosses, one for every two
+// lands, each descending four times a day for 45 minutes (Voidmaw over Kingsvale, Old Tusk in Hollow Meadow, and the
+// rest), spread 40 minutes apart. Each can be slain once per appearance; killing them earns Deeds (AHAch).
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,17 +15,23 @@ public static class AHEvents
 
     public static List<object> Rares { get { return AHDB.List("monsters", "RARES"); } }
     public static string BossType { get { return AHJson.S(AHDB.Table("monsters", "WORLD_BOSS"), "type", "voidmaw"); } }
+    // every world boss with its land and four daily hours (monsters.json WORLD_BOSSES)
+    public static List<object> Bosses { get { var l = AHDB.List("monsters", "WORLD_BOSSES"); if (l == null || l.Count == 0) l = new List<object> { AHDB.Table("monsters", "WORLD_BOSS") }; return l; } }
+    public static object BossDef(string type) { foreach (var b in Bosses) if (AHJson.S(b, "type") == type) return b; return null; }
+    public static bool IsWorldBoss(string type) { return BossDef(type) != null; }
+    public static string MobName(string type) { return AHJson.S(AHJson.O(AHDB.Mobs, type), "name", type); }
 
     // web rareWin
     public static Win RareWin(object r)
     {
-        double t = NowS - AHJson.N(r, "off") * 60, cyc = 7200, pos = ((t % cyc) + cyc) % cyc;
+        double per = AHJson.N(r, "per", 9), t = NowS - AHJson.N(r, "off") * 60, cyc = Math.Round(86400.0 / Math.Max(1.0, per)), pos = ((t % cyc) + cyc) % cyc;
         return new Win { active = pos < RareMin * 60, id = (long)Math.Floor(t / cyc), left = RareMin * 60 - pos, next = cyc - pos };
     }
     // web bossWin (local hours)
-    public static Win BossWin()
+    public static Win BossWin() { return BossWin(BossDef(BossType) ?? AHDB.Table("monsters", "WORLD_BOSS")); }
+    public static Win BossWin(object B)
     {
-        var B = AHDB.Table("monsters", "WORLD_BOSS"); var hours = AHJson.A(B, "hours"); double mins = AHJson.N(B, "mins", 45);
+        var hours = AHJson.A(B, "hours"); double mins = AHJson.N(B, "mins", 45);
         var now = DateTime.Now; double best = double.PositiveInfinity;
         for (int day = -1; day <= 1; day++)
             if (hours != null) foreach (var h in hours)
@@ -42,14 +49,14 @@ public static class AHEvents
     }
     static Win WinOf(string type)
     {
-        if (type == BossType) return BossWin();
+        var bd = BossDef(type); if (bd != null) return BossWin(bd);
         var rs = Rares; if (rs != null) foreach (var r in rs) if (AHJson.S(r, "type") == type) return RareWin(r);
         return new Win { id = -2 };
     }
     public static bool IsEvent(string type) { return WinOf(type).id != -2; }
     static string Where(string type)
     {
-        if (type == BossType) return AHJson.S(AHDB.Table("monsters", "WORLD_BOSS"), "where");
+        var bd = BossDef(type); if (bd != null) return AHJson.S(bd, "where");
         var rs = Rares; if (rs != null) foreach (var r in rs) if (AHJson.S(r, "type") == type) return AHJson.S(r, "where");
         return "";
     }
@@ -71,7 +78,7 @@ public static class AHEvents
                 if (AHProgress.Get(p.prog.evSeen, m.type.id) != w.id + 1)
                 {
                     Set(p.prog.evSeen, m.type.id, w.id + 1);
-                    bool boss = m.type.id == BossType;
+                    bool boss = IsWorldBoss(m.type.id);
                     string msg = m.type.name + (boss ? " descends on " : " has appeared in ") + Where(m.type.id) + "!";
                     g.ui.Banner(boss ? "World boss" : "Rare monster", msg); g.ui.Toast(msg, 4f);
                 }
@@ -82,12 +89,14 @@ public static class AHEvents
                 if (!m.dead && !m.Chasing) m.EvHide();
             }
         }
-        // the warning before the world boss
-        var bw = BossWin();
-        if (!bw.active && bw.next < 900)
+        // the warning before a world boss (the next one anywhere)
+        foreach (var B in Bosses)
         {
+            var bw = BossWin(B);
+            if (bw.active || bw.next >= 900) continue;
             long wid = (long)Math.Round(NowS + bw.next);
-            if (p.prog.evWarn != wid) { p.prog.evWarn = wid; g.ui.Toast("The sky darkens… Voidmaw descends on Kingsvale in " + Mathf.CeilToInt((float)(bw.next / 60)) + " minutes.", 5f); }
+            if (p.prog.evWarn != wid) { p.prog.evWarn = wid; g.ui.Toast("The sky darkens… " + MobName(AHJson.S(B, "type")) + " descends on " + AHJson.S(B, "where") + " in " + Mathf.CeilToInt((float)(bw.next / 60)) + " minutes.", 5f); }
+            break;
         }
         g.ui.RefreshEvChip();
     }
@@ -98,6 +107,7 @@ public static class AHEvents
         var w = WinOf(m.type.id); if (w.id == -2 || m.add) return;
         Set(g.player.prog.evKill, m.type.id, w.id + 1);
         m.evHold = true;
+        g.quests.Event(IsWorldBoss(m.type.id) ? "wboss" : "rare", m.type.id, 1, g);   // monthly goals and the week's event count these
     }
 
     public static string ChipText(AHPlayer p, out bool hot)
@@ -105,8 +115,16 @@ public static class AHEvents
         hot = false;
         var kw = AHKQ.Window();
         if (kw.active && p.prog.kqDone != kw.id && p.level >= 5) { hot = true; return (kw.mode == "siege" ? "Siege" : "Gold Rush") + " open · " + Fmt(kw.left); }
-        var bw = BossWin();
-        if (bw.active && AHProgress.Get(p.prog.evKill, BossType) != bw.id + 1) { hot = true; return "Voidmaw · " + Fmt(bw.left); }
+        // a world boss that is out now: the one in this land first
+        string hereB = null, anyB = null; double hereL = 0, anyL = 0;
+        foreach (var B in Bosses)
+        {
+            var bw = BossWin(B); string ty = AHJson.S(B, "type");
+            if (!bw.active || AHProgress.Get(p.prog.evKill, ty) == bw.id + 1) continue;
+            if (AHJson.S(B, "area") == AHGame.AreaId) { hereB = ty; hereL = bw.left; } else if (anyB == null) { anyB = ty; anyL = bw.left; }
+        }
+        if (hereB != null) { hot = true; return MobName(hereB).Split(',')[0] + " · " + Fmt(hereL); }
+        if (anyB != null) { hot = true; return MobName(anyB).Split(',')[0] + " · " + Fmt(anyL); }
         var rs = Rares; if (rs == null) return "";
         double best = double.PositiveInfinity;
         foreach (var r in rs)

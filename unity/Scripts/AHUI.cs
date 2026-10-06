@@ -231,6 +231,7 @@ public partial class AHUI : MonoBehaviour
         BuildMenuHud();
         BuildDailyHud();
         BuildEvHud();
+        ApplySkin();
         RefreshClass();
         if (g.player != null) g.player.bag.Changed += RefreshBag;
     }
@@ -247,11 +248,11 @@ public partial class AHUI : MonoBehaviour
         for (int i = 0; i < AHClasses.All.Length; i++)
         {
             ClassDef c = AHClasses.All[i];
-            int col = i % 3, row = i / 3;
-            Vector2 pos = new Vector2((col - 1) * 300f, 80f - row * 190f);
-            var card = Img("Card_" + c.id, picker, white, new Vector2(0.5f, 0.5f), pos, new Vector2(280, 170), new Color(0.16f, 0.11f, 0.08f, 0.96f));
-            Img("Stripe", card, white, new Vector2(0.5f, 1f), new Vector2(0, -4), new Vector2(272, 8), c.color);
-            var n = Center(Label(card, "Name", c.name, 34, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(270, 50), Color.white));
+            int per = AHClasses.All.Length > 6 ? 4 : 3, col = i % per, row = i / per;
+            Vector2 pos = new Vector2((col - (per - 1) * 0.5f) * (per > 3 ? 250f : 300f), 80f - row * 190f);
+            var card = Img("Card_" + c.id, picker, white, new Vector2(0.5f, 0.5f), pos, new Vector2(per > 3 ? 236 : 280, 170), new Color(0.16f, 0.11f, 0.08f, 0.96f));
+            Img("Stripe", card, white, new Vector2(0.5f, 1f), new Vector2(0, -4), new Vector2(per > 3 ? 228 : 272, 8), c.color);
+            var n = Center(Label(card, "Name", c.name, 34, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(230, 50), Color.white));
             n.rectTransform.anchoredPosition = new Vector2(0, 30); n.fontStyle = FontStyle.Bold;
             var r = Center(Label(card, "Role", c.role, 18, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(260, 60), new Color(1f, 0.9f, 0.75f)));
             r.rectTransform.anchoredPosition = new Vector2(0, -20); r.horizontalOverflow = HorizontalWrapMode.Wrap;
@@ -453,6 +454,7 @@ public partial class AHUI : MonoBehaviour
     {
         FitSafe();
         ReadPointers();
+        TickSkin();
         float dt = Time.unscaledDeltaTime;
         var p = g.player;
         if (p != null && p.cls != null)
@@ -560,7 +562,7 @@ public partial class AHUI : MonoBehaviour
             if (spellBtns[i].rt.gameObject.activeSelf && Inside(spellBtns[i].rt, q.pos, 4f * k)) { pt.index = i; spellPressed[i] = true; return Role.Spell; }
         if (Inside(atkBtn, q.pos, 24f * k)) return Role.Attack;
         if (Inside(dodgeBtn, q.pos, 16f * k)) { dodgePressed = true; return Role.Dodge; }
-        if (q.pos.x < Screen.width * 0.42f && q.pos.y < Screen.height * 0.62f && !HasRole(Role.Joy)) return Role.Joy;
+        if (q.pos.x < Screen.width * 0.42f && q.pos.y < Screen.height * 0.5f && !HasRole(Role.Joy)) return Role.Joy;
         return Role.Cam;
     }
 

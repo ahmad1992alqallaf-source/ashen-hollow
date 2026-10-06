@@ -30,7 +30,7 @@ public static class AHFinder
     static float healT = 3f;
 
     public static int Runs { get { return PlayerPrefs.GetInt(RunsKey, 0); } }
-    public static string DefaultRole(AHPlayer p) { return p.cls.id == "warrior" ? "tank" : p.cls.id == "priest" ? "healer" : "damage"; }
+    public static string DefaultRole(AHPlayer p) { return p.cls.id == "warrior" ? "tank" : p.cls.id == "priest" || p.cls.id == "druid" || p.cls.id == "shaman" ? "healer" : "damage"; }
     public static string ChosenRole(AHPlayer p) { if (Pick == "") Pick = PlayerPrefs.GetString(RoleKey, ""); return Pick != "" ? Pick : DefaultRole(p); }
     public static void SetRole(string r) { Pick = r; PlayerPrefs.SetString(RoleKey, r); }
     public static bool In { get { return Run != "" && AHGame.AreaId == AreaOf(Run); } }
@@ -223,8 +223,8 @@ public partial class AHUI
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenRep }));
         rows.Add(s => Row(s, "Enhance gear", new Color(0.61f, 0.89f, 1f), "Raise weapons and armor to +9 · " + p.bag.Count("enh_stone") + " stones · " + p.bag.Count("lucky_charm") + " lucky charms", "",
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenEnh }));
-        rows.Add(s => Row(s, "Stats", new Color(1f, 0.8f, 0.45f), "STR, END, DEX, INT, SPR · " + AHPower.Free(p) + " points to spend", "",
-            new WkBtn { label = "Open", on = true, col = AHPower.Free(p) > 0 ? Go : Plain, act = OpenStats }));
+        rows.Add(s => Row(s, "Stats", new Color(1f, 0.8f, 0.45f), "Damage, crit, evasion, speed and their caps", "",
+            new WkBtn { label = "Open", on = true, col = Plain, act = OpenStats }));
         rows.Add(s => Row(s, "Gem sockets", new Color(0.61f, 0.89f, 1f), p.prog.gems.Count + " gems set", "",
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenGems }));
         rows.Add(s => Row(s, "Collection", new Color(0.56f, 0.85f, 1f), p.prog.cards.Count + " monster cards · licenses", "",

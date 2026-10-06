@@ -162,6 +162,19 @@ public static class AHComp
 
     // ---------- sellswords (web spawnAllies) ----------
     public static readonly List<AHAlly> Allies = new List<AHAlly>();
+    // a healer's spell or totem also mends the sellswords nearby (pct of their own max HP)
+    public static void HealParty(AHGame g, Vector3 at, float radius, float pct)
+    {
+        if (Allies == null || pct <= 0f) return;
+        foreach (var b in Allies)
+        {
+            if (b == null || b.dead || b.hp >= b.maxHp) continue;
+            if ((b.transform.position - at).magnitude > radius) continue;
+            float n = Mathf.Round(b.maxHp * pct); b.hp = Mathf.Min(b.maxHp, b.hp + n);
+            if (g.ui != null) g.ui.Float(b.transform.position + Vector3.up * 2.2f, "+" + n, new Color(0.6f, 0.9f, 0.48f));
+        }
+    }
+
     public static void SpawnAllies(AHGame g)
     {
         foreach (var a in Allies) if (a != null) Object.Destroy(a.gameObject);

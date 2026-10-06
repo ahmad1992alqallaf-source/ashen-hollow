@@ -1,7 +1,8 @@
 // Ashen Hollow: daily and weekly goals, the login calendar and Adventurer's Marks, as in the web game
 // (v66, pickDailies / dlRefresh / dailyEvent / dlReward / LOGIN_REWARDS / MARKS_SHOP), and the mystery sack (openSack).
-// Three daily goals (new each day), three weekly challenges (new each Monday), a seven-day login calendar (missing a day
-// restarts the streak), and the marks they pay spent in the Marks shop.
+// Three daily goals (new each day), three weekly challenges (new each Monday), four monthly feats (new on the 1st), the
+// week's event (a different one each week, three tiers of rewards), a seven-day login calendar (missing a day restarts
+// the streak), and the marks they pay spent in the Marks shop.
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,12 +15,41 @@ public class AHDailyState
     public string day = "", week = "", last = "", claimedDay = "";
     public int streak, marks; public bool bonus;
     public List<AHGoal> tasks = new List<AHGoal>(), wtasks = new List<AHGoal>();
+    public string month = "", evWeek = "", ev = "";
+    public List<AHGoal> mtasks = new List<AHGoal>(), etasks = new List<AHGoal>();
 }
 
 public static class AHDaily
 {
     public static string DayKey(DateTime t) { return t.ToString("yyyy-MM-dd"); }
     public static string WeekKey(DateTime t) { var d = t.Date; d = d.AddDays(-(((int)d.DayOfWeek + 6) % 7)); return DayKey(d); }
+    public static string MonthKey(DateTime t) { return t.ToString("yyyy-MM"); }
+
+    // ---------- the week's event: one of four, in turn ----------
+    public class WeekEvent { public string id, name, blurb; public Color col; public AHGoal[] tiers; }
+    public static WeekEvent EventOf(DateTime t, int L)
+    {
+        int wk = (int)((t.Date - new DateTime(2026, 1, 5)).TotalDays / 7.0); int k = ((wk % 4) + 4) % 4;
+        switch (k)
+        {
+            case 0: return new WeekEvent { id = "hunt", name = "The Great Hunt", blurb = "The guilds pay double bounties this week. Hunt anything.", col = new Color(1f, 0.45f, 0.3f), tiers = new[] { G("kill", "any", 100, "Defeat 100 monsters"), G("kill", "any", 300, "Defeat 300 monsters"), G("kill", "elite", 15, "Defeat 15 elite monsters") } };
+            case 1: return new WeekEvent { id = "harvest", name = "Gatherer’s Bounty", blurb = "Merchants are short of everything. Bring it in.", col = new Color(0.55f, 0.9f, 0.45f), tiers = new[] { G("gather", "any", 80, "Gather 80 materials"), G("gather", "any", 250, "Gather 250 materials"), G("craft", "any", 25, "Craft 25 items") } };
+            case 2: return new WeekEvent { id = "bosses", name = "Bosshunt", blurb = "The world bosses stir. Bring them down for the realm.", col = new Color(0.8f, 0.5f, 1f), tiers = new[] { G("rare", "any", 2, "Defeat 2 rare monsters"), G("wboss", "any", 1, "Defeat a world boss"), G("wboss", "any", 3, "Defeat 3 world bosses") } };
+            default: return new WeekEvent { id = "delve", name = "Delvers’ Week", blurb = "The dungeons are restless. Clear them out.", col = new Color(0.45f, 0.75f, 1f), tiers = L >= 14 ? new[] { G("dclear", "any", 1, "Clear a dungeon"), G("dclear", "any", 4, "Clear 4 dungeons"), G("kill", "elite", 10, "Defeat 10 elite monsters") } : new[] { G("kill", "any", 80, "Defeat 80 monsters"), G("skin", "any", 30, "Skin 30 monsters"), G("kill", "elite", 5, "Defeat 5 elite monsters") } };
+        }
+    }
+    public static Reward EventReward(AHPlayer p, int tier)
+    {
+        long step = AHHome.LevelStep(p); int L = p.level;
+        if (tier == 0) return new Reward { money = (long)Math.Round(200 * (1 + L / 5.0)), xp = (long)Math.Round(step * 0.3), marks = 25 };
+        if (tier == 1) return new Reward { money = (long)Math.Round(500 * (1 + L / 5.0)), xp = (long)Math.Round(step * 0.6), marks = 60, items = { new KeyValuePair<string, int>("mystery_sack", 2) } };
+        return new Reward { money = (long)Math.Round(900 * (1 + L / 5.0)), xp = step, marks = 120, items = { new KeyValuePair<string, int>("enh_stone", 3), new KeyValuePair<string, int>("ruby", 1) } };
+    }
+    public static Reward MonthReward(AHPlayer p)
+    {
+        long step = AHHome.LevelStep(p);
+        return new Reward { money = (long)Math.Round(1500 * (1 + p.level / 4.0)), xp = (long)Math.Round(step * 1.5), marks = 200, items = { new KeyValuePair<string, int>("diamond", 1), new KeyValuePair<string, int>("enh_stone", 2) } };
+    }
     static readonly string[] Meats = { "raw_beef", "raw_pork", "raw_mutton", "raw_chicken", "raw_duck", "raw_meat" };
     static string Kind(string id)
     {
@@ -65,6 +95,17 @@ public static class AHDaily
         var S = p.prog.daily; var now = DateTime.Now; string d = DayKey(now), w = WeekKey(now);
         if (S.day != d) { S.day = d; S.tasks = Pick(g, p.level, 3, false); S.bonus = false; g.MarkDirty(); }
         if (S.week != w) { S.week = w; S.wtasks = Pick(g, p.level, 3, true); g.MarkDirty(); }
+        string mo = MonthKey(now);
+        if (S.month != mo || S.mtasks == null || S.mtasks.Count == 0)
+        {
+            S.month = mo; int L = p.level;
+            S.mtasks = new List<AHGoal> { G("kill", "any", 1500, "Defeat 1,500 monsters"), G("gather", "any", 800, "Gather 800 materials"), G("wboss", "any", 4, "Defeat 4 world bosses"), L >= 14 ? G("dclear", "any", 12, "Clear 12 dungeons") : G("kill", "elite", 25, "Defeat 25 elite monsters") };
+            g.MarkDirty();
+        }
+        if (S.evWeek != w || S.etasks == null || S.etasks.Count == 0)
+        {
+            var E = EventOf(now, p.level); S.evWeek = w; S.ev = E.id; S.etasks = new List<AHGoal>(E.tiers); g.MarkDirty();
+        }
         if (S.last != d) { S.streak = S.last == DayKey(now.AddDays(-1)) ? S.streak + 1 : 1; S.last = d; g.MarkDirty(); }
     }
 
@@ -74,7 +115,7 @@ public static class AHDaily
         var p = g.player; if (p == null || id == null) return;
         AHFest.Event(g, t, n);
         var S = p.prog.daily;
-        var all = new List<AHGoal>(S.tasks); all.AddRange(S.wtasks);
+        var all = new List<AHGoal>(S.tasks); all.AddRange(S.wtasks); if (S.mtasks != null) all.AddRange(S.mtasks); if (S.etasks != null) all.AddRange(S.etasks);
         foreach (var q in all)
         {
             if (q.t != t || q.claimed || q.prog >= q.n) continue;
@@ -134,6 +175,8 @@ public static class AHDaily
         var S = p.prog.daily; int n = S.claimedDay != S.day ? 1 : 0;
         foreach (var q in S.tasks) if (q.prog >= q.n && !q.claimed) n++;
         foreach (var q in S.wtasks) if (q.prog >= q.n && !q.claimed) n++;
+        if (S.mtasks != null) foreach (var q in S.mtasks) if (q.prog >= q.n && !q.claimed) n++;
+        if (S.etasks != null) foreach (var q in S.etasks) if (q.prog >= q.n && !q.claimed) n++;
         return n;
     }
 
@@ -187,7 +230,7 @@ public partial class AHUI
     void RenderDaily(AHPlayer p)
     {
         var S = p.prog.daily; int di = (Mathf.Max(1, S.streak) - 1) % 7; bool canLogin = S.claimedDay != S.day;
-        wkTitle.text = "Daily goals";
+        wkTitle.text = "Goals & events";
         var nd = DateTime.Today.AddDays(1) - DateTime.Now;
         wkHint.text = "Adventurer's Marks: " + S.marks + " · login streak: day " + S.streak + " · new goals in " + (int)nd.TotalHours + "h " + nd.Minutes + "m. Missing a day restarts the streak.";
         var rows = new List<Action<int>>();
@@ -203,10 +246,31 @@ public partial class AHUI
                     qq.claimed ? null : new WkBtn { label = "Claim", on = qq.prog >= qq.n, col = Go, act = () => { if (qq.claimed || qq.prog < qq.n) return; qq.claimed = true; AHDaily.Grant(g, rw); RenderWork(); RefreshDailyChip(); } }));
             }
         };
+        // the week's event
+        {
+            var E = AHDaily.EventOf(DateTime.Now, p.level); var ne = DateTime.Today.AddDays(7 - (((int)DateTime.Today.DayOfWeek + 6) % 7)) - DateTime.Now;
+            rows.Add(s => Row(s, "Event: " + E.name, E.col, E.blurb, "Ends in " + (int)ne.TotalDays + "d " + ne.Hours + "h · a new event every Monday"));
+            for (int ti = 0; ti < S.etasks.Count; ti++)
+            {
+                var qq = S.etasks[ti]; int tier = ti; var rw = AHDaily.EventReward(p, tier);
+                rows.Add(s => Row(s, "  Tier " + (tier + 1) + ": " + qq.label + (qq.claimed ? "  <color=#9be37a>done</color>" : ""), E.col, qq.prog + " / " + qq.n + " · " + AHDaily.Text(rw), "",
+                    qq.claimed ? null : new WkBtn { label = "Claim", on = qq.prog >= qq.n, col = Go, act = () => { if (qq.claimed || qq.prog < qq.n) return; qq.claimed = true; AHDaily.Grant(g, rw); Banner(E.name, "Tier " + (tier + 1) + " reward"); RenderWork(); RefreshDailyChip(); } }));
+            }
+        }
         list(S.tasks, false);
         rows.Add(s => Row(s, "Finish all three", Color.white, "Bonus: 20 marks and a mystery sack", "",
             S.bonus ? null : new WkBtn { label = "Claim bonus", on = S.tasks.TrueForAll(q => q.claimed), col = Go, act = () => { if (S.bonus || !S.tasks.TrueForAll(q => q.claimed)) return; S.bonus = true; AHDaily.Grant(g, new AHDaily.Reward { marks = 20, items = { new KeyValuePair<string, int>("mystery_sack", 1) } }); RenderWork(); } }));
         list(S.wtasks, true);
+        // this month's feats
+        {
+            var nm = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(1) - DateTime.Now; var mr = AHDaily.MonthReward(p);
+            foreach (var q in S.mtasks)
+            {
+                var qq = q;
+                rows.Add(s => Row(s, "Monthly: " + qq.label + (qq.claimed ? "  <color=#9be37a>done</color>" : ""), new Color(1f, 0.75f, 0.3f), qq.prog + " / " + qq.n + " · " + AHDaily.Text(mr), "New feats in " + (int)nm.TotalDays + " days",
+                    qq.claimed ? null : new WkBtn { label = "Claim", on = qq.prog >= qq.n, col = Go, act = () => { if (qq.claimed || qq.prog < qq.n) return; qq.claimed = true; AHDaily.Grant(g, mr); Banner("Monthly feat", qq.label); RenderWork(); RefreshDailyChip(); } }));
+            }
+        }
         foreach (var o in AHDaily.Shop)
         {
             string id = (string)o[0]; int n = (int)o[1], cost = (int)o[2];

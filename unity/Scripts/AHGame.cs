@@ -151,6 +151,7 @@ public class AHGame : MonoBehaviour
         AHHerbs.Setup(this);           // each herb a little plant of its own kind
         AHStations.Setup(this, world);  // campfires, furnaces and anvils rebuilt
         AHMountains.Setup(this, world); // craggy rock mountains instead of the plain cones
+        AHRange.Build(this, world);     // great mountain ranges on the horizon, past the border crags
         AHTents.Setup(this, world);     // striped pavilions and ridge tents instead of the pyramids
         AHScenery.Setup(this, world);   // wooden footbridges and broken stone columns
 
@@ -737,7 +738,9 @@ public class AHGame : MonoBehaviour
         }
         cam.fieldOfView = 58f;
         cam.nearClipPlane = 0.1f;
-        cam.farClipPlane = 195f;
+        // the world draws to 195 m (inside the fog); only the great mountain ranges (AHRange, layer 30) reach 420 m
+        cam.farClipPlane = 420f;
+        { var lc = new float[32]; for (int i = 0; i < 32; i++) lc[i] = 195f; lc[AHRange.Layer] = 420f; cam.layerCullDistances = lc; }
         cam.clearFlags = CameraClearFlags.Skybox;
         // the water shows the ground through it: keep the scene's colour and depth for it
         var cd = cam.GetComponent<UniversalAdditionalCameraData>();

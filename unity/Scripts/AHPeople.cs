@@ -51,6 +51,7 @@ public static class AHPeople
             case "rogue": model = "Rogue_t"; main = "Knife"; off = "Knife_Offhand"; return;
             case "ranger": model = "Rogue_t"; main = "2H_Crossbow"; off = null; return;
             case "druid": model = "Mage_t"; main = "2H_Staff"; off = null; return;
+            case "shaman": model = "Barbarian_t"; main = "1H_Axe"; off = null; return;
         }
         model = null; main = null; off = null;
     }
@@ -59,7 +60,7 @@ public static class AHPeople
     {
         anim = null;
         bool fem = look != null && look.sex == "f";
-        string body = fem ? "qFemalePeasant" : (cls.id == "warrior" || cls.id == "rogue" || cls.id == "ranger") ? "qMaleRanger" : "qMalePeasant";
+        string body = fem ? "qFemalePeasant" : (cls.id == "warrior" || cls.id == "rogue" || cls.id == "ranger" || cls.id == "shaman") ? "qMaleRanger" : "qMalePeasant";
         var parts = new List<string> { fem ? "qHead_Female" : "qHead_Male" };
         string hp = HairPart(look.hair); if (hp != null) parts.Add(hp);
         if (!fem && look.beard != null && look.beard != "none") parts.Add("qHair_Beard");
@@ -152,6 +153,7 @@ public static class AHPeople
         if (n.Contains("Shield")) return 0.62f;
         if (n.Contains("Spellbook")) return 0.32f;
         if (n.Contains("Knife") || n.Contains("Wand")) return 0.45f;
+        if (n.Contains("1H_Axe")) return 0.68f;   // the shaman's hand axe: the KayKit head is big
         if (n.Contains("Sword") || n.Contains("Axe") || n.Contains("Mace")) return 0.95f;
         return 0f;
     }

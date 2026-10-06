@@ -477,6 +477,32 @@ Played on a real Android phone (an Honor foldable). Fixed from that test:
 - Every monster without a death animation now falls over (on its side, onto its back, or out of the air) with a
   little bounce, instead of snapping.
 
+## Classes, bosses, goals and the new look (October)
+
+- **Talents replace stat points.** Levels no longer give STR/END/DEX/INT/SPR points; talents give two points every three
+  levels instead, and every class has two more Tier I talents (Vitality, Fortitude). Stats come from gear, gems, sets
+  and talents, each with a cap (damage +200%, crit 50%, evasion 40%, attack speed +75%, cooldowns 40%, healing +150%,
+  HP and mana +100%). The Stats page shows each against its cap.
+- **World bosses** (monsters.json WORLD_BOSSES): nine, one for every two lands (Old Tusk, Ursagrim, the Drowned King,
+  Voidmaw, Skaldrun, Sekh-Ka, Ignirax, Pyraxis, Vorrak), each out four times a day for 45 minutes, 40 minutes apart.
+  **Rares** now come 8 to 10 times a day. New Deeds for each boss, all bosses, and ten rares.
+- **Rogue paths:** Assassin is the melee path (crits, and attacks that stun); Shadowshot is the ranged path (poisoned
+  throwing knives, fear, more damage over time; Terror Knife; the Nightmare form). Monsters can now be feared (they flee
+  and cannot attack; bosses shake it off sooner).
+- **Healers:** druid heals are a true share of max HP (talents raise the share; no crits); priest heals grow with how
+  full your mana is and leave a holy shield; healing spells also mend sellswords nearby.
+- **New class: Shaman** (AHTotem): Healing, War, Searing, Windfury, Storm, Spirit and Magma totems, Chain Heal, Lightning
+  Bolt; defends with agility (evasion), not shields. Two paths (Earthcaller, Stormcaller) with two forms each.
+- **Goals and events:** monthly feats (new on the 1st) and a weekly event (Great Hunt, Gatherer's Bounty, Bosshunt,
+  Delvers' Week) with three reward tiers, next to the daily and weekly goals.
+- **AUTO** on the quest tracker plays the current story step in the land you are in (AHAuto).
+- **New HUD look** (AHUISkin): gold-ringed lacquer buttons, framed portrait, a big round attack seal, gold-edged
+  windows and tags, the quest tracker on the left.
+- **Mountain ranges** (AHRange, Shaders/AHRange.shader): two ranges of forested, rocky, snowy mountains past every
+  land's border, drawn beyond the fog with their own haze.
+- **Gear textures** (AHGearTex): woven cloth, grained leather, brushed metal, made in code. Wizard hats for mages,
+  fitted hoods, full robes, shaped boots, dragon wings (bone fingers and a membrane) and larger feathered wings.
+
 ## Credits
 - Heroes (Knight, Mage, Rogue, Barbarian): KayKit Adventurers by Kay Lousberg, CC0.
 - City buildings, walls, towers and props: KayKit Medieval Hexagon Pack by Kay Lousberg (www.kaylousberg.com), CC0.
