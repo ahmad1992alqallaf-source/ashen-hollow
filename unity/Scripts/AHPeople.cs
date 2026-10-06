@@ -106,6 +106,9 @@ public static class AHPeople
         // the weapon from the KayKit set, held in the right hand (and an off-hand item in the left)
         string wm, main, off; WeaponFor(cls.id, out wm, out main, out off);
         if (wm != null) Arm(rig, wm, main, off, g);
+        // a VRoid body, if one has been made for this hero (AHVRoid)
+        var vm = AHVRoid.ModelFor(cls, look);
+        if (vm != null) AHVRoid.Link(rig, holder, body, vm);
         return rig;
     }
 

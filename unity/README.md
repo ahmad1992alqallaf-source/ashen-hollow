@@ -525,6 +525,14 @@ Played on a real Android phone (an Honor foldable). Fixed from that test:
 - **Pyromancer** gets the second form it was missing: **Phoenix** (ultimate Phoenix Burst; once every 2 minutes a
   killing blow leaves you at 30% HP). That "cheat death" gift now works for every form that has it.
 - **Boots** are tall, covering the shin, and bend with the knee.
+- **Painted item icons.** Items now use painted icons from the CraftPix "6200 Fantasy RPG Icons Pack" (bought on the
+  Asset Store, so the pictures stay in the Unity project, not in this repo). `tools/icons/mapping_art.py` says which
+  painting each item uses; `tools/icons/build.py` packs them, adding plates, Fine/Masterwork stars, the crop on seed
+  sacks and the land's mark on treasure maps. Items without a painting yet (cards, reins) keep the game-icons pictures.
+- **VRoid heroes.** Heroes made in VRoid Studio (exported as VRM 0.0, imported by UniVRM, collected into
+  `Resources/AH/VRoid` with *Ashen Hollow → VRoid: Collect And Report*) replace the old body. The old rig keeps
+  playing every animation and `AHVRoid` copies its pose onto the VRoid body through Unity's humanoid system each
+  frame; gear on the old bones moves onto the matching VRoid bones. `hero_m` is the first (a dark-haired rogue look).
 
 ## Credits
 - Heroes (Knight, Mage, Rogue, Barbarian): KayKit Adventurers by Kay Lousberg, CC0.

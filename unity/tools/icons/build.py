@@ -1,6 +1,4 @@
 # builds Resources/AH/Icons/item_icons_id.png (+ _index.json): one full-colour picture per item id
-# usage: git clone https://github.com/game-icons/icons /tmp/gi/icons; (cd /tmp/gi/icons && find . -name '*.svg' | sed 's#^./##' > ../all.txt)
-#        python3 build.py <Assets/AshenHollow/Resources/AH/Icons/item_icons_id>   (items.json path: ITEMS env var)
 import json, sys, os, numpy as np
 from PIL import Image, ImageFilter, ImageDraw
 sys.path.insert(0, os.path.dirname(__file__))
@@ -8,7 +6,7 @@ from svgr import mask as svgmask
 from mapping import M
 
 OUT = sys.argv[1]
-ITEMS = json.load(open(os.environ.get('ITEMS', os.path.join(os.path.dirname(__file__), '../../Resources/AH/Data/items.json'))))['ITEMS']
+ITEMS = json.load(open('/mnt/user-data/outputs/AshenHollow/Resources/AH/Data/items.json'))['ITEMS']
 paths = {}
 for l in open('/tmp/gi/all.txt'):
     l = l.strip(); n = l.split('/')[-1][:-4]
@@ -94,9 +92,54 @@ def star(size, col):
     d.polygon(pts(size * 0.4, size * 0.17), fill=col)
     return np.asarray(im).astype(np.float32) / 255
 
+ART_ROOT = os.environ.get('ART', '/mnt/user-data/uploads/AshenHollow/Assets/Fantasy RPG Icons Pack/Asset')
+try:
+    from mapping_art import A, F
+except Exception: A, F = {}, {}
+_art = {}
+ART_INDEX = json.load(open(os.environ.get('ART_INDEX', '/tmp/claude-0/cs/index.json')))
+def art(key, n, size):
+    """a painted icon from the icon pack, fitted into size x size, as RGBA float"""
+    k = (key, n, size)
+    if k not in _art:
+        folder = F[key]; ix = ART_INDEX[folder]
+        im = Image.open(os.path.join(ART_ROOT, folder, ix['inner'], ix['files'][n - 1])).convert('RGBA')
+        bb = im.getbbox() or (0, 0, im.width, im.height); im = im.crop(bb)
+        sc = size / max(im.width, im.height); im = im.resize((max(1, int(im.width * sc)), max(1, int(im.height * sc))), Image.LANCZOS)
+        c = Image.new('RGBA', (size, size), (0, 0, 0, 0)); c.alpha_composite(im, ((size - im.width) // 2, (size - im.height) // 2))
+        _art[k] = np.asarray(c).astype(np.float32) / 255
+    return _art[k].copy()
+
+def badge_layer(can, Z, spec):
+    bs = int(Z * 0.46); bc = hexc(spec.get('bc', '#f0e6d0'))
+    disc = Image.new('RGBA', (bs, bs), (0, 0, 0, 0)); dd = ImageDraw.Draw(disc)
+    dd.ellipse([0, 0, bs - 1, bs - 1], fill=(26, 18, 12, 255)); dd.ellipse([4, 4, bs - 5, bs - 5], fill=(70, 52, 36, 255))
+    over(can, np.asarray(disc).astype(np.float32) / 255, Z - bs - 2, Z - bs - 2)
+    b = spec['badge']
+    if isinstance(b, tuple) and b[0] == 'ART': bg = art(b[1], b[2], int(bs * 0.8))
+    else: bg = paint(glyph(b, int(bs * 0.78)), bc, ow=3)
+    o = (bs - bg.shape[0]) // 2
+    over(can, bg, Z - bs - 2 + o, Z - bs - 2 + o)
+
+def make_art(iid, base, spec):
+    if isinstance(spec, tuple): spec = {'a': spec}
+    Z = S * R; can = np.zeros((Z, Z, 4), np.float32)
+    under = spec.get('under')
+    if under: over(can, shape_layer(Z, under, np.array([0.8, 0.75, 0.7])))
+    gs = int(Z * (0.74 if under == 'plate' else 0.94)); gy = int(Z * (0.04 if under == 'plate' else 0.03))
+    a = art(spec['a'][0], spec['a'][1], gs)
+    if 'tint' in spec: a[..., :3] *= hexc(spec['tint'])[None, None, :] * 1.15
+    over(can, np.clip(a, 0, 1), (Z - gs) // 2, gy)
+    if 'badge' in spec: badge_layer(can, Z, spec)
+    can = shadow(can, 3, 5, 4, 0.4)
+    return can
+
 def make(iid):
     v = ITEMS[iid]
     base = iid[:-5] if iid.endswith('_fine') else iid[:-7] if iid.endswith('_master') else iid
+    if base in A:
+        Z = S * R; can = make_art(iid, base, A[base])
+        return finish(iid, can, Z)
     spec = M[base]; spec = {'g': spec} if isinstance(spec, str) else spec
     col = hexc(spec.get('c', ITEMS[base].get('c', v.get('c', '#c0a080'))))
     Z = S * R
@@ -121,6 +164,9 @@ def make(iid):
         bg = paint(glyph(spec['badge'], int(bs * 0.78)), bc, ow=3)
         over(can, bg, Z - bs - 2 + int(bs * 0.11), Z - bs - 2 + int(bs * 0.11))
     can = shadow(can, 4, 6, 5, 0.5)
+    return finish(iid, can, Z)
+
+def finish(iid, can, Z):
     if iid.endswith('_fine') or iid.endswith('_master'):
         st = star(int(Z * 0.36), (255, 214, 74, 255) if iid.endswith('_master') else (214, 226, 238, 255))
         over(can, st, Z - int(Z * 0.36) - 2, 2)
