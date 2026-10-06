@@ -443,6 +443,27 @@ A tester played through the game before the Android build. What was fixed:
   build (about 60 MB) and keeps the shader variants the game needs. The crocodile, ostrich and ram use about a third
   fewer triangles, and dungeons light only every other torch on a phone.
 
+## Phone test round (October)
+
+Played on a real Android phone (an Honor foldable). Fixed from that test:
+
+- The big unfolded screen no longer looks zoomed in, and the HUD keeps its layout on near-square screens.
+- Cooler and lighter on the battery: 30 frames a second and a slightly lower render size on very sharp screens.
+- The look editor scrolls, the outfit colour shows (and dyes the cloth and leather of worn gear), and the hero
+  breathes instead of standing in a T-pose.
+- The bag shows each item's stats, compares gear with what you wear, and has Equip / Eat / Use and Drop buttons.
+- Weapons sit properly in the hand at their true size.
+- Spells: cone spells turn you to the enemy, six shield spells that gave nothing now work, multi-shots hit your
+  target first, buffs no longer cancel each other, Execute and Assassinate finish wounded enemies, buttons spaced out.
+- Trees, wells, stalls and townsfolk are solid, and every tree can be chopped.
+- Captain Mara (and 15 more pieces) no longer overlaps an old box-built figure from the web map.
+- Beasts fall over when they die; toads hop like toads.
+- You face into a land when you arrive; the fog sits further away.
+- Hollow Meadow's square has a ring of buildings: inn, guild hall, smithy, bank and auction towers, barracks,
+  lumber mill and cottages.
+- Phone builds keep the physics module (it was stripped, which broke a few things on phones only).
+- Ashen Hollow > Build And Run On Phone installs and starts the game on a phone plugged in with USB debugging.
+
 ## Credits
 - Heroes (Knight, Mage, Rogue, Barbarian): KayKit Adventurers by Kay Lousberg, CC0.
 - City buildings, walls, towers and props: KayKit Medieval Hexagon Pack by Kay Lousberg (www.kaylousberg.com), CC0.

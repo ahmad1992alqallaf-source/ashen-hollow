@@ -9,6 +9,7 @@ using UnityEngine;
 
 public static class AHCity
 {
+    public static bool ColourOf(string area, out string col) { return Colour.TryGetValue(area, out col); }
     static readonly Dictionary<string, string> Colour = new Dictionary<string, string>
     {
         { "city", "blue" }, { "hc_city", "blue" }, { "mw_city", "green" }, { "ss_city", "yellow" }, { "ch_city", "red" }, { "co_city", "green" },

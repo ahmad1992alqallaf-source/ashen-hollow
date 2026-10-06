@@ -62,6 +62,7 @@ public static class AHForest
             Color mc = n[k] > 0 ? med[k] / n[k] : c; float lum = (c.r + c.g + c.b) / Mathf.Max(0.001f, mc.r + mc.g + mc.b);
             int shade = lum < 0.93f ? 0 : lum > 1.07f ? 2 : 1;
             var pf = prefabs[k * 3 + rnd.Next(3)];
+            if (AHVillage.InLots(g.W(x, z))) continue;   // a village building stands here now
             var go = Object.Instantiate(pf, root, false).transform; go.name = k == 0 ? "Tree" : "Pine";
             foreach (var col in go.GetComponentsInChildren<Collider>(true)) Object.Destroy(col);
             Vector3 p = g.W(x, z); p.y += y0;
@@ -82,7 +83,7 @@ public static class AHForest
             {
                 var src = Trees[i]; float ang = (float)rnd.NextDouble() * 6.283f, dist = 2.6f + (float)rnd.NextDouble() * 2.6f * AHGame.Spread;
                 Vector3 p = src.pos + new Vector3(Mathf.Cos(ang), 0f, Mathf.Sin(ang)) * dist;
-                if (!g.InArea(p) || g.Blocked(p, 1.2f)) continue;
+                if (!g.InArea(p) || g.Blocked(p, 1.2f) || AHVillage.InLots(p)) continue;
                 bool near = false; foreach (var t2 in Trees) { Vector3 dd = t2.pos - p; dd.y = 0; if (dd.sqrMagnitude < 4f) { near = true; break; } } if (near) continue;
                 var go = Object.Instantiate(src.go.gameObject, root, false).transform; go.name = src.go.name;
                 go.position = p; go.rotation = Quaternion.Euler(0f, (float)rnd.NextDouble() * 360f, 0f); go.localScale = src.go.localScale * (0.8f + (float)rnd.NextDouble() * 0.3f);

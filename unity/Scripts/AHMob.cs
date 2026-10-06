@@ -112,6 +112,7 @@ public class AHMob : MonoBehaviour
     object skin;
     float moveRate = 1f, wakeT, idleRate = 1f;
     bool hop, flip; Vector3 baseScale; float yawOff, floatUp;
+    float hopT; const float HopCycle = 0.95f, HopAir = 0.55f;   // a toad's hop: 55% in the air, the rest sitting
 
     // real voices (monsters.json BEASTS "sounds": {"aggro": [...], "attack": [...], "hurt": [...], "death": [...]},
     // clips in Resources/AH/Audio): a roar when it spots you, growls as it attacks, yelps when hit, a death cry
@@ -472,9 +473,17 @@ public class AHMob : MonoBehaviour
         if (slowT > 0f) spd *= 0.5f;
 
         bool moving = spd > 0f;
-        if (moving)
+        // toads cover ground only while in the air: leap, land, a short pause, leap again
+        float stepK = 1f;
+        if (hop)
         {
-            transform.position = g.Resolve(pos + dir * spd * dt, type.radius * 0.8f);
+            if (moving || hopT > 0f) hopT += dt / HopCycle; 
+            if (hopT >= 1f) hopT = moving ? hopT - 1f : 0f;
+            stepK = hopT < HopAir ? 1f / HopAir : 0f;
+        }
+        if (moving && stepK > 0f)
+        {
+            transform.position = g.Resolve(pos + dir * spd * stepK * dt, type.radius * 0.8f);
             if (state != State.Chase) transform.rotation = Quaternion.Slerp(transform.rotation, g.Face(dir), 1f - Mathf.Exp(-dt * 8f));
         }
 
@@ -503,14 +512,20 @@ public class AHMob : MonoBehaviour
         }
         else if (hop)
         {
-            // toads: hop along in arcs, nose up in the air, squashing as they land; at rest the throat and body breathe
-            if (moving) phase += dt * 11f; else phase = 0f;
-            float arc = moving ? Mathf.Abs(Mathf.Sin(phase * 0.5f)) : 0f;
+            // toads: crouch, spring up nose-first, stretch in the air, tip forward and squash as they land, then sit and
+            // breathe until the next hop
+            float air = hopT < HopAir ? hopT / HopAir : -1f;                 // 0..1 while airborne
+            float rest = air < 0f ? (hopT - HopAir) / (1f - HopAir) : 0f;    // 0..1 while sitting between hops
+            float arc = air >= 0f ? Mathf.Sin(air * Mathf.PI) : 0f;
+            float pitch = air >= 0f ? Mathf.Lerp(-22f, 14f, air) : 0f;      // nose up at take-off, down for the landing
+            float land = air < 0f && hopT > 0f ? Mathf.Clamp01(1f - rest * 3f) : 0f;      // squash just after landing
+            float crouch = air < 0f && hopT > 0f ? Mathf.Clamp01((rest - 0.7f) / 0.3f) : 0f;   // gather for the next spring
             float lunge = windup > 0f ? height * 0.35f : 0f;
-            model.transform.localPosition = baseLocal + Vector3.up * arc * height * 0.45f + model.transform.localRotation * Vector3.forward * lunge * 0.5f;
-            model.transform.localRotation = Quaternion.Euler(moving ? -arc * 14f : windup > 0f ? -10f : 0f, g.ModelYaw, 0f);
-            float sq = moving ? (1f - arc) * (1f - arc) * 0.16f : 0f, br = moving ? 0f : Mathf.Sin(Time.time * 2.6f + home.x * 1.7f + home.z) * 0.03f;
-            model.transform.localScale = Vector3.Scale(baseScale, new Vector3(1f + sq * 0.5f - br * 0.4f, 1f - sq + br, 1f + sq * 0.5f - br * 0.4f));
+            model.transform.localPosition = baseLocal + Vector3.up * arc * height * 0.55f + model.transform.localRotation * Vector3.forward * lunge * 0.5f;
+            model.transform.localRotation = Quaternion.Euler(windup > 0f ? -10f : pitch, g.ModelYaw, 0f);
+            float br = hopT <= 0f ? Mathf.Sin(Time.time * 2.6f + home.x * 1.7f + home.z) * 0.03f : 0f;
+            float sq = land * 0.2f + crouch * 0.12f, st = air >= 0f ? arc * 0.12f : 0f;   // squash on the ground, stretch in flight
+            model.transform.localScale = Vector3.Scale(baseScale, new Vector3(1f + sq * 0.5f - st * 0.4f - br * 0.4f, 1f - sq + st + br, 1f + sq * 0.3f + st * 0.5f - br * 0.4f));
         }
         else
         {

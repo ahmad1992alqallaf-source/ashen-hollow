@@ -145,6 +145,7 @@ public class AHGame : MonoBehaviour
         LoadTiles();
         // trees, rocks, herbs, fishing spots and the town's work stations
         AHGather.Build(this, world);
+        AHVillage.Setup(this, world);  // a ring of buildings around the starter village's square (before the trees)
         AHForest.Setup(this, world);   // the new trees on the same spots
         AHOre.Setup(this);             // boulders with ore crystals for the mining rocks
         AHHerbs.Setup(this);           // each herb a little plant of its own kind
