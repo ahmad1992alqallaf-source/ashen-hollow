@@ -810,13 +810,16 @@ public partial class AHUI
 }
 
 // keeps a cape on the hero's back: at the chest bone, upright, swinging back with speed and a little sway
+[DefaultExecutionOrder(20010)]   // after the emotes bend the bones and the VRoid body copies them
 public class AHCapeSwing : MonoBehaviour
 {
-    Transform who, bone; Func<bool> moving; float amt, tilt, ph;
+    Transform who, bone; Func<bool> moving; float amt, tilt, ph; AHVRoidLink link; bool looked;
     public void Setup(Transform w, Func<bool> mv, Transform b, float k) { who = w; moving = mv; bone = b; amt = k; }
     void LateUpdate()
     {
         if (who == null || bone == null) return;
+        // on a VRoid hero the cape hangs from the VRoid body's chest (slimmer and shorter than the old one)
+        if (!looked || (link == null && Time.frameCount % 30 == 0)) { looked = true; link = GetComponentInParent<AHVRoidLink>(); if (link != null) { var vb = link.Map(bone); if (vb != null) bone = vb; } }
         bool m = moving != null && moving();
         float want = m ? 13f : 0f; tilt = Mathf.Lerp(tilt, want, Time.deltaTime * 4f); ph += Time.deltaTime * (m ? 8f : 1.6f);
         float sway = Mathf.Sin(ph) * (m ? 2.5f : 1.2f);

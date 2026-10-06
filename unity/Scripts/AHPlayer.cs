@@ -105,6 +105,7 @@ public class AHPlayer : MonoBehaviour
 
     void LateUpdate()
     {
+        ToolTick();
         // weapon grip: each kind of weapon in its own way (AHPeople.Grip); with 'tuneGrip' ticked on the game object
         // the Inspector's weaponRot / weaponOffset are used instead, for trying out a new grip live
         if (g.tuneGrip)
@@ -539,11 +540,40 @@ public class AHPlayer : MonoBehaviour
         }
         if (anim != null && mounted) { if (!anim.Play("Ride", true)) anim.Play("Idle", true); }
         if (poseT > 0f) { poseT -= dt; if (moving && !poseHard && dodgeT <= 0f) poseT = 0f; }
+        if (emote != null)
+        {
+            var ed = AHEmote.Find(emote); emoteT -= dt;
+            if (ed == null || moving || atkT > 0f || dodgeT > 0f || whirlT > 0f || Busy || mounted || dead || (!ed.loop && emoteT <= 0f)) StopEmote();
+        }
         if (anim != null && mounted) { }
-        else if (anim != null && dodgeT <= 0f && atkT <= 0f && whirlT <= 0f && poseT <= 0f && !Busy) anim.Play(moving ? "Running_A" : "Idle", true);
+        else if (anim != null && dodgeT <= 0f && atkT <= 0f && whirlT <= 0f && poseT <= 0f && !Busy && emote == null) anim.Play(moving ? "Running_A" : "Idle", true);
     }
 
     float dashMul = 2.2f;
+
+    // ---------- emotes ----------
+    [System.NonSerialized] public string emote; float emoteT; AHEmotePose emotePose;
+    public void Emote(string id)
+    {
+        var e = AHEmote.Find(id); if (e == null || dead) return;
+        if (mounted) { if (g.ui != null) g.ui.Toast("Get off your mount first."); return; }
+        if (Busy) return;
+        StopEmote();
+        emote = id; emoteT = e.time;
+        if (anim != null && !anim.Play(e.clip, e.loop, e.speed, true)) anim.Play("Idle", true);
+        if (e.proc != null && model != null)
+        {
+            if (emotePose == null) emotePose = gameObject.AddComponent<AHEmotePose>();
+            emotePose.Begin(model, e.proc);
+        }
+        if (g.ui != null) g.ui.Float(transform.position + Vector3.up * 2.3f, (string.IsNullOrEmpty(heroName) ? "You" : heroName) + " " + e.verb, e.col);
+    }
+    public void StopEmote()
+    {
+        if (emote == null) return;
+        emote = null;
+        if (emotePose != null) emotePose.End();
+    }
 
     // cast animations: the clip (Quaternius UAL, qAnims / qAnims2), its speed, how long it roots you (atkT) and how long
     // it plays before walking or idling takes over again (moving cuts it short unless it is a roll)
@@ -1124,11 +1154,52 @@ public class AHPlayer : MonoBehaviour
     public string ActionName { get { return actionMob != null ? "Skinning" : AHGather.Busy ? (AHGather.actSpot.kind == "light" ? "Light fire" : AHGather.actRecipe != null ? AHItems.Get(AHGather.actRecipe.outId).name : AHGather.Label(AHGather.actSpot)) : null; } }
 
     // turn to the work and swing the tools
-    public void BeginWork(Vector3 at, string clip = "Interact")
+    public void BeginWork(Vector3 at, string clip = "Interact", string tool = null)
     {
         Vector3 d = at - transform.position; d.y = 0;
         if (d.sqrMagnitude > 1e-4f) transform.rotation = g.Face(d);
+        StopEmote();
         if (anim != null && !anim.Play(clip, true, 1f, true)) anim.Play("Interact", true, 1f, true);
+        ShowTool(tool, at);
+    }
+
+    // the work tool in the hand (the weapons are put away meanwhile); the fishing line runs to the water
+    GameObject toolGo; string toolKind; LineRenderer fishLine; Vector3 fishAt;
+    void ShowTool(string kind, Vector3 at)
+    {
+        if (kind == toolKind && toolGo != null) { fishAt = at; return; }
+        HideTool();
+        if (kind == null || model == null || !g.lookHero) return;
+        toolGo = AHPeople.Tool(model, kind); toolKind = kind; fishAt = at;
+        if (toolGo == null) { toolKind = null; return; }
+        if (weaponR != null) weaponR.gameObject.SetActive(false);
+        if (weaponL != null) weaponL.gameObject.SetActive(false);
+        if (kind == "rod")
+        {
+            toolGo.AddComponent<AHRodAim>().who = transform;
+            var lg = new GameObject("FishLine"); fishLine = lg.AddComponent<LineRenderer>();
+            fishLine.positionCount = 2; fishLine.widthMultiplier = 0.01f; fishLine.useWorldSpace = true;
+            fishLine.material = new Material(Shader.Find("Universal Render Pipeline/Unlit")); fishLine.material.color = new Color(0.92f, 0.92f, 0.88f, 1f);
+            fishLine.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        }
+    }
+    void HideTool()
+    {
+        if (toolGo != null) Destroy(toolGo);
+        if (fishLine != null) Destroy(fishLine.gameObject);
+        toolGo = null; toolKind = null; fishLine = null;
+        if (weaponR != null) weaponR.gameObject.SetActive(true);
+        if (weaponL != null) weaponL.gameObject.SetActive(true);
+    }
+    void ToolTick()
+    {
+        if (toolKind != null && !AHGather.Busy) HideTool();
+        if (fishLine != null && toolGo != null)
+        {
+            Vector3 tip = toolGo.transform.TransformPoint(new Vector3(0, 1.62f, 0));
+            Vector3 bob = fishAt; bob.y = transform.position.y - 0.05f;
+            fishLine.SetPosition(0, tip); fishLine.SetPosition(1, bob + Vector3.up * Mathf.Sin(Time.time * 2.2f) * 0.03f);
+        }
     }
 
     public AHMob SkinTarget()
@@ -1199,5 +1270,19 @@ public class AHPlayer : MonoBehaviour
         foreach (var m in g.mobs) m.LoseTrack(transform.position, 99999f);
         if (anim != null) anim.Play("Idle", true, 1f, true);
         if (g.ui != null) g.ui.Toast((home.HasValue ? "You wake up in your city house." : AHDungeon.IsDungeon(AHGame.AreaId) ? "You wake up at the entrance." : "You wake up in " + g.data.region + ".") + (lost > 0 ? " You dropped " + AHItems.MoneyText(lost) + " as you fell." : ""));
+    }
+}
+
+// the fishing rod points out over the water and up, whatever the hand is doing (after the VRoid body is posed)
+[DefaultExecutionOrder(20020)]
+public class AHRodAim : MonoBehaviour
+{
+    public Transform who;
+    void LateUpdate()
+    {
+        if (who == null) return;
+        Vector3 dir = (who.forward * 0.8f + Vector3.up * 0.6f).normalized;
+        transform.rotation = Quaternion.LookRotation(who.right, dir) * Quaternion.Euler(0f, 0f, 0f);
+        transform.rotation = Quaternion.FromToRotation(transform.up, dir) * transform.rotation;
     }
 }

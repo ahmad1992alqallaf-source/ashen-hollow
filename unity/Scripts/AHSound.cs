@@ -9,9 +9,9 @@ using UnityEngine;
 public class AHSound : MonoBehaviour
 {
     public static AHSound I;
-    public static bool Muted { get { return PlayerPrefs.GetInt("ah_muted", 0) == 1; } set { PlayerPrefs.SetInt("ah_muted", value ? 1 : 0); } }
-    public static float MusicVol { get { return PlayerPrefs.GetFloat("ah_music", 0.5f); } set { PlayerPrefs.SetFloat("ah_music", value); } }
-    public static float SfxVol { get { return PlayerPrefs.GetFloat("ah_sfx", 0.8f); } set { PlayerPrefs.SetFloat("ah_sfx", value); } }
+    public static bool Muted { get { return AHPrefs.GetInt("ah_muted", 0) == 1; } set { AHPrefs.SetInt("ah_muted", value ? 1 : 0); } }
+    public static float MusicVol { get { return AHPrefs.GetFloat("ah_music", 0.5f); } set { AHPrefs.SetFloat("ah_music", value); } }
+    public static float SfxVol { get { return AHPrefs.GetFloat("ah_sfx", 0.8f); } set { AHPrefs.SetFloat("ah_sfx", value); } }
 
     enum Wave : byte { Sine, Triangle, Square, Saw, Noise }
     enum Filt : byte { None, Low, High, Band }

@@ -389,7 +389,10 @@ public static class AHGather
         if (r == null && !CanDo(p, s, true)) return;
         actSpot = s; actRecipe = r; actT = 0f;
         actDur = (r != null ? 2.2f : Dur(s.kind)) / Speed(p, s.kind);
-        p.BeginWork(s.pos, s.kind == "chop" ? "Chop" : s.kind == "herb" ? "Harvest" : "Interact");
+        // the woodcutter and the miner swing their tools; the herbalist kneels to pick; the angler casts a line
+        if (r != null) p.BeginWork(s.pos);
+        else p.BeginWork(s.pos, s.kind == "chop" || s.kind == "mine" ? "Chop" : s.kind == "herb" || s.kind == "bog" || s.kind == "reef" ? "Harvest" : s.kind == "fish" || s.kind == "lava" || s.kind == "sea" ? "Fish" : "Interact",
+            s.kind == "chop" ? "axe" : s.kind == "mine" ? "pick" : s.kind == "fish" || s.kind == "lava" || s.kind == "sea" ? "rod" : null);
     }
 
     // web: lighting your own campfire in the wild with logs

@@ -36,7 +36,7 @@ public static class AHTreasure
 
     static bool HasDig(string area, out Vector2 web)
     {
-        web = Vector2.zero; string s = PlayerPrefs.GetString(Key(area), "");
+        web = Vector2.zero; string s = AHPrefs.GetString(Key(area), "");
         if (string.IsNullOrEmpty(s)) return false;
         var a = s.Split(','); float x, z;
         if (a.Length != 2 || !float.TryParse(a[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out x) || !float.TryParse(a[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out z)) return false;
@@ -49,9 +49,9 @@ public static class AHTreasure
         marker = null; spot = null;
         var L = Here; if (L == null || g.player == null) return;
         Vector2 w; if (HasDig(L.area, out w)) Place(g, w);
-        if (L.area == "fossil" && PlayerPrefs.GetInt(GiftKey, 0) == 0)
+        if (L.area == "fossil" && AHPrefs.GetInt(GiftKey, 0) == 0)
         {
-            PlayerPrefs.SetInt(GiftKey, 1); PlayerPrefs.Save();
+            AHPrefs.SetInt(GiftKey, 1); AHPrefs.Save();
             g.player.bag.Add(MapId); g.MarkDirty();
             g.ui.Banner("An old map", "A treasure map blows to your feet. Read it in your bag");
         }
@@ -75,7 +75,7 @@ public static class AHTreasure
             pick = new Vector2(x, z); ok = true;
         }
         if (!ok) { g.ui.Toast("The map's lines blur. Try again somewhere else.", 2f); return; }
-        PlayerPrefs.SetString(Key(L.area), pick.x.ToString(System.Globalization.CultureInfo.InvariantCulture) + "," + pick.y.ToString(System.Globalization.CultureInfo.InvariantCulture)); PlayerPrefs.Save();
+        AHPrefs.SetString(Key(L.area), pick.x.ToString(System.Globalization.CultureInfo.InvariantCulture) + "," + pick.y.ToString(System.Globalization.CultureInfo.InvariantCulture)); AHPrefs.Save();
         Place(g, pick);
         g.ui.Banner("X marks the spot", "A red X is out in " + landName + ". It is on your map");
         AHSound.Play("level");
@@ -140,7 +140,7 @@ public static class AHTreasure
         if (p.bag.Count(L.map) <= 0) { g.ui.Toast("You need this land's treasure map to dig here.", 2f); return; }
         if (p.bag.UsedSlots > p.bag.SlotsMax - 4) { g.ui.Toast("Make room in your bag first: a treasure needs 4 free slots.", 2.5f); return; }
         p.bag.Take(L.map);
-        PlayerPrefs.DeleteKey(Key(L.area)); PlayerPrefs.Save();
+        AHPrefs.DeleteKey(Key(L.area)); AHPrefs.Save();
         Vector3 at = spot != null ? spot.pos : p.transform.position;
         if (spot != null) AHGather.Spots.Remove(spot); spot = null;
         if (marker != null) UnityEngine.Object.Destroy(marker); marker = null;
@@ -169,9 +169,9 @@ public static class AHTreasure
         else g.ui.Banner("Treasure!", string.Join(", ", got.ToArray()));
         AHSpark.Burst(at + Vector3.up * 0.6f, new Color(1f, 0.82f, 0.35f, 0.9f), 50, 4f, 1f, 0.2f, 1.4f);
         AHSound.Play("level");
-        PlayerPrefs.SetInt("ah_digs", PlayerPrefs.GetInt("ah_digs", 0) + 1);
-        if (L.area == "fossil") PlayerPrefs.SetInt("ah_fossil_dug", PlayerPrefs.GetInt("ah_fossil_dug", 0) + 1);
-        PlayerPrefs.Save();
+        AHPrefs.SetInt("ah_digs", AHPrefs.GetInt("ah_digs", 0) + 1);
+        if (L.area == "fossil") AHPrefs.SetInt("ah_fossil_dug", AHPrefs.GetInt("ah_fossil_dug", 0) + 1);
+        AHPrefs.Save();
         p.bag.Touch(); g.MarkDirty();
         Debug.Log("Ashen Hollow: treasure dug in " + L.area + ": " + string.Join(", ", got.ToArray()));
     }

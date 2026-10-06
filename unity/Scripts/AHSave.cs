@@ -49,7 +49,7 @@ public static class AHSave
     public const string Key = "ah_save";
     public const int Version = 2;
 
-    public static bool Exists { get { return PlayerPrefs.HasKey(Key); } }
+    public static bool Exists { get { return AHPrefs.HasKey(Key); } }
 
     static List<AHKV> Pack(Dictionary<string, long> d) { var l = new List<AHKV>(); foreach (var kv in d) l.Add(new AHKV { k = kv.Key, v = kv.Value }); return l; }
     static void Unpack(List<AHKV> l, Dictionary<string, long> d) { d.Clear(); if (l != null) foreach (var kv in l) if (!string.IsNullOrEmpty(kv.k)) d[kv.k] = Math.Max(0, kv.v); }
@@ -57,9 +57,9 @@ public static class AHSave
     public static void Save(AHGame g)
     {
         var p = g.player;
-        if (p == null || p.cls == null) return;
+        if (p == null || p.cls == null || AHPrefs.Locked) return;
         // a brand-new hero who has not picked a class yet: nothing to keep
-        if (!PlayerPrefs.HasKey("ah_class") && g.ui != null && (g.ui.PickerOpen || g.ui.CreatorOpen)) return;
+        if (!AHPrefs.HasKey("ah_class") && g.ui != null && (g.ui.PickerOpen || g.ui.CreatorOpen)) return;
         var d = new AHSaveData
         {
             cls = p.cls.id, money = p.bag.money, hunger = p.hunger,
@@ -79,9 +79,10 @@ public static class AHSave
         foreach (var kv in p.bank) if (kv.Value > 0) d.bank.Add(new AHStack { id = kv.Key, n = kv.Value });
         d.orders = p.orders; d.guildRep = p.guildRep; d.ordersDone = p.ordersDone; d.bought = Pack(p.bought);
         d.hasHome = p.home != null; if (p.home != null) d.home = p.home; d.rested = p.rested; d.hasMeal = p.meal != null; if (p.meal != null) d.meal = p.meal; d.prog = p.prog;
-        PlayerPrefs.SetString(Key, JsonUtility.ToJson(d));
-        PlayerPrefs.SetString("ah_class", d.cls);
-        PlayerPrefs.Save();
+        AHPrefs.SetString(Key, JsonUtility.ToJson(d));
+        AHPrefs.SetString("ah_class", d.cls);
+        AHPrefs.WriteMeta(p); AHPrefs.Register();
+        AHPrefs.Save();
     }
 
     // puts a saved hero back; false if there is no usable save (a new hero)
@@ -89,7 +90,7 @@ public static class AHSave
     {
         if (!Exists) return false;
         AHSaveData d;
-        try { d = JsonUtility.FromJson<AHSaveData>(PlayerPrefs.GetString(Key)); }
+        try { d = JsonUtility.FromJson<AHSaveData>(AHPrefs.GetString(Key)); }
         catch (Exception e) { Debug.LogWarning("Ashen Hollow: could not read the save (" + e.Message + "), starting fresh"); return false; }
         if (d == null || d.version != Version) { Debug.Log("Ashen Hollow: an older save from before the web data; starting a fresh hero"); return false; }
 
@@ -141,18 +142,18 @@ public static class AHSave
     public static void Clear()
     {
         AHTutorial.ClearAll();
-        PlayerPrefs.DeleteKey(Key);
-        PlayerPrefs.DeleteKey("ah_class");
-        PlayerPrefs.DeleteKey("ah_area");
+        AHPrefs.DeleteKey(Key);
+        AHPrefs.DeleteKey("ah_class");
+        AHPrefs.DeleteKey("ah_area");
         AHDungeon.ResetAll();
         AHAuction.Clear();
-        PlayerPrefs.DeleteKey("ah_level");
-        PlayerPrefs.DeleteKey("ah_xp");
+        AHPrefs.DeleteKey("ah_level");
+        AHPrefs.DeleteKey("ah_xp");
         // the rest of a hero's story: lands seen, treasure X spots and digs, the Fossil Lands gift, the raid lock,
         // the dungeon finder and the kingdom quests (sound settings stay)
         foreach (var k in new[] { "ah_seen", "ah_digs", "ah_fossil_dig", "ah_fossil_dug", "ah_fossil_gift", "ah_raid_from", "ah_raid_week", "ah_df", "ah_df_role", "ah_df_runs", "ah_kq" })
-            PlayerPrefs.DeleteKey(k);
-        foreach (var a in new[] { "meadow", "silkwood", "mire", "vale", "frost", "sands", "isle", "tide", "ember", "fossil" }) PlayerPrefs.DeleteKey("ah_dig_" + a);
-        PlayerPrefs.Save();
+            AHPrefs.DeleteKey(k);
+        foreach (var a in new[] { "meadow", "silkwood", "mire", "vale", "frost", "sands", "isle", "tide", "ember", "fossil" }) AHPrefs.DeleteKey("ah_dig_" + a);
+        AHPrefs.Save();
     }
 }

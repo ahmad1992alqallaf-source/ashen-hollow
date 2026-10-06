@@ -25,6 +25,7 @@ public partial class AHUI
         wkRoot = Box("Work", transform, Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero);
         wkRoot.anchorMin = Vector2.zero; wkRoot.anchorMax = Vector2.one; wkRoot.offsetMin = wkRoot.offsetMax = Vector2.zero;
         var dim = wkRoot.gameObject.AddComponent<Image>(); dim.sprite = null; dim.color = new Color(0f, 0f, 0f, 0.45f); dim.raycastTarget = false;
+        Img("WorkBack", wkRoot, white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(WkW - 16, WkH - 16), new Color(0.085f, 0.065f, 0.05f, 1f));   // so the world never shows through the window
         wkPanel = Img("WorkPanel", wkRoot, white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(WkW, WkH), new Color(0.1f, 0.075f, 0.055f, 1f));
         Img("Edge", wkPanel, white, new Vector2(0.5f, 1f), new Vector2(0, -3), new Vector2(WkW, 6), new Color(0.85f, 0.65f, 0.3f, 1f));
         wkTitle = Label(wkPanel, "Title", "", 28, TextAnchor.UpperLeft, new Vector2(22, -14), new Vector2(640, 38), new Color(1f, 0.85f, 0.45f));
@@ -48,6 +49,7 @@ public partial class AHUI
 
     public void ShowWork(bool on)
     {
+        if (!on) AHItemStudio.StopHero();
         if (wkRoot == null) return;
         if (on) { ShowBag(false); ShowDialog(false); }
         wkRoot.gameObject.SetActive(on);
@@ -112,6 +114,14 @@ public partial class AHUI
             var gs = AHItemIcons.Best(rowItem); bool full = AHItemIcons.Full(rowItem, gs);
             var ic = Img("Item", bg, circle, new Vector2(0f, 0.5f), new Vector2(36f, 0f), new Vector2(52, 52), full ? new Color(0.2f, 0.15f, 0.11f, 1f) : new Color(rowItem.color.r * 0.85f, rowItem.color.g * 0.85f, rowItem.color.b * 0.85f, 1f));
             if (gs != null) { var gl = Img("Glyph", ic, gs, new Vector2(0.5f, 0.5f), Vector2.zero, full ? new Vector2(50, 50) : new Vector2(36, 36), Color.white); gl.GetComponent<Image>().preserveAspect = true; }
+            // gear: tap its picture to look at it in its own window (and try it on)
+            if (rowItem.IsGear)
+            {
+                var it = rowItem;
+                var tag = Img("View", ic, white, new Vector2(0.5f, 0f), new Vector2(0, 2), new Vector2(40, 15), new Color(0.1f, 0.3f, 0.5f, 0.95f));
+                Center(Label(tag, "T", "VIEW", 10, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(40, 14), Color.white));
+                taps.Add(new TapBtn { rt = ic, layer = 5, group = "work", act = () => OpenInspect(it) });
+            }
             tx = 72f;
         }
         rowIcon = null; rowIconDim = false; rowItem = null;
@@ -139,6 +149,7 @@ public partial class AHUI
     {
         if (!WorkOpen) return;
         ClearRows(); SetPager(true);
+        if (wkMode != "stats") AHItemStudio.StopHero();
         var p = g.player;
         if (wkMode == "craft") RenderCraft(p);
         else if (wkMode == "shop") RenderShop(p);
@@ -170,6 +181,8 @@ public partial class AHUI
         else if (wkMode == "night") RenderNight(p);
         else if (wkMode == "ward") RenderWardrobe(p);
         else if (wkMode == "house") RenderHouse(p);
+        else if (wkMode == "settings") RenderOptions(p);
+        else if (wkMode == "emotes") RenderEmotes(p);
         else RenderProf(p);
     }
 

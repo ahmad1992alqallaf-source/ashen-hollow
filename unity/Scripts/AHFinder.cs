@@ -29,10 +29,10 @@ public static class AHFinder
     static bool done;
     static float healT = 3f;
 
-    public static int Runs { get { return PlayerPrefs.GetInt(RunsKey, 0); } }
+    public static int Runs { get { return AHPrefs.GetInt(RunsKey, 0); } }
     public static string DefaultRole(AHPlayer p) { return p.cls.id == "warrior" ? "tank" : p.cls.id == "priest" || p.cls.id == "druid" || p.cls.id == "shaman" ? "healer" : "damage"; }
-    public static string ChosenRole(AHPlayer p) { if (Pick == "") Pick = PlayerPrefs.GetString(RoleKey, ""); return Pick != "" ? Pick : DefaultRole(p); }
-    public static void SetRole(string r) { Pick = r; PlayerPrefs.SetString(RoleKey, r); }
+    public static string ChosenRole(AHPlayer p) { if (Pick == "") Pick = AHPrefs.GetString(RoleKey, ""); return Pick != "" ? Pick : DefaultRole(p); }
+    public static void SetRole(string r) { Pick = r; AHPrefs.SetString(RoleKey, r); }
     public static bool In { get { return Run != "" && AHGame.AreaId == AreaOf(Run); } }
     static string AreaOf(string id) { return id == Raid ? AHRaid.Area : id; }
     static int Size(string id) { return id == Raid ? 8 : 4; }
@@ -78,10 +78,10 @@ public static class AHFinder
         }
     }
 
-    static void Store() { PlayerPrefs.SetString(RunKey, Run == "" ? "" : Run + "|" + Role + "|" + (done ? "1" : "0") + "|" + string.Join(",", saved.ToArray())); }
+    static void Store() { AHPrefs.SetString(RunKey, Run == "" ? "" : Run + "|" + Role + "|" + (done ? "1" : "0") + "|" + string.Join(",", saved.ToArray())); }
     static void Restore()
     {
-        var s = PlayerPrefs.GetString(RunKey, "").Split('|');
+        var s = AHPrefs.GetString(RunKey, "").Split('|');
         if (s.Length < 4 || s[0] == "") { Run = ""; return; }
         Run = s[0]; Role = s[1]; done = s[2] == "1";
         saved = new List<string>(); foreach (var k in s[3].Split(',')) if (k != "" && AHJson.Has(AHComp.Mercs, k)) saved.Add(k);
@@ -178,7 +178,7 @@ public static class AHFinder
             p.AddMoney(c, m.transform.position);
             g.ui.Toast("Group clear bonus: " + AHItems.MoneyText(c) + ".", 4f);
         }
-        PlayerPrefs.SetInt(RunsKey, Runs + 1);
+        AHPrefs.SetInt(RunsKey, Runs + 1);
         g.SaveProgress();
     }
 }
@@ -204,6 +204,10 @@ public partial class AHUI
         wkHint.text = "Level " + p.level + " " + p.cls.name + " · " + AHItems.MoneyText(p.bag.money) + (AHFinder.In ? " · in a group run of " + AHFinder.NameOf(AHFinder.Run) + " as " + AHFinder.RoleName(AHFinder.Role) : "");
         var rows = new List<Action<int>>();
         // the map has its own button on the top row now; the class can be changed here
+        rows.Add(s => Row(s, "Settings", new Color(0.8f, 0.8f, 1f), "Sound, graphics, camera, your account", "",
+            new WkBtn { label = "Open", on = true, col = Go, act = OpenSettings }));
+        rows.Add(s => Row(s, "Emotes", new Color(1f, 0.55f, 0.9f), "Wave, bow, dance, sit and more", "",
+            new WkBtn { label = "Open", on = true, col = Plain, act = OpenEmotes }));
         rows.Add(s => Row(s, "Change class", p.cls.color, "Now: " + p.cls.name + " · switch to another class", "",
             new WkBtn { label = "Choose", on = true, col = Plain, act = () => { ShowWork(false); ShowPicker(true); } }));
         rows.Add(s => Row(s, "Class: " + AHEvo.Title(p), p.cls.color, "Evolution at 30 and 60 · talents (" + (AHEvo.Points(p) - AHEvo.Spent(p)) + " free) · spellbook", "",
@@ -232,9 +236,6 @@ public partial class AHUI
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenCollection }));
         rows.Add(s => Row(s, "Pet battles", new Color(1f, 0.62f, 0.24f), "Turn-based battles with your pets · " + p.prog.pbTamers.Count + "/6 tamers beaten", "",
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenPetBattles }));
-        rows.Add(s => Row(s, "Sound", new Color(0.8f, 0.8f, 1f), AHSound.Muted ? "Off" : "On · music " + Mathf.RoundToInt(AHSound.MusicVol * 100) + "% · effects " + Mathf.RoundToInt(AHSound.SfxVol * 100) + "%", "Music follows where you are: town, wild, night, dungeon, battle.",
-            new WkBtn { label = AHSound.Muted ? "Turn on" : "Mute", on = true, col = Plain, act = () => { AHSound.Muted = !AHSound.Muted; RenderWork(); } },
-            new WkBtn { label = "Music " + (AHSound.MusicVol > 0.01f ? "−" : "+"), on = true, col = Plain, act = () => { AHSound.MusicVol = AHSound.MusicVol > 0.3f ? 0.25f : AHSound.MusicVol > 0.01f ? 0f : 0.5f; RenderWork(); } }));
         rows.Add(s => Row(s, "Wardrobe", new Color(0.85f, 0.55f, 1f), AHWardrobe.CosmeticCount(p) + " cosmetics · " + p.prog.coll.Count + " pieces collected · " + p.prog.outfits.Count + " outfits", "Choose what each slot shows. Stats stay with your gear.",
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenWardrobe }));
         rows.Add(s => Row(s, "Companions", new Color(1f, 0.62f, 0.24f), p.pets.Count + " pets · " + p.mounts.Count + " mounts · " + p.party.Count + " in your party", "",
@@ -243,6 +244,8 @@ public partial class AHUI
             new WkBtn { label = "Open", on = p.profMain != null, col = Plain, act = OpenOrders }));
         rows.Add(s => Row(s, "Your homestead", new Color(0.6f, 0.9f, 0.5f), p.home == null ? "Buy a deed from a Land Agent in Varrow or Ashen Hollow." : AHGame.AreaId == AHHome.Area ? "You are home." : "Travel home: fields, pens, house and stall.", "",
             new WkBtn { label = "Go home", on = p.home != null && AHGame.AreaId != AHHome.Area && !AHFinder.In, col = Go, act = () => { ShowWork(false); AHHome.TravelHome(g); } }));
+        rows.Add(s => Row(s, "Change hero / Log out", new Color(1f, 0.6f, 0.75f), "Play another hero on this device, or make a new one", "",
+            new WkBtn { label = "Log out", on = true, col = new Color(0.45f, 0.22f, 0.17f, 1f), act = () => { ShowWork(false); g.Logout(); } }));
         int from = Paged(rows.Count);
         for (int i = from; i < Mathf.Min(rows.Count, from + RowsPerPage); i++) rows[i](i - from);
     }

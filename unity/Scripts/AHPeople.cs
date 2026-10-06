@@ -16,7 +16,7 @@ public static class AHPeople
         { "Idle", "Idle_Loop" }, { "Running_A", "Jog_Fwd_Loop" }, { "Walking_A", "Walk_Loop" },
         { "1H_Melee_Attack", "Sword_Attack" }, { "Shoot", "Spell_Simple_Shoot" }, { "Cheer", "Spell_Simple_Shoot" },
         { "Hit_A", "Hit_Chest" }, { "Death_A", "Death01" }, { "Chop", "TreeChopping_Loop" }, { "Harvest", "Farm_Harvest" },
-        { "Levelup", "Yes" }, { "Ride", "Sitting_Idle_Loop" },
+        { "Levelup", "Yes" }, { "Ride", "Sitting_Idle_Loop" }, { "Fish", "Idle_Lantern_Loop" },
     };
 
     public static Color OutfitColor(AHLook look) { return look == null ? Color.white : LookColor("CLOTH", look.cloth, 0); }
@@ -164,6 +164,58 @@ public static class AHPeople
         if (n.Contains("1H_Axe")) return 0.68f;   // the shaman's hand axe: the KayKit head is big
         if (n.Contains("Sword") || n.Contains("Axe") || n.Contains("Mace")) return 0.95f;
         return 0f;
+    }
+
+    // a work tool in the right hand: the woodcutter's axe (the KayKit hand axe), a pickaxe or a fishing rod
+    static Material toolWood, toolIron, toolLine;
+    public static GameObject Tool(GameObject rig, string kind)
+    {
+        if (rig == null || kind == null) return null;
+        Transform hr = Find(rig.transform, "hand_r"); if (hr == null) return null;
+        Quaternion q; Vector3 p; Grip("1H_Axe", true, out q, out p);
+        if (kind == "axe")
+        {
+            var pf = Resources.Load<GameObject>("AH/Models/Barbarian_t"); if (pf == null) return null;
+            var tmp = Object.Instantiate(pf);
+            Grab(tmp.transform, "1H_Axe", hr, q, p);
+            Object.Destroy(tmp);
+            var w = hr.Find("Weapon_1H_Axe"); if (w == null) return null;
+            w.name = "Tool_axe"; w.localScale *= 1.15f; return w.gameObject;
+        }
+        if (toolWood == null)
+        {
+            var sh = Shader.Find("Universal Render Pipeline/Lit");
+            toolWood = new Material(sh); toolWood.color = new Color(0.45f, 0.3f, 0.17f); toolWood.SetFloat("_Smoothness", 0.25f);
+            toolIron = new Material(sh); toolIron.color = new Color(0.55f, 0.57f, 0.6f); toolIron.SetFloat("_Metallic", 0.8f); toolIron.SetFloat("_Smoothness", 0.55f);
+            toolLine = new Material(sh); toolLine.color = new Color(0.9f, 0.9f, 0.85f);
+        }
+        var root = new GameObject("Tool_" + kind).transform; root.SetParent(hr, false);
+        root.localPosition = p; root.localRotation = q;
+        // sized in metres in the world, whatever the hand bone's scale
+        Vector3 hs = hr.lossyScale; root.localScale = new Vector3(1f / Mathf.Max(1e-5f, hs.x), 1f / Mathf.Max(1e-5f, hs.y), 1f / Mathf.Max(1e-5f, hs.z));
+        System.Action<PrimitiveType, Vector3, Vector3, Vector3, Material> P = (t, pos, sc, rot, m) =>
+        {
+            var go = GameObject.CreatePrimitive(t); Object.Destroy(go.GetComponent<Collider>());
+            go.name = "Piece"; go.transform.SetParent(root, false); go.transform.localPosition = pos; go.transform.localScale = sc; go.transform.localEulerAngles = rot;
+            go.GetComponent<Renderer>().sharedMaterial = m;
+        };
+        if (kind == "pick")
+        {
+            P(PrimitiveType.Cylinder, new Vector3(0, 0.2f, 0), new Vector3(0.035f, 0.36f, 0.035f), Vector3.zero, toolWood);   // the haft, held near its end
+            foreach (int sx in new[] { -1, 1 })
+            {
+                P(PrimitiveType.Cube, new Vector3(sx * 0.11f, 0.53f, 0), new Vector3(0.22f, 0.05f, 0.05f), new Vector3(0, 0, -sx * 12f), toolIron);
+                P(PrimitiveType.Cube, new Vector3(sx * 0.235f, 0.495f, 0), new Vector3(0.07f, 0.03f, 0.03f), new Vector3(0, 0, -sx * 24f), toolIron);   // the points
+            }
+            P(PrimitiveType.Cube, new Vector3(0, 0.54f, 0), new Vector3(0.07f, 0.08f, 0.07f), Vector3.zero, toolIron);
+        }
+        else if (kind == "rod")
+        {
+            P(PrimitiveType.Cylinder, new Vector3(0, 0.7f, 0), new Vector3(0.022f, 0.8f, 0.022f), Vector3.zero, toolWood);
+            P(PrimitiveType.Cylinder, new Vector3(0, 1.55f, 0), new Vector3(0.012f, 0.1f, 0.012f), Vector3.zero, toolLine);
+            P(PrimitiveType.Cylinder, new Vector3(0, 0.12f, 0.035f), new Vector3(0.05f, 0.012f, 0.05f), new Vector3(90, 0, 0), toolIron);   // the reel
+        }
+        return root.gameObject;
     }
 
     static void Grab(Transform src, string name, Transform hand, Quaternion rot, Vector3 offset)

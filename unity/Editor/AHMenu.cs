@@ -311,8 +311,54 @@ public static class AHMenu
     [MenuItem("Ashen Hollow/Test: Make It Night")] static void Night() { var g = AHGame.I; if (Application.isPlaying && g != null) g.SetTimeOfDay(0.75f); }
     [MenuItem("Ashen Hollow/Test: Make It Day")] static void Day() { var g = AHGame.I; if (Application.isPlaying && g != null) g.SetTimeOfDay(0.25f); }
     // renders the hero from the front, side and back into HeroShots/ next to Assets (for checking outfits up close)
+    // the hero at work: stands at the next tree, ore rock, herb or fishing spot, starts the work and takes pictures
+    static int workI;
+    [MenuItem("Ashen Hollow/Test: Work Shots %&w")]
+    static void WorkShots()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        string[] kinds = { "chop", "mine", "herb", "fish" };
+        for (int n = 0; n < kinds.Length; n++)
+        {
+            string k = kinds[workI++ % kinds.Length];
+            AHSpot best = null; float bd = 1e9f;
+            foreach (var sp in AHGather.Spots) { if (sp.kind != k || !AHGather.CanDo(g.player, sp, false)) continue; float d = (sp.pos - g.player.transform.position).sqrMagnitude; if (d < bd) { bd = d; best = sp; } }
+            if (best == null) continue;
+            var p = g.player.transform; Vector3 dd = p.position - best.pos; dd.y = 0; if (dd.sqrMagnitude < 0.01f) dd = Vector3.forward;
+            p.position = best.pos + dd.normalized * Mathf.Max(0.6f, Mathf.Min(best.reach * 0.6f, best.r + 0.7f));
+            AHGather.Start(g.player, best);
+            g.StartCoroutine(ShotLater(k));
+            return;
+        }
+        Debug.Log("Ashen Hollow: no work spots here");
+    }
+    static System.Collections.IEnumerator ShotLater(string k)
+    {
+        yield return new WaitForSeconds(0.7f); HeroShots("work_" + k + "_a");
+        yield return new WaitForSeconds(0.4f); HeroShots("work_" + k + "_b");
+        AHGather.Cancel();   // pictures only: the work is not finished (no XP, nothing gathered)
+    }
+
+    // a weapon a little better than the one worn (to see the better-gear card); run again to take it back
+    static string testGift;
+    [MenuItem("Ashen Hollow/Test: Give Better Weapon")]
+    static void GiveBetter()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return; var p = g.player;
+        if (testGift != null) { p.bag.Take(testGift); Debug.Log("Ashen Hollow: took back " + testGift); testGift = null; return; }
+        var worn = AHItems.Get(p.bag.Worn("weapon")); float ws = AHUI.GearScore(worn); string best = null; float bs = 1e9f;
+        foreach (var id in AHDB.Items.Keys)
+        {
+            var d = AHItems.Get(id); if (d == null || d.slot != "weapon" || d.cosmetic || !AHItems.CanUse(id, p.cls.id)) continue;
+            float s = AHUI.GearScore(d); if (s > ws + 0.5f && s < bs) { bs = s; best = id; }
+        }
+        if (best == null) { Debug.Log("Ashen Hollow: nothing better found"); return; }
+        p.bag.Add(best); testGift = best; Debug.Log("Ashen Hollow: gave " + best);
+    }
+
     [MenuItem("Ashen Hollow/Test: Hero Snapshots %&k")]
-    static void HeroShots()
+    static void HeroShots() { HeroShots("hero"); }
+    static void HeroShots(string prefix)
     {
         var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
         var hero = g.player.transform; string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
@@ -325,14 +371,14 @@ public static class AHMenu
             bool big = g.player.mounted; Vector3 at = hero.position + Vector3.up * (big ? 1.4f : 1.0f);
             cam.transform.position = at + dir2 * (big ? 7.5f : 4.2f) + Vector3.up * 0.35f; cam.transform.LookAt(at);
             cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, 640, 640), 0, 0); tex.Apply(); RenderTexture.active = null;
-            System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, "hero_" + names[i] + ".png"), tex.EncodeToPNG());
+            System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, prefix + "_" + names[i] + ".png"), tex.EncodeToPNG());
         }
         cam.transform.position = hero.position + Vector3.up * 26f - hero.forward * 6f; cam.transform.LookAt(hero.position); cam.fieldOfView = 50f;
         cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, 640, 640), 0, 0); tex.Apply(); RenderTexture.active = null;
-        System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, "hero_top.png"), tex.EncodeToPNG());
+        System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, prefix + "_top.png"), tex.EncodeToPNG());
         cam.transform.position = hero.position + Vector3.up * 55f - hero.forward * 40f; cam.transform.LookAt(hero.position + hero.forward * 8f); cam.fieldOfView = 55f;
         cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, 640, 640), 0, 0); tex.Apply(); RenderTexture.active = null;
-        System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, "hero_wide.png"), tex.EncodeToPNG());
+        System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, prefix + "_wide.png"), tex.EncodeToPNG());
         cam.targetTexture = null; Object.Destroy(go); Object.Destroy(rt); Object.Destroy(tex);
         Debug.Log("Hero snapshots saved to " + System.IO.Path.GetFullPath(dir));
     }

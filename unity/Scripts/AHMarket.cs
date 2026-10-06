@@ -137,7 +137,7 @@ public partial class AHUI
             foreach (var q in s.slots)
             {
                 var qq = q; var it = AHItems.Get(q.id);
-                rows.Add(r => Row(r, (it != null ? it.name : qq.id) + " × " + qq.n, AHItems.Quality(it), "Price " + AHItems.MoneyText(qq.p * AHDB.CU) + " each (" + AHItems.MoneyText(AHMarket.Floor(qq.id) * AHDB.CU) + " – " + AHItems.MoneyText(AHMarket.Ceil(qq.id) * AHDB.CU) + ")", "",
+                rows.Add(r => RowI(it, r, (it != null ? it.name : qq.id) + " × " + qq.n, AHItems.Quality(it), "Price " + AHItems.MoneyText(qq.p * AHDB.CU) + " each (" + AHItems.MoneyText(AHMarket.Floor(qq.id) * AHDB.CU) + " – " + AHItems.MoneyText(AHMarket.Ceil(qq.id) * AHDB.CU) + ")", "",
                     new WkBtn { label = "−", on = qq.p > AHMarket.Floor(qq.id), col = Plain, act = () => { AHMarket.Price(qq, -1); g.MarkDirty(); RenderWork(); } },
                     new WkBtn { label = "+", on = qq.p < AHMarket.Ceil(qq.id), col = Plain, act = () => { AHMarket.Price(qq, 1); g.MarkDirty(); RenderWork(); } },
                     new WkBtn { label = "Take back", on = true, col = Plain, act = () => { AHMarket.Unstock(g, s, qq); RenderWork(); } }));
@@ -145,7 +145,7 @@ public partial class AHUI
             foreach (var id in new List<string>(p.bag.order))
             {
                 if (AHMarket.TradeOf(id) != mkTrade) continue; string ii = id; var it = AHItems.Get(id); int have = p.bag.Count(id);
-                rows.Add(r => Row(r, "Stock: " + it.name, AHItems.Quality(it), "You have " + have + " · sells for " + AHItems.MoneyText(AHMarket.Floor(ii) * AHDB.CU) + " – " + AHItems.MoneyText(AHMarket.Ceil(ii) * AHDB.CU), "",
+                rows.Add(r => RowI(it, r, "Stock: " + it.name, AHItems.Quality(it), "You have " + have + " · sells for " + AHItems.MoneyText(AHMarket.Floor(ii) * AHDB.CU) + " – " + AHItems.MoneyText(AHMarket.Ceil(ii) * AHDB.CU), "",
                     new WkBtn { label = "Add 1", on = true, col = Plain, act = () => { AHMarket.Stock(g, s, ii, 1); RenderWork(); } },
                     new WkBtn { label = "Add all", on = true, col = Go, act = () => { AHMarket.Stock(g, s, ii, have); RenderWork(); } }));
             }

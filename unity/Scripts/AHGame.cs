@@ -97,7 +97,8 @@ public class AHGame : MonoBehaviour
     void Build()
     {
         // which part of the world the hero is in (web: regions and the roads between them, exported to Resources/AH/Areas)
-        AreaId = PlayerPrefs.GetString("ah_area", "meadow");
+        AHPrefs.Locked = false;
+        AreaId = AHPrefs.GetString("ah_area", "meadow");
         TextAsset ta = Resources.Load<TextAsset>(AreaPath + AreaId);
         if (ta == null && AreaId != "meadow") { Debug.LogWarning("Ashen Hollow: area " + AreaId + " is missing, back to the meadow"); AreaId = "meadow"; ta = Resources.Load<TextAsset>(AreaPath + AreaId); }
         if (ta == null) { AreaPath = "AH/"; ta = Resources.Load<TextAsset>("AH/meadow"); }   // the v0.3 meadow files
@@ -165,7 +166,7 @@ public class AHGame : MonoBehaviour
         UpdateDay();
 
         // the hero and the beasts of the meadow
-        string saved = PlayerPrefs.GetString("ah_class", "");
+        string saved = AHPrefs.GetString("ah_class", "");
         player = AHPlayer.Create(this, W(data.spawn.x, data.spawn.z), saved == "" ? "warrior" : saved);
         // a saved hero comes back as they were; a new one starts in the class outfit with two grilled trout
         if (!AHSave.Load(this)) player.StartKit();
@@ -202,8 +203,11 @@ public class AHGame : MonoBehaviour
         AHComp.SpawnPet(this);
         AHComp.SpawnAllies(this);
         grass = AHGrass.Create(this);
+        AHSettings.Apply(this);
         if (saved == "") ui.OpenCreator();
-        else { ui.Banner(data.region, AreaSub()); DangerCheck(); Discover(); }
+        else if (SelectAtStart) ui.OpenSelect();
+        else Welcome();
+        SelectAtStart = false;
         camTarget = player.transform.position;
         travelLock = Time.time + 1.5f;
         if (arriving)
@@ -248,11 +252,35 @@ public class AHGame : MonoBehaviour
         if (sk != null) { t.skin = new string[sk.Count]; for (int i = 0; i < sk.Count; i++) t.skin[i] = (string)sk[i]; }
     }
 
+    public void Welcome() { ui.Banner(data.region, AreaSub()); DangerCheck(); Discover(); }
+
+    // ---------- several heroes: log out, change hero ----------
+    public static bool SelectAtStart = true;   // the hero select screen when the game starts and after logging out
+    public void Logout()
+    {
+        if (leaving) return;
+        SaveProgress();
+        Reload(true, true);
+    }
+    // build this land again (another hero, a changed setting); select: open the hero select screen after
+    public void Reload(bool select, bool noSave = false)
+    {
+        if (leaving) return;
+        leaving = true;
+        if (!noSave) SaveProgress();
+        AHPrefs.Locked = true;
+        SelectAtStart = select;
+        arriving = false; carryDayT = dayT;
+        Time.timeScale = 1f;
+        if (ui != null) ui.Fade(true);
+        StartCoroutine(LoadNext());
+    }
+
     // the creator's Begin button: the hero is made
     public void FinishCreation()
     {
         if (player.profMain == null && player.profs.Count > 0) player.profMain = player.profs[0];
-        PlayerPrefs.SetString("ah_class", player.cls.id);
+        AHPrefs.SetString("ah_class", player.cls.id);
         player.SetClass(player.cls.id);
         ui.RefreshClass();
         SaveProgress();
@@ -350,8 +378,8 @@ public class AHGame : MonoBehaviour
     // choose or change class (from the class picker)
     public void ChooseClass(string id)
     {
-        bool first = PlayerPrefs.GetString("ah_class", "") == "";
-        PlayerPrefs.SetString("ah_class", id);
+        bool first = AHPrefs.GetString("ah_class", "") == "";
+        AHPrefs.SetString("ah_class", id);
         player.SetClass(id);
         ui.RefreshClass();
         SaveProgress();
@@ -377,12 +405,12 @@ public class AHGame : MonoBehaviour
 
     // the banner's second line: levels and what lives here (web REGIONS blurb, or a road's 'a long road on foot')
     // the lands you have walked in (the world map shows the rest in fog); a first visit pays a little
-    public static bool Seen(string id) { return ("," + PlayerPrefs.GetString("ah_seen", "") + ",").Contains("," + id + ","); }
-    public static int SeenCount { get { string s = PlayerPrefs.GetString("ah_seen", ""); return s == "" ? 0 : s.Split(',').Length; } }
+    public static bool Seen(string id) { return ("," + AHPrefs.GetString("ah_seen", "") + ",").Contains("," + id + ","); }
+    public static int SeenCount { get { string s = AHPrefs.GetString("ah_seen", ""); return s == "" ? 0 : s.Split(',').Length; } }
     void Discover()
     {
         if (Seen(AreaId) || AHDungeon.IsDungeon(AreaId)) return;
-        string s = PlayerPrefs.GetString("ah_seen", ""); PlayerPrefs.SetString("ah_seen", s == "" ? AreaId : s + "," + AreaId); PlayerPrefs.Save();
+        string s = AHPrefs.GetString("ah_seen", ""); AHPrefs.SetString("ah_seen", s == "" ? AreaId : s + "," + AreaId); AHPrefs.Save();
         if (SeenCount <= 1) return;   // where you start does not count
         int xp = 40 + player.level * 12; long silver = (300 + player.level * 40) * AHDB.CU;
         player.GainXp(xp); player.bag.money += silver; player.bag.Touch(); MarkDirty();
@@ -450,7 +478,7 @@ public class AHGame : MonoBehaviour
         player.transform.rotation = Face(W(Mathf.Cos(face), Mathf.Sin(face)) - W(0f, 0f));
         carryYaw = player.transform.eulerAngles.y;
         AHGather.Cancel();
-        PlayerPrefs.SetString("ah_area", to);
+        AHPrefs.SetString("ah_area", to);
         AreaId = to;
         SaveProgress();
         carryDayT = dayT;

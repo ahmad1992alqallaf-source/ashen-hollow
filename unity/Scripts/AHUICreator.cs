@@ -105,7 +105,7 @@ public partial class AHUI
         ptrs.Clear();
         crTab = paid ? "hair" : "class";
         foreach (var kv in crTabImgs) kv.Value.gameObject.SetActive(!paid || (kv.Key != "class" && kv.Key != "path"));
-        crCancel.gameObject.SetActive(paid);
+        crCancel.gameObject.SetActive(paid || (mode == "new" && AHPrefs.Slots().Count > 0 && !AHPrefs.Slots().Contains(AHPrefs.Slot)));
         crTitle.text = paid ? (mode == "mirror" ? "Your mirror" : "The barber’s chair") : "Create your hero";
         crBeginText.text = paid ? "Done" : "Begin";
         RenderCreator();
@@ -113,6 +113,15 @@ public partial class AHUI
 
     void CancelCreator()
     {
+        if (crMode == "new")
+        {
+            // a new hero not made after all: back to the hero select screen
+            var l = AHPrefs.Slots(); if (l.Count == 0) return;
+            crRoot.gameObject.SetActive(false); Time.timeScale = 1f; ptrs.Clear();
+            AHPrefs.Use(l.Contains(AHPrefs.Prev) ? AHPrefs.Prev : l[0]);
+            g.Reload(true, true);
+            return;
+        }
         var p = g.player;
         if (crOrig != null) { p.look = crOrig; p.heroName = crOrigName; p.ApplyLook(); }
         crTyping = false; if (crKb != null) { crKb.active = false; crKb = null; }

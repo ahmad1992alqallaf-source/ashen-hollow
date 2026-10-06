@@ -63,6 +63,7 @@ public class AHCull : MonoBehaviour
         {
             if (r == null) continue;
             if (hero != null && r.transform.IsChildOf(hero)) { r.forceRenderingOff = false; continue; }
+            if (r.gameObject.layer == AHItemStudio.Layer) { r.forceRenderingOff = false; continue; }   // the picture studio's stand-ins (far above the land)
             bool off = (r.bounds.center - c).sqrMagnitude > f2;
             if (r.forceRenderingOff != off) r.forceRenderingOff = off;
         }

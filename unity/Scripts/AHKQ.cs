@@ -42,7 +42,7 @@ public static class AHKQ
         if (p.level < 5) { g.ui.Toast("Kingdom Quests are for level 5 and up."); return; }
         p.prog.kqDone = w.id; Mode = mode; runId = w.id;
         Vector2 at = g.ToWeb(p.transform.position);
-        PlayerPrefs.SetString("ah_kq", mode + "|" + AHGame.AreaId + "|" + at.x + "|" + at.y);
+        AHPrefs.SetString("ah_kq", mode + "|" + AHGame.AreaId + "|" + at.x + "|" + at.y);
         if (p.mounted) AHComp.Dismount(g, true);
         g.SaveProgress();
         g.Travel(Area, CX * AHDB.S, (CY + 200) * AHDB.S, -Mathf.PI / 2f);
@@ -53,14 +53,14 @@ public static class AHKQ
     {
         var p = g.player; if (Mode != "" || p.dead) return;
         Mode = mode; Vector2 at = g.ToWeb(p.transform.position);
-        PlayerPrefs.SetString("ah_kq", mode + "|" + AHGame.AreaId + "|" + at.x + "|" + at.y);
+        AHPrefs.SetString("ah_kq", mode + "|" + AHGame.AreaId + "|" + at.x + "|" + at.y);
         g.Travel(Area, CX * AHDB.S, (CY + 200) * AHDB.S, -Mathf.PI / 2f);
     }
 
     static void Back(AHGame g)
     {
-        var s = PlayerPrefs.GetString("ah_kq", "").Split('|'); float x, z;
-        PlayerPrefs.DeleteKey("ah_kq"); Mode = "";
+        var s = AHPrefs.GetString("ah_kq", "").Split('|'); float x, z;
+        AHPrefs.DeleteKey("ah_kq"); Mode = "";
         if (s.Length == 4 && float.TryParse(s[2], out x) && float.TryParse(s[3], out z) && s[1] != Area) g.Travel(s[1], x, z, Mathf.PI / 2f);
         else { var w = AHWays.Ways != null ? AHWays.Ways.Find(q => AHJson.S(q, "id") == "varrow") : null; g.Travel("city", (float)AHJson.N(w, "x", 41720) * AHDB.S, ((float)AHJson.N(w, "y", 1160) + 70) * AHDB.S, Mathf.PI / 2f); }
     }
@@ -69,8 +69,8 @@ public static class AHKQ
     public static void Setup(AHGame g)
     {
         mine.Clear();
-        if (AHGame.AreaId != Area) { PlayerPrefs.DeleteKey("ah_kq"); Mode = ""; return; }
-        var s = PlayerPrefs.GetString("ah_kq", "").Split('|');
+        if (AHGame.AreaId != Area) { AHPrefs.DeleteKey("ah_kq"); Mode = ""; return; }
+        var s = AHPrefs.GetString("ah_kq", "").Split('|');
         if (s.Length < 1 || (s[0] != "siege" && s[0] != "rush") || Mode != s[0]) { Mode = ""; g.ui.Toast("The arena is closed."); Back(g); return; }
         Mode = s[0]; t = 0; waveT = 0; spawnT = 3; wave = 0; score = 0; over = false;
         MakeTypes(g.player.level);

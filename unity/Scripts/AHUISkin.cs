@@ -132,8 +132,8 @@ public partial class AHUI
         slideBtn = Img("SlideBtn", transform, ornDisc, new Vector2(1, 1), new Vector2(-46, -46), new Vector2(46, 46), new Color(0.4f, 0.28f, 0.14f));
         Img("Rim", slideBtn, ornRing, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(52, 52), Color.white);
         slideText = Center(Label(slideBtn, "T", "▶", 20, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(46, 40), Gold));
-        taps.Insert(0, new TapBtn { rt = slideBtn, act = () => { slideHidden = !slideHidden; try { PlayerPrefs.SetInt("ah_hud_tucked", slideHidden ? 1 : 0); } catch { } } });
-        try { slideHidden = PlayerPrefs.GetInt("ah_hud_tucked", 0) == 1; } catch { }
+        taps.Insert(0, new TapBtn { rt = slideBtn, act = () => { slideHidden = !slideHidden; try { AHPrefs.SetInt("ah_set_hud_tucked", slideHidden ? 1 : 0); } catch { } } });
+        try { slideHidden = AHPrefs.GetInt("ah_set_hud_tucked", 0) == 1; } catch { }
         SkinRound(FindUI("RideBtn"), 64f, new Color(0.55f, 0.38f, 0.18f));
         SkinRound(FindUI("PotHeal"), 62f, new Color(0.75f, 0.12f, 0.12f));
         SkinRound(FindUI("PotMana"), 62f, new Color(0.18f, 0.3f, 0.8f));
@@ -256,13 +256,14 @@ public partial class AHUI
     RectTransform slideBtn; bool slideHidden; float slideK;
     readonly System.Collections.Generic.List<RectTransform> slide = new System.Collections.Generic.List<RectTransform>();
     readonly System.Collections.Generic.Dictionary<RectTransform, Vector2> slideHome = new System.Collections.Generic.Dictionary<RectTransform, Vector2>();
-    Sprite slot9, frame9; RawImage preview; Image previewGlow;
+    Sprite slot9, frame9; RawImage preview; Image previewGlow; RectTransform previewTag;
     void RefreshPreview(ItemDef sd)
     {
         if (preview == null) return;
         var tex = sd != null && BagOpen ? AHItemStudio.View(sd) : null;
         if (tex == null) AHItemStudio.StopView();
         preview.enabled = tex != null; preview.texture = tex;
+        if (previewTag != null) previewTag.gameObject.SetActive(tex != null);
         var q = sd != null ? AHItems.Quality(sd) : Color.clear; previewGlow.color = tex != null ? new Color(q.r, q.g, q.b, 0.75f) : Color.clear;
     }
 
@@ -300,6 +301,10 @@ public partial class AHUI
         previewGlow = Img("PreviewGlow", bagWin, glow, new Vector2(0.5f, 0.5f), new Vector2(-188, -200), new Vector2(150, 150), new Color(1f, 1f, 1f, 0f)).GetComponent<Image>();
         var pv = Box("Preview", bagWin, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-188, -200), new Vector2(112, 112));
         preview = pv.gameObject.AddComponent<RawImage>(); preview.raycastTarget = false; preview.enabled = false;
+        // tap the picture: the piece in its own window, with Try it on
+        previewTag = Img("View", pv, white, new Vector2(0.5f, 0f), new Vector2(0, -8), new Vector2(96, 22), new Color(0.1f, 0.3f, 0.5f, 0.95f));
+        Center(Label(previewTag, "T", "VIEW · TRY ON", 11, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(96, 18), Color.white));
+        taps.Add(new TapBtn { rt = pv, layer = 2, act = () => { var sd = bagSel != null ? AHItems.Get(bagSel) : gearSel != null ? AHItems.Get(g.player.bag.Worn(gearSel)) : null; if (sd != null && sd.IsGear) OpenInspect(sd); } });
         bagInfo.rectTransform.anchoredPosition = new Vector2(306, -396); bagInfo.rectTransform.sizeDelta = new Vector2(330, 30);
         bagInfoSub.rectTransform.anchoredPosition = new Vector2(306, -424); bagInfoSub.rectTransform.sizeDelta = new Vector2(330, 110);
         AHItemStudio.Changed = () => { if (BagOpen) RefreshBag(); };

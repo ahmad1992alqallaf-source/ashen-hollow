@@ -8,5 +8,5 @@ public class AHDreamSet : ScriptableObject
     public GameObject stump, fallen;
     static AHDreamSet inst; static bool tried;
     public static AHDreamSet Get() { if (!tried) { tried = true; inst = Resources.Load<AHDreamSet>("AH/Dreamscape/set"); } return inst; }
-    public static bool UseIn(string area) { return PlayerPrefs.GetInt("ah_dreamscape", 1) == 1 && Get() != null && (area == "meadow"); }
+    public static bool UseIn(string area) { return AHPrefs.GetInt("ah_dreamscape", 1) == 1 && Get() != null && (area == "meadow"); }
 }

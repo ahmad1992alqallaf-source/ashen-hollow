@@ -144,6 +144,7 @@ public class AHItemStudio : MonoBehaviour
     int busyFrames;
     void LateUpdate()
     {
+        RenderHero();
         // the turning view
         if (viewRig != null)
         {
@@ -173,6 +174,56 @@ public class AHItemStudio : MonoBehaviour
     GameObject pending; string pendingId;
 
     void BuildView(ItemDef d) { ClearView(); viewRig = Dress(viewStage, d, false); viewId = d.id; spin = 0f; }
+
+    // ---- your whole hero, standing in all its gear (the Stats window) ----
+    RenderTexture heroRt; GameObject heroRig; string heroSig; Transform heroStage; float heroT;
+    public static Texture Hero(AHPlayer p)
+    {
+        if (p == null) return null;
+        return HeroOf(p.cls, p.look, s => AHWardrobe.Shown(p, s));
+    }
+    // any hero, from its class, look and what each slot shows (the hero select screen shows heroes not being played)
+    public static Texture HeroOf(ClassDef cls, AHLook look, System.Func<string, string> shown)
+    {
+        var st = Get(); if (st == null || cls == null) return null;
+        look = look ?? new AHLook();
+        string sig = cls.id + "|" + JsonUtility.ToJson(look);
+        foreach (var sl in AHItems.GearSlots) sig += "|" + (shown(sl) ?? "");
+        if (st.heroRig == null || st.heroSig != sig) st.BuildHero(cls, look, shown, sig);
+        return st.heroRt;
+    }
+    public static void StopHero() { if (inst != null && inst.heroRig != null) { Destroy(inst.heroRig); inst.heroRig = null; inst.heroSig = null; } }
+    void BuildHero(ClassDef cls, AHLook look, System.Func<string, string> shown, string sig)
+    {
+        if (heroRig != null) Destroy(heroRig);
+        if (heroRt == null) { heroRt = new RenderTexture(320, 448, 24, RenderTextureFormat.ARGB32); heroRt.antiAliasing = 4; }
+        if (heroStage == null) { heroStage = new GameObject("HeroStage").transform; heroStage.SetParent(transform, false); heroStage.localPosition = new Vector3(60f, 0f, 0f); }
+        var holder = new GameObject("Hero").transform; holder.SetParent(heroStage, false);
+        AHAnim a; var rig = AHPeople.BuildHero(holder, cls, look, AHGame.I, out a);
+        if (rig == null) { Destroy(holder.gameObject); return; }
+        AHWardrobe.DressWith(rig, holder, shown, () => false);
+        if (a != null) { a.Play("Idle", true); holder.gameObject.AddComponent<AHStudioPose>().anim = a; }
+        SetLayer(holder, Layer);
+        heroRig = holder.gameObject; heroSig = sig; heroT = 0f;
+    }
+    void RenderHero()
+    {
+        if (heroRig == null) return;
+        heroT += Time.unscaledDeltaTime;
+        // the VRoid body and gear moved onto it can join the stand after building: keep the whole stand on the studio layer
+        if (Mathf.Repeat(heroT, 1f) < Time.unscaledDeltaTime * 1.5f) SetLayer(heroRig.transform, Layer);
+        heroRig.transform.localRotation = Quaternion.Euler(0f, Mathf.Sin(heroT * 0.5f) * 28f, 0f);   // faces you, turning a little to each side
+        var b = new Bounds(heroRig.transform.position + Vector3.up * 0.9f, Vector3.one * 0.5f); bool any = false;
+        foreach (var r in heroRig.GetComponentsInChildren<Renderer>(false))
+        {
+            if (!r.enabled || r is ParticleSystemRenderer) continue;
+            if (!any) { b = r.bounds; any = true; } else b.Encapsulate(r.bounds);
+        }
+        float h = Mathf.Clamp(b.size.y, 1.2f, 3.2f) * 1.08f;
+        Vector3 c = new Vector3(heroRig.transform.position.x, b.min.y + h * 0.48f, heroRig.transform.position.z);
+        float dist = (h * 0.5f) / Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad);
+        cam.targetTexture = heroRt; cam.transform.position = c + heroStage.forward * dist + Vector3.up * dist * 0.08f; cam.transform.LookAt(c); cam.Render();
+    }
 }
 
 // keeps a studio stand-in's pose (its animation graph is held on a frame of Idle)

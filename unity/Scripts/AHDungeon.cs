@@ -44,14 +44,14 @@ public class AHDungeon : MonoBehaviour
     static void Rec(string id, out int clears, out long at)
     {
         clears = 0; at = 0;
-        var s = PlayerPrefs.GetString(Key(id), "").Split('|');
+        var s = AHPrefs.GetString(Key(id), "").Split('|');
         if (s.Length == 2) { int.TryParse(s[0], out clears); long.TryParse(s[1], out at); }
     }
     public static void ResetAll()
     {
-        PlayerPrefs.DeleteKey(Key("forge"));
+        AHPrefs.DeleteKey(Key("forge"));
         var l = AHDB.List("events", "DUNGEONS");
-        if (l != null) foreach (var o in l) PlayerPrefs.DeleteKey(Key(AHJson.S(o, "id")));
+        if (l != null) foreach (var o in l) AHPrefs.DeleteKey(Key(AHJson.S(o, "id")));
     }
 
     public static string BossOf(string id) { var d = Def(id); return d != null ? Col(d, 0) : id == "forge" ? "grull" : null; }
@@ -412,7 +412,7 @@ public class AHDungeon : MonoBehaviour
             g.quests.Event("dclear", id, 1, g);
             Chest(m.transform.position, sets, gems[Random.Range(0, 3)], 1 + Mathf.FloorToInt(tier));
             int clears; long at; Rec(id, out clears, out at);
-            clears++; PlayerPrefs.SetString(Key(id), clears + "|" + NowMs);
+            clears++; AHPrefs.SetString(Key(id), clears + "|" + NowMs);
             string name = AHJson.S(def, "name");
             if (clears == 1)
             {

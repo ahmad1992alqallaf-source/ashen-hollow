@@ -37,8 +37,8 @@ public static class AHAch
             A("treasure", "Treasure Hunter", "Find every hidden treasure chest.", "the Lucky", p => { var ts = AHWays.Treasures; if (ts == null) return false; foreach (var t in ts) if (!p.prog.found.Contains(AHJson.S(t, "id"))) return false; return true; });
             A("explorer", "Explorer", "Discover 10 lands of the realm.", "the Explorer", p => AHGame.SeenCount >= 10);
             A("cartographer", "Cartographer", "Discover 20 lands of the realm.", "the Cartographer", p => AHGame.SeenCount >= 20);
-            A("digger", "X Marks the Spot", "Dig up 5 treasures in the Fossil Lands.", "the Digger", p => PlayerPrefs.GetInt("ah_fossil_dug", 0) >= 5);
-            A("seeker", "Treasure Seeker", "Dig up 10 treasures from treasure maps.", "the Treasure Seeker", p => PlayerPrefs.GetInt("ah_digs", 0) >= 10);
+            A("digger", "X Marks the Spot", "Dig up 5 treasures in the Fossil Lands.", "the Digger", p => AHPrefs.GetInt("ah_fossil_dug", 0) >= 5);
+            A("seeker", "Treasure Seeker", "Dig up 10 treasures from treasure maps.", "the Treasure Seeker", p => AHPrefs.GetInt("ah_digs", 0) >= 10);
             A("bonerider", "Bone Rider", "Own the Fossilized raptor.", "Bone Rider", p => p.mounts.Contains(AHTreasure.MountId));
             A("neighbour", "Good Neighbour", "Reach three hearts with three friends.", "the Good Neighbour", p => AHFriends.Count(p, 3) >= 3);
             A("beloved", "Beloved", "Become best friends (five hearts) with ten people.", "the Beloved", p => AHFriends.Count(p, 5) >= 10);

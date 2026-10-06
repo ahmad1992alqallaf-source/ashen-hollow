@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public static class AHPower
 {
@@ -197,19 +198,55 @@ public partial class AHUI
     }
 
     // the Stats page now only shows what your gear and talents add up to, against the caps
+    // your hero standing on the left (in all its gear, turning a little), your stats on the right
     void RenderStats(AHPlayer p)
     {
         var st = p.stat; int fr = AHEvo.Points(p) - AHEvo.Spent(p);
-        wkTitle.text = "Stats";
-        wkHint.text = "Stats come from your gear, gems, sets and talents. Each one has a cap so no build runs away. Talents: " + fr + " free.";
-        var lines = new List<Action<int>>();
-        Action<string, float, float, bool> line = (nm, v, cap, pc) => lines.Add(r => Row(r, nm + "  " + (pc ? (v * 100f).ToString("0.#") + "%" : v.ToString("0")), v >= cap - 1e-4f ? new Color(1f, 0.55f, 0.4f) : new Color(1f, 0.85f, 0.55f), "Cap " + (pc ? (cap * 100f).ToString("0") + "%" : cap.ToString("0")) + (v >= cap - 1e-4f ? " · capped" : ""), ""));
-        line("Damage bonus", st.dmg, AHPlayer.Cap.dmg, true); line("Critical chance", st.crit, AHPlayer.Cap.crit, true);
-        line("Evasion", st.evade, AHPlayer.Cap.evade, true); line("Attack speed", st.aspd, AHPlayer.Cap.aspd, true);
-        line("Cooldowns shorter", st.cdr, AHPlayer.Cap.cdr, true); line("Healing bonus", st.heal, AHPlayer.Cap.heal, true);
-        line("Max HP bonus", st.hpK, AHPlayer.Cap.hpK, true); line("Max mana bonus", st.manaK, AHPlayer.Cap.manaK, true);
-        lines.Add(r => Row(r, "Talents", new Color(1f, 0.8f, 0.45f), fr + " points free · a point every 3 levels plus one more every 3", "", new WkBtn { label = "Open", on = true, col = fr > 0 ? Go : Plain, act = () => OpenClassWin("tal") }));
-        int f0 = Paged(lines.Count);
-        for (int i = f0; i < Mathf.Min(lines.Count, f0 + RowsPerPage); i++) lines[i](i - f0);
+        SetPager(false); wkPage.text = "";
+        wkTitle.text = (p.heroName ?? "Hero") + " · " + AHEvo.Title(p) + " · level " + p.level;
+        wkHint.text = "Stats come from your gear, gems, sets and talents. Each has a cap so no build runs away.";
+        // the hero
+        var stand = Img("Stand", wkList, panel9 != null ? panel9 : white, new Vector2(0f, 1f), Vector2.zero, new Vector2(250, 420), new Color(0.16f, 0.12f, 0.09f, 1f));
+        stand.pivot = new Vector2(0f, 1f); stand.anchoredPosition = new Vector2(0f, -4f); wkItems.Add(stand.gameObject);
+        if (panel9 != null) stand.GetComponent<Image>().type = Image.Type.Sliced;
+        if (glow != null) Img("Glow", stand, glow, new Vector2(0.5f, 0.5f), new Vector2(0, 30), new Vector2(260, 300), new Color(AHEvo.PathColor(p).r, AHEvo.PathColor(p).g, AHEvo.PathColor(p).b, 0.35f));
+        var view = Box("Hero", stand, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -8), new Vector2(240, 336));
+        var raw = view.gameObject.AddComponent<RawImage>(); raw.raycastTarget = false; raw.texture = AHItemStudio.Hero(p);
+        var nm = Label(stand, "Name", p.heroName ?? "Hero", 20, TextAnchor.UpperCenter, new Vector2(0, -346), new Vector2(250, 26), Gold); nm.fontStyle = FontStyle.Bold;
+        Label(stand, "Class", p.cls.name + " · level " + p.level, 15, TextAnchor.UpperCenter, new Vector2(0, -372), new Vector2(250, 20), new Color(1f, 1f, 1f, 0.75f));
+        // the numbers: two columns of cards, each with a bar to its cap
+        var rows = new List<object[]>
+        {
+            new object[] { "Health", p.maxHp, 0f, false }, new object[] { "Mana", p.maxMana, 0f, false },
+            new object[] { "Damage bonus", st.dmg, AHPlayer.Cap.dmg, true }, new object[] { "Critical chance", st.crit, AHPlayer.Cap.crit, true },
+            new object[] { "Evasion", st.evade, AHPlayer.Cap.evade, true }, new object[] { "Attack speed", st.aspd, AHPlayer.Cap.aspd, true },
+            new object[] { "Shorter cooldowns", st.cdr, AHPlayer.Cap.cdr, true }, new object[] { "Healing bonus", st.heal, AHPlayer.Cap.heal, true },
+            new object[] { "Max HP bonus", st.hpK, AHPlayer.Cap.hpK, true }, new object[] { "Max mana bonus", st.manaK, AHPlayer.Cap.manaK, true },
+        };
+        float x0 = 262f, cw = 256f, ch = 62f;
+        for (int i = 0; i < rows.Count; i++)
+        {
+            var r = rows[i]; string label = (string)r[0]; float v = (float)r[1], cap = (float)r[2]; bool pc = (bool)r[3];
+            if (label == "Mana" && !p.cls.mana) { v = 0f; }
+            int col = i % 2, row = i / 2;
+            var card = Img("Stat", wkList, white, new Vector2(0f, 1f), Vector2.zero, new Vector2(cw - 8, ch - 8), new Color(0.16f, 0.12f, 0.09f, 1f));
+            card.pivot = new Vector2(0f, 1f); card.anchoredPosition = new Vector2(x0 + col * cw, -4f - row * ch); wkItems.Add(card.gameObject);
+            bool capped = cap > 0f && v >= cap - 1e-4f;
+            Label(card, "N", label, 15, TextAnchor.UpperLeft, new Vector2(10, -6), new Vector2(150, 20), new Color(1f, 1f, 1f, 0.75f));
+            string val = pc ? (v * 100f).ToString("0.#") + "%" : (label == "Mana" && !p.cls.mana ? "—" : Mathf.RoundToInt(v).ToString("#,0"));
+            var vt = Label(card, "V", val, 20, TextAnchor.UpperRight, new Vector2(cw - 8 - 130, -4), new Vector2(120, 24), capped ? new Color(1f, 0.55f, 0.4f) : Gold); vt.fontStyle = FontStyle.Bold;
+            if (cap > 0f)
+            {
+                var bg = Img("Bar", card, white, new Vector2(0f, 0f), new Vector2((cw - 28) / 2f + 10, 12), new Vector2(cw - 28, 6), new Color(0.3f, 0.24f, 0.18f, 1f));
+                var fill = Img("Fill", bg, white, new Vector2(0f, 0.5f), Vector2.zero, new Vector2((cw - 28) * Mathf.Clamp01(v / cap), 6), capped ? new Color(1f, 0.5f, 0.35f) : new Color(1f, 0.78f, 0.35f));
+                fill.pivot = new Vector2(0f, 0.5f);
+                Label(card, "C", capped ? "capped" : "cap " + (cap * 100f).ToString("0") + "%", 11, TextAnchor.UpperLeft, new Vector2(10, -28), new Vector2(120, 16), new Color(1f, 1f, 1f, 0.45f));
+            }
+        }
+        // talents
+        var tb = Img("Talents", wkList, white, new Vector2(0f, 1f), Vector2.zero, new Vector2(cw * 2 - 8, 46), fr > 0 ? Go : Plain);
+        tb.pivot = new Vector2(0f, 1f); tb.anchoredPosition = new Vector2(x0, -4f - 5 * ch - 6f); wkItems.Add(tb.gameObject);
+        Center(Label(tb, "T", fr > 0 ? "Talents · " + fr + " point" + (fr == 1 ? "" : "s") + " to spend" : "Talents", 18, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(cw * 2 - 8, 36), Color.white));
+        taps.Add(new TapBtn { rt = tb, layer = 5, group = "work", act = () => OpenClassWin("tal") });
     }
 }

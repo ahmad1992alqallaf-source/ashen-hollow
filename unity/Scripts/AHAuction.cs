@@ -137,11 +137,11 @@ public static class AHAuction
     public static void Load()
     {
         S = null;
-        try { if (PlayerPrefs.HasKey(Key)) S = JsonUtility.FromJson<AHAucState>(PlayerPrefs.GetString(Key)); } catch (Exception) { S = null; }
+        try { if (AHPrefs.HasKey(Key)) S = JsonUtility.FromJson<AHAucState>(AHPrefs.GetString(Key)); } catch (Exception) { S = null; }
         if (S == null) S = new AHAucState { last = NowMs };
     }
-    public static void Save() { if (S != null) PlayerPrefs.SetString(Key, JsonUtility.ToJson(S)); }
-    public static void Clear() { PlayerPrefs.DeleteKey(Key); S = new AHAucState { last = NowMs }; }
+    public static void Save() { if (S != null) AHPrefs.SetString(Key, JsonUtility.ToJson(S)); }
+    public static void Clear() { AHPrefs.DeleteKey(Key); S = new AHAucState { last = NowMs }; }
     public static void MailAdd(string id, int n) { var s = S.mailItems.Find(q => q.id == id); if (s != null) s.n += n; else S.mailItems.Add(new AHStack { id = id, n = n }); }
     public static bool HasMail { get { return S.mailCoins > 0 || S.mailItems.Exists(q => q.n > 0); } }
 

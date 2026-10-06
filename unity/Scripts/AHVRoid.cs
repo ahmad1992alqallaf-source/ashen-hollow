@@ -11,7 +11,7 @@ public static class AHVRoid
 {
     static readonly Dictionary<string, Avatar> srcAvatars = new Dictionary<string, Avatar>();
 
-    public static bool On { get { return PlayerPrefs.GetInt("ah_vroid", 1) == 1; } }
+    public static bool On { get { return AHPrefs.GetInt("ah_vroid", 1) == 1; } }
 
     // which VRoid model a hero uses (null: none yet)
     public static GameObject ModelFor(ClassDef cls, AHLook look)
@@ -128,6 +128,7 @@ public class AHVRoidLink : MonoBehaviour
     readonly HashSet<Transform> skeleton = new HashSet<Transform>();
     int lastKids = -1;
     public Transform Body { get { return dst; } }
+    public Transform Map(Transform srcBone) { Transform d; return srcBone != null && boneMap.TryGetValue(srcBone, out d) ? d : null; }
 
     public void Setup(Transform srcRoot, Avatar srcAv, Transform dstRoot, Avatar dstAv)
     {

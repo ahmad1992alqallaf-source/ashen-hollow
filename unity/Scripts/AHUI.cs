@@ -17,7 +17,7 @@ public partial class AHUI : MonoBehaviour
     public bool PickerOpen { get { return picker != null && picker.gameObject.activeSelf; } }
     public bool BagOpen { get { return bagRoot != null && bagRoot.gameObject.activeSelf; } }
     // which window is in front: 0 none (the game), 1 class picker, 2 bag, 3 talking, 4 making your hero, 5 crafting / professions
-    public int Modal { get { return CreatorOpen ? 4 : WorkOpen ? 5 : PickerOpen ? 1 : BagOpen ? 2 : DialogOpen ? 3 : 0; } }
+    public int Modal { get { return InspectOpen ? 7 : SelectOpen ? 6 : CreatorOpen ? 4 : WorkOpen ? 5 : PickerOpen ? 1 : BagOpen ? 2 : DialogOpen ? 3 : 0; } }
 
     AHGame g;
     Canvas canvas;
@@ -229,6 +229,7 @@ public partial class AHUI : MonoBehaviour
         BuildWork();
         BuildShopHud();
         BuildMenuHud();
+        BuildEmoteHud();
         BuildDailyHud();
         BuildEvHud();
         ApplySkin();
@@ -440,6 +441,7 @@ public partial class AHUI : MonoBehaviour
 
     public void Float(Vector3 world, string s, Color c)
     {
+        if (AHSettings.Tips == 0) return;
         var f = floaters[nextFloat];
         nextFloat = (nextFloat + 1) % floaters.Count;
         f.world = world + new Vector3(UnityEngine.Random.Range(-0.3f, 0.3f), 0, UnityEngine.Random.Range(-0.3f, 0.3f));
@@ -508,6 +510,7 @@ public partial class AHUI : MonoBehaviour
         UpdatePotions();
         ShopKeys();
         if (Modal == 0) AHTutorial.Tick(g, this, dt);
+        InspectTick(); UpgradeTick(dt);
         Camera cam = g.cam;
         int n = 0;
         if (cam != null && p != null && !PickerOpen)
@@ -699,13 +702,16 @@ public partial class AHUI : MonoBehaviour
         gearStats = Label(bagWin, "Stats", "", 15, TextAnchor.UpperLeft, new Vector2(22, -470), new Vector2(190, 66), new Color(1f, 0.9f, 0.7f));
         gearStats.horizontalOverflow = HorizontalWrapMode.Wrap;
 
-        // the bag: 7 x 4
+        // the bag: 7 x 4 slots, or 9 x 5 (and more rows, smaller) as it grows
         int n = AHDB.Slots;
         bagSlots = new BagSlot[n];
+        int bcols = n <= 28 ? 7 : 9, brows = (n + bcols - 1) / bcols;
+        float step = Mathf.Min(n <= 28 ? 76f : 60f, 320f / brows), size = step - 6f;
+        float bx0 = 32f - (bcols - 1) * step * 0.5f, by0 = 54f + (brows - 1) * step * 0.5f;
         for (int i = 0; i < n; i++)
         {
-            int col = i % 7, row = i / 7, idx = i;
-            bagSlots[i] = MakeSlot("Slot" + i, new Vector2(-196 + col * 76, 166 - row * 76), 70, 2, () => OnBagSlot(idx));
+            int col = i % bcols, row = i / bcols, idx = i;
+            bagSlots[i] = MakeSlot("Slot" + i, new Vector2(bx0 + col * step, by0 - row * step), size, 2, () => OnBagSlot(idx));
         }
         bagInfo = Label(bagWin, "Info", "", 21, TextAnchor.UpperLeft, new Vector2(200, -396), new Vector2(420, 30), Color.white);
         bagInfo.fontStyle = FontStyle.Bold;

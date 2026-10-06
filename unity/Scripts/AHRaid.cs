@@ -19,20 +19,20 @@ public static class AHRaid
         var d = DateTime.Now.Date; int back = ((int)d.DayOfWeek + 6) % 7; d = d.AddDays(-back);
         return d.ToString("yyyy-MM-dd");
     }
-    public static bool Looted { get { return PlayerPrefs.GetString(WeekKey, "") == Week(); } }
+    public static bool Looted { get { return AHPrefs.GetString(WeekKey, "") == Week(); } }
 
     public static void Enter(AHGame g)
     {
         var p = g.player;
         if (p.level < MinLevel) g.ui.Toast("The Ember Throne is for level " + MinLevel + " and up. You are level " + p.level + ": this will be very hard.", 4f);
         Vector2 w = g.ToWeb(p.transform.position);
-        PlayerPrefs.SetString(FromKey, AHGame.AreaId + "|" + w.x + "|" + w.y);
+        AHPrefs.SetString(FromKey, AHGame.AreaId + "|" + w.x + "|" + w.y);
         g.Travel(Area, RCx * AHDB.S, (RCy + RCr - 160) * AHDB.S, -Mathf.PI / 2f);
     }
 
     public static void Leave(AHGame g)
     {
-        var s = PlayerPrefs.GetString(FromKey, "").Split('|'); float x, z;
+        var s = AHPrefs.GetString(FromKey, "").Split('|'); float x, z;
         if (s.Length == 3 && float.TryParse(s[1], out x) && float.TryParse(s[2], out z) && s[0] != Area) g.Travel(s[0], x, z, Mathf.PI / 2f);
         else g.Travel("city", 41900 * AHDB.S, 1250 * AHDB.S, Mathf.PI / 2f);
     }
@@ -121,7 +121,7 @@ public static class AHRaid
         foreach (var q in new List<AHMob>(g.mobs)) if (q.add && !q.dead) q.Hurt(999999, null, true);
         if (first)
         {
-            PlayerPrefs.SetString(WeekKey, Week());
+            AHPrefs.SetString(WeekKey, Week());
             var set = new List<string>(); foreach (var s in new[] { "shoulders", "legs", "feet", "cape" }) { string id = "kf_" + p.cls.id + "_" + s; if (AHItems.Get(id) != null) set.Add(id); }
             var pool = set.FindAll(id => p.bag.Count(id) == 0 && !p.bag.gear.ContainsValue(id)); if (pool.Count == 0) pool = set;
             if (pool.Count > 0) { string id = pool[UnityEngine.Random.Range(0, pool.Count)]; p.bag.Add(id); g.ui.Banner(AHItems.Get(id).name, "Kingsflame set piece"); }

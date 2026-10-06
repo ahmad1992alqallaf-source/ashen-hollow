@@ -8,13 +8,14 @@ public static class AHTutorial
     static readonly string[] ids = { "move", "talk", "fight", "skin", "bag", "map" };
     static float wait = 2.5f, t; static Vector3 start; static bool started;
 
-    public static void ClearAll() { foreach (var id in ids) PlayerPrefs.DeleteKey("ah_tut_" + id); started = false; }
+    public static void Restart() { started = false; wait = 2.5f; }
+    public static void ClearAll() { foreach (var id in ids) AHPrefs.DeleteKey("ah_tut_" + id); started = false; }
 
-    static bool Done(string id) { return PlayerPrefs.GetInt("ah_tut_" + id, 0) == 1; }
+    static bool Done(string id) { return AHPrefs.GetInt("ah_tut_" + id, 0) == 1; }
     static bool Show(AHUI ui, string id, string text)
     {
         if (Done(id)) return false;
-        PlayerPrefs.SetInt("ah_tut_" + id, 1);
+        AHPrefs.SetInt("ah_tut_" + id, 1);
         ui.Toast("Tip: " + text, 6f);
         wait = 9f;   // one tip at a time
         return true;
