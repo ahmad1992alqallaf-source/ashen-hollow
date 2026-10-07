@@ -77,6 +77,7 @@ public static class AHInterior
     {
         var p = g.player; if (p == null || Inside) return;
         if (!asPreview && p.home == null) { g.ui.Toast("You need a house first."); return; }
+        if (!asPreview && AHGame.AreaId != AHHome.Area) { g.ui.Toast("Go home to your homestead to step inside your house."); return; }
         preview = asPreview;
         if (p.mounted) AHComp.Dismount(g, true);
         outside = p.transform.position; outYaw = g.camYaw;
@@ -311,7 +312,7 @@ public partial class AHUI
         var rows = new List<Action<int>>();
         if (H != null)
         {
-            if (!AHInterior.Inside) rows.Add(s => Row(s, "Go inside", new Color(1f, 0.8f, 0.45f), "Walk into your house.", "", new WkBtn { label = "Enter", on = true, col = Go, act = () => { ShowWork(false); AHInterior.Enter(g); } }));
+            if (!AHInterior.Inside && AHGame.AreaId == AHHome.Area) rows.Add(s => Row(s, "Go inside", new Color(1f, 0.8f, 0.45f), "Walk into your house.", "", new WkBtn { label = "Enter", on = true, col = Go, act = () => { ShowWork(false); AHInterior.Enter(g); } }));
             foreach (var x in AHInterior.Pieces)
             {
                 var xx = x; bool have = H.furn != null && H.furn.Contains(x.id); var cost = AHInterior.Cost(x);
