@@ -1,0 +1,1 @@
+{"version": 2, "id": "delve", "groundMap": {"x0": 0, "z0": 0, "w": 160, "h": 160}, "region": "The Ashen Deep", "levels": "5+", "bounds": {"x0": 0, "z0": 0, "x1": 160, "z1": 160}, "spawn": {"x": 28, "z": 28}, "playerSpeed": 6.4, "mobTypes": [], "mobs": [], "circles": [], "boxes": [], "water": [], "exits": [], "gates": [], "dgates": [], "walk": [], "dayLength": 1440}
