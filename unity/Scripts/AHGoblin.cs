@@ -97,6 +97,7 @@ public static class AHGoblin
         if (Random.value < 0.45f && by.bag.Add("mystery_sack")) got += " · a Mystery sack";
         if (Random.value < 0.35f) { string[] gs = { "ruby", "sapphire", "emerald" }; string gm = gs[Random.Range(0, 3)]; if (by.bag.Add(gm)) { var d = AHItems.Get(gm); got += " · " + (d != null ? d.name : gm); } }
         if (Random.value < 0.25f && by.bag.Add("enh_stone", 2)) got += " · 2 Enhancement stones";
+        if (Random.value < 0.2f && by.bag.Add(AHRareRecipes.ScrollId)) got += " · a Rare recipe scroll";
         AHFx.Pop(m.transform.position + Vector3.up * 0.6f, 2.2f, new Color(1f, 0.85f, 0.3f));
         if (g.ui != null) g.ui.Banner("Treasure goblin caught!", got);
     }

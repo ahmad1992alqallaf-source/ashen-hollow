@@ -39,7 +39,8 @@ public class AHProgress
     public string seasonKey = ""; public int seasonXp, seasonClaimed;   // the season track
     public List<AHKV> weaponKills = new List<AHKV>();            // kills by weapon kind (weapon mastery)
     public List<AHKV> wear = new List<AHKV>();                   // gear wear points by "slot|item" (AHWear)
-    public List<AHKS> trophies = new List<AHKS>();               // bosses, elites and rare beasts beaten (id, name|model)
+    public List<AHKS> trophies = new List<AHKS>();
+    public List<string> recipes = new List<string>();            // rare recipes learned (AHRareRecipes)               // bosses, elites and rare beasts beaten (id, name|model)
 
     public static long Get(List<AHKV> l, string k) { foreach (var e in l) if (e.k == k) return e.v; return 0; }
     public static void Add(List<AHKV> l, string k, long n) { foreach (var e in l) if (e.k == k) { e.v += n; return; } l.Add(new AHKV { k = k, v = n }); }

@@ -31,6 +31,7 @@ public static class AHTrophies
     {
         if (by == null || by.prog == null || !Worthy(m) || Has(by, m.type.id)) return;
         by.prog.trophies.Add(new AHKS { k = m.type.id, v = m.type.name + "|" + (m.type.model ?? "") });
+        AHRareRecipes.Give(g, by, m.type.name);   // a first win always brings a rare recipe scroll
         g.MarkDirty();
         if (g.ui != null) g.ui.Banner("Trophy won: " + m.type.name, by.home != null && by.home.comf.Contains("trophies") ? "It now stands on your Trophy stand at home" : "Build a Trophy stand at your homestead to show it off");
     }

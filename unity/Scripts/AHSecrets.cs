@@ -126,6 +126,7 @@ public static class AHSecrets
         if (evKind == 0) { rw.items.Add(new KeyValuePair<string, int>(Random.value < 0.5f ? "sapphire" : "enh_stone", 1)); rw.name = "Star fragment"; }
         else if (evKind == 1) { rw.money *= 2; if (Random.value < 0.4f) rw.items.Add(new KeyValuePair<string, int>("mystery_sack", 1)); rw.name = "Caravan crate"; }
         else { rw.xp *= 2; rw.marks += 3; rw.name = "Spirit's gift"; }
+        if (Random.value < 0.1f) rw.items.Add(new KeyValuePair<string, int>(AHRareRecipes.ScrollId, 1));
         AHDaily.Grant(g, rw);
         AHFx.Pop(evAt + Vector3.up, 3f, EvCol[evKind], 0.8f); AHSound.Play("coin");
         if (g.ui != null) g.ui.Banner(rw.name + "!", AHDaily.Text(rw));
@@ -142,6 +143,7 @@ public static class AHSecrets
         float r = Random.value;
         if (r < 0.3f) rw.items.Add(new KeyValuePair<string, int>("mystery_sack", 1));
         else if (r < 0.55f) { string[] gs = { "ruby", "sapphire", "emerald" }; rw.items.Add(new KeyValuePair<string, int>(gs[Random.Range(0, 3)], 1)); }
+        if (Random.value < 0.15f) rw.items.Add(new KeyValuePair<string, int>(AHRareRecipes.ScrollId, 1));
         AHDaily.Grant(g, rw); AHSound.Play("coin");
         if (g.ui != null) g.ui.Banner("Secret found! (" + FoundHere() + " / " + spots.Count + " in this land)", AHDaily.Text(rw));
     }

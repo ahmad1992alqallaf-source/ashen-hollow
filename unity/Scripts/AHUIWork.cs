@@ -213,7 +213,7 @@ public partial class AHUI
         string kind = wkStation.kind;
         wkTitle.text = AHGather.StationName(kind);
         wkHint.text = AHGather.StationHint(kind);
-        var list = AHGather.Recipes(kind);
+        var list = AHGather.Recipes(kind).FindAll(x => !x.rare || AHRareRecipes.Known(p, x.outId));   // rare recipes once learned
         int from = Paged(list.Count);
         for (int i = from; i < Mathf.Min(list.Count, from + RowsPerPage); i++)
         {
@@ -221,6 +221,7 @@ public partial class AHUI
             bool lvOk = p.Skill(r.skill) >= r.lvl && AHGather.MasteryOk(p, r) && (!AHArtisan.Only(r.outId) || p.path == "artisan"), ok = lvOk && AHGather.HasMats(p, r);
             string l2 = it.slot != null ? AHItems.StatLine(it) + " · " + Bad(AHItems.WhoUses(r.outId), AHItems.CanUse(r.outId, p.cls.id)) : (it.note ?? "");
             if (r.n > 1) l2 += " · makes " + r.n;
+            if (r.rare) l2 = "<color=#e8c26a>Rare recipe</color> · " + l2;
             var mats = new List<string>();
             foreach (var m in r.mats) { var md = AHItems.Get(m.Key); int have = p.bag.Count(m.Key); mats.Add(Bad(have + "/" + m.Value + " " + (md != null ? md.name : m.Key), have >= m.Value)); }
             string lv = AHDB.SkillName(r.skill) + " " + r.lvl + (r.masteryProf != null ? " · " + AHJson.S(AHJson.O(AHPlayer.Profs, r.masteryProf), "name", r.masteryProf) + " mastery " + r.masteryLv : "");

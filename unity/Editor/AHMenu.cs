@@ -386,6 +386,15 @@ public static class AHMenu
         Debug.Log("Ashen Hollow: trophy statues saved to HeroShots/trophies.png (" + list.Count + ")");
     }
 
+    [MenuItem("Ashen Hollow/Test: Rare Recipes Check")]
+    static void TestRare()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        int a = AHGather.Recipes("anvil").FindAll(r => r.rare).Count, l = AHGather.Recipes("loom").FindAll(r => r.rare).Count;
+        var sc = AHItems.Get(AHRareRecipes.ScrollId);
+        Debug.Log("Ashen Hollow: rare recipes anvil " + a + " loom " + l + " · known " + AHRareRecipes.KnownCount(g.player) + " / " + AHRareRecipes.Total + " · scroll item " + (sc != null ? sc.name : "MISSING"));
+    }
+
     [MenuItem("Ashen Hollow/Test: World Event")]
     static void TestEvent()
     {

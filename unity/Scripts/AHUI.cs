@@ -755,6 +755,7 @@ public partial class AHUI : MonoBehaviour
             if (d.IsFood) { p.Eat(id); bagSel = bag.Count(id) > 0 ? id : null; }
             else if (d.potion) { p.Drink(id); bagSel = bag.Count(id) > 0 ? id : null; }
             else if (id == "mystery_sack") { AHDaily.OpenSack(g); bagSel = bag.Count(id) > 0 ? id : null; }
+            else if (id == AHRareRecipes.ScrollId) { AHRareRecipes.Read(g); bagSel = bag.Count(id) > 0 ? id : null; }
             else if (AHTreasure.IsMap(id)) { AHTreasure.Read(g, id); bagSel = bag.Count(id) > 0 ? id : null; }
             else if (d.reins != null) { if (p.mounts.Contains(d.reins)) Toast("You already know that mount. Sell the reins to someone who wants it."); else if (bag.Take(id)) { p.mounts.Add(d.reins); p.mountSel = d.reins; RefreshRide(); Banner(AHComp.MountName(d.reins), "Mount learned! Tap RIDE"); AHSound.Play("level"); g.MarkDirty(); } bagSel = bag.Count(id) > 0 ? id : null; }
             else if (id.StartsWith("card_")) { if (!AHPower.AddCard(g, id)) Toast("That card is already in your collection. Sell or trade the spare."); bagSel = bag.Count(id) > 0 ? id : null; }
@@ -871,6 +872,7 @@ public partial class AHUI : MonoBehaviour
             else if (sd.id == "lucky_charm") text = "Use one while enhancing: if the attempt fails, the item keeps its level.";
             else if (AHPower.GemText(sd.id) != "") text = "Gem · fits a gear socket: " + AHPower.GemText(sd.id) + " (Menu → Gem sockets).";
             else if (sd.id == "mystery_sack") { text = sd.note ?? "What could be inside?"; act = "Open"; }
+            else if (sd.id == AHRareRecipes.ScrollId) { text = (sd.note ?? "") + " You know " + AHRareRecipes.KnownCount(p) + " of " + AHRareRecipes.Total + "."; act = "Read"; }
             else if (AHTreasure.IsMap(sd.id)) { text = sd.note ?? "A treasure map."; act = "Read"; }
             else if (sd.reins != null) { text = sd.note ?? "Reins: learn this mount."; act = "Learn"; }
             else text = sd.note ?? "";

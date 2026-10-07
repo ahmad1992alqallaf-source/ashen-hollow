@@ -30,6 +30,7 @@ public class AHSpot
 public class AHRecipe
 {
     public string station, outId, skill, masteryProf;
+    public bool rare;   // a rare recipe: learned from a scroll (AHRareRecipes)
     public int lvl, xp, n = 1, masteryLv;
     public List<KeyValuePair<string, int>> mats = new List<KeyValuePair<string, int>>();
 }
@@ -65,6 +66,7 @@ public static class AHGather
                             if (ms != null) { r.masteryProf = AHJson.S(ms, "prof"); r.masteryLv = (int)AHJson.N(ms, "lv"); }
                             if (AHItems.Get(r.outId) != null && r.skill != null) l.Add(r);
                         }
+                    AHRareRecipes.AddTo(kv.Key, l);
                     recipes[kv.Key] = l;
                 }
         }
@@ -360,7 +362,7 @@ public static class AHGather
 
     public static bool HasMats(AHPlayer p, AHRecipe r) { foreach (var m in r.mats) if (p.bag.Count(m.Key) < m.Value) return false; return true; }
     public static bool MasteryOk(AHPlayer p, AHRecipe r) { return r.masteryProf == null || (p.profs.Contains(r.masteryProf) && p.MasteryLv(r.masteryProf) >= r.masteryLv); }
-    public static bool CanMake(AHPlayer p, AHRecipe r) { return p.Skill(r.skill) >= r.lvl && MasteryOk(p, r) && HasMats(p, r) && (!AHArtisan.Only(r.outId) || p.path == "artisan"); }
+    public static bool CanMake(AHPlayer p, AHRecipe r) { return (!r.rare || AHRareRecipes.Known(p, r.outId)) && p.Skill(r.skill) >= r.lvl && MasteryOk(p, r) && HasMats(p, r) && (!AHArtisan.Only(r.outId) || p.path == "artisan"); }
 
     // ---------- the action you are doing (web P.action) ----------
     public static AHSpot actSpot;
