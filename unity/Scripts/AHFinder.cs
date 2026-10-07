@@ -224,6 +224,10 @@ public partial class AHUI
             new WkBtn { label = "Open", on = true, col = AHStory.Done(p) ? Plain : Go, act = OpenStory }));
         rows.Add(s => Row(s, "Fishing derby", new Color(0.62f, 0.85f, 1f), AHDerby.Best > 0f ? "Your best this week: " + AHDerby.Best.ToString("0.00") + " kg" : "Every fish is weighed · beat the week's leader for a prize", "",
             new WkBtn { label = "Board", on = true, col = Plain, act = OpenDerby }));
+        rows.Add(s => Row(s, "Cook-off", new Color(1f, 0.7f, 0.45f), "This week: " + AHCookOff.Score + " points · streak " + AHCookOff.Streak + " · beat the leader for a prize", "",
+            new WkBtn { label = "Board", on = true, col = Plain, act = OpenCookOff }));
+        rows.Add(s => Row(s, "Talent sets", p.cls.color, "Save up to 3 sets of talents and switch in one tap", "",
+            new WkBtn { label = "Open", on = true, col = Plain, act = OpenTalSets }));
         rows.Add(s => Row(s, "Tales of the townsfolk", new Color(1f, 0.85f, 0.6f), "Baker Maudie, Woodcarver Ansel and Little Tess each have a story", "",
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenTales }));
         rows.Add(s => Row(s, "The Ashen Deep", new Color(0.75f, 0.55f, 1f),

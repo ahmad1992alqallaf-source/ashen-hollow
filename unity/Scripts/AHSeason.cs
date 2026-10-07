@@ -23,7 +23,7 @@ public class AHSeason : MonoBehaviour
         ps = gameObject.AddComponent<ParticleSystem>();
         ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         var main = ps.main; main.loop = true; main.simulationSpace = ParticleSystemSimulationSpace.World; main.maxParticles = 500; main.playOnAwake = true;
-        var em = ps.emission; var sh = ps.shape; sh.shapeType = ParticleSystemShapeType.Box; sh.scale = new Vector3(34f, 1f, 34f);
+        var em = ps.emission; var sh = ps.shape; sh.shapeType = ParticleSystemShapeType.Box; sh.scale = new Vector3(26f, 1f, 26f);
         var vel = ps.velocityOverLifetime; vel.enabled = true; vel.space = ParticleSystemSimulationSpace.World;
         var rot = ps.rotationOverLifetime; var noise = ps.noise;
         Color a, b;
@@ -31,14 +31,14 @@ public class AHSeason : MonoBehaviour
         {
             case "winter":
                 a = new Color(1f, 1f, 1f, 0.9f); b = new Color(0.85f, 0.9f, 1f, 0.8f);
-                main.startLifetime = 9f; main.startSize = new ParticleSystem.MinMaxCurve(0.05f, 0.12f); main.startSpeed = 0f; main.gravityModifier = 0.03f;
+                main.startLifetime = 9f; main.startSize = new ParticleSystem.MinMaxCurve(0.1f, 0.2f); main.startSpeed = 0f; main.gravityModifier = 0.03f;
                 em.rateOverTime = 70f; vel.x = new ParticleSystem.MinMaxCurve(-0.4f, 0.4f); vel.y = new ParticleSystem.MinMaxCurve(-1.2f, -0.8f); vel.z = new ParticleSystem.MinMaxCurve(-0.4f, 0.4f);
                 noise.enabled = true; noise.strength = 0.4f; noise.frequency = 0.3f;
                 break;
             case "spring":
                 a = new Color(1f, 0.72f, 0.85f, 0.95f); b = new Color(1f, 0.92f, 0.95f, 0.9f);
-                main.startLifetime = 10f; main.startSize = new ParticleSystem.MinMaxCurve(0.07f, 0.13f); main.startSpeed = 0f;
-                em.rateOverTime = 22f; vel.x = new ParticleSystem.MinMaxCurve(0.4f, 1.1f); vel.y = new ParticleSystem.MinMaxCurve(-0.7f, -0.4f); vel.z = new ParticleSystem.MinMaxCurve(-0.3f, 0.3f);
+                main.startLifetime = 10f; main.startSize = new ParticleSystem.MinMaxCurve(0.14f, 0.24f); main.startSpeed = 0f;
+                em.rateOverTime = 30f; vel.x = new ParticleSystem.MinMaxCurve(0.4f, 1.1f); vel.y = new ParticleSystem.MinMaxCurve(-0.7f, -0.4f); vel.z = new ParticleSystem.MinMaxCurve(-0.3f, 0.3f);
                 rot.enabled = true; rot.z = new ParticleSystem.MinMaxCurve(-2f, 2f); noise.enabled = true; noise.strength = 0.6f; noise.frequency = 0.25f;
                 break;
             case "summer":
@@ -52,24 +52,22 @@ public class AHSeason : MonoBehaviour
                 break;
             default:   // autumn leaves
                 a = new Color(0.95f, 0.45f, 0.12f, 1f); b = new Color(0.85f, 0.7f, 0.15f, 1f);
-                main.startLifetime = 9f; main.startSize = new ParticleSystem.MinMaxCurve(0.1f, 0.2f); main.startSpeed = 0f;
-                em.rateOverTime = 26f; vel.x = new ParticleSystem.MinMaxCurve(0.3f, 1f); vel.y = new ParticleSystem.MinMaxCurve(-1.1f, -0.6f); vel.z = new ParticleSystem.MinMaxCurve(-0.3f, 0.3f);
+                main.startLifetime = 9f; main.startSize = new ParticleSystem.MinMaxCurve(0.22f, 0.38f); main.startSpeed = 0f;
+                em.rateOverTime = 40f; vel.x = new ParticleSystem.MinMaxCurve(0.3f, 1f); vel.y = new ParticleSystem.MinMaxCurve(-1.1f, -0.6f); vel.z = new ParticleSystem.MinMaxCurve(-0.3f, 0.3f);
                 rot.enabled = true; rot.z = new ParticleSystem.MinMaxCurve(-3f, 3f); noise.enabled = true; noise.strength = 0.7f; noise.frequency = 0.3f;
                 break;
         }
         main.startColor = new ParticleSystem.MinMaxGradient(a, b);
         main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
         var r = GetComponent<ParticleSystemRenderer>();
-        var sp = Shader.Find("Sprites/Default");
-        var sh2 = sp != null ? null : Shader.Find("Universal Render Pipeline/Particles/Unlit");
-        if (sp != null) { var m = new Material(sp); m.mainTexture = Dot(Now == "autumn" || Now == "spring"); r.sharedMaterial = m; }
-        else if (sh2 != null)
+        // opaque cut-out (the one that is sure to draw in URP): the leaf/dot shape is cut from the square by its alpha
+        var sh2 = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+        if (sh2 != null)
         {
             var m = new Material(sh2); m.SetColor("_BaseColor", Color.white);
             m.SetTexture("_BaseMap", Dot(Now == "autumn" || Now == "spring"));
-            m.SetFloat("_Surface", 1f); m.SetFloat("_Blend", 0f);
-            m.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha); m.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-            m.SetInt("_ZWrite", 0); m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT"); m.renderQueue = 3000;
+            m.SetFloat("_AlphaClip", 1f); m.SetFloat("_Cutoff", 0.35f); m.EnableKeyword("_ALPHATEST_ON");
+            m.SetFloat("_Cull", 0f);
             r.sharedMaterial = m;
         }
         r.renderMode = ParticleSystemRenderMode.Billboard;

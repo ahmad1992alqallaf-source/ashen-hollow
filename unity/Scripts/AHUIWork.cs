@@ -195,6 +195,8 @@ public partial class AHUI
         else if (wkMode == "deephall") RenderDeepHall(p);
         else if (wkMode == "tales") RenderTales(p);
         else if (wkMode == "derby") RenderDerby(p);
+        else if (wkMode == "cookoff") RenderCookOff(p);
+        else if (wkMode == "talsets") RenderTalSets(p);
         else if (wkMode == "house") RenderHouse(p);
         else if (wkMode == "settings") RenderOptions(p);
         else if (wkMode == "emotes") RenderEmotes(p);

@@ -503,6 +503,7 @@ public static class AHGather
                     bag.Take(raw);
                     if (burnt) { bag.Add("burnt"); ui.Toast("You burned the " + AHItems.Get(raw).name.Replace("Raw ", "") + "."); }
                     else { bag.Add(cooked); p.GainXp("cooking", 21 + req * 3, false); }
+                    AHCookOff.OnCook(g, cooked, burnt);   // scored for the weekly cook-off
                     return RawToCook(p) != null;
                 }
             case "furnace":
