@@ -115,6 +115,8 @@ public static class AHPeople
             if (vr != null) AHVRoid.Dye(vr, hair, skin, Color.Lerp(clothMain, clothHi, 0.4f));
             // bald and shaved heads: the short build without its hair
             if (vr != null && (look.hair == "bald" || look.hair == "shaved")) foreach (var r in vr.GetComponentsInChildren<Renderer>(true)) if (r.name.Contains("Hair")) r.enabled = false;
+            // the face (eyes, brows, expression, eye colour, ears) and the topknot, mohawk and spikes
+            if (vr != null) AHVRoid.Style(vr, look, hair, skin, look.eye >= 0 ? LookColor("EYE", look.eye) : Color.white, look.eye >= 0);
         }
         return rig;
     }

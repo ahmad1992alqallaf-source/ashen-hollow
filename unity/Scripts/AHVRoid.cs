@@ -33,10 +33,11 @@ public static class AHVRoid
         switch (hair)
         {
             case "pony": return "ponytail";
-            case "short": case "spiky": case "mohawk": case "shaved": case "bald": case "bob": return "short";
+            case "mohawk": return "short";   // shaved sides and a crest (Style)
+            case "short": case "spiky": case "shaved": case "bald": case "bob": return "short";
             case "long": case "mane": return "long";
             case "braid": return "braid";
-            case "bun": return "bun";
+            case "bun": return "short";   // the high bun: the short cut with a topknot on top (Style)
             case "twin": return "twin";
         }
         return null;
@@ -108,6 +109,152 @@ public static class AHVRoid
             }
             if (ch) r.materials = mats;
         }
+    }
+
+    // the face and the finishing touches the mirror sets: eye shape, brows and expression (VRoid face blend shapes), eye
+    // colour, pointed or elven ears, and the hairstyles VRoid has no preset for (a topknot, a mohawk crest, spikes)
+    public static void Style(GameObject v, AHLook look, Color hair, Color skin, Color eye, bool eyeSet)
+    {
+        if (v == null || look == null) return;
+        foreach (var smr in v.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+        {
+            var m = smr.sharedMesh; if (m == null || m.blendShapeCount == 0) continue;
+            System.Action<string, float> bs = (n, w) => { for (int i = 0; i < m.blendShapeCount; i++) if (m.GetBlendShapeName(i).EndsWith(n)) { smr.SetBlendShapeWeight(i, w); return; } };
+            switch (look.eyeShape) { case "round": bs("Fcl_EYE_Surprised", 30f); break; case "narrow": bs("Fcl_EYE_Fun", 35f); break; case "wide": bs("Fcl_EYE_Surprised", 55f); break; case "sharp": bs("Fcl_EYE_Angry", 50f); break; }
+            switch (look.brow) { case "arched": bs("Fcl_BRW_Surprised", 30f); break; case "fierce": bs("Fcl_BRW_Angry", 75f); break; case "soft": bs("Fcl_BRW_Sorrow", 35f); break; case "thick": bs("Fcl_BRW_Angry", 25f); break; }
+            switch (look.mouth) { case "smile": bs("Fcl_MTH_Fun", 45f); break; case "smirk": bs("Fcl_MTH_Fun", 25f); bs("Fcl_MTH_Up", 25f); break; case "grin": bs("Fcl_MTH_Joy", 55f); break; case "frown": bs("Fcl_MTH_Angry", 45f); break; }
+        }
+        if (eyeSet) TintIris(v, eye);
+        var an = v.GetComponent<Animator>(); var head = an != null ? an.GetBoneTransform(HumanBodyBones.Head) : null; if (head == null) return;
+        Bounds b; if (!HeadBox(v.GetComponentsInChildren<SkinnedMeshRenderer>(true), head, out b)) return;
+        float w = Mathf.Max(b.size.x, 0.12f);
+        Vector3 up = v.transform.up, fw = v.transform.forward, rt = v.transform.right;
+        Vector3 top = new Vector3(b.center.x, b.max.y, b.center.z);
+        Color hk = Color.Lerp(hair * 1.3f, Color.white, 0.08f); hk.a = 1f;
+        var hm = Mat(hk, 0.35f); var dark = Mat(hk * 0.6f, 0.2f); var gold = Mat(new Color(0.85f, 0.68f, 0.3f), 0.7f);
+        System.Func<Vector3, Vector3, Quaternion, Material, Transform> piece = (at, size, rot, mat) =>
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Sphere); Object.Destroy(go.GetComponent<Collider>());
+            go.name = "HairExtra"; go.transform.position = at; go.transform.rotation = rot; go.transform.localScale = size;
+            go.GetComponent<Renderer>().sharedMaterial = mat; go.transform.SetParent(head, true); return go.transform;
+        };
+        Quaternion face = Quaternion.LookRotation(fw, up);
+        if (look.hair == "bun")
+        {
+            // a high topknot: a round bun on the crown, tied with a band and pinned with a gold pin
+            Vector3 c = top + up * 0.06f * w - fw * 0.12f * w;
+            piece(c, new Vector3(0.38f, 0.32f, 0.38f) * w, face, hm);
+            piece(c - up * 0.14f * w, new Vector3(0.3f, 0.06f, 0.3f) * w, face, dark);
+            piece(c + up * 0.02f * w, new Vector3(0.62f, 0.035f, 0.035f) * w, face * Quaternion.Euler(0f, 30f, 8f), gold);
+        }
+        else if (look.hair == "mohawk")
+        {
+            // shaved sides (the hair hidden, the scalp left) and a crest from brow to nape
+            foreach (var r in v.GetComponentsInChildren<Renderer>(true)) if (r.name.Contains("Hair")) r.enabled = false;
+            for (int i = 0; i < 7; i++)
+            {
+                float t = -1f + i / 3f;   // -1 at the front, +1 at the back
+                Vector3 at = top - fw * t * 0.42f * w + up * (0.08f - t * t * 0.22f) * w;
+                piece(at, new Vector3(0.1f, 0.34f * (1f - 0.25f * Mathf.Abs(t)), 0.26f) * w, face * Quaternion.Euler(t * 35f, 0f, 0f), hm);
+            }
+        }
+        else if (look.hair == "spiky")
+        {
+            // tufts that stand up and out all over the crown, rooted inside the hair
+            for (int ring = 0; ring < 2; ring++)
+            {
+                int cnt = ring == 0 ? 9 : 5; float rr = ring == 0 ? 0.3f : 0.12f, lift = ring == 0 ? -0.1f : 0.02f, lean = ring == 0 ? 1.1f : 0.45f;
+                for (int i = 0; i < cnt; i++)
+                {
+                    float a = (i + ring * 0.5f) * Mathf.PI * 2f / cnt; Vector3 dir = rt * Mathf.Cos(a) + fw * Mathf.Sin(a) * 0.85f;
+                    if (Vector3.Dot(dir, fw) > 0.55f && ring == 0) continue;   // keep the face clear
+                    Vector3 at = top + up * lift * w + dir * rr * w - fw * 0.06f * w;
+                    piece(at, new Vector3(0.16f, 0.46f, 0.16f) * w, Quaternion.LookRotation(fw, (up + dir * lean).normalized), hm);
+                }
+            }
+        }
+        if (look.ears == "pointed" || look.ears == "elven")
+        {
+            // ears that sweep up and back from the side of the head, in the face's own tone
+            float L = look.ears == "elven" ? 0.42f : 0.26f;
+            Color sk = new Color(1f, 0.88f, 0.8f) * Color.Lerp(Color.white, skin * 1.25f, 0.3f); sk.a = 1f;
+            var em = new Material(Shader.Find("Universal Render Pipeline/Unlit")); em.SetColor("_BaseColor", sk);   // flat, like the VRoid face
+            foreach (int sx in new[] { -1, 1 })
+            {
+                Vector3 root = new Vector3(b.center.x, b.center.y, b.center.z) + rt * sx * 0.47f * w - up * 0.12f * w - fw * 0.05f * w;
+                Vector3 dirE = (rt * sx * 0.75f + up * 0.6f - fw * 0.35f).normalized;
+                piece(root + dirE * L * 0.45f * w, new Vector3(0.09f, L, 0.2f) * w, Quaternion.LookRotation(Vector3.Cross(dirE, rt * sx).normalized, dirE), em);
+            }
+        }
+    }
+
+    // eye colour: VRoid paints the iris into the face's texture, so the iris area of that texture (found from the
+    // triangles that follow the eye bones) is recoloured: its hue becomes the chosen colour, highlights stay
+    static readonly Dictionary<string, Texture2D> irisTex = new Dictionary<string, Texture2D>();
+    static void TintIris(GameObject v, Color eye)
+    {
+        foreach (var smr in v.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+        {
+            var m = smr.sharedMesh; if (m == null || smr.bones == null) continue;
+            var eyeBone = new bool[smr.bones.Length]; bool any = false;
+            for (int i = 0; i < smr.bones.Length; i++) if (smr.bones[i] != null && smr.bones[i].name.Contains("FaceEye")) { eyeBone[i] = true; any = true; }
+            if (!any) continue;
+            var uv = m.uv; var bw = m.boneWeights; if (uv == null || uv.Length != m.vertexCount || bw.Length != m.vertexCount) continue;
+            var mats = smr.materials; bool changed = false;
+            for (int sub = 0; sub < m.subMeshCount && sub < mats.Length; sub++)
+            {
+                var tri = m.GetTriangles(sub); var rects = new List<Rect>();
+                for (int t = 0; t + 2 < tri.Length; t += 3)
+                {
+                    bool all = true; for (int k = 0; k < 3; k++) { var w0 = bw[tri[t + k]]; if (!(eyeBone[w0.boneIndex0] && w0.weight0 > 0.5f)) { all = false; break; } }
+                    if (!all) continue;
+                    Vector2 a = uv[tri[t]], b2 = uv[tri[t + 1]], c = uv[tri[t + 2]];
+                    var r = Rect.MinMaxRect(Mathf.Min(a.x, Mathf.Min(b2.x, c.x)), Mathf.Min(a.y, Mathf.Min(b2.y, c.y)), Mathf.Max(a.x, Mathf.Max(b2.x, c.x)), Mathf.Max(a.y, Mathf.Max(b2.y, c.y)));
+                    bool merged = false;
+                    for (int q = 0; q < rects.Count; q++) if (rects[q].Overlaps(r)) { var o = rects[q]; rects[q] = Rect.MinMaxRect(Mathf.Min(o.xMin, r.xMin), Mathf.Min(o.yMin, r.yMin), Mathf.Max(o.xMax, r.xMax), Mathf.Max(o.yMax, r.yMax)); merged = true; break; }
+                    if (!merged) rects.Add(r);
+                }
+                if (rects.Count == 0 || mats[sub] == null) continue;
+                var src = mats[sub].mainTexture; if (src == null) continue;
+                string key = System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(src) + "|" + ColorUtility.ToHtmlStringRGB(eye);
+                Texture2D tex;
+                if (!irisTex.TryGetValue(key, out tex) || tex == null)
+                {
+                    var rtx = RenderTexture.GetTemporary(src.width, src.height, 0, RenderTextureFormat.ARGB32);
+                    Graphics.Blit(src, rtx); var prev = RenderTexture.active; RenderTexture.active = rtx;
+                    tex = new Texture2D(src.width, src.height, TextureFormat.RGBA32, true); tex.ReadPixels(new Rect(0, 0, src.width, src.height), 0, 0);
+                    RenderTexture.active = prev; RenderTexture.ReleaseTemporary(rtx);
+                    float th, ts, tv; Color.RGBToHSV(eye, out th, out ts, out tv);
+                    var px = tex.GetPixels32();
+                    foreach (var r in rects)
+                    {
+                        int x0 = Mathf.Clamp(Mathf.FloorToInt(r.xMin * tex.width) - 2, 0, tex.width - 1), x1 = Mathf.Clamp(Mathf.CeilToInt(r.xMax * tex.width) + 2, 0, tex.width - 1);
+                        int y0 = Mathf.Clamp(Mathf.FloorToInt(r.yMin * tex.height) - 2, 0, tex.height - 1), y1 = Mathf.Clamp(Mathf.CeilToInt(r.yMax * tex.height) + 2, 0, tex.height - 1);
+                        for (int y = y0; y <= y1; y++)
+                            for (int x = x0; x <= x1; x++)
+                            {
+                                int i = y * tex.width + x; Color c = px[i]; float h, sa, va; Color.RGBToHSV(c, out h, out sa, out va);
+                                if (sa < 0.12f || va < 0.06f) continue;   // the white highlights and the black pupil stay
+                                Color n = Color.HSVToRGB(th, Mathf.Clamp01(Mathf.Max(sa, ts * 0.85f)), Mathf.Clamp01(va * Mathf.Lerp(0.85f, 1.25f, tv)));
+                                n.a = c.a; px[i] = n;
+                            }
+                    }
+                    tex.SetPixels32(px); tex.Apply(true); tex.wrapMode = src.wrapMode; tex.filterMode = src.filterMode;
+                    irisTex[key] = tex;
+                }
+                mats[sub].mainTexture = tex; changed = true;
+            }
+            if (changed) smr.materials = mats;
+        }
+    }
+
+    static readonly Dictionary<int, Material> extraMats = new Dictionary<int, Material>();
+    static Material Mat(Color c, float smooth)
+    {
+        int key = (Mathf.RoundToInt(c.r * 255f) << 16) | (Mathf.RoundToInt(c.g * 255f) << 8) | Mathf.RoundToInt(c.b * 255f);
+        Material m; if (extraMats.TryGetValue(key, out m) && m != null) return m;
+        m = new Material(Shader.Find("Universal Render Pipeline/Lit")); m.SetColor("_BaseColor", c); if (m.HasProperty("_Smoothness")) m.SetFloat("_Smoothness", smooth);
+        extraMats[key] = m; return m;
     }
 
     // swap the hero's look for the VRoid body; returns false (and changes nothing) if it can't

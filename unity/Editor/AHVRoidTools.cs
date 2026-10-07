@@ -201,6 +201,76 @@ public static class AHVRoidTools
         Debug.Log("Ashen Hollow: gear shots saved to HeroShots/gear_m.png and gear_f.png");
     }
 
+    // ---- faces and the extra hairstyles: eight heroes, their heads close up from the front and three-quarters
+    // (HeroShots/looks.png). Play mode only.
+    static readonly string[][] LookSets =
+    {   // sex, hair, eyeShape, brow, mouth, ears, eye, hairCol
+        new[] { "m", "bun", "almond", "arched", "smile", "round", "0", "0" },
+        new[] { "f", "bun", "round", "soft", "grin", "round", "1", "3" },
+        new[] { "m", "mohawk", "sharp", "fierce", "frown", "round", "-1", "5" },
+        new[] { "f", "spiky", "wide", "arched", "smirk", "elven", "2", "8" },
+        new[] { "m", "spiky", "narrow", "straight", "neutral", "pointed", "3", "2" },
+        new[] { "f", "long", "sharp", "fierce", "frown", "elven", "4", "10" },
+        new[] { "m", "short", "round", "thick", "grin", "round", "1", "6" },
+        new[] { "f", "pony", "almond", "soft", "smile", "round", "0", "4" },
+    };
+    static readonly System.Collections.Generic.List<GameObject> lookStands = new System.Collections.Generic.List<GameObject>();
+    static int lookFrame;
+
+    [MenuItem("Ashen Hollow/VRoid: Look Shots")]
+    static void LookShots()
+    {
+        if (!Application.isPlaying || AHGame.I == null) { Debug.Log("Ashen Hollow: Look Shots needs Play mode"); return; }
+        foreach (var s0 in lookStands) if (s0 != null) Object.Destroy(s0);
+        lookStands.Clear();
+        for (int i = 0; i < LookSets.Length; i++)
+        {
+            var L = LookSets[i];
+            var holder = new GameObject("LookStand_" + i).transform; holder.position = new Vector3(4200f + i * 6f, -900f, 40f);
+            var look = new AHLook { sex = L[0], hair = L[1], eyeShape = L[2], brow = L[3], mouth = L[4], ears = L[5], eye = int.Parse(L[6]), hairCol = int.Parse(L[7]) };
+            AHAnim a; var rig = AHPeople.BuildHero(holder, AHClasses.Get("rogue"), look, AHGame.I, out a);
+            if (rig == null) { Object.Destroy(holder.gameObject); continue; }
+            if (a != null) { a.Play("Idle", true); holder.gameObject.AddComponent<AHStudioPose>().anim = a; }
+            lookStands.Add(holder.gameObject);
+        }
+        lookFrame = Time.frameCount;
+        EditorApplication.update -= LookStep; EditorApplication.update += LookStep;
+    }
+
+    static void LookStep()
+    {
+        if (!Application.isPlaying) { EditorApplication.update -= LookStep; lookStands.Clear(); return; }
+        if (Time.frameCount < lookFrame + 20) return;
+        EditorApplication.update -= LookStep;
+        const int Lr = 29, W = 300, H = 300;
+        foreach (var s0 in lookStands) if (s0 != null) { foreach (var t in s0.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = Lr; foreach (var r in s0.GetComponentsInChildren<Renderer>(true)) r.forceRenderingOff = false; }
+        var cg = new GameObject("LookShotCam"); var cam = cg.AddComponent<Camera>(); cam.fieldOfView = 22f; cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(0.55f, 0.6f, 0.68f); cam.cullingMask = 1 << Lr; cam.nearClipPlane = 0.05f;
+        var lg = new GameObject("LookShotLight"); var li = lg.AddComponent<Light>(); li.type = LightType.Directional; li.intensity = 1.3f; li.cullingMask = 1 << Lr; lg.transform.rotation = Quaternion.Euler(30f, 160f, 0f);
+        var rt = new RenderTexture(W, H, 24); cam.targetTexture = rt; var tex = new Texture2D(W, H, TextureFormat.RGB24, false);
+        int n = LookSets.Length; var sheet = new Texture2D(W * n, H * 2, TextureFormat.RGB24, false);
+        for (int i = 0; i < n; i++)
+        {
+            var st = lookStands.Find(o => o != null && o.name == "LookStand_" + i); if (st == null) continue;
+            var vr = st.transform.Find("VRoid"); Transform head = null;
+            if (vr != null) { var an = vr.GetComponent<Animator>(); if (an != null) head = an.GetBoneTransform(HumanBodyBones.Head); }
+            Vector3 c = head != null ? head.position + Vector3.up * 0.09f : st.transform.position + Vector3.up * 1.55f;
+            Vector3 fwd = vr != null ? vr.forward : st.transform.forward;
+            for (int v = 0; v < 2; v++)
+            {
+                Vector3 dir = v == 0 ? fwd : Quaternion.Euler(0f, 40f, 0f) * fwd;
+                cam.transform.position = c + dir * 1.1f; cam.transform.LookAt(c);
+                cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, W, H), 0, 0); tex.Apply(); RenderTexture.active = null;
+                sheet.SetPixels(i * W, (1 - v) * H, W, H, tex.GetPixels());
+            }
+        }
+        sheet.Apply();
+        File.WriteAllBytes(Path.Combine(Application.dataPath, "../HeroShots/looks.png"), sheet.EncodeToPNG());
+        cam.targetTexture = null; Object.Destroy(cg); Object.Destroy(lg); Object.Destroy(rt); Object.Destroy(tex); Object.Destroy(sheet);
+        foreach (var s0 in lookStands) if (s0 != null) Object.Destroy(s0);
+        lookStands.Clear();
+        Debug.Log("Ashen Hollow: look shots saved to HeroShots/looks.png");
+    }
+
     // the live hero's VRoid materials: name, shader and colours (to see the dye at work)
     [MenuItem("Ashen Hollow/VRoid: Dump Live Materials")]
     static void DumpLive()
