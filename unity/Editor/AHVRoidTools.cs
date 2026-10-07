@@ -96,4 +96,33 @@ public static class AHVRoidTools
         foreach (var t in root.GetComponentsInChildren<Transform>(true)) if (t.name == want) return t;
         return null;
     }
+
+    // a picture of every VRoid build from the front, the side and the back (HeroShots/vr_<name>.png, the three side by side)
+    [MenuItem("Ashen Hollow/VRoid: Model Shots %&b")]
+    static void Shots()
+    {
+        Collect();
+        var cg = new GameObject("VRShotCam"); var cam = cg.AddComponent<Camera>(); cam.fieldOfView = 24f; cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(0.55f, 0.6f, 0.68f);
+        var lg = new GameObject("VRShotLight"); var li = lg.AddComponent<Light>(); li.type = LightType.Directional; li.intensity = 1.2f; lg.transform.rotation = Quaternion.Euler(30f, 160f, 0f);
+        var rt = new RenderTexture(400, 640, 24); cam.targetTexture = rt; var tex = new Texture2D(400, 640, TextureFormat.RGB24, false);
+        foreach (var f in Directory.GetFiles(Dir, "hero_*.prefab"))
+        {
+            var pf = AssetDatabase.LoadAssetAtPath<GameObject>(f.Replace('\\', '/')); if (pf == null) continue;
+            var go = (GameObject)Object.Instantiate(pf, new Vector3(0f, -500f, 0f), Quaternion.identity);
+            var sheet = new Texture2D(1200, 640, TextureFormat.RGB24, false);
+            float[] yaw = { 180f, 270f, 0f };   // VRoid models face +z: the camera looks from the front, the side, the back
+            for (int i = 0; i < 3; i++)
+            {
+                Vector3 c = go.transform.position + Vector3.up * 0.9f;
+                cam.transform.position = c + Quaternion.Euler(0f, yaw[i], 0f) * Vector3.back * -5.2f; cam.transform.LookAt(c);
+                cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, 400, 640), 0, 0); tex.Apply(); RenderTexture.active = null;
+                sheet.SetPixels(i * 400, 0, 400, 640, tex.GetPixels());
+            }
+            sheet.Apply();
+            File.WriteAllBytes(Path.Combine(Application.dataPath, "../HeroShots/vr_" + Path.GetFileNameWithoutExtension(f) + ".png"), sheet.EncodeToPNG());
+            Object.DestroyImmediate(go); Object.DestroyImmediate(sheet);
+        }
+        cam.targetTexture = null; Object.DestroyImmediate(cg); Object.DestroyImmediate(lg); Object.DestroyImmediate(rt); Object.DestroyImmediate(tex);
+        Debug.Log("Ashen Hollow: VRoid model shots saved to HeroShots/vr_*.png");
+    }
 }

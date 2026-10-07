@@ -117,8 +117,8 @@ public partial class AHUI
 
     void BuildUpgrade()
     {
-        upRoot = Img("Upgrade", transform, panel9 != null ? panel9 : white, new Vector2(0.5f, 0f), new Vector2(0, 200), new Vector2(480, 112), panel9 != null ? Color.white : new Color(0.09f, 0.07f, 0.05f, 1f));
-        if (panel9 != null) upRoot.GetComponent<Image>().type = Image.Type.Sliced;
+        upRoot = Img("Upgrade", transform, white, new Vector2(0.5f, 0f), new Vector2(0, 330), new Vector2(472, 104), new Color(0.085f, 0.065f, 0.05f, 0.97f));
+        if (panel9 != null) { var fr = Img("Frame", upRoot, panel9, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(480, 112), Color.white); fr.GetComponent<Image>().type = Image.Type.Sliced; }
         var ic = Img("Icon", upRoot, circle, new Vector2(0f, 0.5f), new Vector2(56, 0), new Vector2(76, 76), new Color(0.2f, 0.15f, 0.11f, 1f)); upIcon = ic.GetComponent<Image>();
         upGlyph = Img("Glyph", ic, white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(70, 70), Color.white).GetComponent<Image>(); upGlyph.preserveAspect = true;
         var t = Label(upRoot, "Title", "Better gear!", 15, TextAnchor.UpperLeft, new Vector2(104, -12), new Vector2(240, 20), new Color(0.56f, 0.95f, 0.55f)); t.fontStyle = FontStyle.Bold;

@@ -214,12 +214,18 @@ public class AHItemStudio : MonoBehaviour
         if (Mathf.Repeat(heroT, 1f) < Time.unscaledDeltaTime * 1.5f) SetLayer(heroRig.transform, Layer);
         heroRig.transform.localRotation = Quaternion.Euler(0f, Mathf.Sin(heroT * 0.5f) * 28f, 0f);   // faces you, turning a little to each side
         var b = new Bounds(heroRig.transform.position + Vector3.up * 0.9f, Vector3.one * 0.5f); bool any = false;
-        foreach (var r in heroRig.GetComponentsInChildren<Renderer>(false))
+        // framed on the body (wings, capes and big hats may run off the edge)
+        foreach (var r in heroRig.GetComponentsInChildren<SkinnedMeshRenderer>(false))
+        {
+            if (!r.enabled || r.forceRenderingOff) continue;
+            if (!any) { b = r.bounds; any = true; } else b.Encapsulate(r.bounds);
+        }
+        if (!any) foreach (var r in heroRig.GetComponentsInChildren<Renderer>(false))
         {
             if (!r.enabled || r is ParticleSystemRenderer) continue;
             if (!any) { b = r.bounds; any = true; } else b.Encapsulate(r.bounds);
         }
-        float h = Mathf.Clamp(b.size.y, 1.2f, 3.2f) * 1.08f;
+        float h = Mathf.Clamp(b.size.y, 1.2f, 3.2f) * 1.12f;
         Vector3 c = new Vector3(heroRig.transform.position.x, b.min.y + h * 0.48f, heroRig.transform.position.z);
         float dist = (h * 0.5f) / Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad);
         cam.targetTexture = heroRt; cam.transform.position = c + heroStage.forward * dist + Vector3.up * dist * 0.08f; cam.transform.LookAt(c); cam.Render();

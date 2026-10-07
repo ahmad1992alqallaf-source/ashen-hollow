@@ -60,6 +60,7 @@ public partial class AHUI
         crRoot = Box("Creator", transform, Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero);
         crRoot.anchorMin = Vector2.zero; crRoot.anchorMax = Vector2.one; crRoot.offsetMin = crRoot.offsetMax = Vector2.zero;
         // the panel sits on the right so the hero stays in view on the left
+        Img("CreatorBack", crRoot, white, new Vector2(1f, 0.5f), new Vector2(-CrW / 2f - 16f, 0), new Vector2(CrW - 16, CrH - 16), new Color(0.085f, 0.065f, 0.05f, 0.97f));
         crPanel = Img("CreatorPanel", crRoot, white, new Vector2(1f, 0.5f), new Vector2(-CrW / 2f - 16f, 0), new Vector2(CrW, CrH), new Color(0.09f, 0.07f, 0.05f, 1f));
         Img("Edge", crPanel, white, new Vector2(0.5f, 1f), new Vector2(0, -3), new Vector2(CrW, 6), new Color(0.85f, 0.6f, 0.25f, 1f));
         crTitle = Label(crPanel, "Title", "Create your hero", 28, TextAnchor.UpperLeft, new Vector2(20, -14), new Vector2(560, 38), new Color(0.95f, 0.65f, 0.3f));

@@ -19,9 +19,26 @@ public static class AHVRoid
         if (!On) return null;
         bool fem = look != null && look.sex == "f";
         GameObject pf = null;
-        if (cls != null) pf = Resources.Load<GameObject>("AH/VRoid/hero_" + (fem ? "f_" : "m_") + cls.id);   // a class's own look, if made
+        // the hairstyle chosen in the look editor: each has its own VRoid build (hero_m_ponytail, hero_f_braid...)
+        string hv = HairVariant(look != null ? look.hair : null);
+        if (hv != null) pf = Resources.Load<GameObject>("AH/VRoid/hero_" + (fem ? "f_" : "m_") + hv);
+        if (pf == null && cls != null) pf = Resources.Load<GameObject>("AH/VRoid/hero_" + (fem ? "f_" : "m_") + cls.id);   // a class's own look, if made
         if (pf == null) pf = Resources.Load<GameObject>("AH/VRoid/hero_" + (fem ? "f" : "m"));
         return pf;
+    }
+
+    static string HairVariant(string hair)
+    {
+        switch (hair)
+        {
+            case "pony": return "ponytail";
+            case "short": case "spiky": case "mohawk": case "shaved": case "bald": case "bob": return "short";
+            case "long": case "mane": return "long";
+            case "braid": return "braid";
+            case "bun": return "bun";
+            case "twin": return "twin";
+        }
+        return null;
     }
 
     // the Quaternius skeleton (Unreal mannequin names) as a Unity humanoid
