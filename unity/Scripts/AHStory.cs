@@ -370,7 +370,8 @@ public class AHCine : MonoBehaviour
     {
         if (on)
         {
-            foreach (var n in FindObjectsByType<AHNpc>(FindObjectsSortMode.None)) if (n != null && n.gameObject.activeSelf) { n.gameObject.SetActive(false); hidden.Add(n.gameObject); }
+            var speak = new HashSet<string>(); foreach (var l in lines) speak.Add(l.who);
+            foreach (var n in FindObjectsByType<AHNpc>(FindObjectsSortMode.None)) if (n != null && n.gameObject.activeSelf && !speak.Contains(n.npcName)) { n.gameObject.SetActive(false); hidden.Add(n.gameObject); }
             foreach (var a in AHComp.Allies) if (a != null && a.gameObject.activeSelf) { a.gameObject.SetActive(false); hidden.Add(a.gameObject); }
             var pet = GameObject.Find("Pet"); if (pet != null && pet.activeSelf) { pet.SetActive(false); hidden.Add(pet); }
             hud = g.ui != null ? g.ui.GetComponent<Canvas>() : null; if (hud != null) hud.enabled = false;
@@ -398,6 +399,7 @@ public class AHCine : MonoBehaviour
         {
             var who = GameObject.Find("Story " + I.lines[I.i].who);
             if (who == null && I.lines[I.i].who == "Kael") who = GameObject.Find("Kael the Ember Monk");   // Kael walking with you
+            if (who == null) { var npc = AHNpc.Find(I.lines[I.i].who); if (npc != null) who = npc.gameObject; }   // a townsfolk tale
             if (who != null) { f = who.transform; h = 1.55f * who.transform.lossyScale.y; }
         }
         Vector3 head = f.position + Vector3.up * h;

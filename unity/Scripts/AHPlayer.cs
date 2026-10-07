@@ -1067,6 +1067,7 @@ public class AHPlayer : MonoBehaviour
         if (stat.evade > 0f && Random.value < stat.evade) { if (g.ui != null) g.ui.Float(transform.position + Vector3.up * 2f, "Evaded", new Color(0.81f, 0.91f, 1f)); return; }
         float red = bearT > 0f ? 0.4f : 0f;
         int hit = Mathf.Max(1, Mathf.RoundToInt(raw * (1f - ArmorCut) * (1f - red) * (Elix("ward") ? 0.75f : 1f) * (Elix("raid") ? 0.8f : 1f) * AHFinder.TakenK(g)));
+        AHJuice.OnHurt(g, hit);   // a heavy blow shakes the camera
         if (shield > 0f)
         {
             int a = Mathf.Min(Mathf.RoundToInt(shield), hit); shield -= a; hit -= a;

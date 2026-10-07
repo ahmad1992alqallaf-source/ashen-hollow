@@ -22,7 +22,8 @@ public partial class AHUI
         var p = g.player; string s = null;
         if (p != null && Modal == 0 && !PhotoOn)
         {
-            if (AHGame.AreaId == AHDeep.Area && AHDeep.InRun)
+            if (AHJuice.Training) s = AHJuice.TrainingText;
+            else if (AHGame.AreaId == AHDeep.Area && AHDeep.InRun)
             {
                 int left = AHDeep.Left;
                 s = "ASHEN DEEP · floor " + AHDeep.Floor + "/" + AHDeep.Floors + " · " + AHDeep.Clock(AHDeep.Elapsed) + " · " + (left > 0 ? left + (left == 1 ? " foe left" : " foes left") : "stairs open");

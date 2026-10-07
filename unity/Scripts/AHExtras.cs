@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 [Serializable] public class AHLoadout { public string name; public List<AHKS> gear = new List<AHKS>(); }
 
@@ -233,15 +234,42 @@ public partial class AHUI
                 var ex = Img("Exit", photoBar, white, new Vector2(1f, 0.5f), new Vector2(-80, 0), new Vector2(150, 50), new Color(0.2f, 0.14f, 0.1f, 0.85f));
                 Center(Label(ex, "T", "EXIT PHOTO", 16, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(150, 30), Color.white));
                 taps.Add(new TapBtn { rt = ex, act = () => PhotoMode(false) });
+                // filters and poses
+                photoBar.sizeDelta = new Vector2(600, 60);
+                var fb = Img("Filter", photoBar, white, new Vector2(1f, 0.5f), new Vector2(-240, 0), new Vector2(140, 50), new Color(0.2f, 0.14f, 0.1f, 0.85f));
+                photoFilterT = Center(Label(fb, "T", "FILTER", 16, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(140, 30), Color.white));
+                taps.Add(new TapBtn { rt = fb, act = CycleFilter });
+                var pb = Img("Pose", photoBar, white, new Vector2(1f, 0.5f), new Vector2(-390, 0), new Vector2(140, 50), new Color(0.2f, 0.14f, 0.1f, 0.85f));
+                Center(Label(pb, "T", "POSE", 16, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(140, 30), Color.white));
+                taps.Add(new TapBtn { rt = pb, act = () => { photoPose = (photoPose + 1) % PhotoPoses.Length; g.player.Emote(PhotoPoses[photoPose]); } });
             }
             photoBar.gameObject.SetActive(true); photoBar.SetAsLastSibling();
         }
         else
         {
             photoBar.gameObject.SetActive(false);
+            photoFilterI = 0; ApplyFilter();
             foreach (var go in photoHidden) if (go != null) go.SetActive(true);
             photoHidden.Clear();
         }
+    }
+    // the photo filters: a soft wash of colour over the picture (in the saved photo too)
+    static readonly string[] FilterNames = { "FILTER", "WARM", "COLD", "SEPIA", "NIGHT", "DREAM" };
+    static readonly Color[] FilterCols = { new Color(0, 0, 0, 0), new Color(1f, 0.6f, 0.2f, 0.16f), new Color(0.3f, 0.55f, 1f, 0.16f), new Color(0.55f, 0.4f, 0.2f, 0.3f), new Color(0.05f, 0.08f, 0.22f, 0.36f), new Color(1f, 0.6f, 0.9f, 0.16f) };
+    static readonly string[] PhotoPoses = { "wave", "cheer", "bow", "point", "dance", "sit", "fold" };
+    int photoFilterI, photoPose = -1; Text photoFilterT; Image photoWash;
+    void CycleFilter() { photoFilterI = (photoFilterI + 1) % FilterNames.Length; ApplyFilter(); }
+    void ApplyFilter()
+    {
+        if (photoWash == null)
+        {
+            var go = new GameObject("PhotoWash"); go.transform.SetParent(transform, false); var rt = go.AddComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one; rt.offsetMin = rt.offsetMax = Vector2.zero;
+            photoWash = go.AddComponent<Image>(); photoWash.raycastTarget = false;
+        }
+        photoWash.color = FilterCols[photoFilterI]; photoWash.gameObject.SetActive(photoFilterI > 0);
+        if (photoBar != null) { photoWash.transform.SetAsLastSibling(); photoBar.SetAsLastSibling(); }
+        if (photoFilterT != null) photoFilterT.text = FilterNames[photoFilterI];
     }
     void Snap()
     {

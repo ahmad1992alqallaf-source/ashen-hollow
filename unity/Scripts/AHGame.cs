@@ -204,6 +204,9 @@ public class AHGame : MonoBehaviour
         AHRaidView.Setup(this);
         AHDeepView.Setup(this);   // the Ashen Deep: this floor's rooms, foes, traps and stairs
         AHStory.Setup(this);      // the Ashen King story: its people in the meadow, an unfinished fight, the statue
+        AHJuice.Ensure(this); AHJuice.SetupDummy(this);   // hit-stop, shake, combos; the Training Golem in the meadow
+        AHSeason.Setup(this);     // falling leaves, snow, blossom or fireflies, by the real season
+        AHGallery.Setup(this);    // your costumes on plinths by your house
         AHKQ.Setup(this);
         AHComp.SpawnPet(this);
         AHComp.SpawnAllies(this);
@@ -348,6 +351,7 @@ public class AHGame : MonoBehaviour
     public void TalkTo(AHNpc n)
     {
         if (n == null || player == null || player.dead) return;
+        if (AHTales.Talk(this, n)) return;   // a townsfolk tale takes the conversation
         string line = n.Talk();
         if (n.sail != null)
         {

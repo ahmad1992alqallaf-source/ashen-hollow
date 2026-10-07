@@ -230,7 +230,7 @@ public partial class AHUI : MonoBehaviour
         BuildShopHud();
         BuildMenuHud();
         BuildEmoteHud();
-        BuildLeapHud(); BuildPetHud(); BuildExtraHud(); BuildChat();
+        BuildLeapHud(); BuildPetHud(); BuildExtraHud(); BuildChat(); BuildCombo();
         BuildDailyHud();
         BuildEvHud();
         ApplySkin();
@@ -512,7 +512,7 @@ public partial class AHUI : MonoBehaviour
         UpdatePotions();
         ShopKeys();
         if (Modal == 0) AHTutorial.Tick(g, this, dt);
-        InspectTick(); UpgradeTick(dt); LeapHudTick(); PetHudTick(); ExtraHudTick(dt); ChatTick(dt);
+        InspectTick(); UpgradeTick(dt); LeapHudTick(); PetHudTick(); ExtraHudTick(dt); ChatTick(dt); ComboTick();
         Camera cam = g.cam;
         int n = 0;
         if (cam != null && p != null && !PickerOpen)
@@ -1213,6 +1213,7 @@ public partial class AHUI : MonoBehaviour
                         pl.mark.text = log.state == "offer" ? "!" : "?";
                         pl.mark.color = log.state == "active" ? greyMark : markGold;
                     }
+                    else if (AHTales.HasMark(p, pl.n.npcName)) { pl.mark.text = "!"; pl.mark.color = markGold; }   // a townsfolk tale
                     else pl.mark.text = "";
                 }
             }

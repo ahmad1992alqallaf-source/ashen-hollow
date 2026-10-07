@@ -483,6 +483,7 @@ public static class AHGather
                     p.GainXp("fishing", fxp, false);
                     g.Ripple(s.pos, 1.2f);
                     g.quests.Event("gather", fish, 1, g);
+                    AHDerby.OnCatch(g, fish);   // weighed for the weekly derby
                     // web fishBonus
                     float dbl = p.Perk("fisher", 30) ? 0.35f : p.Perk("fisher", 10) ? 0.2f : 0f;
                     if (dbl > 0f && Random.value < dbl) { bag.Add(fish); ui.Float(p.transform.position + Vector3.up * 2.6f, "Double catch!", new Color(0.62f, 0.89f, 1f)); }

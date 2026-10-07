@@ -222,6 +222,10 @@ public partial class AHUI
             new WkBtn { label = "Open", on = true, col = Go, act = OpenFinder }));
         rows.Add(s => Row(s, "Story: The Ashen King", new Color(1f, 0.75f, 0.4f), AHStory.Done(p) ? "Done · you are Kingsbane" : "Chapter " + (p.prog.storyCh + 1) + " of " + AHStory.Chapters.Length + " · " + AHStory.Chapters[Mathf.Min(p.prog.storyCh, AHStory.Chapters.Length - 1)].name, AHStory.Status(p),
             new WkBtn { label = "Open", on = true, col = AHStory.Done(p) ? Plain : Go, act = OpenStory }));
+        rows.Add(s => Row(s, "Fishing derby", new Color(0.62f, 0.85f, 1f), AHDerby.Best > 0f ? "Your best this week: " + AHDerby.Best.ToString("0.00") + " kg" : "Every fish is weighed · beat the week's leader for a prize", "",
+            new WkBtn { label = "Board", on = true, col = Plain, act = OpenDerby }));
+        rows.Add(s => Row(s, "Tales of the townsfolk", new Color(1f, 0.85f, 0.6f), "Baker Maudie, Woodcarver Ansel and Little Tess each have a story", "",
+            new WkBtn { label = "Open", on = true, col = Plain, act = OpenTales }));
         rows.Add(s => Row(s, "The Ashen Deep", new Color(0.75f, 0.55f, 1f),
             AHDeep.InRun ? "You are on floor " + AHDeep.Floor + " of " + AHDeep.Floors + " · " + AHDeep.Clock(AHDeep.Elapsed) : "This week: " + AHDeep.WeekBoss.name + " · " + AHDeep.WeekTwist.name,
             (AHDeep.Best > 0 ? "Best clear " + AHDeep.Clock(AHDeep.Best) + " · " : "") + AHDeep.Clears + " clears · " + (AHDeep.BossLooted ? "weekly reward taken" : "weekly reward waiting"),
