@@ -210,6 +210,7 @@ public partial class AHUI
             {
                 if (s.kind == "gate" && s.gate != null) mark(s.pos, !string.IsNullOrEmpty(s.gate.dung) ? new Color(0.85f, 0.2f, 0.15f) : new Color(0.3f, 0.75f, 0.35f), 13f, false, !string.IsNullOrEmpty(s.gate.dung) ? RegionName(s.gate.dung) : null);
                 else if (s.name == "Bounty board") mark(s.pos, new Color(0.95f, 0.75f, 0.25f), 11f, true, null);
+                else if (s.type == "deep_in") mark(s.pos, new Color(0.6f, 0.4f, 1f), 15f, false, "Ashen Deep");
             }
             if (g.data.exits != null) foreach (var x in g.data.exits) mark(g.W(x.x, x.z), new Color(0.3f, 0.75f, 0.35f), 13f, false, "to " + RegionName(x.to));
             if (AHWays.Ways != null) foreach (var w in AHWays.Ways) if (AHJson.S(w, "area") == AHGame.AreaId) mark(g.W((float)AHJson.N(w, "x") * S, (float)AHJson.N(w, "y") * S), AHWays.Known(p, w) ? new Color(0.35f, 0.65f, 0.95f) : new Color(0.5f, 0.5f, 0.55f), 14f, true, null);
@@ -218,6 +219,7 @@ public partial class AHUI
             foreach (var sp in AHSecrets.FoundSpots()) mark(sp, new Color(1f, 0.9f, 0.35f), 12f, true, null);
             Vector3 ev; if (AHSecrets.EventAt(out ev)) mark(ev, new Color(0.45f, 0.95f, 1f), 17f, true, "Event!");
             var pins = AHSecrets.Pins(); for (int pi = 0; pi < pins.Count; pi++) mark(pins[pi], new Color(0.9f, 0.2f, 0.55f), 15f, false, "Pin " + (pi + 1));
+            AHStory.MapMarks(p, (wp, nm) => mark(wp, new Color(1f, 0.72f, 0.2f), 18f, true, nm));   // whoever the story sends you to
             mark(p.transform.position, Color.white, 18f, false, "You");
         }
         // the side panel: the land's name, its levels and what the marks mean

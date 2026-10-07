@@ -24,9 +24,16 @@ public static class AHCostumes
     public static Def Get(string id) { foreach (var d in All) if (d.id == id) return d; return null; }
     public static bool Owns(AHPlayer p, string id) { var d = Get(id); return d != null && (d.price == 0 || (p != null && p.prog != null && p.prog.costumes.Contains(id))); }
     // the costume shown, or null for "Show gear"
+    // trying a costume on in the Wardrobe: worn for a little while, then your own look comes back by itself
+    public const float TryTime = 20f;
+    static string tryId; static float tryUntil;
+    public static void TryOn(string id) { tryId = id; tryUntil = Time.unscaledTime + TryTime; }
+    public static bool Trying(string id) { return tryId == id && Time.unscaledTime < tryUntil; }
     public static string Worn(AHPlayer p)
     {
-        if (p == null || p.prog == null || string.IsNullOrEmpty(p.prog.costume)) return null;
+        if (p == null || p.prog == null) return null;
+        if (tryId != null && Time.unscaledTime < tryUntil && Exists(p.look, tryId)) return tryId;
+        if (string.IsNullOrEmpty(p.prog.costume)) return null;
         return Owns(p, p.prog.costume) && Exists(p.look, p.prog.costume) ? p.prog.costume : null;
     }
     public static bool Exists(AHLook look, string id) { return Model(look, id) != null; }
@@ -111,10 +118,11 @@ public partial class AHUI
                     new WkBtn { label = "Dye", on = made, col = Plain, act = () => OpenDye(dd.id) }));
             else if (d.price < 0)
                 rows.Add(s => Row(s, d.name, new Color(0.8f, 0.7f, 0.9f), sub, "Beat the master of the Ashen Deep",
-                    new WkBtn { label = "Deep", on = false, col = Plain, act = () => { } }));
+                    new WkBtn { label = AHCostumes.Trying(d.id) ? "On" : "Try on", on = made && !AHCostumes.Trying(d.id), col = Plain, act = () => { AHCostumes.TryOn(dd.id); p.CheckOutfit(); ShowWork(false); Toast("Trying on " + dd.name + " for " + (int)AHCostumes.TryTime + " seconds.", 3f); } }));
             else
                 rows.Add(s => Row(s, d.name, new Color(0.8f, 0.7f, 0.9f), sub, AHItems.MoneyText(d.price * AHDB.CU),
-                    new WkBtn { label = "Buy", on = made, col = Go, act = () => { Toast(AHCostumes.Buy(p, dd.id) ?? ""); p.CheckOutfit(); g.SaveProgress(); RenderWork(); } }));
+                    new WkBtn { label = "Buy", on = made, col = Go, act = () => { Toast(AHCostumes.Buy(p, dd.id) ?? ""); p.CheckOutfit(); g.SaveProgress(); RenderWork(); } },
+                    new WkBtn { label = AHCostumes.Trying(d.id) ? "On" : "Try on", on = made && !AHCostumes.Trying(d.id), col = Plain, act = () => { AHCostumes.TryOn(dd.id); p.CheckOutfit(); ShowWork(false); Toast("Trying on " + dd.name + " for " + (int)AHCostumes.TryTime + " seconds.", 3f); } }));
         }
     }
 }

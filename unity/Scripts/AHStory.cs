@@ -27,7 +27,7 @@ public static class AHStory
             intro = new[] { new Line("Seren", "Do you hear that? Bells, and no church rings them."), new Line("Varek", "So this is the little hero the seer found. How... ordinary."), new Line("Varek", "I am Varek, herald of the Ashen King. Kneel, and you may yet keep your village."), new Line("Seren", "Never! Don't listen to him."), new Line("Varek", "Then burn. Ash-bound, rise!") },
             after = new[] { new Line("Varek", "Hm. Stronger than you look."), new Line("Varek", "Enjoy your little victory. The King has waited a thousand years. He can wait a little longer.") },
             outro = new[] { new Line("Seren", "He fled below, into the Ashen Deep. That is where the King's fire still burns."), new Line("Seren", "Rest a while. Then we go after him.") } },
-        new Ch { name = "Into the Deep", giver = "Seren", turnin = "Seren", lvl = 6, kind = "deepfloor", need = 1, task = "Clear a floor of the Ashen Deep (MENU → The Ashen Deep)", xp = 1500, gold = 2500,
+        new Ch { name = "Into the Deep", giver = "Seren", turnin = "Seren", lvl = 6, kind = "deepfloor", need = 1, task = "Clear a floor of the Ashen Deep (the violet portal in the meadow)", xp = 1500, gold = 2500,
             intro = new[] { new Line("Seren", "The Ashen Deep changes with every step: rooms that were not there yesterday."), new Line("Seren", "Find the way down. Clear one floor of the Deep and tell me what you saw.") },
             outro = new[] { new Line("Seren", "Walls that move... It is his doing. The King shapes the Deep to keep us out."), new Line("Seren", "I know someone who has fought down there. Find Kael, the Ember Monk. He is here, by the square.") } },
         new Ch { name = "Embers of Loyalty", giver = "Kael", turnin = "Kael", lvl = 8, kind = "deepboss", need = 1, task = "Defeat the master of the Ashen Deep (floor 5)", xp = 2500, gold = 4000,
@@ -155,6 +155,14 @@ public static class AHStory
         var m = new Material(Shader.Find("Universal Render Pipeline/Lit")); m.SetColor("_BaseColor", new Color(1f, 0.8f, 0.25f)); m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", new Color(1f, 0.75f, 0.2f) * 2f);
         marker.GetComponent<Renderer>().sharedMaterial = m;
         marker.AddComponent<AHSpinMark>();
+    }
+
+    // the map: a gold mark on whoever the story sends you to now
+    public static void MapMarks(AHPlayer p, Action<Vector3, string> mark)
+    {
+        var c = Cur(p); if (c == null || p.level < c.lvl || p.prog.storyState == 1) return;
+        string who = p.prog.storyState == 2 ? c.turnin : c.giver; GameObject a;
+        if (actors.TryGetValue(who, out a) && a != null) mark(a.transform.position, "Story: " + who);
     }
 
     // ---- talking ----

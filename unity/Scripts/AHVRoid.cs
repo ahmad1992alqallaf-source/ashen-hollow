@@ -176,18 +176,24 @@ public static class AHVRoid
         }
         else if (look.hair == "spiky")
         {
-            // tufts that stand up and out all over the crown, rooted inside the hair
-            for (int ring = 0; ring < 2; ring++)
-            {
-                int cnt = ring == 0 ? 9 : 5; float rr = ring == 0 ? 0.3f : 0.12f, lift = ring == 0 ? -0.1f : 0.02f, lean = ring == 0 ? 1.1f : 0.45f;
-                for (int i = 0; i < cnt; i++)
+            // sharp tapered spikes in three rings, standing up and out from inside the hair (the face kept clear)
+            float[] rr = { 0.36f, 0.22f, 0.08f }, lift = { -0.24f, -0.13f, -0.08f }, lean = { 1.25f, 0.7f, 0.2f }, len = { 0.34f, 0.4f, 0.38f }, rad = { 0.075f, 0.08f, 0.085f };
+            var sm = Mat(hk * 0.78f, 0.3f);   // a shade darker: lit spikes otherwise read paler than the painted hair
+            int[] cnt = { 13, 8, 4 };
+            for (int ring = 0; ring < 3; ring++)
+                for (int i = 0; i < cnt[ring]; i++)
                 {
-                    float a = (i + ring * 0.5f) * Mathf.PI * 2f / cnt; Vector3 dir = rt * Mathf.Cos(a) + fw * Mathf.Sin(a) * 0.85f;
-                    if (Vector3.Dot(dir, fw) > 0.55f && ring == 0) continue;   // keep the face clear
-                    Vector3 at = top + up * lift * w + dir * rr * w - fw * 0.06f * w;
-                    piece(at, new Vector3(0.16f, 0.46f, 0.16f) * w, Quaternion.LookRotation(fw, (up + dir * lean).normalized), hm);
+                    float a = (i + ring * 0.37f) * Mathf.PI * 2f / cnt[ring]; Vector3 dir = rt * Mathf.Cos(a) + fw * Mathf.Sin(a) * 0.85f;
+                    if (Vector3.Dot(dir, fw) > 0.5f && ring == 0) continue;
+                    Vector3 at = top + up * lift[ring] * w + dir * rr[ring] * w - fw * 0.07f * w;
+                    Vector3 way = (up + dir * lean[ring] - fw * 0.25f).normalized;
+                    float k = 0.85f + 0.3f * Mathf.Abs(Mathf.Sin(a * 3f + ring));
+                    var sp = GameObject.CreatePrimitive(PrimitiveType.Cube); Object.Destroy(sp.GetComponent<Collider>());
+                    sp.GetComponent<MeshFilter>().sharedMesh = Spike(); sp.name = "HairExtra";
+                    sp.transform.position = at; sp.transform.rotation = Quaternion.FromToRotation(Vector3.up, way);
+                    sp.transform.localScale = new Vector3(rad[ring], len[ring] * k, rad[ring]) * w;
+                    sp.GetComponent<Renderer>().sharedMaterial = sm; sp.transform.SetParent(head, true);
                 }
-            }
         }
         if (look.ears == "pointed" || look.ears == "elven")
         {
@@ -359,6 +365,24 @@ public static class AHVRoid
                            qw > 1e-3f ? Mathf.Clamp(vw / qw, 0.6f, 1.8f) : 1f);
         }
         return true;
+    }
+
+    // a hair spike: a six-sided cone, base radius 1 at y = 0, tip at y = 1
+    static Mesh spike;
+    static Mesh Spike()
+    {
+        if (spike != null) return spike;
+        var v = new List<Vector3>(); var t = new List<int>(); const int n = 6;
+        var ring = new Vector3[n]; for (int i = 0; i < n; i++) { float a = i * Mathf.PI * 2f / n; ring[i] = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)); }
+        System.Action<Vector3, Vector3, Vector3> tri = (a, b, c) => { int k = v.Count; v.Add(a); v.Add(b); v.Add(c); t.Add(k); t.Add(k + 1); t.Add(k + 2); };
+        for (int i = 0; i < n; i++)
+        {
+            int j = (i + 1) % n;
+            tri(ring[i], Vector3.up, ring[j]); tri(ring[j], Vector3.up, ring[i]);           // the side, both ways (flat-shaded facets)
+            tri(ring[j], Vector3.zero, ring[i]); tri(ring[i], Vector3.zero, ring[j]);       // the base
+        }
+        spike = new Mesh(); spike.SetVertices(v); spike.SetTriangles(t, 0); spike.RecalculateNormals(); spike.RecalculateBounds(); spike.name = "HairSpike";
+        return spike;
     }
 
     // a costume (or the plain clothes worn under gear): the body of another export of the same VRoid hero, moved onto

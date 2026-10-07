@@ -291,9 +291,22 @@ public class AHDeepView : MonoBehaviour
     public static void Setup(AHGame g)
     {
         AHDeep.Reset();
+        if (AHGame.AreaId == "meadow") { Entrance(g); return; }
         if (AHGame.AreaId != AHDeep.Area) return;
         if (!AHDeep.InRun) { g.StartCoroutine(Bounce(g)); return; }   // a run that already ended: back up top
         I = new GameObject("Ashen Deep").AddComponent<AHDeepView>(); I.g = g; I.Build();
+    }
+    // the way in: a violet portal at the edge of Hollow Meadow's village
+    static void Entrance(AHGame g)
+    {
+        if (g.data == null || g.data.spawn == null) return;
+        Vector3 at = g.Resolve(g.W(g.data.spawn.x - 11f, g.data.spawn.z - 9f), 1.4f);
+        AHDungeon.Portal(g, at, 0f, new Color(0.6f, 0.4f, 1f));
+        AHGather.Spots.Add(new AHSpot { kind = "use", type = "deep_in", name = "Enter the Ashen Deep", pos = at, r = 0.5f, reach = 3f, use = () =>
+        {
+            if (g.player.level < AHDeep.MinLevel) { g.ui.Toast("The Ashen Deep opens to heroes of level " + AHDeep.MinLevel + " and up.", 3f); return; }
+            AHDeep.Start(g);
+        } });
     }
     static System.Collections.IEnumerator Bounce(AHGame g) { yield return new WaitForSeconds(0.5f); AHDeep.Leave(g); }
 
