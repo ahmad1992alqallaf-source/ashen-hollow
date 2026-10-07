@@ -141,7 +141,7 @@ public static class AHVRoidTools
     static readonly System.Collections.Generic.List<GameObject> gearStands = new System.Collections.Generic.List<GameObject>();
     static int gearFrame;
 
-    [MenuItem("Ashen Hollow/VRoid: Gear Shots %&g")]
+    [MenuItem("Ashen Hollow/VRoid: Gear Shots")]
     static void GearShots()
     {
         if (!Application.isPlaying || AHGame.I == null) { Debug.Log("Ashen Hollow: Gear Shots needs Play mode"); return; }
