@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable] public class AHMkSlot { public string id; public int n; public long p; }
-[Serializable] public class AHMkStall { public string city, trade; public long until, till, earned, sim; public List<AHMkSlot> slots = new List<AHMkSlot>(); }
+[Serializable] public class AHMkStall { public string city, trade; public long until, till, earned, sim; public List<AHMkSlot> slots = new List<AHMkSlot>(); public int nameI; }
 
 public static class AHMarket
 {
@@ -20,6 +20,17 @@ public static class AHMarket
         new[] { "alchemist", "Apothecaries", "Potions, elixirs and herbs" }, new[] { "jeweler", "Jewelers’ Court", "Rings, amulets and set gems" }, new[] { "farmer", "Farmers’ Market", "Crops, eggs, milk, honey and wool" },
         new[] { "miner", "Miners’ Exchange", "Ores and raw gems" }, new[] { "fisher", "Fishmongers", "Fresh fish and pearls" }, new[] { "woodcutter", "Timber Yard", "Logs and timber" },
     };
+    // stall names: tap Rename to try the next one; the name hangs over your stall in the market lists
+    static readonly Dictionary<string, string> TradeWord = new Dictionary<string, string> { { "smith", "Anvil" }, { "tailor", "Needle" }, { "chef", "Kettle" }, { "alchemist", "Cauldron" }, { "jeweler", "Gem" }, { "farmer", "Harvest" }, { "miner", "Pickaxe" }, { "fisher", "Net" }, { "woodcutter", "Axe" } };
+    static readonly string[] NamePat = { "{h}'s {w}", "The Golden {w}", "The Honest {w}", "{h} & Sons", "The Lucky {w}", "The Silver {w}", "Fair Prices by {h}", "The Crooked Crow", "Ashen Wares", "The Merry {w}", "{h}'s Finest", "The Lantern and {w}" };
+    public const int NameCount = 12;
+    public static string StallName(AHPlayer p, AHMkStall s)
+    {
+        if (s == null) return "";
+        string w; if (!TradeWord.TryGetValue(s.trade ?? "", out w)) w = "Stall";
+        string h = p != null && !string.IsNullOrEmpty(p.heroName) ? p.heroName : "Hero";
+        return NamePat[((s.nameI % NamePat.Length) + NamePat.Length) % NamePat.Length].Replace("{h}", h).Replace("{w}", w);
+    }
     const int Slots = 8; const float Tax = 0.05f; const long Week = 7L * 86400000L;
     static long Now { get { return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); } }
     public static string CityName(string c) { var f = AHRep.Get(c); return f != null ? f.name : c; }
@@ -120,7 +131,7 @@ public partial class AHUI
             foreach (var t in AHMarket.Trades)
             {
                 string tr = t[0]; var s = AHMarket.Stall(p, mkCity, tr); bool live = AHMarket.Live(s), can = AHMarket.CanRent(p, tr);
-                string l2 = t[2] + (live ? " · your stall: " + s.slots.Count + " goods" + (s.till > 0 ? " · till " + AHItems.MoneyText(s.till * AHDB.CU) : "") : "");
+                string l2 = t[2] + (live ? " · " + AHMarket.StallName(p, s) + ": " + s.slots.Count + " goods" + (s.till > 0 ? " · till " + AHItems.MoneyText(s.till * AHDB.CU) : "") : "");
                 rows.Add(r => Row(r, t[1] + (live ? "  <color=#9be37a>your stall</color>" : ""), live ? new Color(0.6f, 0.9f, 0.5f) : can ? Color.white : new Color(0.6f, 0.55f, 0.5f), l2, live ? "Rented for " + Mathf.CeilToInt((s.until - DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()) / 86400000f) + " more days" : can ? "" : (tr == "woodcutter" ? "Needs Woodcutting 5" : "Needs the " + tr + " profession"),
                     live ? new WkBtn { label = "Manage", on = true, col = Go, act = () => { mkTrade = tr; wkPageI = 0; RenderWork(); } } : new WkBtn { label = "Rent", on = can, col = Plain, act = () => { AHMarket.RentStall(g, mkCity, tr); RenderWork(); } }));
             }
@@ -128,12 +139,14 @@ public partial class AHUI
         else
         {
             var s = AHMarket.Stall(p, mkCity, mkTrade); var T = Array.Find(AHMarket.Trades, x => x[0] == mkTrade);
-            wkTitle.text = T[1] + " · your stall";
+            wkTitle.text = AHMarket.StallName(p, s) + " · " + T[1];
             wkHint.text = "Till: " + AHItems.MoneyText(s.till * AHDB.CU) + " · earned in all: " + AHItems.MoneyText(s.earned * AHDB.CU) + ". Cheaper prices sell faster. Prices stay between each good's floor and ceiling.";
             rows.Add(r => Row(r, "Till and lease", new Color(1f, 0.82f, 0.3f), AHItems.MoneyText(s.till * AHDB.CU) + " waiting", "",
                 new WkBtn { label = "Collect", on = s.till > 0, col = Go, act = () => { AHMarket.Collect(g, s); RenderWork(); } },
                 new WkBtn { label = "+1 week", on = true, col = Plain, act = () => { AHMarket.RentStall(g, mkCity, mkTrade); RenderWork(); } },
                 new WkBtn { label = "Back", on = true, col = Plain, act = () => { mkTrade = null; wkPageI = 0; RenderWork(); } }));
+            rows.Add(r => Row(r, "Sign: " + AHMarket.StallName(p, s), new Color(0.95f, 0.8f, 0.55f), "The name over your stall", "",
+                new WkBtn { label = "Rename", on = true, col = Plain, act = () => { s.nameI = (s.nameI + 1) % AHMarket.NameCount; g.MarkDirty(); RenderWork(); } }));
             foreach (var q in s.slots)
             {
                 var qq = q; var it = AHItems.Get(q.id);
