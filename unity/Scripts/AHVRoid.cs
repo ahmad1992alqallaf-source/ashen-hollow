@@ -11,6 +11,7 @@ public static class AHVRoid
 {
     static readonly Dictionary<string, Avatar> srcAvatars = new Dictionary<string, Avatar>();
 
+    public static GameObject Last;   // the VRoid body the last Link made (an old one may still be in the holder, being destroyed)
     public static bool On { get { return AHPrefs.GetInt("ah_vroid", 1) == 1; } }
 
     // which VRoid model a hero uses (null: none yet)
@@ -115,7 +116,7 @@ public static class AHVRoid
         if (rig == null || model == null) return false;
         var arm = rig.transform.Find("Armature"); if (arm == null) return false;
         var av = SourceAvatar(body, arm); if (av == null) return false;
-        var v = Object.Instantiate(model, holder, false); v.name = "VRoid";
+        var v = Object.Instantiate(model, holder, false); v.name = "VRoid"; Last = v;
         v.transform.localPosition = Vector3.zero; v.transform.localRotation = Quaternion.identity;
         var an = v.GetComponent<Animator>(); if (an == null || an.avatar == null || !an.avatar.isHuman) { Object.Destroy(v); return false; }
         an.enabled = false;   // posed by the link, not by its own animator

@@ -111,8 +111,8 @@ public static class AHPeople
         if (vm != null && AHVRoid.Link(rig, holder, body, vm))
         {
             // the look editor's colours dye the VRoid body too: hair, skin and the outfit
-            var vr = holder.Find("VRoid");
-            if (vr != null) AHVRoid.Dye(vr.gameObject, hair, skin, Color.Lerp(clothMain, clothHi, 0.4f));
+            var vr = AHVRoid.Last;
+            if (vr != null) AHVRoid.Dye(vr, hair, skin, Color.Lerp(clothMain, clothHi, 0.4f));
         }
         return rig;
     }

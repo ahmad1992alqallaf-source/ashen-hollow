@@ -125,4 +125,23 @@ public static class AHVRoidTools
         cam.targetTexture = null; Object.DestroyImmediate(cg); Object.DestroyImmediate(lg); Object.DestroyImmediate(rt); Object.DestroyImmediate(tex);
         Debug.Log("Ashen Hollow: VRoid model shots saved to HeroShots/vr_*.png");
     }
+
+    // the live hero's VRoid materials: name, shader and colours (to see the dye at work)
+    [MenuItem("Ashen Hollow/VRoid: Dump Live Materials")]
+    static void DumpLive()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        var vr = g.player.transform.Find("VRoid"); var sb = new StringBuilder();
+        sb.AppendLine("look hair " + g.player.look.hair + " col " + g.player.look.hairCol + " vroid " + (vr != null ? vr.name : "none"));
+        if (vr != null)
+            foreach (var r in vr.GetComponentsInChildren<Renderer>(true))
+                foreach (var m in r.sharedMaterials)
+                {
+                    if (m == null) continue; sb.Append(r.name + " | " + m.name + " | " + m.shader.name);
+                    foreach (var pr in new[] { "_Color", "_BaseColor", "_ShadeColor", "_MainTex" }) if (m.HasProperty(pr)) sb.Append(" | " + pr + "=" + (pr == "_MainTex" ? (m.GetTexture(pr) != null ? m.GetTexture(pr).name : "null") : m.GetColor(pr).ToString()));
+                    sb.AppendLine();
+                }
+        File.WriteAllText(Path.Combine(Application.dataPath, "../HeroShots/vroid_live.txt"), sb.ToString());
+        Debug.Log("Ashen Hollow: wrote HeroShots/vroid_live.txt");
+    }
 }
