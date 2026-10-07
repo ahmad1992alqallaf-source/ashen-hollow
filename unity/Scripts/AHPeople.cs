@@ -113,6 +113,8 @@ public static class AHPeople
             // the look editor's colours dye the VRoid body too: hair, skin and the outfit
             var vr = AHVRoid.Last;
             if (vr != null) AHVRoid.Dye(vr, hair, skin, Color.Lerp(clothMain, clothHi, 0.4f));
+            // bald and shaved heads: the short build without its hair
+            if (vr != null && (look.hair == "bald" || look.hair == "shaved")) foreach (var r in vr.GetComponentsInChildren<Renderer>(true)) if (r.name.Contains("Hair")) r.enabled = false;
         }
         return rig;
     }

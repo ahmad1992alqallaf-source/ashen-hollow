@@ -148,7 +148,7 @@ public static class AHVRoidTools
         foreach (var s in gearStands) if (s != null) Object.Destroy(s);
         gearStands.Clear();
         string[] slots = { "head", "shoulders", "chest", "hands", "legs", "feet", "cape" };
-        string[] hairs = { "pony", "long", "short", "braid", "bun", "twin", "long" };
+        string[] hairs = { "pony", "long", "short", "braid", "bun", "twin", "bald" };
         for (int sx = 0; sx < 2; sx++)
             for (int i = 0; i < GearSets.Length; i++)
             {
