@@ -5,10 +5,13 @@ using UnityEngine;
 
 public class AHSeason : MonoBehaviour
 {
-    public static string Now { get { int m = System.DateTime.Now.Month; return m == 12 || m <= 2 ? "winter" : m <= 5 ? "spring" : m <= 8 ? "summer" : "autumn"; } }
+    public static string Force;   // test tools: show another season
+    public static string Now { get { if (!string.IsNullOrEmpty(Force)) return Force; int m = System.DateTime.Now.Month; return m == 12 || m <= 2 ? "winter" : m <= 5 ? "spring" : m <= 8 ? "summer" : "autumn"; } }
     public static string Name { get { switch (Now) { case "winter": return "Winter"; case "spring": return "Spring"; case "summer": return "Summer"; default: return "Autumn"; } } }
     AHGame g; ParticleSystem ps; bool nightOnly;
 
+    // test tools: put the current season's weather away and build it again (after Force changes)
+    public static void Rebuild(AHGame g) { foreach (var s in FindObjectsByType<AHSeason>(FindObjectsSortMode.None)) Destroy(s.gameObject); Setup(g); }
     public static void Setup(AHGame g)
     {
         string a = AHGame.AreaId;
@@ -22,7 +25,7 @@ public class AHSeason : MonoBehaviour
     {
         ps = gameObject.AddComponent<ParticleSystem>();
         ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-        var main = ps.main; main.loop = true; main.simulationSpace = ParticleSystemSimulationSpace.World; main.maxParticles = 500; main.playOnAwake = true;
+        var main = ps.main; main.loop = true; main.simulationSpace = ParticleSystemSimulationSpace.World; main.maxParticles = 600; main.playOnAwake = true; main.prewarm = true;   // the air is already full when you arrive
         var em = ps.emission; var sh = ps.shape; sh.shapeType = ParticleSystemShapeType.Box; sh.scale = new Vector3(26f, 1f, 26f);
         var vel = ps.velocityOverLifetime; vel.enabled = true; vel.space = ParticleSystemSimulationSpace.World;
         var rot = ps.rotationOverLifetime; var noise = ps.noise;
@@ -38,13 +41,13 @@ public class AHSeason : MonoBehaviour
             case "spring":
                 a = new Color(1f, 0.72f, 0.85f, 0.95f); b = new Color(1f, 0.92f, 0.95f, 0.9f);
                 main.startLifetime = 10f; main.startSize = new ParticleSystem.MinMaxCurve(0.14f, 0.24f); main.startSpeed = 0f;
-                em.rateOverTime = 30f; vel.x = new ParticleSystem.MinMaxCurve(0.4f, 1.1f); vel.y = new ParticleSystem.MinMaxCurve(-0.7f, -0.4f); vel.z = new ParticleSystem.MinMaxCurve(-0.3f, 0.3f);
+                em.rateOverTime = 30f; vel.x = new ParticleSystem.MinMaxCurve(0.4f, 1.1f); vel.y = new ParticleSystem.MinMaxCurve(-1.0f, -0.65f); vel.z = new ParticleSystem.MinMaxCurve(-0.3f, 0.3f);
                 rot.enabled = true; rot.z = new ParticleSystem.MinMaxCurve(-2f, 2f); noise.enabled = true; noise.strength = 0.6f; noise.frequency = 0.25f;
                 break;
             case "summer":
                 a = new Color(1f, 0.95f, 0.45f, 1f); b = new Color(0.8f, 1f, 0.4f, 1f); nightOnly = true;
-                main.startLifetime = 5f; main.startSize = new ParticleSystem.MinMaxCurve(0.05f, 0.09f); main.startSpeed = 0f;
-                em.rateOverTime = 14f; sh.scale = new Vector3(26f, 3f, 26f); vel.x = new ParticleSystem.MinMaxCurve(-0.2f, 0.2f); vel.y = new ParticleSystem.MinMaxCurve(-0.1f, 0.15f); vel.z = new ParticleSystem.MinMaxCurve(-0.2f, 0.2f);
+                main.startLifetime = 5f; main.startSize = new ParticleSystem.MinMaxCurve(0.1f, 0.17f); main.startSpeed = 0f;
+                em.rateOverTime = 22f; sh.scale = new Vector3(26f, 3f, 26f); vel.x = new ParticleSystem.MinMaxCurve(-0.2f, 0.2f); vel.y = new ParticleSystem.MinMaxCurve(-0.1f, 0.15f); vel.z = new ParticleSystem.MinMaxCurve(-0.2f, 0.2f);
                 noise.enabled = true; noise.strength = 0.8f; noise.frequency = 0.5f;
                 var col = ps.colorOverLifetime; col.enabled = true; var grad = new Gradient();
                 grad.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) }, new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.3f), new GradientAlphaKey(0.2f, 0.6f), new GradientAlphaKey(1f, 0.8f), new GradientAlphaKey(0f, 1f) });
@@ -91,7 +94,7 @@ public class AHSeason : MonoBehaviour
     void LateUpdate()
     {
         if (g == null || g.player == null || ps == null) return;
-        transform.position = g.player.transform.position + Vector3.up * (nightOnly ? 1.5f : 11f);
+        transform.position = g.player.transform.position + Vector3.up * (nightOnly ? 1.5f : 7.5f);
         if (nightOnly)
         {
             var em = ps.emission; em.enabled = g.IsNight;

@@ -1242,12 +1242,18 @@ public class AHPlayer : MonoBehaviour
     public string ActionName { get { return actionMob != null ? "Skinning" : AHGather.Busy ? (AHGather.actSpot.kind == "light" ? "Light fire" : AHGather.actRecipe != null ? AHItems.Get(AHGather.actRecipe.outId).name : AHGather.Label(AHGather.actSpot)) : null; } }
 
     // turn to the work and swing the tools
+    public static bool workLog;   // test: log the clip each piece of work plays
     public void BeginWork(Vector3 at, string clip = "Interact", string tool = null)
     {
         Vector3 d = at - transform.position; d.y = 0;
         if (d.sqrMagnitude > 1e-4f) transform.rotation = g.Face(d);
         StopEmote();
-        if (anim != null && !anim.Play(clip, true, 1f, true)) anim.Play("Interact", true, 1f, true);
+        // "A|B": the first clip this hero has (the new work set, else the older one)
+        bool played = false;
+        string got = null;
+        if (anim != null) foreach (var c in clip.Split('|')) if (anim.Play(c, true, 1f, true)) { played = true; got = c; break; }
+        if (workLog) Debug.Log("Ashen Hollow: work clip asked " + clip + ", played " + (got ?? "Interact"));
+        if (anim != null && !played) anim.Play("Interact", true, 1f, true);
         ShowTool(tool, at);
     }
 

@@ -309,6 +309,8 @@ public static class AHPeople
         // qAnims2: the combat set (sword cuts, spin, slam, roll, crossbow shot, throw, roar, kneel) from Quaternius UAL 1 and 2
         var clipList = new List<AnimationClip>(Resources.LoadAll<AnimationClip>(Dir + "qAnims"));
         clipList.AddRange(Resources.LoadAll<AnimationClip>(Dir + "qAnims2"));
+        // the work set (mining, chopping, gathering, hammering, farming, fishing) baked from Human Crafting Animations, if this PC has it
+        clipList.AddRange(Resources.LoadAll<AnimationClip>(Dir + (body.Contains("Female") ? "kWorkF" : "kWorkM")));
         if (!loggedClips) { loggedClips = true; Debug.Log("Ashen Hollow: hero animations " + clipList.Count + " (combat set " + Resources.LoadAll<AnimationClip>(Dir + "qAnims2").Length + ")"); }
         anim = new AHAnim(rig, clipList.ToArray());
         return rig;

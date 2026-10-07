@@ -50,7 +50,8 @@ public static class AHDeep
         new Twist { id = "elites", name = "Elite Hunt",   blurb = "two Deep-touched in every pack, richer chests" },
         new Twist { id = "bounty", name = "Bounty Week",  blurb = "every foe drops coin" },
     };
-    public static Twist WeekTwist { get { int n = Twists.Length; return Twists[(((WeekNo() * 3 + 1) % n) + n) % n]; } }
+    public static string ForceTwist;   // test tools: try another week's twist
+    public static Twist WeekTwist { get { if (!string.IsNullOrEmpty(ForceTwist)) foreach (var t in Twists) if (t.id == ForceTwist) return t; int n = Twists.Length; return Twists[(((WeekNo() * 3 + 1) % n) + n) % n]; } }
     public static bool Is(string twist) { return WeekTwist.id == twist; }
 
     // ---- the Hall of the Deep: the fastest clears (yours among the delvers of the Hollow) ----
