@@ -344,6 +344,8 @@ public class AHMob : MonoBehaviour
         if (by != null) AHTrophies.OnKill(g, this, by);
         if (by != null) AHWear.OnKill(g, by);
         AHDungeon.OnMobDown(g, this);
+        AHDeep.OnMobDown(g, this);
+        AHStory.OnMobDown(g, this);
     }
 
     // skinned: the body goes 1.2 s later

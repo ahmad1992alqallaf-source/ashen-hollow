@@ -17,6 +17,7 @@ public static class AHCostumes
         new Def { id = "sage",    name = "Skyveil Sage",   price = 12000, blurb = "White and sky-blue robes trimmed in gold, worn by the Hollow's seers." },
         new Def { id = "crimson", name = "Crimson Count",  price = 20000, blurb = "A noble's black coat with a blood-red cape. Old money, older grudges." },
         new Def { id = "duelist", name = "Rose Duelist",   price = 25000, blurb = "A red-and-gold officer's coat, cut for the duelling ring." },
+        new Def { id = "night",   name = "Nightglass",     price = -1,    blurb = "Black armoured weave that drinks the light. Only the master of the Ashen Deep gives it." },
     };
     public const string Under = "under";   // the plain clothes under armour (not a costume you choose)
 
@@ -39,6 +40,7 @@ public static class AHCostumes
     {
         var d = Get(id); if (d == null || p == null) return null;
         if (Owns(p, id)) return "You already have " + d.name + ".";
+        if (d.price < 0) return "Only the master of the Ashen Deep gives " + d.name + ".";
         if (d.price * AHDB.CU > p.bag.money) return "You need " + AHItems.MoneyText(d.price * AHDB.CU) + " for " + d.name + ".";
         p.bag.money -= d.price * AHDB.CU; p.bag.Touch();
         p.prog.costumes.Add(id); p.prog.costume = id;
@@ -47,7 +49,7 @@ public static class AHCostumes
 
     // put a costume (or the under-clothes) on a hero rig built by AHPeople.BuildHero; false if it has no VRoid body
     // or the costume has not been made for that body yet
-    public static bool Apply(GameObject rig, string id, AHLook look)
+    public static bool Apply(GameObject rig, string id, AHLook look, string dye = null)
     {
         if (rig == null || id == null) return false;
         var link = rig.GetComponent<AHVRoidLink>(); if (link == null || link.Body == null) return false;
@@ -70,6 +72,7 @@ public static class AHCostumes
             ch = true;
         }
         if (ch) smr.materials = mats;
+        if (dye != null) AHFashion.Tint(smr, dye);
         return true;
     }
 
@@ -104,7 +107,11 @@ public partial class AHUI
             string sub = d.blurb + (made ? "" : " (coming soon for this hero)");
             if (own)
                 rows.Add(s => Row(s, d.name + (on ? "  · wearing" : ""), new Color(0.95f, 0.8f, 1f), sub, "",
-                    new WkBtn { label = on ? "Worn" : "Wear", on = made && !on, col = Go, act = () => { p.prog.costume = dd.id; p.CheckOutfit(); g.SaveProgress(); Toast("Wearing " + dd.name + "."); RenderWork(); } }));
+                    new WkBtn { label = on ? "Worn" : "Wear", on = made && !on, col = Go, act = () => { p.prog.costume = dd.id; p.CheckOutfit(); g.SaveProgress(); Toast("Wearing " + dd.name + "."); RenderWork(); } },
+                    new WkBtn { label = "Dye", on = made, col = Plain, act = () => OpenDye(dd.id) }));
+            else if (d.price < 0)
+                rows.Add(s => Row(s, d.name, new Color(0.8f, 0.7f, 0.9f), sub, "Beat the master of the Ashen Deep",
+                    new WkBtn { label = "Deep", on = false, col = Plain, act = () => { } }));
             else
                 rows.Add(s => Row(s, d.name, new Color(0.8f, 0.7f, 0.9f), sub, AHItems.MoneyText(d.price * AHDB.CU),
                     new WkBtn { label = "Buy", on = made, col = Go, act = () => { Toast(AHCostumes.Buy(p, dd.id) ?? ""); p.CheckOutfit(); g.SaveProgress(); RenderWork(); } }));

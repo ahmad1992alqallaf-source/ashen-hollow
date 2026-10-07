@@ -48,7 +48,7 @@ public static class AHWardrobe
     {
         var sb = new System.Text.StringBuilder();
         foreach (var s in Slots) { sb.Append('|'); sb.Append(Shown(p, s)); }
-        sb.Append("|c:"); sb.Append(AHCostumes.Worn(p));
+        sb.Append("|c:"); sb.Append(AHCostumes.Worn(p)); sb.Append(":"); sb.Append(AHFashion.DyeOf(p, AHCostumes.Worn(p)));
         return sb.ToString();
     }
 
@@ -573,7 +573,7 @@ public static class AHWardrobe
         dye = AHPeople.OutfitColor(p.look); dyeOn = p.look != null;
         // a costume: the whole outfit, and no gear pieces drawn (the weapon is in the hand already)
         string cos = AHCostumes.Worn(p);
-        if (cos != null && AHCostumes.Apply(rig, cos, p.look)) { DressWith(rig, p.transform, s => null, () => p.Moving); dyeOn = false; return; }
+        if (cos != null && AHCostumes.Apply(rig, cos, p.look, AHFashion.DyeOf(p, cos))) { DressWith(rig, p.transform, s => null, () => p.Moving); dyeOn = false; return; }
         // armour on the chest: plain close-fitting clothes under it instead of the starting robe
         if (Shown(p, "chest") != null) AHCostumes.Apply(rig, AHCostumes.Under, p.look);
         DressWith(rig, p.transform, s => Shown(p, s), () => p.Moving);

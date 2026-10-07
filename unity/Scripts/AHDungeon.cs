@@ -277,6 +277,8 @@ public class AHDungeon : MonoBehaviour
     public static bool Think(AHMob m, float dt, float dist)
     {
         if (m.type.id == AHRaid.Boss) return AHRaid.Think(AHGame.I, m, dt);
+        if (AHDeep.IsBoss(m)) return AHDeep.Think(AHGame.I, m, dt);
+        if (AHStory.IsBoss(m)) return AHStory.Think(AHGame.I, m, dt);
         var d = AHJson.O(AHDB.Mobs, m.type.id);
         if (I != null)
         {

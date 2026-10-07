@@ -67,6 +67,7 @@ public static class AHGather
                             if (AHItems.Get(r.outId) != null && r.skill != null) l.Add(r);
                         }
                     AHRareRecipes.AddTo(kv.Key, l);
+                    AHFashion.AddTo(kv.Key, l);
                     recipes[kv.Key] = l;
                 }
         }

@@ -1,4 +1,5 @@
 // Ashen Hollow: one menu item that makes the materials and a ready-to-play scene
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -773,6 +774,71 @@ public static class AHMenu
         cam.targetTexture = null; Object.DestroyImmediate(go); Object.DestroyImmediate(lg); Object.Destroy(rt); Object.Destroy(tex); Object.Destroy(sheet);
         if (destroy) foreach (var o in objs) Object.DestroyImmediate(o);
     }
+    // two floors of the Ashen Deep built far below the world (nothing awake, nothing to walk on), photographed from above
+    // and close up: HeroShots/deep.png. The hero stays where they are.
+    [MenuItem("Ashen Hollow/Test: Deep Floor Shots")]
+    static void DeepShots()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        var views = new List<AHDeepView>();
+        int[] floors = { 2, 5 };
+        for (int i = 0; i < floors.Length; i++)
+        {
+            var v = AHDeepView.Preview(g, 4242 + i * 17, floors[i]);
+            Vector3 off = new Vector3(6000f + i * 400f, -1500f, 0f);
+            v.transform.position += off; foreach (var e in v.Extra) if (e != null) e.transform.position += off;
+            views.Add(v);
+        }
+        deepViews = views; deepFrame = Time.frameCount;
+        EditorApplication.update -= DeepStep; EditorApplication.update += DeepStep;
+    }
+    static List<AHDeepView> deepViews; static int deepFrame;
+    static void DeepStep()
+    {
+        if (!Application.isPlaying) { EditorApplication.update -= DeepStep; return; }
+        if (Time.frameCount < deepFrame + 10) return;
+        EditorApplication.update -= DeepStep;
+        const int L = 29, W = 700, H = 700;
+        foreach (var v in deepViews) { foreach (var t in v.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = L; foreach (var e in v.Extra) foreach (var t in e.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = L; }
+        var cg = new GameObject("DeepCam"); var cam = cg.AddComponent<Camera>(); cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(0.05f, 0.04f, 0.05f); cam.cullingMask = 1 << L; cam.farClipPlane = 600f;
+        var lg = new GameObject("DeepLight"); var li = lg.AddComponent<Light>(); li.type = LightType.Directional; li.intensity = 0.7f; li.cullingMask = 1 << L; lg.transform.rotation = Quaternion.Euler(60f, 30f, 0f);
+        var rt = new RenderTexture(W, H, 24); cam.targetTexture = rt; var tex = new Texture2D(W, H, TextureFormat.RGB24, false);
+        var sheet = new Texture2D(W * 2, H * 2, TextureFormat.RGB24, false);
+        for (int i = 0; i < deepViews.Count; i++)
+        {
+            var v = deepViews[i]; var rs = v.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) continue;
+            Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+            // from above
+            cam.orthographic = true; cam.orthographicSize = Mathf.Max(b.size.x, b.size.z) * 0.55f;
+            cam.transform.position = b.center + Vector3.up * 200f; cam.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, W, H), 0, 0); tex.Apply(); RenderTexture.active = null;
+            sheet.SetPixels(i * W, H, W, H, tex.GetPixels());
+            // close up: the busiest room, from a hero's camera height
+            cam.orthographic = false; cam.fieldOfView = 55f;
+            Vector3 focus = b.center; AHMob big = null;
+            foreach (var e in v.Extra) { var m = e != null ? e.GetComponent<AHMob>() : null; if (m != null && (big == null || m.type.hp > big.type.hp)) big = m; }
+            if (big != null) focus = big.transform.position;
+            cam.transform.position = focus + new Vector3(0f, 7f, -11f); cam.transform.LookAt(focus + Vector3.up * 1f);
+            cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, W, H), 0, 0); tex.Apply(); RenderTexture.active = null;
+            sheet.SetPixels(i * W, 0, W, H, tex.GetPixels());
+        }
+        sheet.Apply();
+        System.IO.File.WriteAllBytes(System.IO.Path.Combine(Application.dataPath, "../HeroShots/deep.png"), sheet.EncodeToPNG());
+        cam.targetTexture = null; Object.Destroy(cg); Object.Destroy(lg); Object.Destroy(rt); Object.Destroy(tex); Object.Destroy(sheet);
+        foreach (var v in deepViews) { foreach (var e in v.Extra) if (e != null) Object.Destroy(e); Object.Destroy(v.gameObject); }
+        deepViews = null;
+        Debug.Log("Ashen Hollow: Deep floor shots saved to HeroShots/deep.png");
+    }
+
+    // the Ashen King story: play a chapter's opening cutscene without starting it (nothing is saved)
+    [MenuItem("Ashen Hollow/Test: Story Cutscene Preview")]
+    static void StoryCine()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        var c = AHStory.Chapters[1];
+        AHCine.Play(g, "Chapter 2 · " + c.name + " (preview)", c.intro, () => g.ui.Toast("Cutscene preview over. Nothing was changed.", 3f));
+    }
+
     // opens the Wardrobe as it is (costumes at the top), changing nothing
     [MenuItem("Ashen Hollow/Test: Open Wardrobe")]
     static void OpenWard() { var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return; g.ui.OpenWardrobe(); }

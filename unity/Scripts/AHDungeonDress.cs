@@ -10,7 +10,7 @@ using UnityEngine;
 public static class AHDungeonDress
 {
     static readonly Dictionary<string, GameObject> cache = new Dictionary<string, GameObject>();
-    static GameObject P(string n) { GameObject g; if (!cache.TryGetValue(n, out g)) { g = Resources.Load<GameObject>("AH/Models/KK/kk_dg_" + n); cache[n] = g; } return g; }
+    public static GameObject P(string n) { GameObject g; if (!cache.TryGetValue(n, out g)) { g = Resources.Load<GameObject>("AH/Models/KK/kk_dg_" + n); cache[n] = g; } return g; }
     public static int Torches { get; private set; }
 
     static Color FlameOf(string area)
@@ -92,7 +92,7 @@ public static class AHDungeonDress
     static void Strip(GameObject go) { foreach (var c in go.GetComponentsInChildren<Collider>(true)) Object.Destroy(c); }
 
     // an iron torch on a wooden post, leaning a little off the wall, with a flickering light and embers
-    static void Torch(Transform root, Vector3 at, Vector3 wall, Color flame)
+    public static void Torch(Transform root, Vector3 at, Vector3 wall, Color flame)
     {
         var t = new GameObject("Torch").transform; t.SetParent(root, false); t.position = at; t.rotation = Quaternion.LookRotation(-wall);
         var post = AHLowPoly.Fix(GameObject.CreatePrimitive(PrimitiveType.Cylinder), PrimitiveType.Cylinder); Object.Destroy(post.GetComponent<Collider>()); post.transform.SetParent(t, false);

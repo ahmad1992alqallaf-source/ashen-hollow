@@ -113,7 +113,8 @@ public class AHGame : MonoBehaviour
         Spread = 1f;
         GameObject wp = Resources.Load<GameObject>(AreaPath + AreaId + "_world_kk");   // a city with its old houses cut out for the detailed buildings
         if (wp == null) wp = Resources.Load<GameObject>(AreaPath + AreaId + "_world");
-        if (wp == null) Debug.LogError("Ashen Hollow: the " + AreaId + " model did not import. Is the glTFast package installed?");
+        if (wp == null && AreaId == AHDeep.Area) { }   // the Ashen Deep is built in code, floor by floor (AHDeep)
+        else if (wp == null) Debug.LogError("Ashen Hollow: the " + AreaId + " model did not import. Is the glTFast package installed?");
         else
         {
             world = Instantiate(wp).transform;
@@ -201,6 +202,8 @@ public class AHGame : MonoBehaviour
         AHAuction.Load();
         AHHomeView.Setup(this);
         AHRaidView.Setup(this);
+        AHDeepView.Setup(this);   // the Ashen Deep: this floor's rooms, foes, traps and stairs
+        AHStory.Setup(this);      // the Ashen King story: its people in the meadow, an unfinished fight, the statue
         AHKQ.Setup(this);
         AHComp.SpawnPet(this);
         AHComp.SpawnAllies(this);
@@ -314,6 +317,7 @@ public class AHGame : MonoBehaviour
     }
 
     public void AddBlocker(Vector3 p, float r) { cPos.Add(new Vector3(p.x, 0f, p.z)); cRad.Add(r); }
+    public void AddFloor(Rect r) { floors.Add(r); }   // a floor built in code (the Ashen Deep): only floors are walkable once there is one
     // a solid box on the ground (a market stall, a booth), from its world bounds, shrunk a little so you can still reach the counter
     public void AddBlockBox(Bounds b, float shrink = 0.25f)
     {
@@ -897,6 +901,7 @@ public class AHGame : MonoBehaviour
         float aspect = Screen.height > 0 ? (float)Screen.width / Screen.height : 1.78f;
         float wantFov = Mathf.Max(58f, 2f * Mathf.Atan(Mathf.Tan(37.5f * Mathf.Deg2Rad) / Mathf.Max(0.5f, aspect)) * Mathf.Rad2Deg);
         if (Mathf.Abs(cam.fieldOfView - wantFov) > 0.05f && !(ui != null && ui.CreatorOpen)) cam.fieldOfView = wantFov;
+        if (AHCine.Drive(cam)) return;   // a story cutscene holds the camera
         bool creating = ui != null && ui.CreatorOpen;
         if (ui != null && !creating)
         {

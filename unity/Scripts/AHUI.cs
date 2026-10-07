@@ -17,7 +17,7 @@ public partial class AHUI : MonoBehaviour
     public bool PickerOpen { get { return picker != null && picker.gameObject.activeSelf; } }
     public bool BagOpen { get { return bagRoot != null && bagRoot.gameObject.activeSelf; } }
     // which window is in front: 0 none (the game), 1 class picker, 2 bag, 3 talking, 4 making your hero, 5 crafting / professions
-    public int Modal { get { return InspectOpen ? 7 : SelectOpen ? 6 : CreatorOpen ? 4 : WorkOpen ? 5 : PickerOpen ? 1 : BagOpen ? 2 : DialogOpen ? 3 : 0; } }
+    public int Modal { get { return AHCine.Active ? 8 : InspectOpen ? 7 : SelectOpen ? 6 : CreatorOpen ? 4 : WorkOpen ? 5 : PickerOpen ? 1 : BagOpen ? 2 : DialogOpen ? 3 : 0; } }
 
     AHGame g;
     Canvas canvas;
@@ -762,6 +762,7 @@ public partial class AHUI : MonoBehaviour
             else if (d.potion) { p.Drink(id); bagSel = bag.Count(id) > 0 ? id : null; }
             else if (id == "mystery_sack") { AHDaily.OpenSack(g); bagSel = bag.Count(id) > 0 ? id : null; }
             else if (id == AHRareRecipes.ScrollId) { AHRareRecipes.Read(g); bagSel = bag.Count(id) > 0 ? id : null; }
+            else if (AHFashion.IsPattern(id)) { AHFashion.ReadPattern(g, id); bagSel = bag.Count(id) > 0 ? id : null; }
             else if (AHTreasure.IsMap(id)) { AHTreasure.Read(g, id); bagSel = bag.Count(id) > 0 ? id : null; }
             else if (d.reins != null) { if (p.mounts.Contains(d.reins)) Toast("You already know that mount. Sell the reins to someone who wants it."); else if (bag.Take(id)) { p.mounts.Add(d.reins); p.mountSel = d.reins; RefreshRide(); Banner(AHComp.MountName(d.reins), "Mount learned! Tap RIDE"); AHSound.Play("level"); g.MarkDirty(); } bagSel = bag.Count(id) > 0 ? id : null; }
             else if (id.StartsWith("card_")) { if (!AHPower.AddCard(g, id)) Toast("That card is already in your collection. Sell or trade the spare."); bagSel = bag.Count(id) > 0 ? id : null; }
@@ -878,6 +879,7 @@ public partial class AHUI : MonoBehaviour
             else if (sd.id == "lucky_charm") text = "Use one while enhancing: if the attempt fails, the item keeps its level.";
             else if (AHPower.GemText(sd.id) != "") text = "Gem · fits a gear socket: " + AHPower.GemText(sd.id) + " (Menu → Gem sockets).";
             else if (sd.id == "mystery_sack") { text = sd.note ?? "What could be inside?"; act = "Open"; }
+            else if (AHFashion.IsPattern(sd.id)) { var pc = AHCostumes.Get(sd.id.Substring(8)); text = (sd.note ?? "") + (pc != null && AHCostumes.Owns(p, pc.id) ? " You already have this costume." : ""); act = "Read"; }
             else if (sd.id == AHRareRecipes.ScrollId) { text = (sd.note ?? "") + " You know " + AHRareRecipes.KnownCount(p) + " of " + AHRareRecipes.Total + "."; act = "Read"; }
             else if (AHTreasure.IsMap(sd.id)) { text = sd.note ?? "A treasure map."; act = "Read"; }
             else if (sd.reins != null) { text = sd.note ?? "Reins: learn this mount."; act = "Learn"; }

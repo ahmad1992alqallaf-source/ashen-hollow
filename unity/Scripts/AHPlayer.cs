@@ -454,6 +454,7 @@ public class AHPlayer : MonoBehaviour
         Vector2 stick = g.ui != null ? g.ui.stick : Vector2.zero;
         Vector2 keys = AHInput.Keys();
         if (keys.sqrMagnitude > stick.sqrMagnitude) stick = keys;
+        if (AHCine.Active) stick = Vector2.zero;   // a cutscene is playing
         Vector3 move = g.CamForward() * stick.y + g.CamRight() * stick.x;
         if (move.sqrMagnitude > 1f) move.Normalize();
         // AUTO quest steers when you are not (moving the stick takes over)

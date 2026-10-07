@@ -28,6 +28,8 @@ public static class AHAch
             A("dragon", "Dragonslayer", "Defeat Ignirax the Ashen Wyrm.", "Dragonslayer", p => K(p, "wyrm") >= 1);
             A("dinos", "Dino Hunter", "Defeat 25 dinosaurs.", "the Dino Hunter", p => K(p, "raptor") + K(p, "hornback") + K(p, "pterra") + K(p, "tyrant") >= 25);
             A("beast", "Beastmaster", "Own 3 pets.", "Beastmaster", p => p.pets.Count >= 3);
+            A("kingsbane", "Kingsbane", "Finish the story of the Ashen King.", "Kingsbane", p => p.prog.storyCh >= AHStory.Chapters.Length);
+            A("deepwalker", "Deepwalker", "Clear all five floors of the Ashen Deep.", "the Deepwalker", p => AHDeep.Clears >= 1);
             A("rider", "Saddled Up", "Own a mount.", "the Rider", p => p.mounts.Count >= 1);
             A("party", "Band of Heroes", "Travel with a full party.", "Captain", p => p.party.Count >= AHComp.PartyMax);
             A("rich", "Silver Tongue", "Hold 1 silver in your purse.", "the Wealthy", p => p.bag.money >= 1000000L);
