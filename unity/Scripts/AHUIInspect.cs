@@ -87,7 +87,7 @@ public partial class AHUI
         insGlow.color = new Color(q.r, q.g, q.b, 0.5f);
         // the picture: the piece, or your hero wearing it
         Texture tex;
-        if (insOn) { string id = d.id; tex = AHItemStudio.HeroOf(p.cls, p.look, s => s == d.slot ? id : AHWardrobe.Shown(p, s)); insView.sizeDelta = new Vector2(300, 420); }
+        if (insOn) { AHItemStudio.Campfire = false; string id = d.id; tex = AHItemStudio.HeroOf(p.cls, p.look, s => s == d.slot ? id : AHWardrobe.Shown(p, s)); insView.sizeDelta = new Vector2(300, 420); }
         else { AHItemStudio.StopHero(); tex = AHItemStudio.View(d); insView.sizeDelta = new Vector2(300, 300); }
         insRaw.texture = tex; insRaw.enabled = tex != null;
         insHint.text = insOn ? "Only a look: nothing is changed until you equip it." : tex == null ? "Getting the picture ready..." : "";

@@ -177,6 +177,53 @@ public class AHItemStudio : MonoBehaviour
 
     // ---- your whole hero, standing in all its gear (the Stats window) ----
     RenderTexture heroRt; GameObject heroRig; string heroSig; Transform heroStage; float heroT;
+    // the hero select screen: a campfire burns beside your hero (logs, flickering flames, a warm light on you)
+    public static bool Campfire;
+    GameObject fire; Transform[] flames; Light fireLight;
+    void BuildFire()
+    {
+        fire = new GameObject("Campfire"); fire.transform.SetParent(heroStage, false);
+        fire.transform.localPosition = new Vector3(0.55f, 0f, -0.8f);
+        var sh = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
+        System.Func<Color, Material> M = c => { var m = new Material(sh); if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", c); if (m.HasProperty("_Color")) m.SetColor("_Color", c); return m; };
+        var wood = M(new Color(0.32f, 0.2f, 0.11f)); var stone = M(new Color(0.42f, 0.4f, 0.38f));
+        for (int i = 0; i < 3; i++)
+        {
+            var lg = GameObject.CreatePrimitive(PrimitiveType.Cylinder); Destroy(lg.GetComponent<Collider>()); lg.transform.SetParent(fire.transform, false);
+            lg.transform.localPosition = new Vector3(0f, 0.07f, 0f); lg.transform.localRotation = Quaternion.Euler(80f, i * 60f, 0f); lg.transform.localScale = new Vector3(0.08f, 0.28f, 0.08f);
+            lg.GetComponent<Renderer>().sharedMaterial = wood;
+        }
+        for (int i = 0; i < 8; i++)
+        {
+            var st = GameObject.CreatePrimitive(PrimitiveType.Sphere); Destroy(st.GetComponent<Collider>()); st.transform.SetParent(fire.transform, false);
+            float a = i * Mathf.PI / 4f; st.transform.localPosition = new Vector3(Mathf.Cos(a) * 0.36f, 0.04f, Mathf.Sin(a) * 0.36f); st.transform.localScale = new Vector3(0.14f, 0.09f, 0.12f);
+            st.GetComponent<Renderer>().sharedMaterial = stone;
+        }
+        Color[] fc = { new Color(1f, 0.45f, 0.1f), new Color(1f, 0.7f, 0.2f), new Color(1f, 0.92f, 0.55f) };
+        flames = new Transform[3];
+        for (int i = 0; i < 3; i++)
+        {
+            var f = GameObject.CreatePrimitive(PrimitiveType.Sphere); Destroy(f.GetComponent<Collider>()); f.transform.SetParent(fire.transform, false);
+            f.GetComponent<Renderer>().sharedMaterial = M(fc[i]); f.GetComponent<Renderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            flames[i] = f.transform;
+        }
+        var lgo = new GameObject("FireLight"); lgo.transform.SetParent(fire.transform, false); lgo.transform.localPosition = new Vector3(0f, 0.5f, 0f);
+        fireLight = lgo.AddComponent<Light>(); fireLight.type = LightType.Point; fireLight.color = new Color(1f, 0.6f, 0.25f); fireLight.range = 4f; fireLight.intensity = 2.5f;
+        SetLayer(fire.transform, Layer);
+    }
+    void TickFire()
+    {
+        if (!Campfire) { if (fire != null && fire.activeSelf) fire.SetActive(false); return; }
+        if (fire == null) BuildFire(); if (!fire.activeSelf) fire.SetActive(true);
+        float t = Time.unscaledTime;
+        for (int i = 0; i < flames.Length; i++)
+        {
+            float k = 1f - i * 0.28f, fl = 1f + Mathf.Sin(t * (9f + i * 3f)) * 0.12f + Mathf.Sin(t * (15f + i * 5f)) * 0.08f;
+            flames[i].localPosition = new Vector3(Mathf.Sin(t * 5f + i) * 0.02f, 0.18f + i * 0.06f, Mathf.Cos(t * 4f + i) * 0.02f);
+            flames[i].localScale = new Vector3(0.26f * k, 0.42f * k * fl, 0.26f * k);
+        }
+        fireLight.intensity = 2.2f + Mathf.PerlinNoise(t * 6f, 0f) * 1.2f;
+    }
     public static Texture Hero(AHPlayer p)
     {
         if (p == null) return null;
@@ -228,6 +275,7 @@ public class AHItemStudio : MonoBehaviour
         float h = Mathf.Clamp(b.size.y, 1.2f, 3.2f) * 1.12f;
         Vector3 c = new Vector3(heroRig.transform.position.x, b.min.y + h * 0.48f, heroRig.transform.position.z);
         float dist = (h * 0.5f) / Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad);
+        TickFire();
         cam.targetTexture = heroRt; cam.transform.position = c + heroStage.forward * dist + Vector3.up * dist * 0.08f; cam.transform.LookAt(c); cam.Render();
     }
 }

@@ -277,6 +277,7 @@ public partial class AHUI
             var h = HeroInfo(selPick); var cls = AHClasses.Get(h.cls);
             selName.text = string.IsNullOrEmpty(h.name) ? "Unnamed hero" : h.name;
             selInfo.text = "Level " + h.level + " " + (cls != null ? cls.name : "") + " · " + AreaName(h.area);
+            AHItemStudio.Campfire = true;   // the hero select screen: your hero stands by a campfire
             if (selPick == AHPrefs.Slot && g.player != null) selRaw.texture = AHItemStudio.Hero(g.player);
             else
             {

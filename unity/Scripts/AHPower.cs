@@ -211,7 +211,7 @@ public partial class AHUI
         if (panel9 != null) stand.GetComponent<Image>().type = Image.Type.Sliced;
         if (glow != null) Img("Glow", stand, glow, new Vector2(0.5f, 0.5f), new Vector2(0, 30), new Vector2(260, 300), new Color(AHEvo.PathColor(p).r, AHEvo.PathColor(p).g, AHEvo.PathColor(p).b, 0.35f));
         var view = Box("Hero", stand, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -8), new Vector2(240, 336));
-        var raw = view.gameObject.AddComponent<RawImage>(); raw.raycastTarget = false; raw.texture = AHItemStudio.Hero(p);
+        var raw = view.gameObject.AddComponent<RawImage>(); raw.raycastTarget = false; AHItemStudio.Campfire = false; raw.texture = AHItemStudio.Hero(p);
         var nm = Label(stand, "Name", p.heroName ?? "Hero", 20, TextAnchor.UpperCenter, new Vector2(0, -346), new Vector2(250, 26), Gold); nm.fontStyle = FontStyle.Bold;
         Label(stand, "Class", p.cls.name + " · level " + p.level, 15, TextAnchor.UpperCenter, new Vector2(0, -372), new Vector2(250, 20), new Color(1f, 1f, 1f, 0.75f));
         // the numbers: two columns of cards, each with a bar to its cap
