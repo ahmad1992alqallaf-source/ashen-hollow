@@ -145,10 +145,12 @@ public static class AHVRoid
         if (headOk)
         {
             // the VRoid skull plus its hair is about an eighth wider than the face mesh alone
-            float qw = Mathf.Max(qb.size.x, qb.size.z), vw = Mathf.Max(vb.size.x, vb.size.z) * 1.22f;
+            // (the old male head is broad, so on the male VRoid head the gear needs a little more size and sits lower)
+            bool male = model.name.StartsWith("hero_m");
+            float qw = Mathf.Max(qb.size.x, qb.size.z), vw = Mathf.Max(vb.size.x, vb.size.z) * (male ? 1.5f : 1.3f);
             link.SetupHead(qHead, qHead.InverseTransformPoint(new Vector3(qb.center.x, qb.max.y, qb.center.z)),
-                           vHead, vHead.InverseTransformPoint(new Vector3(vb.center.x, vb.max.y - 0.005f, vb.center.z)),
-                           qw > 1e-3f ? Mathf.Clamp(vw / qw, 0.6f, 1.4f) : 1f);
+                           vHead, vHead.InverseTransformPoint(new Vector3(vb.center.x, vb.max.y - (male ? 0.012f : 0.018f), vb.center.z)),
+                           qw > 1e-3f ? Mathf.Clamp(vw / qw, 0.6f, 1.8f) : 1f);
         }
         return true;
     }

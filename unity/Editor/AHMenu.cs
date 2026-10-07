@@ -357,6 +357,13 @@ public static class AHMenu
     }
 
     // takes back the last workshop level (and pays it back): undoes a mistaken test purchase
+    [MenuItem("Ashen Hollow/Test: Treasure Goblin")]
+    static void TestGoblin()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        Debug.Log("Ashen Hollow: treasure goblin " + (AHGoblin.Spawn(g) ? "spawned" : "not spawned (one is already out)"));
+    }
+
     [MenuItem("Ashen Hollow/Test: Refund Kitchen Upgrade")]
     static void RefundKitchen()
     {
