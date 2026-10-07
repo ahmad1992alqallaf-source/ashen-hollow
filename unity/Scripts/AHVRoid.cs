@@ -101,7 +101,7 @@ public static class AHVRoid
                 if (m == null) continue; string n = m.name.ToUpperInvariant(); Color k;
                 if (n.Contains("_HAIR")) k = Color.Lerp(hair * 1.6f, Color.white, 0.15f);
                 else if (n.Contains("_SKIN") || n.Contains("_FACE")) k = Color.Lerp(Color.white, skin * 1.25f, 0.45f);
-                else if (n.Contains("_CLOTH")) k = Color.Lerp(Color.white, cloth * 1.4f, 0.75f);
+                else if (n.Contains("_CLOTH")) k = Color.Lerp(Color.white, cloth * 1.5f, 0.6f) * 1.3f;   // the robe is mid grey: a lighter dye, brightened, keeps it light
                 else continue;
                 k.a = 1f;
                 foreach (var pr in new[] { "_Color", "_BaseColor" }) if (m.HasProperty(pr)) { var c0 = m.GetColor(pr); m.SetColor(pr, new Color(k.r, k.g, k.b, c0.a)); }
@@ -246,6 +246,49 @@ public static class AHVRoid
             }
             if (changed) smr.materials = mats;
         }
+    }
+
+    // the class look: a sash in the class's colour over the robe's belt, tied at the hip with two trailing ribbons
+    public static void ClassSash(GameObject v, Color c)
+    {
+        if (v == null) return;
+        var an = v.GetComponent<Animator>(); if (an == null) return;
+        var spine = an.GetBoneTransform(HumanBodyBones.Spine); var hips = an.GetBoneTransform(HumanBodyBones.Hips); if (spine == null || hips == null) return;
+        float y = Mathf.Lerp(hips.position.y, spine.position.y, 0.75f) + 0.02f;
+        // how far the body (with its robe) reaches at that height
+        Vector3 ctr = new Vector3(hips.position.x, y, hips.position.z); Vector3 rt = v.transform.right, fw = v.transform.forward;
+        float sx = 0.13f, sz = 0.1f; var baked = new Mesh();
+        foreach (var smr in v.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+        {
+            if (smr.name.Contains("Hair") || smr.name.Contains("Face")) continue;
+            smr.BakeMesh(baked, true); var vs = baked.vertices; var M = smr.transform.localToWorldMatrix;
+            for (int i = 0; i < vs.Length; i += 3) { var p = M.MultiplyPoint3x4(vs[i]); if (Mathf.Abs(p.y - y) > 0.035f) continue; Vector3 d = p - ctr; float ax = Mathf.Abs(Vector3.Dot(d, rt)), az = Mathf.Abs(Vector3.Dot(d, fw)); if (ax < 0.3f && az < 0.3f) { sx = Mathf.Max(sx, ax); sz = Mathf.Max(sz, az); } }
+        }
+        Object.Destroy(baked);
+        Color k = c; k.a = 1f; var mat = Mat(k, 0.25f); var dark = Mat(k * 0.7f, 0.2f);
+        var band = new GameObject("ClassSash"); band.transform.position = ctr; band.transform.rotation = Quaternion.LookRotation(fw, Vector3.up);
+        band.AddComponent<MeshFilter>().sharedMesh = Band(sx + 0.012f, sz + 0.012f, 0.07f, 28);
+        var mr = band.AddComponent<MeshRenderer>(); mr.sharedMaterial = mat;
+        band.transform.SetParent(spine, true);
+        // the knot at the left hip and two ribbons hanging from it
+        Vector3 knot = ctr - rt * (sx + 0.01f) + fw * 0.02f;
+        System.Func<Vector3, Vector3, Vector3, Material, Transform> box = (at, size, eul, m) =>
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube); Object.Destroy(go.GetComponent<Collider>()); go.name = "ClassSashRibbon";
+            go.transform.position = at; go.transform.rotation = Quaternion.LookRotation(fw, Vector3.up) * Quaternion.Euler(eul); go.transform.localScale = size;
+            go.GetComponent<Renderer>().sharedMaterial = m; go.transform.SetParent(hips, true); return go.transform;
+        };
+        box(knot, new Vector3(0.05f, 0.06f, 0.05f), Vector3.zero, dark);
+        box(knot - Vector3.up * 0.2f - rt * 0.012f, new Vector3(0.012f, 0.38f, 0.06f), new Vector3(0f, 0f, -6f), mat);
+        box(knot - Vector3.up * 0.16f + fw * 0.03f - rt * 0.008f, new Vector3(0.012f, 0.3f, 0.05f), new Vector3(8f, 0f, -3f), mat);
+    }
+    // an open band (no caps) round the waist
+    static Mesh Band(float rx, float rz, float h, int seg)
+    {
+        var vs = new List<Vector3>(); var tr = new List<int>();
+        for (int i = 0; i <= seg; i++) { float a = i * Mathf.PI * 2f / seg; float x = Mathf.Cos(a) * rx, z = Mathf.Sin(a) * rz; vs.Add(new Vector3(x, -h / 2f, z)); vs.Add(new Vector3(x, h / 2f, z)); }
+        for (int i = 0; i < seg; i++) { int a = i * 2; tr.AddRange(new[] { a, a + 1, a + 2, a + 1, a + 3, a + 2, a, a + 2, a + 1, a + 1, a + 2, a + 3 }); }
+        var m = new Mesh { name = "sash" }; m.SetVertices(vs); m.SetTriangles(tr, 0); m.RecalculateNormals(); m.RecalculateBounds(); return m;
     }
 
     static readonly Dictionary<int, Material> extraMats = new Dictionary<int, Material>();

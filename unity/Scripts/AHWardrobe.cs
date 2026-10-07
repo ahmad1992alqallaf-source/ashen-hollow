@@ -700,6 +700,7 @@ public static class AHWardrobe
         string gid = shown("hands"); var gd = gid != null ? AHItems.Get(gid) : null;
         if (gd != null) foreach (var side in new[] { "l", "r" }) { var hb = Bone(rig, "hand_" + side); var la = Bone(rig, "lowerarm_" + side); if (hb == null) continue; var K = start(hb, Vector3.Lerp(la != null ? la.position : hb.position, hb.position, 0.82f), gid); bool gnt = gd.form == "gauntlet"; K.Prim(PrimitiveType.Sphere, Vector3.zero, gnt ? new Vector3(0.1f, 0.1f, 0.1f) : new Vector3(0.085f, 0.085f, 0.085f), Vector3.zero); if (gnt) K.Prim(PrimitiveType.Sphere, Vector3.zero, new Vector3(0.12f, 0.075f, 0.12f), Vector3.zero, K.Dark); }
         string lid = shown("legs"); var ld = lid != null ? AHItems.Get(lid) : null;
+        if (rig.GetComponent<AHVRoidLink>() != null) ld = null;   // the VRoid robe falls over the legs: greaves would poke through it
         if (ld != null) foreach (var side in new[] { "l", "r" }) { var cb = Bone(rig, "calf_" + side); var ft = Bone(rig, "foot_" + side); if (cb == null || ft == null) continue; var K = start(cb, Vector3.Lerp(cb.position, ft.position, 0.42f) + hold.forward * 0.03f * k, lid); K.Prim(PrimitiveType.Sphere, Vector3.zero, new Vector3(0.1f, 0.26f, 0.1f), Vector3.zero); K.Prim(PrimitiveType.Sphere, new Vector3(0, 0.15f, 0.02f), new Vector3(0.1f, 0.08f, 0.09f), Vector3.zero, K.Dark); }
         string fid = shown("feet"); var fd = fid != null ? AHItems.Get(fid) : null;
         // boots replace the body's own shoes (they used to poke out of the toe as a second black shoe)

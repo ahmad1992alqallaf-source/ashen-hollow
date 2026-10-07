@@ -84,6 +84,8 @@ public static class AHVRoidTools
     static void Move(string from, string to)
     {
         from = from.Replace('\\', '/'); if (from == to) return;
+        // a fresh export replaces the old build of the same name
+        if (File.Exists(to) || Directory.Exists(to)) AssetDatabase.DeleteAsset(to);
         string err = AssetDatabase.MoveAsset(from, to);
         Debug.Log("Ashen Hollow: moved " + from + " -> " + to + (string.IsNullOrEmpty(err) ? "" : " ERROR " + err));
     }

@@ -117,6 +117,7 @@ public static class AHPeople
             if (vr != null && (look.hair == "bald" || look.hair == "shaved")) foreach (var r in vr.GetComponentsInChildren<Renderer>(true)) if (r.name.Contains("Hair")) r.enabled = false;
             // the face (eyes, brows, expression, eye colour, ears) and the topknot, mohawk and spikes
             if (vr != null) AHVRoid.Style(vr, look, hair, skin, look.eye >= 0 ? LookColor("EYE", look.eye) : Color.white, look.eye >= 0);
+            if (vr != null && cls != null) AHVRoid.ClassSash(vr, cls.color);   // each class wears its own colour
         }
         return rig;
     }
