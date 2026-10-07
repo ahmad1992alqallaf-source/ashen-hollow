@@ -101,6 +101,16 @@ public partial class AHUI
     // a row with an item's icon at its left
     void RowI(ItemDef it, int slot, string title, Color tc, string line2, string line3, params WkBtn[] btns) { rowItem = it; Row(slot, title, tc, line2, line3, btns); }
 
+    // up to three even lines of text in one row (a story passage), with no title above them
+    void TextRow(int slot, string a, string b, string c)
+    {
+        float y = -slot * RowH;
+        var bg = Img("Row", wkList, white, new Vector2(0f, 1f), new Vector2((WkW - 36) / 2f, y - RowH / 2f + 2), new Vector2(WkW - 36, RowH - 6), new Color(0.13f, 0.1f, 0.08f, 1f));
+        wkItems.Add(bg.gameObject);
+        string[] ls = { a, b, c };
+        for (int i = 0; i < 3; i++) if (!string.IsNullOrEmpty(ls[i])) Label(bg, "L" + i, "<i>" + ls[i] + "</i>", 15, TextAnchor.UpperLeft, new Vector2(12f, -6f - i * 19f), new Vector2(WkW - 60, 20), new Color(1f, 0.95f, 0.85f, 0.9f));
+    }
+
     void Row(int slot, string title, Color tc, string line2, string line3, params WkBtn[] btns)
     {
         float y = -slot * RowH;

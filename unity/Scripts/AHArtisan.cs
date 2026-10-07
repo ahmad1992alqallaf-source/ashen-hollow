@@ -320,8 +320,8 @@ public partial class AHUI
                 bool isGive = s0.t == "give" || s0.t == "givefine" || s0.t == "givemw";
                 rows.Add(s => Row(s, "Chapter " + (s0.ch + 1) + ": " + AHArtisan.Chapters[s0.ch], new Color(1f, 0.7f, 0.35f), "Step " + (AHArtisan.Saga.FindAll(x => x.ch == s0.ch).IndexOf(s0) + 1) + " of " + AHArtisan.Saga.FindAll(x => x.ch == s0.ch).Count, ""));
                 // the story, wrapped over a few rows
-                var lines = Wrap(s0.story, 92);
-                for (int li = 0; li < lines.Count; li += 2) { var a = lines[li]; var b = li + 1 < lines.Count ? lines[li + 1] : ""; rows.Add(s => Row(s, "", Color.white, "<i>" + a + "</i>", b != "" ? "<i>" + b + "</i>" : "")); }
+                var lines = Wrap(s0.story, 96);
+                for (int li = 0; li < lines.Count; li += 3) { var a = lines[li]; var b = li + 1 < lines.Count ? lines[li + 1] : ""; var c3 = li + 2 < lines.Count ? lines[li + 2] : ""; rows.Add(s => TextRow(s, a, b, c3)); }
                 rows.Add(s => Row(s, s0.label, Color.white, (s0.t == "mastery" ? p.BestMastery() : st.sagaP) + " / " + s0.n + (isGive && id != null ? " · you have " + p.bag.Count(id) : ""), "",
                     isGive ? new WkBtn { label = "Hand in", on = give && p.path == "artisan", col = Go, act = () => { AHArtisan.Give(g); RenderWork(); } } : null));
             }

@@ -250,7 +250,7 @@ public partial class AHUI
                     new WkBtn { label = "Claim", on = true, col = Go, act = () => { st.tClaimed = true; AHDaily.Grant(g, rw); Banner(nm, "Prize claimed"); AHWorld.Refresh(p); RenderWork(); } }));
             }
             var field = AHWorld.Field(st.tKey, st.tKind, p.level); field.Sort((a, b) => b.Value.CompareTo(a.Value));
-            foreach (var kv in field) { var k2 = kv; rows.Add(s => Row(s, k2.Key, new Color(1f, 1f, 1f, 0.7f), (act || AHWorld.Claimable(p) ? k2.Value.ToString() : "?") + " gathered", "")); }
+            foreach (var kv in field) { var k2 = kv; rows.Add(s => Row(s, k2.Key, new Color(1f, 1f, 1f, 0.7f), (act || AHWorld.Claimable(p) ? k2.Value + " gathered" : "Entered · competes at the weekend"), "")); }
         }
         else
         {

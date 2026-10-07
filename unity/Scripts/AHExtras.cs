@@ -199,7 +199,7 @@ public partial class AHUI
                 new WkBtn { label = "Wear", on = L.gear.Count > 0, col = Go, act = () => { int miss = AHExtras.Wear(p, ii); RefreshClassLook(); Toast(miss > 0 ? miss + " pieces were not in your bag." : L.name + " on."); g.MarkDirty(); RenderWork(); } }));
         }
         int cost = AHExtras.RowCost(p);
-        rows.Add(s => Row(s, "Bigger bag · " + p.bag.SlotsMax + " slots", new Color(0.61f, 0.89f, 1f), p.prog.bagRows >= AHExtras.MaxRows ? "Your bag is as big as it gets." : "Nine more slots for " + cost + " Adventurer's Marks (you have " + p.prog.daily.marks + ")", p.prog.bagRows < AHExtras.MaxRows ? "The land reloads to stitch the new row in." : "",
+        rows.Add(s => Row(s, "Bigger bag · " + p.bag.SlotsMax + " slots", new Color(0.61f, 0.89f, 1f), p.prog.bagRows >= AHExtras.MaxRows ? "Your bag is as big as it gets." : "Nine more slots for " + cost + " Adventurer's Marks (you have " + p.prog.daily.marks + ")", p.prog.bagRows < AHExtras.MaxRows ? "The world reloads for a moment to add the new row." : "",
             p.prog.bagRows >= AHExtras.MaxRows ? null : new WkBtn { label = "Buy row", on = p.prog.daily.marks >= cost, col = Go, act = () => { if (AHExtras.BuyRow(g)) { ShowWork(false); Toast("Your bag grows by nine slots."); g.Reload(false); } } }));
         long k = AHExtras.Kills(p); int mt = AHExtras.MasteryTier(p);
         rows.Add(s => Row(s, "Weapon mastery: " + (mt > 0 ? AHExtras.MasteryName[mt - 1] : "none yet"), mt > 0 ? AHExtras.MasteryCol[mt - 1] : Color.white, k.ToString("#,0") + " kills as " + p.cls.name + (mt < 3 ? " · next glow at " + AHExtras.MasteryAt[mt].ToString("#,0") : " · fully mastered"), ""));

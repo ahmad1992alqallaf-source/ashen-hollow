@@ -710,7 +710,7 @@ public static class AHWardrobe
         {
             var ft = Bone(rig, "foot_" + side); if (ft == null) continue;
             var K = start(ft, new Vector3(ft.position.x, ground, ft.position.z) + hold.forward * 0.035f * k, fid);
-            float bw = rig.GetComponent<AHVRoidLink>() != null ? 0.72f : 1f;   // VRoid legs are slimmer
+            float bw = rig.GetComponent<AHVRoidLink>() != null ? 0.62f : 1f;   // VRoid legs are slimmer
             if (bw >= 1f) K.Prim(PrimitiveType.Sphere, new Vector3(0, 0.055f, 0.04f), new Vector3(0.115f * bw, 0.1f, 0.27f * Mathf.Lerp(1f, bw, 0.5f)), Vector3.zero);
             var cb = Bone(rig, "calf_" + side);
             Vector3 ankle = ft.position, knee = cb != null ? cb.position : ft.position + Vector3.up * 0.42f * k;
