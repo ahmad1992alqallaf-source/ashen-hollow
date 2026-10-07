@@ -520,7 +520,7 @@ public partial class AHUI : MonoBehaviour
             foreach (var m in g.mobs)
             {
                 if (n >= plates.Count) break;
-                if (m.dead) continue;
+                if (m.dead || !m.gameObject.activeInHierarchy) continue;
                 Vector3 wp = m.transform.position + Vector3.up * (m.type.model == "Wolf_t" ? 1.5f : 1.6f);
                 if ((wp - p.transform.position).sqrMagnitude > 18f * 18f) continue;
                 Vector3 sp = cam.WorldToScreenPoint(wp);
@@ -1097,7 +1097,7 @@ public partial class AHUI : MonoBehaviour
     AHNpc NearNpc()
     {
         var p = g.player;
-        if (p == null || p.dead) return null;
+        if (p == null || p.dead || AHInterior.Inside) return null;   // nobody else is in your house
         return AHNpc.Nearest(p.transform.position);
     }
 
@@ -1189,7 +1189,7 @@ public partial class AHUI : MonoBehaviour
             {
                 var sk = p.SkinTarget();
                 if (sk != null) act = "SKIN " + sk.type.name.ToUpperInvariant();
-                else { var gs = AHGather.Nearest(p.transform.position); if (gs != null) act = AHGather.Label(gs).ToUpperInvariant(); else if (AHGather.CanLight(p)) act = "LIGHT FIRE"; }
+                else { var gs = AHGather.Nearest(p.transform.position); if (gs != null) act = AHGather.Label(gs).ToUpperInvariant(); else if (AHGather.CanLight(p) && !AHInterior.Inside) act = "LIGHT FIRE"; }
             }
         }
         talkBtn.gameObject.SetActive(Modal == 0 && act != null);
@@ -1200,7 +1200,7 @@ public partial class AHUI : MonoBehaviour
         foreach (var pl in townPlates)
         {
             bool show = false;
-            if (pl.n != null && g.cam != null && p != null && Modal == 0)
+            if (pl.n != null && pl.n.gameObject.activeInHierarchy && g.cam != null && p != null && Modal == 0)
             {
                 Vector3 wp = pl.n.transform.position + Vector3.up * (pl.n.height + 0.25f);
                 Vector3 sp = g.cam.WorldToScreenPoint(wp);

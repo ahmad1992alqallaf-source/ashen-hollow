@@ -103,6 +103,9 @@ public partial class AHUI
             rows.Add(slot => Row(slot, "Upgrade to " + AHJson.S(nx, "name"), Color.white, AHJson.S(nx, "blurb"), AHHome.CostText(p, cost) + (rc > 0 ? " · " + Bad("Level " + rc, p.level >= rc) + " · " + Bad("Farming " + rf, p.Skill("farming") >= rf) : ""),
                 new WkBtn { label = "Build", on = rqOk && AHHome.CanPay(p, cost), col = Go, act = () => { if (!AHHome.Pay(p, cost)) return; H.tier++; p.GainXp("farming", H.tier == 2 ? 300 : 900, false); Banner(AHJson.S(nx, "name"), "Your new home"); FarmChanged(); } }));
         }
+        rows.Add(slot => Row(slot, "Inside your house", new Color(1f, 0.8f, 0.45f), "Walk in, and furnish it: " + AHInterior.Pts(p) + " comfort from furniture so far.", "",
+            new WkBtn { label = "Enter", on = true, col = Go, act = () => { ShowWork(false); AHInterior.Enter(g); } },
+            new WkBtn { label = "Furnish", on = true, col = Plain, act = OpenFurnish }));
         if (H.tier >= 2)
         {
             long left = AHHome.SleepCd(p) - (DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - H.sleepAt);

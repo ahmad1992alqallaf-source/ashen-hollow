@@ -20,6 +20,7 @@ public class AHHomeState
     public List<AHField> fields = new List<AHField>(); public List<AHPen> pens = new List<AHPen>();
     public long sleepAt; public List<AHStack> stall = new List<AHStack>(); public long stallCoins, stallLast; public int stallSold;
     public string fromArea; public float fromX, fromZ;
+    public List<string> furn = new List<string>();   // furniture inside the house (AHInterior)
 }
 
 public static class AHHome
@@ -48,7 +49,7 @@ public static class AHHome
     {
         if (p.home == null) return 0; int n = 0;
         var cs = Comforts; if (cs != null) foreach (var c in cs) if (p.home.comf.Contains(AHJson.S(c, "id"))) n += (int)AHJson.N(c, "pts", 1);
-        return n;
+        return n + AHInterior.Pts(p);   // and the furniture inside
     }
     public static long SleepCd(AHPlayer p) { return (60 - Math.Min(30, ComfortPts(p) * 2)) * 60000L; }
 

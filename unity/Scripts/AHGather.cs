@@ -295,6 +295,7 @@ public static class AHGather
         foreach (var s in Spots)
         {
             if ((s.kind == "chop" || s.kind == "mine" || s.kind == "herb") && s.until > now) continue;
+            if (AHInterior.Inside && s.type != "house") continue;   // in your house: only the house's own spots
             Vector3 d = s.pos - at; d.y = 0; float m = d.magnitude;
             if (m < s.reach && m < bd) { bd = m; best = s; }
         }
@@ -400,7 +401,7 @@ public static class AHGather
     }
 
     // web: lighting your own campfire in the wild with logs
-    public static bool CanLight(AHPlayer p) { return !p.dead && !g.InTown(p.transform.position) && (p.bag.Count("logs") > 0 || p.bag.Count("pine_logs") > 0); }
+    public static bool CanLight(AHPlayer p) { return !p.dead && !AHInterior.Inside && !g.InTown(p.transform.position) && (p.bag.Count("logs") > 0 || p.bag.Count("pine_logs") > 0); }
     public static void StartLight(AHPlayer p)
     {
         if (g.InTown(p.transform.position)) { g.ui.Toast("Use the town campfire. You can light your own in the wild."); return; }

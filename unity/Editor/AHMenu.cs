@@ -847,6 +847,16 @@ public static class AHMenu
         AHCine.Play(g, t.name + " · part 1 (preview)", pt.intro, () => AHCine.Play(g, null, pt.outro, () => g.ui.Toast("Tale preview over. Nothing was changed.", 3f)));
     }
 
+    [MenuItem("Ashen Hollow/Test: House Interior Preview")]
+    static void HousePrev()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        if (AHInterior.Inside) AHInterior.Leave(g); else AHInterior.Enter(g, true);
+    }
+
+    [MenuItem("Ashen Hollow/Test: Open Furnish Window")]
+    static void FurnishWin() { var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return; g.ui.OpenFurnish(); }
+
     [MenuItem("Ashen Hollow/Test: Win Derby")]
     static void WinDerby()
     {

@@ -206,7 +206,8 @@ public class AHGame : MonoBehaviour
         AHStory.Setup(this);      // the Ashen King story: its people in the meadow, an unfinished fight, the statue
         AHJuice.Ensure(this); AHJuice.SetupDummy(this);   // hit-stop, shake, combos; the Training Golem in the meadow
         AHSeason.Setup(this);     // falling leaves, snow, blossom or fireflies, by the real season
-        AHGallery.Setup(this);    // your costumes on plinths by your house
+        AHGallery.Setup(this);
+        AHInterior.Setup(this); if (GetComponent<AHInteriorTick>() == null) gameObject.AddComponent<AHInteriorTick>();    // your costumes on plinths by your house
         AHKQ.Setup(this);
         AHComp.SpawnPet(this);
         AHComp.SpawnAllies(this);
@@ -817,6 +818,7 @@ public class AHGame : MonoBehaviour
     // ---------- collisions: keep something of radius r out of trees, walls and lakes, and inside the meadow ----------
     public Vector3 Resolve(Vector3 p, float r, float wade = 0f)
     {
+        if (AHInterior.Inside) return AHInterior.Clamp(p, r);   // inside your house: its walls and furniture
         for (int i = 0; i < cPos.Count; i++)
         {
             float dx = p.x - cPos[i].x, dz = p.z - cPos[i].z, rr = cRad[i] + r, d2 = dx * dx + dz * dz;

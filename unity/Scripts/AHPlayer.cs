@@ -737,7 +737,7 @@ public class AHPlayer : MonoBehaviour
         Vector3 f = transform.forward;
         foreach (var m in g.mobs)
         {
-            if (m.dead) continue;
+            if (m.dead || !m.gameObject.activeInHierarchy) continue;
             float dist = Dist(m);
             if (dist > reach) continue;
             Vector3 d = m.transform.position - transform.position; d.y = 0;
