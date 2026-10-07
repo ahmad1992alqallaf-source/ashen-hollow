@@ -23,6 +23,8 @@ public static class AHSettings
     public static int Awake { get { return I("awake", 1); } set { S("awake", value); } }          // keep the screen on
     public static int Tips { get { return I("tips", 1); } set { S("tips", value); } }             // floating words over heads (emotes, loot)
 
+    public static float Reach { get { return View == 0 ? 140f : View == 1 ? 195f : 250f; } }
+
     public static void Preset(int q)
     {
         Quality = q;
@@ -138,6 +140,26 @@ public partial class AHUI
         Center(Label(emoteBtn, "T", "EMOTE", 13, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(64, 24), Color.white));
         taps.Add(new TapBtn { rt = emoteBtn, act = OpenEmotes });
     }
+    // the lightfoot button (unlocked at level 5): three pips show the leaps you have
+    RectTransform leapBtn; Image[] leapPips;
+    void BuildLeapHud()
+    {
+        leapBtn = Img("LeapBtn", transform, circle, new Vector2(1, 0), new Vector2(-58, 482), new Vector2(64, 64), new Color(0.16f, 0.3f, 0.4f, 0.92f));
+        Img("Rim", leapBtn, ring, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(64, 64), new Color(0.75f, 0.9f, 1f, 1f));
+        Center(Label(leapBtn, "T", "LEAP", 14, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(64, 24), Color.white));
+        leapPips = new Image[AHPlayer.LeapMax];
+        for (int i = 0; i < leapPips.Length; i++) leapPips[i] = Img("Pip", leapBtn, circle, new Vector2(0.5f, 0f), new Vector2((i - 1) * 14f, -8f), new Vector2(10, 10), Color.white).GetComponent<Image>();
+        taps.Add(new TapBtn { rt = leapBtn, act = () => { leapPressed = true; } });
+    }
+    void LeapHudTick()
+    {
+        var p = g.player; if (leapBtn == null || p == null) return;
+        bool on = p.LeapUnlocked && Modal == 0 && !PhotoOn;
+        if (leapBtn.gameObject.activeSelf != on) leapBtn.gameObject.SetActive(on);
+        if (!on) return;
+        for (int i = 0; i < leapPips.Length; i++) leapPips[i].color = i < p.leapCharges ? new Color(0.75f, 0.95f, 1f) : new Color(1f, 1f, 1f, 0.2f);
+    }
+
     public void OpenEmotes() { wkMode = "emotes"; wkPageI = 0; ShowWork(true); RenderWork(); }
 
     void RenderEmotes(AHPlayer p)
@@ -161,8 +183,10 @@ public partial class AHUI
             }
             Row(r, gr[0], new Color(1f, 0.8f, 0.45f), "", "", btns.ToArray());
         }
+        Row(3, "Photo mode", new Color(0.8f, 0.8f, 1f), "Hide the screen buttons to take a picture (drag to turn the camera)", "",
+            new WkBtn { label = "Photo", on = true, col = Go, act = () => PhotoMode(true) });
         if (p.emote != null)
-            Row(3, "Stop", new Color(1f, 1f, 1f, 0.7f), "End the emote you are doing", "", new WkBtn { label = "Stop", on = true, col = Plain, act = () => { g.player.StopEmote(); RenderWork(); } });
+            Row(4, "Stop", new Color(1f, 1f, 1f, 0.7f), "End the emote you are doing", "", new WkBtn { label = "Stop", on = true, col = Plain, act = () => { g.player.StopEmote(); RenderWork(); } });
     }
 
     // ---------- the hero select screen ----------

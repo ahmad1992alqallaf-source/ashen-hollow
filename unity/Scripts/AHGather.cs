@@ -360,7 +360,7 @@ public static class AHGather
 
     public static bool HasMats(AHPlayer p, AHRecipe r) { foreach (var m in r.mats) if (p.bag.Count(m.Key) < m.Value) return false; return true; }
     public static bool MasteryOk(AHPlayer p, AHRecipe r) { return r.masteryProf == null || (p.profs.Contains(r.masteryProf) && p.MasteryLv(r.masteryProf) >= r.masteryLv); }
-    public static bool CanMake(AHPlayer p, AHRecipe r) { return p.Skill(r.skill) >= r.lvl && MasteryOk(p, r) && HasMats(p, r); }
+    public static bool CanMake(AHPlayer p, AHRecipe r) { return p.Skill(r.skill) >= r.lvl && MasteryOk(p, r) && HasMats(p, r) && (!AHArtisan.Only(r.outId) || p.path == "artisan"); }
 
     // ---------- the action you are doing (web P.action) ----------
     public static AHSpot actSpot;
@@ -374,6 +374,7 @@ public static class AHGather
     static float Speed(AHPlayer p, string kind)
     {
         float m = kind == "chop" || kind == "mine" || kind == "fish" || kind == "herb" || kind == "skin" ? 1f + AHMeal.Fx(p, "gather") : 1f;
+        m *= AHWeather.GatherK(kind);   // rain: the fish bite and the herbs open
         if (kind == "mine") return m * (p.Perk("miner", 5) ? 1.15f : 1f) * (p.Perk("miner", 40) ? 1.2f : 1f);
         if (kind == "fish") return m * (p.Perk("fisher", 5) ? 1.15f : 1f) * (p.Perk("fisher", 40) ? 1.2f : 1f);
         return m;
@@ -559,10 +560,11 @@ public static class AHGather
         var it0 = AHItems.Get(r.outId);
         string outId = r.outId; int n = r.n; bool mw = false; int mq = 0;
         if (it0.meal) outId = AHMeal.Out(p, r, out mq);
-        else if (it0.slot != null && AHItems.Get(r.outId + "_mw") != null && Random.value < MwChance(p, r, kind)) { outId = r.outId + "_mw"; mw = true; }
+        else if (it0.slot != null && AHItems.Get(r.outId + "_mw") != null && Random.value < MwChance(p, r, kind) * AHArtisan.MwBonus(p, kind)) { outId = r.outId + "_mw"; mw = true; }
         float dbl = 0f;
         if (kind == "oven") dbl = AHMeal.Double(p, r);
         if (kind == "brew" && p.profs.Contains("alchemist")) dbl = p.Perk("alchemist", 30) ? 0.4f : p.Perk("alchemist", 5) ? 0.2f : 0f;
+        dbl += AHArtisan.DoubleBonus(p, kind);
         bool twice = dbl > 0f && Random.value < dbl; if (twice) n *= 2;
         if (!bag.Add(outId, n)) { foreach (var m in r.mats) bag.Add(m.Key, m.Value); ui.Toast(bag.lastWarn ?? "Your bag is full."); return; }
         if (((kind == "anvil" && p.Perk("smith", 5)) || (kind == "loom" && p.Perk("tailor", 5)) || (kind == "jewel" && p.Perk("jeweler", 5))) && Random.value < 0.15f)
@@ -571,6 +573,7 @@ public static class AHGather
             ui.Toast("Careful work: you saved 1 " + AHItems.Get(k).name.ToLowerInvariant() + ".");
         }
         p.GainXp(r.skill, r.xp, false);
+        AHArtisan.OnCraft(p, outId, n);
         g.quests.Event("craft", kind, 1, g);
         var o = AHItems.Get(outId);
         if (o.slot != null) ui.Toast("You made " + o.name + ". Open the bag to wear it.", 3f);

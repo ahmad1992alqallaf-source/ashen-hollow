@@ -11,6 +11,7 @@ public class AHGame : MonoBehaviour
 
     [Header("Camera")]
     public float camDistance = 7f;
+    [System.NonSerialized] public float cineT;
     public float camPitch = 22f;          // degrees above the hero
     public float camYaw = 90f;
     [Header("Day")]
@@ -204,6 +205,7 @@ public class AHGame : MonoBehaviour
         AHComp.SpawnAllies(this);
         grass = AHGrass.Create(this);
         AHSettings.Apply(this);
+        AHWeather.Setup(this);
         if (saved == "") ui.OpenCreator();
         else if (SelectAtStart) ui.OpenSelect();
         else Welcome();
@@ -898,6 +900,7 @@ public class AHGame : MonoBehaviour
             camPitch = Mathf.Clamp(camPitch - ui.camDelta.y * 0.15f, 5f, 65f);
             camDistance = Mathf.Clamp(camDistance * ui.zoom, 3.5f, 14f);
         }
+        if (cineT > 0f) { cineT -= Time.unscaledDeltaTime; camYaw += Time.unscaledDeltaTime * 150f; }   // the level-up swing
         camTarget = Vector3.Lerp(camTarget, player.transform.position, 1f - Mathf.Exp(-Time.deltaTime * 10f));
         // making your hero: a close shot with the hero on the left, facing you, clear of the creator panel
         if (ui != null && ui.CreatorOpen)

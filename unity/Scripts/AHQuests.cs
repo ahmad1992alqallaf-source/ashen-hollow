@@ -196,6 +196,8 @@ public class AHQuestLog
 
     public void RoadEvent(string t, string id, int n, AHGame g)
     {
+        AHArtisan.Event(g, t, id, n);
+        AHWorld.OnEvent(g, t, id, n);
         var s = RoadStep; if (s == null || g.player == null || g.player.path != "artisan") return;
         string st = AHJson.S(s, "t");
         if (st == "talk" && t == "talkguild") roadP = 1;

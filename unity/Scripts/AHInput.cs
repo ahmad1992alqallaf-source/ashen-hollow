@@ -179,6 +179,18 @@ public static class AHInput
 #endif
     }
 
+    // F: lightfoot leap
+    public static bool LeapKey()
+    {
+#if ENABLE_LEGACY_INPUT_MANAGER
+        return Input.GetKeyDown(KeyCode.F);
+#elif ENABLE_INPUT_SYSTEM
+        return Keyboard.current != null && Keyboard.current.fKey.wasPressedThisFrame;
+#else
+        return false;
+#endif
+    }
+
     // R: get on or off your mount
     public static bool RideKey()
     {

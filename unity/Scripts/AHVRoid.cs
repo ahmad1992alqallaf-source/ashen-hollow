@@ -144,12 +144,14 @@ public class AHVRoidLink : MonoBehaviour
     readonly Dictionary<Transform, Transform> boneMap = new Dictionary<Transform, Transform>();
     readonly HashSet<Transform> skeleton = new HashSet<Transform>();
     int lastKids = -1;
+    Vector3 rig0, dst0;   // the old body's rig and the VRoid body start side by side; the VRoid body follows the rig's lift (wading, leaping, the saddle)
     public Transform Body { get { return dst; } }
     public Transform Map(Transform srcBone) { Transform d; return srcBone != null && boneMap.TryGetValue(srcBone, out d) ? d : null; }
 
     public void Setup(Transform srcRoot, Avatar srcAv, Transform dstRoot, Avatar dstAv)
     {
         src = srcRoot; dst = dstRoot;
+        rig0 = transform.localPosition; dst0 = dst.localPosition;
         hs = new HumanPoseHandler(srcAv, srcRoot); hd = new HumanPoseHandler(dstAv, dstRoot);
         // the skeleton is only the body's own bones (a weapon already in the hand is not part of it, and moves)
         var bones = new HashSet<string>(); foreach (var sb in srcAv.humanDescription.skeleton) bones.Add(sb.name);
@@ -199,6 +201,7 @@ public class AHVRoidLink : MonoBehaviour
         // a big jump (entering a land, a teleport) would fling the hair springs and blow them up: reset them
         if ((dst.position - lastPos).sqrMagnitude > 9f) ResetSprings();
         lastPos = dst.position;
+        if (dst.parent == transform.parent) dst.localPosition = dst0 + (transform.localPosition - rig0);
         Copy();
         // gear added to the old bones since last frame moves onto the VRoid bones (where it stays)
         int kids = 0; foreach (var kv in boneMap) kids += kv.Key.childCount;

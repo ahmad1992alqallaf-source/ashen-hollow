@@ -187,7 +187,8 @@ public class AHBag
     public static Func<string, int, bool> CosHook;
     public string lastWarn;
 
-    public int SlotsMax { get { return AHDB.Slots; } }
+    public int extra;   // rows bought with Adventurer's Marks (AHExtras)
+    public int SlotsMax { get { return AHDB.Slots + extra; } }
     public void Touch() { if (Changed != null) Changed(); }
 
     public int Count(string id) { int n; return id != null && inv.TryGetValue(id, out n) ? n : 0; }

@@ -62,6 +62,11 @@ public class AHSound : MonoBehaviour
         switch (n)
         {
             case "swing": s.Noise(0.18f, 0.35f, Filt.Band, 2400, 600, 2); break;
+            // footsteps: soft on grass, crisp on stone, a splash in water, hooves on a mount
+            case "step_grass": s.Noise(0.07f, 0.05f, Filt.Band, 420, 220, 1.2f); break;
+            case "step_stone": s.Noise(0.05f, 0.06f, Filt.Band, 1900, 1200, 2.5f); break;
+            case "step_water": s.Noise(0.14f, 0.07f, Filt.Band, 900, 380, 1f); break;
+            case "step_hoof": s.Noise(0.06f, 0.08f, Filt.Band, 700, 350, 2f); s.Noise(0.05f, 0.06f, Filt.Band, 650, 300, 2f, 0, 0.09f); break;
             case "hit": s.Tone(Wave.Sine, 160, 60, 0.12f, 0.45f); s.Noise(0.08f, 0.28f, Filt.Low, 2000, 400); break;
             case "chop": s.Tone(Wave.Triangle, 240, 120, 0.08f, 0.5f); s.Noise(0.06f, 0.35f, Filt.Band, 1800, 900, 3); break;
             case "mine": s.Tone(Wave.Square, 1400, 900, 0.09f, 0.1f); s.Tone(Wave.Sine, 2600, 2000, 0.25f, 0.09f); s.Noise(0.05f, 0.3f, Filt.High, 3000); break;

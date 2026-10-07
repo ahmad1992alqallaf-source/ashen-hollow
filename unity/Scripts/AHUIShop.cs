@@ -67,13 +67,14 @@ public static class AHShops
         float k = Sold(id) ? Markup * Resale : it != null && it.rarity == "crafted" ? 0.22f : 0.4f;
         var prem = AHJson.A(AHJson.O(Shops, shop), "premium");
         if (prem != null && prem.Contains(id)) k = Mathf.Max(k, 0.8f);
+        if (AHGame.I != null && AHGame.I.player != null) k *= AHArtisan.SellBonus(AHGame.I.player);   // the workshop's shop counter
         return Math.Max(1, (long)Math.Floor(AHComp.Value(id) * AHDB.CU * k));
     }
 }
 
 public partial class AHUI
 {
-    string shopId; bool shopSell;
+    string shopId; bool shopSell; float sellOldArm;
     RectTransform rideBtn, petsBtn; Text rideText;
 
     void BuildShopHud()
@@ -153,6 +154,17 @@ public partial class AHUI
                     n > 1 ? new WkBtn { label = "Sell all", on = true, col = Plain, act = () => Sell(p, iid, true) } : null); });
             }
             if (rows.Count == 1) rows.Add(slot => Row(slot, "Your bag is empty", new Color(1f, 1f, 1f, 0.6f), "", ""));
+            // old gear in one go: pieces no better than what you wear (sets, legendaries and masterworks are kept)
+            var old = AHExtras.OldGear(p);
+            if (old.Count > 0)
+            {
+                long tot = 0; foreach (var id in old) tot += AHShops.PriceSell(shopId, id) * p.bag.Count(id);
+                rows.Insert(1, slot => Row(slot, "Sell old gear (" + old.Count + " pieces)", new Color(1f, 0.85f, 0.5f), "Gear no better than what you wear · " + AHItems.MoneyText(tot), "Set pieces, legendaries and masterworks are kept.",
+                    new WkBtn { label = sellOldArm > Time.unscaledTime ? "Tap to confirm" : "Sell all", on = true, col = Go, act = () => {
+                        if (sellOldArm < Time.unscaledTime) { sellOldArm = Time.unscaledTime + 3f; RenderWork(); return; }
+                        sellOldArm = 0f; long got = 0; foreach (var id in AHExtras.OldGear(p)) { int n = p.bag.Count(id); got += AHShops.PriceSell(shopId, id) * n; p.bag.Take(id, n); }
+                        p.bag.money += got; p.bag.Touch(); Toast("Sold your old gear for " + AHItems.MoneyText(got) + "."); g.MarkDirty(); RenderWork(); } }));
+            }
         }
         int from = Paged(rows.Count);
         for (int i = from; i < Mathf.Min(rows.Count, from + RowsPerPage); i++) rows[i](i - from);

@@ -117,7 +117,7 @@ public static class AHSave
         Unpack(d.petXp, p.petXp); Unpack(d.mountXp, p.mountXp);
         p.orders = d.orders ?? new List<AHOrder>(); p.orders.RemoveAll(o => o == null || o.items == null || o.items.Count == 0);
         p.guildRep = Mathf.Max(0, d.guildRep); p.ordersDone = d.ordersDone; Unpack(d.bought, p.bought);
-        p.home = d.hasHome && d.home != null ? d.home : null; p.rested = Math.Max(0, d.rested); p.meal = d.hasMeal && d.meal != null && d.meal.until > AHMeal.Now ? d.meal : null; p.prog = d.prog ?? new AHProgress();
+        p.home = d.hasHome && d.home != null ? d.home : null; p.rested = Math.Max(0, d.rested); p.meal = d.hasMeal && d.meal != null && d.meal.until > AHMeal.Now ? d.meal : null; p.prog = d.prog ?? new AHProgress(); p.bag.extra = p.prog.bagRows * 9;
         p.bank.Clear(); if (d.bank != null) foreach (var s in d.bank) if (s != null && s.n > 0 && AHItems.Get(s.id) != null) p.bank[s.id] = s.n;
         var log = g.quests;
         log.i = Mathf.Clamp(d.questI, 0, AHQuests.All.Count);

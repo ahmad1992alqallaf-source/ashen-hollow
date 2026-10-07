@@ -46,6 +46,11 @@ public static class AHComp
     }
     public static float Fetch(AHPlayer p) { float k = PetK(p, "fetch"); return 1f + (k > 0f ? (0.05f + PetLv(p, p.pet) * 0.0075f) * k : 0f); }
 
+    // pet evolution: a pet grows as it levels (Grown at 8, Elder at 15, Mythic at 20, glowing)
+    public static readonly int[] EvoAt = { 8, 15, 20 };
+    public static readonly string[] EvoName = { "Grown", "Elder", "Mythic" };
+    public static int EvoStage(AHPlayer p, string k) { int lv = PetLv(p, k), s = 0; foreach (var a in EvoAt) if (lv >= a) s++; return s; }
+
     public static void PetGain(AHGame g, float xp)
     {
         var p = g.player; string k = p.pet; if (k == null || xp <= 0f) return;
@@ -55,6 +60,8 @@ public static class AHComp
             string sk = null; var sks = AHDB.List("companions", "PET_SKILLS");
             if (sks != null) foreach (var o in sks) { var r = o as List<object>; int l = (int)(double)r[0]; if (l > b && l <= a) { sk = (string)r[1]; break; } }
             g.ui.Banner(PetName(k) + " is level " + a, sk != null ? "New pet skill: " + sk : "Pet level up");
+            int eb = 0, ea = 0; foreach (var at in EvoAt) { if (b >= at) eb++; if (a >= at) ea++; }
+            if (ea > eb) { g.ui.Banner(PetName(k) + " evolved!", EvoName[ea - 1] + " " + PetName(k).ToLowerInvariant()); AHSound.Play("level"); SpawnPet(g); }
         }
         g.MarkDirty();
     }
@@ -214,6 +221,10 @@ public class AHPetFollow : MonoBehaviour
         else model = AHModel.Spawn(transform, "Comp/pet_" + k, 0f, false, 0f, out a);
         if (a != null && a.HasClips) anim = a; else if (a != null) a.Dispose();
         AHModel.SetShadows(model);
+        // evolved pets are bigger, and a Mythic one glows
+        int stage = AHComp.EvoStage(g.player, k);
+        if (stage > 0 && model != null) model.transform.localScale *= 1f + 0.12f * stage;
+        if (stage >= 3 && model != null) { var gl = new GameObject("MythicGlow"); gl.transform.SetParent(model.transform, false); gl.transform.localPosition = Vector3.up * 0.4f; gl.AddComponent<AHWeaponGlow>().col = new Color(1f, 0.8f, 0.35f); }
     }
     void OnDestroy() { if (anim != null) anim.Dispose(); }
 

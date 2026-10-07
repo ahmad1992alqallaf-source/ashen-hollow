@@ -208,6 +208,12 @@ public partial class AHUI
             new WkBtn { label = "Open", on = true, col = Go, act = OpenSettings }));
         rows.Add(s => Row(s, "Emotes", new Color(1f, 0.55f, 0.9f), "Wave, bow, dance, sit and more", "",
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenEmotes }));
+        rows.Add(s => Row(s, "Artisans' Guild", new Color(0.6f, 0.9f, 0.5f), p.path == "artisan" ? AHArtisan.Rank(p) + " · the Saga, commissions, the Masterwork Contest, your workshop" : "Commissions, the Masterwork Contest and workshop upgrades", "",
+            new WkBtn { label = "Open", on = true, col = p.path == "artisan" ? Go : Plain, act = () => OpenArtisan() }));
+        rows.Add(s => Row(s, "Library, tournament, helpers", new Color(0.56f, 0.85f, 1f), "Lore pages · the weekend tournament · helpers who work while you are away", "",
+            new WkBtn { label = "Open", on = true, col = Plain, act = () => OpenWorld() }));
+        rows.Add(s => Row(s, "Loadouts and bag", new Color(0.61f, 0.89f, 1f), "Gear sets in one tap · " + p.bag.SlotsMax + " bag slots · weapon mastery", "",
+            new WkBtn { label = "Open", on = true, col = Plain, act = OpenLoadouts }));
         rows.Add(s => Row(s, "Change class", p.cls.color, "Now: " + p.cls.name + " · switch to another class", "",
             new WkBtn { label = "Choose", on = true, col = Plain, act = () => { ShowWork(false); ShowPicker(true); } }));
         rows.Add(s => Row(s, "Class: " + AHEvo.Title(p), p.cls.color, "Evolution at 30 and 60 · talents (" + (AHEvo.Points(p) - AHEvo.Spent(p)) + " free) · spellbook", "",

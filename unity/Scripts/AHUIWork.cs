@@ -183,6 +183,9 @@ public partial class AHUI
         else if (wkMode == "house") RenderHouse(p);
         else if (wkMode == "settings") RenderOptions(p);
         else if (wkMode == "emotes") RenderEmotes(p);
+        else if (wkMode == "art") RenderArtisan(p);
+        else if (wkMode == "loadouts") RenderLoadouts(p);
+        else if (wkMode == "world") RenderWorld(p);
         else RenderProf(p);
     }
 
@@ -205,12 +208,13 @@ public partial class AHUI
         for (int i = from; i < Mathf.Min(list.Count, from + RowsPerPage); i++)
         {
             var r = list[i]; var it = AHItems.Get(r.outId);
-            bool lvOk = p.Skill(r.skill) >= r.lvl && AHGather.MasteryOk(p, r), ok = lvOk && AHGather.HasMats(p, r);
+            bool lvOk = p.Skill(r.skill) >= r.lvl && AHGather.MasteryOk(p, r) && (!AHArtisan.Only(r.outId) || p.path == "artisan"), ok = lvOk && AHGather.HasMats(p, r);
             string l2 = it.slot != null ? AHItems.StatLine(it) + " · " + Bad(AHItems.WhoUses(r.outId), AHItems.CanUse(r.outId, p.cls.id)) : (it.note ?? "");
             if (r.n > 1) l2 += " · makes " + r.n;
             var mats = new List<string>();
             foreach (var m in r.mats) { var md = AHItems.Get(m.Key); int have = p.bag.Count(m.Key); mats.Add(Bad(have + "/" + m.Value + " " + (md != null ? md.name : m.Key), have >= m.Value)); }
             string lv = AHDB.SkillName(r.skill) + " " + r.lvl + (r.masteryProf != null ? " · " + AHJson.S(AHJson.O(AHPlayer.Profs, r.masteryProf), "name", r.masteryProf) + " mastery " + r.masteryLv : "");
+            if (AHArtisan.Only(r.outId)) lv += " · Artisans only";
             string l3 = string.Join(" · ", mats.ToArray()) + " · " + Bad(lv, lvOk);
             var rr = r;
             rowItem = it;

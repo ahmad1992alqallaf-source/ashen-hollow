@@ -65,7 +65,25 @@ public static class AHDaily
     static List<AHGoal> Pick(AHGame g, int L, int n, bool weekly)
     {
         var p = g.player; var pool = new List<AHGoal>();
-        if (weekly)
+        if (p.path == "artisan")
+        {
+            // an Artisan's goals are about making and gathering, never fighting
+            if (weekly)
+            {
+                pool.Add(G("gather", "any", 200, "Gather 200 materials")); pool.Add(G("craft", "any", 40, "Craft 40 items"));
+                pool.Add(G("order", "any", 6, "Deliver 6 Guild work orders")); pool.Add(G("craft", "anvil", 10, "Forge 10 things at the anvil"));
+                pool.Add(G("craft", "oven", 15, "Bake or cook 15 dishes")); pool.Add(G("gather", "ore", 80, "Mine 80 ore")); pool.Add(G("gather", "logs", 80, "Chop 80 logs"));
+            }
+            else
+            {
+                pool.Add(G("gather", "any", 30, "Gather 30 materials")); pool.Add(G("gather", "ore", 15, "Mine 15 ore")); pool.Add(G("gather", "logs", 15, "Chop 15 logs"));
+                pool.Add(G("gather", "fish", 12, "Catch 12 fish")); pool.Add(G("gather", "herb", 10, "Pick 10 herbs")); pool.Add(G("craft", "any", 6, "Craft 6 items"));
+                pool.Add(G("craft", "furnace", 5, "Smelt 5 bars")); pool.Add(G("craft", "fire", 5, "Cook 5 meals on a fire")); pool.Add(G("craft", "brew", 4, "Brew 4 potions"));
+                if (p.home != null) pool.Add(G("gather", "crop", 15, "Harvest 15 crops"));
+                if (p.profMain != null) pool.Add(G("order", "any", 1, "Deliver a Guild work order"));
+            }
+        }
+        else if (weekly)
         {
             pool.Add(G("kill", "any", 250, "Defeat 250 monsters")); pool.Add(G("gather", "any", 200, "Gather 200 materials")); pool.Add(G("craft", "any", 40, "Craft 40 items"));
             pool.Add(L >= 14 ? G("dclear", "any", 3, "Clear 3 dungeons") : G("kill", "elite", 5, "Defeat 5 elite monsters"));
@@ -99,12 +117,17 @@ public static class AHDaily
         if (S.month != mo || S.mtasks == null || S.mtasks.Count == 0)
         {
             S.month = mo; int L = p.level;
-            S.mtasks = new List<AHGoal> { G("kill", "any", 1500, "Defeat 1,500 monsters"), G("gather", "any", 800, "Gather 800 materials"), G("wboss", "any", 4, "Defeat 4 world bosses"), L >= 14 ? G("dclear", "any", 12, "Clear 12 dungeons") : G("kill", "elite", 25, "Defeat 25 elite monsters") };
+            S.mtasks = p.path == "artisan"
+                ? new List<AHGoal> { G("gather", "any", 1000, "Gather 1,000 materials"), G("craft", "any", 150, "Craft 150 items"), G("order", "any", 20, "Deliver 20 Guild work orders"), G("craft", "anvil", 40, "Forge 40 things at the anvil") }
+                : new List<AHGoal> { G("kill", "any", 1500, "Defeat 1,500 monsters"), G("gather", "any", 800, "Gather 800 materials"), G("wboss", "any", 4, "Defeat 4 world bosses"), L >= 14 ? G("dclear", "any", 12, "Clear 12 dungeons") : G("kill", "elite", 25, "Defeat 25 elite monsters") };
             g.MarkDirty();
         }
         if (S.evWeek != w || S.etasks == null || S.etasks.Count == 0)
         {
-            var E = EventOf(now, p.level); S.evWeek = w; S.ev = E.id; S.etasks = new List<AHGoal>(E.tiers); g.MarkDirty();
+            var E = EventOf(now, p.level); S.evWeek = w; S.ev = E.id; S.etasks = new List<AHGoal>(E.tiers);
+            // Artisans take part by supplying it: making and gathering instead of fighting
+            if (p.path == "artisan" && E.id != "harvest") S.etasks = new List<AHGoal> { G("craft", "any", 30, "Make 30 supplies"), G("gather", "any", 200, "Gather 200 materials"), G("order", "any", 8, "Deliver 8 work orders") };
+            g.MarkDirty();
         }
         if (S.last != d) { S.streak = S.last == DayKey(now.AddDays(-1)) ? S.streak + 1 : 1; S.last = d; g.MarkDirty(); }
     }
@@ -158,7 +181,7 @@ public static class AHDaily
         var p = g.player;
         if (r.money > 0) p.AddMoney(r.money * AHDB.CU, p.transform.position);
         if (r.xp > 0) p.GainClassXpDirect((int)Math.Min(int.MaxValue, r.xp));
-        if (r.marks > 0) p.prog.daily.marks += r.marks;
+        if (r.marks > 0) { p.prog.daily.marks += r.marks; AHExtras.AddXp(p, r.marks); }   // the marks your goals pay also fill the season track
         foreach (var kv in r.items) p.bag.Add(kv.Key, kv.Value);
         g.SaveProgress();
     }
@@ -235,8 +258,18 @@ public partial class AHUI
         wkHint.text = "Adventurer's Marks: " + S.marks + " · login streak: day " + S.streak + " · new goals in " + (int)nd.TotalHours + "h " + nd.Minutes + "m. Missing a day restarts the streak.";
         var rows = new List<Action<int>>();
         var lr = AHDaily.Login[di];
+        // the season track
+        {
+            int tier = AHExtras.Tier(p), cl = AHExtras.Claimed(p); var nx = cl < AHExtras.Tiers ? AHExtras.TierReward(p, cl + 1) : null;
+            rows.Add(s => Row(s, AHExtras.SeasonName(DateTime.Now) + " · tier " + tier + " / " + AHExtras.Tiers, new Color(0.56f, 0.85f, 1f),
+                (p.prog.seasonXp % AHExtras.TierXp) + " / " + AHExtras.TierXp + " to the next tier · marks from goals fill it", nx != null ? "Tier " + (cl + 1) + ": " + AHDaily.Text(nx) : "Every tier claimed this season",
+                nx == null ? null : new WkBtn { label = "Claim", on = cl < tier, col = Go, act = () => { if (AHExtras.ClaimNext(g)) Banner("Season tier " + AHExtras.Claimed(p), "Reward claimed"); RenderWork(); } }));
+        }
         rows.Add(s => Row(s, "Login calendar · day " + (di + 1) + " of 7", new Color(1f, 0.8f, 0.45f), lr.name + ": " + AHDaily.Text(lr), "Day 7: Grand prize (a diamond and 60 marks)",
-            new WkBtn { label = canLogin ? "Claim" : "Tomorrow", on = canLogin, col = Go, act = () => { if (S.claimedDay == S.day) return; S.claimedDay = S.day; AHDaily.Grant(g, lr); Banner("Day " + (di + 1) + " reward", lr.name); RenderWork(); RefreshDailyChip(); } }));
+            new WkBtn { label = canLogin ? "Claim" : "Tomorrow", on = canLogin, col = Go, act = () => { if (S.claimedDay == S.day) return; S.claimedDay = S.day; AHDaily.Grant(g, lr); Banner("Day " + (di + 1) + " reward", lr.name);
+                // a whole month of days in a row: a big bonus
+                if (S.streak > 0 && S.streak % 30 == 0) { AHDaily.Grant(g, new AHDaily.Reward { marks = 150, items = { new KeyValuePair<string, int>("diamond", 2), new KeyValuePair<string, int>("mystery_sack", 3) } }); Banner("30 days in a row!", "Two diamonds, three sacks and 150 marks"); }
+                RenderWork(); RefreshDailyChip(); } }));
         Action<List<AHGoal>, bool> list = (tasks, weekly) =>
         {
             foreach (var q in tasks)
@@ -249,7 +282,7 @@ public partial class AHUI
         // the week's event
         {
             var E = AHDaily.EventOf(DateTime.Now, p.level); var ne = DateTime.Today.AddDays(7 - (((int)DateTime.Today.DayOfWeek + 6) % 7)) - DateTime.Now;
-            rows.Add(s => Row(s, "Event: " + E.name, E.col, E.blurb, "Ends in " + (int)ne.TotalDays + "d " + ne.Hours + "h · a new event every Monday"));
+            rows.Add(s => Row(s, "Event: " + E.name, E.col, p.path == "artisan" && E.id != "harvest" ? "The fighters need supplies: Artisans earn the event by making and gathering." : E.blurb, "Ends in " + (int)ne.TotalDays + "d " + ne.Hours + "h · a new event every Monday"));
             for (int ti = 0; ti < S.etasks.Count; ti++)
             {
                 var qq = S.etasks[ti]; int tier = ti; var rw = AHDaily.EventReward(p, tier);

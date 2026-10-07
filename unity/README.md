@@ -540,6 +540,23 @@ Played on a real Android phone (an Honor foldable). Fixed from that test:
   set with *Ashen Hollow → Dreamscape: Build Set* after importing the pack and its "MeadowsURP" materials package.
   Turn it off with PlayerPrefs `ah_dreamscape` = 0.
 
+## Heroes, settings and the Artisan's game (October)
+
+- **Hero select and several heroes.** The game opens on "Choose your hero": up to six heroes per device, each shown standing in its gear. Play, delete (tap twice), or make a new hero; cancelling a new hero goes back to the list. Log out or change hero from the Menu or Settings. Each hero's save, timers and progress live in its own slot (AHPrefs); settings are shared.
+- **Settings** (Menu): sound, music and effects volume; graphics preset, shadows, frame rate, smooth edges, glow, view distance, grass; camera distance, floating numbers, keep screen on; new or classic hero, lush or classic meadow; change hero, log out, device ID, reset.
+- **Emotes** (EMOTE button or Menu): wave, bow, nod, no, cheer, dance, point, shadowbox, sit, talk, arms folded, snack. Photo mode from the same window (hide the buttons, SNAP saves a picture).
+- **Stats window** shows your hero standing in all gear. **Item window**: tap any gear picture (bag, shop, auction house, bank, market) to see it turning, try it on, equip, buy or salvage it. A **better-gear card** pops up when you get something better than you wear.
+- **Work animations and tools**: an axe for woodcutting, a pickaxe for mining, a rod and line for fishing, kneeling to pick herbs.
+- **Bag**: 45 slots, plus up to three more rows of nine bought with Adventurer's Marks; a SORT button; "Sell old gear" at shops. **Loadouts**: three saved gear sets, one tap to wear.
+- **Combat**: every third quick swing is a heavy combo finisher; rolling just as a blow lands is a perfect dodge (the world slows, +30% damage for 3 s); elemental reactions (fire on a slowed foe shatters it, poison in flames blazes, a stun ruptures poison).
+- **Lightfoot** (level 5): LEAP button or F, three long bounds in a row that recharge.
+- **Weapon mastery**: 100 / 500 / 2,000 kills with your class light your weapon blue, violet, then gold. **Pet evolution**: pets grow at levels 8, 15 and 20 (Mythic pets glow).
+- **The Artisan's game** (Menu → Artisans' Guild): the five-chapter Artisan's Saga (the burned guild hall, Master Oren's lost recipe book, the rival Corvin Vale, rebuilding the hall, the Masterwork and the title Grand Artisan); a weekly commission from a patron; the monthly Masterwork Contest; ranks from Apprentice to Grand Artisan; a maker's mark on what you craft; workshop upgrades (forge, loom, kitchen, shop counter). Artisans' daily, weekly, monthly goals and the weekly event are about making and gathering. The Titan's elixir and the Raider's flask can only be brewed by Artisans.
+- **Season track**: thirty tiers of rewards each season, filled by the marks your goals pay; a big bonus every 30 days of logging in.
+- **The realm** (Menu): weather (rain helps fishing and herbs; fog and rain dull the beasts' notice; snow in the cold lands), a Library of 24 lore pages found while you play, the weekend tournament (fishing, woodcutting or mining in turn), and helpers who gather for you while you are away.
+- **Polish**: footsteps by surface, dust behind a galloping mount, a camera swing and light at level-up, the hero folds their arms when left standing.
+- **VRoid heroes by hairstyle**: the hairstyle chosen in the creator picks the matching VRoid build (hero_m_ponytail, hero_m_short...). "VRoid: Model Shots" saves front, side and back pictures of every build.
+
 ## Credits
 - Heroes (Knight, Mage, Rogue, Barbarian): KayKit Adventurers by Kay Lousberg, CC0.
 - City buildings, walls, towers and props: KayKit Medieval Hexagon Pack by Kay Lousberg (www.kaylousberg.com), CC0.

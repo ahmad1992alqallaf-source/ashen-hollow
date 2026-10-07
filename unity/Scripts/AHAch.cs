@@ -58,6 +58,9 @@ public static class AHAch
             A("throne", "Throne Breaker", "Defeat Vaelor in the Ember Throne raid.", "Throne Breaker", p => K(p, AHRaid.Boss) >= 1);
             A("delver", "Delver", "Complete 5 Dungeon Finder runs.", "the Delver", p => AHFinder.Runs >= 5);
             A("wellfed", "Gourmand", "Eat a masterwork meal.", "the Gourmand", p => p.prog.Stat("master_meals") >= 1);
+            A("hall_rebuilt", "Hall Raiser", "Rebuild the Artisans' guild hall of Ashen Hollow.", "the Builder", p => p.prog.art != null && p.prog.art.hall >= 4);
+            A("grand_artisan", "Grand Artisan", "Finish the Artisan's Saga.", "Grand Artisan", p => AHArtisan.SagaDone(p));
+            A("contest_champ", "Contest Champion", "Win the monthly Masterwork Contest.", "the Champion Maker", p => p.prog.art != null && p.prog.art.contestRank == 1 && p.prog.art.contestScore > 0);
             A("artisan_road", "Master Artisan", "Walk the whole Artisan’s Road.", "Master Artisan", p => { var r = AHQuestLog.Road; return r != null && AHGame.I != null && AHGame.I.quests.roadI >= r.Count; });
             // world bosses: a deed for each, and one for felling them all
             foreach (var B in AHEvents.Bosses)

@@ -32,6 +32,12 @@ public class AHProgress
     public long nmNight; public List<AHKV> nmBought = new List<AHKV>();
     public long kqDone; public int kqBestSiege, kqBestRush;
     public List<AHFriend> friends = new List<AHFriend>(); public List<AHLetter> letters = new List<AHLetter>();
+    public AHArtisanState art = new AHArtisanState();
+    public AHWorldState world = new AHWorldState();
+    public int bagRows;                                          // extra bag rows bought (9 slots each)
+    public List<AHLoadout> loadouts = new List<AHLoadout>();     // saved gear sets
+    public string seasonKey = ""; public int seasonXp, seasonClaimed;   // the season track
+    public List<AHKV> weaponKills = new List<AHKV>();            // kills by weapon kind (weapon mastery)
 
     public static long Get(List<AHKV> l, string k) { foreach (var e in l) if (e.k == k) return e.v; return 0; }
     public static void Add(List<AHKV> l, string k, long n) { foreach (var e in l) if (e.k == k) { e.v += n; return; } l.Add(new AHKV { k = k, v = n }); }

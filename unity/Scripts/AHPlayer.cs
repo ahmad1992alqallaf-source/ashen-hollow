@@ -93,6 +93,7 @@ public class AHPlayer : MonoBehaviour
         weaponR = null; weaponL = null;
         foreach (var t in model.GetComponentsInChildren<Transform>(true))
             if (t.name.StartsWith("Weapon_")) { if (t.parent != null && t.parent.name == "hand_l") weaponL = t; else weaponR = t; }
+        ApplyWeaponGlow();
         baseScale = model.transform.localScale;
         lookScale = Vector3.zero;
         modelBaseY = float.NaN;
@@ -312,13 +313,13 @@ public class AHPlayer : MonoBehaviour
         {
             float b = 4f + Skill("attack") * 0.7f + stat.atk;
             float buff = (dmgBuffT > 0f ? 1f + dmgBuff : 1f) * (1f + stat.dmg) * (1f + (level - 1) * 0.01f) * (bearT > 0f ? 1.2f : 1f)
-                * (Elix("might") ? 1.2f : 1f) * (Elix("dragon") ? 1.15f : 1f) * (1f + AHMeal.Fx(this, "dmg")) * (AHEvo.Pass(this, "rage") > 0f && hp < maxHp * 0.5f ? 1.2f : 1f);
+                * (Elix("might") ? 1.2f : 1f) * (Elix("dragon") ? 1.15f : 1f) * (Elix("titan") ? 1.25f : 1f) * (Elix("raid") ? 1.1f : 1f) * (1f + AHMeal.Fx(this, "dmg")) * (AHEvo.Pass(this, "rage") > 0f && hp < maxHp * 0.5f ? 1.2f : 1f);
             return b * buff;
         }
     }
     public float Damage() { return Mathf.Max(1f, Power * Random.Range(0.7f, 1.3f) * (hunger <= 0f ? 0.8f : 1f)); }
     // web: armorCut = 1 - 100 / (100 + armor * 5)
-    public float ArmorCut { get { return 1f - 100f / (100f + stat.def * 5f * (1f + (Elix("iron") ? 0.3f : 0f) + AHMeal.Fx(this, "def") + AHEvo.Pass(this, "armor"))); } }
+    public float ArmorCut { get { return 1f - 100f / (100f + stat.def * 5f * (1f + (Elix("iron") ? 0.3f : 0f) + (Elix("titan") ? 0.25f : 0f) + AHMeal.Fx(this, "def") + AHEvo.Pass(this, "armor"))); } }
 
     // ---------- wading: the shallow rim of a pond slows you, you sink a little and the water ripples ----------
     float wadeDepth, rippleT, modelBaseY = float.NaN;
@@ -329,7 +330,7 @@ public class AHPlayer : MonoBehaviour
         if (model != null)
         {
             if (float.IsNaN(modelBaseY)) modelBaseY = model.transform.localPosition.y;
-            var lp = model.transform.localPosition; lp.y = modelBaseY - 0.4f * wadeDepth * (mounted ? 0.3f : 1f) + seatY; model.transform.localPosition = lp;
+            var lp = model.transform.localPosition; lp.y = modelBaseY - 0.4f * wadeDepth * (mounted ? 0.3f : 1f) + seatY + leapY; model.transform.localPosition = lp;
         }
         if (wd <= 0.02f) return;
         rippleT -= dt;
@@ -404,6 +405,8 @@ public class AHPlayer : MonoBehaviour
             case "iron": return "+30% armor for 3 minutes";
             case "dragon": return "+15% damage and speed for 5 minutes";
             case "ward": return "25% less damage taken for 3 minutes";
+            case "titan": return "+25% damage and armor for 10 minutes";
+            case "raid": return "+10% damage and 20% less damage taken for 10 minutes";
         }
         return buff;
     }
@@ -470,9 +473,33 @@ public class AHPlayer : MonoBehaviour
             dodgeCd = 1.4f; iframe = 0.4f; AHSound.Play("whoosh");
         }
 
+        // lightfoot (qinggong): a long bounding leap, up to three in a row, the breath coming back over a few seconds
+        if (leapCharges < LeapMax) { leapRegen += dt; if (leapRegen >= 3.5f) { leapRegen = 0f; leapCharges++; } }
+        bool wantLeap = (g.ui != null && g.ui.leapPressed) || AHInput.LeapKey();
+        if (wantLeap && leapT <= 0f && leapCharges > 0 && dodgeT <= 0f && !dead && LeapUnlocked)
+        {
+            if (mounted) AHComp.Dismount(g, true);
+            leapCharges--; leapRegen = 0f;
+            leapDir = move.sqrMagnitude > 0.01f ? move.normalized : transform.forward; leapDur = 0.75f; leapT = leapDur;
+            transform.rotation = g.Face(leapDir); StopEmote(); AHGather.Cancel();
+            if (anim != null && !anim.Play("NinjaJump_Start", false, 1.1f, true)) anim.Play("Running_A", true, 2.2f, true);
+            atkT = Mathf.Max(atkT, 0.1f); iframe = Mathf.Max(iframe, 0.2f);
+            AHSound.Play("whoosh");
+            AHFx.Ring(transform.position, 0.2f, 1.2f, new Color(0.85f, 0.95f, 1f, 0.7f), 0.35f);
+        }
+
         Vector3 pos = transform.position;
         bool moving = false;
-        if (dodgeT > 0f)
+        if (leapT > 0f)
+        {
+            leapT -= dt; float f = 1f - Mathf.Clamp01(leapT / leapDur);
+            leapY = Mathf.Sin(f * Mathf.PI) * 1.9f;
+            pos += leapDir * speed * 2.6f * dt;
+            if (Mathf.Repeat(leapT, 0.08f) < dt) AHSpark.Trail(pos + Vector3.up * (leapY + 0.9f), new Color(0.85f, 0.95f, 1f, 0.6f), 0.12f, 1);
+            if (leapT <= 0f) { leapY = 0f; if (anim != null) anim.Play("NinjaJump_Land", false, 1.3f, true); atkT = Mathf.Max(atkT, 0.15f); AHFx.Ring(transform.position, 0.2f, 1.4f, new Color(0.85f, 0.95f, 1f, 0.6f), 0.35f); }
+            moving = true;
+        }
+        else if (dodgeT > 0f)
         {
             dodgeT -= dt;
             pos += dodgeDir * (speed * dashMul) * dt;
@@ -485,10 +512,18 @@ public class AHPlayer : MonoBehaviour
             float step = speed * (bearT > 0f ? 1.05f : 1f) * SpeedMult * AHComp.MountSpeed(this) * (1f - 0.4f * wadeDepth * (mounted ? 0.4f : 1f)) * dt;
             pos += move * step;
             AHComp.RideTick(g, step * move.magnitude);
+            // a mount at a gallop kicks up dust behind it
+            if (mounted && (dustT -= dt) <= 0f) { dustT = 0.11f; AHFx.Pop(transform.position - move.normalized * 1.1f + Vector3.up * 0.12f + transform.right * UnityEngine.Random.Range(-0.3f, 0.3f), 0.8f, new Color(0.78f, 0.7f, 0.56f, 0.4f), 0.55f); }
             transform.rotation = Quaternion.Slerp(transform.rotation, g.Face(move), 1f - Mathf.Exp(-dt * 14f));
             moving = true;
         }
         transform.position = g.Resolve(g.PushFromPeople(pos, Radius), Radius, AHGame.Wade);
+        // footsteps, by what is underfoot
+        if (moving && leapT <= 0f && dodgeT <= 0f && (stepT -= dt) <= 0f)
+        {
+            stepT = mounted ? 0.36f : 0.31f;
+            AHSound.Play(mounted ? "step_hoof" : wadeDepth > 0.05f ? "step_water" : (g.InTown(transform.position) || AHDungeon.IsDungeon(AHGame.AreaId)) ? "step_stone" : "step_grass");
+        }
         Moving = moving && dodgeT <= 0f;
         UpdateWading(dt, moving);
 
@@ -515,7 +550,7 @@ public class AHPlayer : MonoBehaviour
                 if (hitAt <= 0f && !Ranged)
                 {
                     AHMob t = hitTarget != null && !hitTarget.dead ? hitTarget : Nearest(Range);
-                    if (t != null && Dist(t) < Range + 0.3f) { t.Hurt(Roll(cls.atkMult), this); OnHitFx(t); }
+                    if (t != null && Dist(t) < Range + 0.3f) { t.Hurt(Roll(cls.atkMult * comboMul), this); OnHitFx(t); }
                 }
             }
         }
@@ -545,11 +580,20 @@ public class AHPlayer : MonoBehaviour
             var ed = AHEmote.Find(emote); emoteT -= dt;
             if (ed == null || moving || atkT > 0f || dodgeT > 0f || whirlT > 0f || Busy || mounted || dead || (!ed.loop && emoteT <= 0f)) StopEmote();
         }
+        // standing about: now and then the hero folds their arms and waits
+        if (moving || atkT > 0f || Busy || emote != null || mounted) idleT = 0f; else idleT += dt;
+        string idleClip = idleT > 10f && Mathf.Repeat(idleT - 10f, 22f) < 5f && anim != null && anim.Has("Idle_FoldArms_Loop") ? "Idle_FoldArms_Loop" : "Idle";
         if (anim != null && mounted) { }
-        else if (anim != null && dodgeT <= 0f && atkT <= 0f && whirlT <= 0f && poseT <= 0f && !Busy && emote == null) anim.Play(moving ? "Running_A" : "Idle", true);
+        else if (anim != null && dodgeT <= 0f && atkT <= 0f && whirlT <= 0f && poseT <= 0f && !Busy && emote == null) anim.Play(moving ? "Running_A" : idleClip, true);
     }
 
     float dashMul = 2.2f;
+    int comboN; float lastSwing = -9f, comboMul = 1f, perfectCd, idleT, dustT, stepT;
+    // lightfoot
+    public const int LeapMax = 3; public const int LeapLevel = 5;
+    [System.NonSerialized] public int leapCharges = LeapMax; float leapRegen, leapT, leapDur = 0.75f, leapY; Vector3 leapDir;
+    public bool LeapUnlocked { get { return level >= LeapLevel; } }
+    public bool Leaping { get { return leapT > 0f; } }
 
     // ---------- emotes ----------
     [System.NonSerialized] public string emote; float emoteT; AHEmotePose emotePose;
@@ -723,7 +767,16 @@ public class AHPlayer : MonoBehaviour
         AHMob t = Ranged ? (target != null && Dist(target) <= Range ? target : Nearest(Range)) : Nearest(Range + 0.4f);
         if (t != null) { target = t; FaceTarget(t); }
         atkCd = cls.atkCd; atkT = Ranged ? 0.35f : 0.5f; hitAt = 0.22f; hitTarget = t;
-        if (anim != null)
+        // combos: every third swing in a quick chain is a heavy finisher
+        comboN = Time.time - lastSwing < cls.atkCd + 1.1f ? comboN + 1 : 1; lastSwing = Time.time;
+        comboMul = comboN % 3 == 0 ? 1.8f : 1f;
+        if (comboMul > 1f)
+        {
+            if (g.ui != null) g.ui.Float(transform.position + Vector3.up * 2.5f, "Combo!", new Color(1f, 0.75f, 0.3f));
+            AHFx.Ring(transform.position, 0.3f, 1.8f, cls.color, 0.3f);
+        }
+        if (anim != null && comboMul > 1f && !Ranged && anim.Has("Sword_Heavy_Combo")) { anim.Play("Sword_Heavy_Combo", false, 1.5f, true); poseT = 0f; atkT = Mathf.Max(atkT, 0.6f); hitAt = 0.3f; }
+        else if (anim != null)
         {
             // melee: alternate a forward cut and a sideways slash; the ranger fires the crossbow two-handed
             string clip = Ranged ? (cls.id == "ranger" && anim.Has("Pistol_Shoot") ? "Pistol_Shoot" : "Shoot")
@@ -733,7 +786,7 @@ public class AHPlayer : MonoBehaviour
         }
         if (Ranged && t != null)
         {
-            int dmg = Roll(cls.atkMult);
+            int dmg = Roll(cls.atkMult * comboMul);
             System.Action<AHMob> hitFn = m => { m.Hurt(dmg, this); AHEvo.Arc(this, m, dmg); OnHitFx(m); };
             if (cls.id == "rogue") AHFx.Shoot(Hand, t, new Color(0.55f, 0.95f, 0.45f), 0.14f, 24f, SpellEl.Arrow, hitFn);   // poisoned throwing knives
             else if (cls.id == "ranger") AHFx.Shoot(Hand, t, new Color(1f, 0.95f, 0.8f), 0.18f, 26f, SpellEl.Arrow, hitFn);   // the crossbow fires real bolts
@@ -964,6 +1017,23 @@ public class AHPlayer : MonoBehaviour
         if (g.ui != null) g.ui.SpellFlash(i, sp);   // the name floats up above its button
     }
 
+    // weapon mastery: a glow on the weapon in the right hand (AHExtras)
+    public void ApplyWeaponGlow()
+    {
+        if (weaponR == null) return;
+        foreach (var gl in weaponR.GetComponentsInChildren<AHWeaponGlow>(true)) Destroy(gl.gameObject);
+        int t = AHExtras.MasteryTier(this); if (t <= 0) return;
+        var go = new GameObject("MasteryGlow"); go.transform.SetParent(weaponR, false); go.transform.localPosition = new Vector3(0f, 0.25f, 0f);
+        go.AddComponent<AHWeaponGlow>().col = AHExtras.MasteryCol[t - 1];
+    }
+
+    System.Collections.IEnumerator SlowMo()
+    {
+        if (Time.timeScale < 0.99f) yield break;
+        Time.timeScale = 0.35f;
+        yield return new WaitForSecondsRealtime(0.7f);
+        if (Time.timeScale > 0.3f && Time.timeScale < 0.4f) Time.timeScale = 1f;
+    }
     System.Collections.IEnumerator Later(float t, System.Action a)
     {
         yield return new WaitForSeconds(t);
@@ -980,11 +1050,20 @@ public class AHPlayer : MonoBehaviour
             float gap = src.type.lvl - level;
             raw *= Mathf.Clamp(1f + gap * 0.05f, 0.6f, 1.9f) * (g.IsNight && !g.InTown(transform.position) ? 1.2f : 1f);
         }
+        // a perfect dodge: rolling just as the blow lands slows the world for a moment and sharpens your next strikes
+        if (iframe > 0.22f && src != null && Time.time >= perfectCd)
+        {
+            perfectCd = Time.time + 6f;
+            if (g.ui != null) g.ui.Float(transform.position + Vector3.up * 2.4f, "Perfect dodge!", new Color(0.7f, 0.9f, 1f));
+            dmgBuff = Mathf.Max(dmgBuff, 0.3f); dmgBuffT = Mathf.Max(dmgBuffT, 3f);
+            StartCoroutine(SlowMo());
+            return;
+        }
         if (iframe > 0f || invulnT > 0f) { if (g.ui != null) g.ui.Float(transform.position + Vector3.up * 2f, invulnT > 0f ? "Immune" : "Dodged", new Color(0.81f, 0.91f, 1f)); return; }
         if (AHEvo.Pass(this, "block") > 0f && Random.value < AHEvo.Pass(this, "block")) { if (g.ui != null) g.ui.Float(transform.position + Vector3.up * 2f, "Blocked", new Color(1f, 0.85f, 0.5f)); return; }
         if (stat.evade > 0f && Random.value < stat.evade) { if (g.ui != null) g.ui.Float(transform.position + Vector3.up * 2f, "Evaded", new Color(0.81f, 0.91f, 1f)); return; }
         float red = bearT > 0f ? 0.4f : 0f;
-        int hit = Mathf.Max(1, Mathf.RoundToInt(raw * (1f - ArmorCut) * (1f - red) * (Elix("ward") ? 0.75f : 1f) * AHFinder.TakenK(g)));
+        int hit = Mathf.Max(1, Mathf.RoundToInt(raw * (1f - ArmorCut) * (1f - red) * (Elix("ward") ? 0.75f : 1f) * (Elix("raid") ? 0.8f : 1f) * AHFinder.TakenK(g)));
         if (shield > 0f)
         {
             int a = Mathf.Min(Mathf.RoundToInt(shield), hit); shield -= a; hit -= a;
@@ -1072,6 +1151,10 @@ public class AHPlayer : MonoBehaviour
         {
             Recalc();
             if (g.ui != null) g.ui.Banner("Level " + after, cls.name + " level up");
+            // a moment for it: the camera swings around the hero in a column of light
+            g.cineT = 2.4f;
+            AHFx.Pillar(transform.position, 1.2f, 6f, new Color(1f, 0.85f, 0.45f, 0.6f), 1.6f);
+            AHSpark.Ring(transform.position + Vector3.up * 0.4f, new Color(1f, 0.85f, 0.45f), 30, 6f, 0.8f);
             string opens = AHGame.LandsOpeningAt(after);
             if (opens != null && g.ui != null) g.ui.Toast("Now ready for " + opens + ". See the world map (M).", 4f);
             AHSpark.LevelUp(transform.position);

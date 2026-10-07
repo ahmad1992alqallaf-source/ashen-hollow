@@ -10,7 +10,7 @@ public partial class AHUI : MonoBehaviour
 {
     // read by the game each frame
     [HideInInspector] public Vector2 stick;
-    [HideInInspector] public bool attackHeld, dodgePressed;
+    [HideInInspector] public bool attackHeld, dodgePressed, leapPressed;
     [HideInInspector] public readonly bool[] spellPressed = new bool[6];
     [HideInInspector] public Vector2 camDelta;
     [HideInInspector] public float zoom = 1f;
@@ -230,6 +230,7 @@ public partial class AHUI : MonoBehaviour
         BuildShopHud();
         BuildMenuHud();
         BuildEmoteHud();
+        BuildLeapHud();
         BuildDailyHud();
         BuildEvHud();
         ApplySkin();
@@ -510,7 +511,7 @@ public partial class AHUI : MonoBehaviour
         UpdatePotions();
         ShopKeys();
         if (Modal == 0) AHTutorial.Tick(g, this, dt);
-        InspectTick(); UpgradeTick(dt);
+        InspectTick(); UpgradeTick(dt); LeapHudTick();
         Camera cam = g.cam;
         int n = 0;
         if (cam != null && p != null && !PickerOpen)
@@ -560,7 +561,7 @@ public partial class AHUI : MonoBehaviour
         foreach (var t in taps)
             if (t.layer == modal && t.rt != null && t.rt.gameObject.activeInHierarchy && Inside(t.rt, q.pos, 4f * k)) { pt.tap = t; return Role.Tap; }
         if (modal != 0) return Role.None;
-        if (q.id == -2) return Role.Cam;
+        if (q.id == -2 || PhotoOn) return Role.Cam;
         for (int i = 0; i < 6; i++)
             if (spellBtns[i].rt.gameObject.activeSelf && Inside(spellBtns[i].rt, q.pos, 4f * k)) { pt.index = i; spellPressed[i] = true; return Role.Spell; }
         if (Inside(atkBtn, q.pos, 24f * k)) return Role.Attack;
@@ -580,7 +581,7 @@ public partial class AHUI : MonoBehaviour
         float k = canvas.scaleFactor > 0f ? canvas.scaleFactor : 1f;
         var list = AHInput.Pointers();
         seen.Clear();
-        dodgePressed = false;
+        dodgePressed = false; leapPressed = false;
         for (int i = 0; i < 6; i++) spellPressed[i] = false;
         camDelta = Vector2.zero;
         zoom = 1f;
@@ -682,6 +683,10 @@ public partial class AHUI : MonoBehaviour
         bagWin = Img("BagWindow", bagRoot, white, new Vector2(0.5f, 0.5f), new Vector2(0, -10), new Vector2(WinW, WinH), new Color(0.1f, 0.075f, 0.055f, 1f));
         Img("Edge", bagWin, white, new Vector2(0.5f, 1f), new Vector2(0, -3), new Vector2(WinW, 6), new Color(0.85f, 0.6f, 0.25f, 1f));
         var title = Label(bagWin, "Title", "Bag", 30, TextAnchor.UpperLeft, new Vector2(24, -14), new Vector2(300, 44), new Color(0.95f, 0.65f, 0.3f));
+        // sort the bag: gear, potions, food, valuables, then materials
+        var sortBtn = Img("Sort", bagWin, white, new Vector2(0f, 1f), new Vector2(150, -36), new Vector2(84, 34), new Color(0.3f, 0.24f, 0.18f, 1f));
+        Center(Label(sortBtn, "T", "SORT", 15, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(84, 26), Color.white));
+        taps.Add(new TapBtn { rt = sortBtn, layer = 2, act = () => { AHExtras.Sort(g.player.bag); bagSel = null; RefreshBag(); } });
         title.fontStyle = FontStyle.Bold;
         bagGold = Label(bagWin, "Money", "", 22, TextAnchor.UpperRight, new Vector2(WinW - 400, -20), new Vector2(310, 34), new Color(1f, 0.84f, 0.35f));
         var close = Img("Close", bagWin, circle, new Vector2(1, 1), new Vector2(-36, -34), new Vector2(52, 52), new Color(0.45f, 0.15f, 0.12f, 1f));
@@ -875,6 +880,7 @@ public partial class AHUI : MonoBehaviour
             sd = AHItems.Get(bag.Worn(gearSel)); n = 1;
             text = AHItems.SlotName(gearSel) + " · worn\n" + AHItems.StatLine(sd) + SetLine(sd, bag); act = "Take off";
         }
+        if (sd != null && AHArtisan.Made(p, sd.id) > 0) text += "\n<color=#c9e0a0>Maker's mark: " + (string.IsNullOrEmpty(p.heroName) ? "you" : p.heroName) + " (" + AHArtisan.Made(p, sd.id) + " made)</color>";
         bagAct.gameObject.SetActive(sd != null && act != null);
         if (act != null) bagActText.text = act;
         bagDrop.gameObject.SetActive(bagSel != null && sd != null);
@@ -948,7 +954,7 @@ public partial class AHUI : MonoBehaviour
         buffText.text = sb.ToString();
     }
 
-    static string ElixName(string k) { return k == "might" ? "Might" : k == "swift" ? "Swiftness" : k == "iron" ? "Ironskin" : k == "dragon" ? "Dragonfire" : k == "ward" ? "Fire ward" : k; }
+    static string ElixName(string k) { return k == "might" ? "Might" : k == "swift" ? "Swiftness" : k == "iron" ? "Ironskin" : k == "dragon" ? "Dragonfire" : k == "ward" ? "Fire ward" : k == "titan" ? "Titan" : k == "raid" ? "Raider" : k; }
 
     static string SetLine(ItemDef d, AHBag bag)
     {

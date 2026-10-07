@@ -275,6 +275,18 @@ public class AHMob : MonoBehaviour
         if (dead) return;
         dotBy = by;
         if (by != null && (s == AHStatus.Burn || s == AHStatus.Poison)) dps *= 1f + AHEvo.Pass(by, "burn");
+        // elemental reactions: two effects meeting make something stronger
+        string react = null; int bonus = 0;
+        if (s == AHStatus.Burn && slowT > 0f) { react = "Shatter!"; bonus = Mathf.RoundToInt(Mathf.Max(dps, 4f) * 4f); slowT = 0f; }               // fire on the chilled
+        else if (s == AHStatus.Poison && burnT > 0f) { react = "Toxic blaze!"; bonus = Mathf.RoundToInt((burnDps + Mathf.Max(dps, 3f)) * 3f); }   // poison in the flames
+        else if (s == AHStatus.Stun && poisonT > 0f) { react = "Rupture!"; bonus = Mathf.RoundToInt(poisonDps * Mathf.Max(1f, poisonT)); poisonT = 0f; }   // the stun bursts the poison
+        if (react != null && bonus > 0)
+        {
+            if (AHGame.I != null && AHGame.I.ui != null) AHGame.I.ui.Float(transform.position + Vector3.up * 2.6f, react, new Color(1f, 0.8f, 0.3f));
+            AHFx.Ring(transform.position, 0.3f, type.radius + 1.6f, new Color(1f, 0.7f, 0.3f), 0.4f);
+            Hurt(bonus, by);
+            if (dead) return;
+        }
         switch (s)
         {
             case AHStatus.Burn: burnT = time; burnDps = Mathf.Max(burnDps, dps); AHFx.Pop(transform.position + Vector3.up * 0.8f, 1.2f, new Color(1f, 0.5f, 0.15f)); break;
@@ -297,6 +309,7 @@ public class AHMob : MonoBehaviour
 
     void Die(AHPlayer by)
     {
+        if (by != null) AHExtras.OnKill(by);   // weapon mastery
         dead = true; hp = 0f; windup = 0f; skinned = false; corpseT = 40f; respawnT = 0f; voiceT = 0f; Voice("death", 1f);
         burnT = poisonT = slowT = rootT = stunT = fearT = 0f;
         if (hasClips && anim.Has("Death")) anim.Play("Death", false, 1f, true);
@@ -424,7 +437,7 @@ public class AHMob : MonoBehaviour
         Vector3 dir = Vector3.zero;
         bool canSee = !p.dead && !p.Stealthed && calmT <= 0f;
 
-        if (state == State.Wander && type.aggro > 0f && canSee && dist < type.aggro && !g.Peaceful(this) && !g.InTown(p.transform.position))
+        if (state == State.Wander && type.aggro > 0f && canSee && dist < type.aggro * AHWeather.AggroK && !g.Peaceful(this) && !g.InTown(p.transform.position))
         {
             state = State.Chase; Voice("aggro", 1f);
             // web: the rest of the pack nearby joins in

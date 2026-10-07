@@ -10,7 +10,7 @@ using UnityEngine.UI;
 public partial class AHUI
 {
     RectTransform insRoot, insPanel, insView; RawImage insRaw; Image insGlow; Text insName, insSlot, insText, insHint;
-    ItemDef insItem; bool insOn; Action insBuy; string insBuyLabel;
+    ItemDef insItem; bool insOn; Action insBuy; string insBuyLabel; float insSalvArm;
     readonly List<GameObject> insBtns = new List<GameObject>();
     public bool InspectOpen { get { return insRoot != null && insRoot.gameObject.activeSelf; } }
 
@@ -81,6 +81,7 @@ public partial class AHUI
         if (!d.cosmetic) t += "\n\n" + (wearing ? "<color=#ffd86a>You are wearing this.</color>" : "Against " + (worn != null ? worn.name : "nothing worn") + ":\n" + Compare(d, worn));
         if (!AHItems.CanUse(d.id, p.cls.id)) t += "\n\n<color=#ff8a7a>Your class can’t use this.</color>";
         if (!string.IsNullOrEmpty(d.note)) t += "\n\n<i>" + d.note + "</i>";
+        if (AHArtisan.Made(p, d.id) > 0) t += "\n\n<color=#c9e0a0>Maker's mark: " + (string.IsNullOrEmpty(p.heroName) ? "you" : p.heroName) + "</color>";
         int have = bag.Count(d.id); if (have > 0 && !wearing) t += "\n\nIn your bag: " + have;
         insText.text = t;
         insGlow.color = new Color(q.r, q.g, q.b, 0.5f);
@@ -93,11 +94,17 @@ public partial class AHUI
         // the buttons along the bottom
         float x = 372f, y = 30f;
         bool canWear = AHItems.CanUse(d.id, p.cls.id) && !d.cosmetic;
-        InsBtn(insOn ? "Show the item" : "Try it on", new Vector2(x + 90, y + 26), 180, new Color(0.45f, 0.75f, 1f), () => { insOn = !insOn; RenderInspect(); });
+        InsBtn(insOn ? "Show item" : "Try it on", new Vector2(x + 66, y + 26), 128, new Color(0.45f, 0.75f, 1f), () => { insOn = !insOn; RenderInspect(); });
+        // salvage: break a spare piece back into some of its materials
+        if (AHExtras.CanSalvage(p, d) && !(wearing && have <= 0))
+            InsBtn(insSalvArm > Time.unscaledTime ? "Confirm" : "Salvage", new Vector2(x + 338, y + 26), 128, new Color(1f, 0.65f, 0.45f), () => {
+                if (insSalvArm < Time.unscaledTime) { insSalvArm = Time.unscaledTime + 3f; RenderInspect(); return; }
+                insSalvArm = 0f; string msg = AHExtras.Salvage(g, d); if (msg != null) Toast(msg, 3f);
+                if (g.player.bag.Count(d.id) <= 0) CloseInspect(); else RenderInspect(); });
         if (have > 0 && canWear && !wearing)
-            InsBtn("Equip", new Vector2(x + 280, y + 26), 180, new Color(0.55f, 1f, 0.6f), () => { string msg = bag.Equip(d.id, p.cls.id); if (msg != null) Toast(msg); else { AHSound.Play("level"); Toast("Equipped " + d.name + "."); } RenderInspect(); });
+            InsBtn("Equip", new Vector2(x + 202, y + 26), 128, new Color(0.55f, 1f, 0.6f), () => { string msg = bag.Equip(d.id, p.cls.id); if (msg != null) Toast(msg); else { AHSound.Play("level"); Toast("Equipped " + d.name + "."); } RenderInspect(); });
         else if (insBuy != null)
-            InsBtn(insBuyLabel ?? "Buy", new Vector2(x + 280, y + 26), 180, new Color(1f, 0.85f, 0.45f), () => { insBuy(); RenderInspect(); });
+            InsBtn(insBuyLabel ?? "Buy", new Vector2(x + 202, y + 26), 128, new Color(1f, 0.85f, 0.45f), () => { insBuy(); RenderInspect(); });
     }
 
     void InspectTick()
