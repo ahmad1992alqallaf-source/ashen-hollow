@@ -7,16 +7,19 @@ public static class AHGallery
 {
     public static void Setup(AHGame g)
     {
-        try { Build(g); } catch (System.Exception e) { Debug.LogWarning("Ashen Hollow: costume gallery skipped: " + e.Message); }
+        try { Build(g, false); } catch (System.Exception e) { Debug.LogWarning("Ashen Hollow: costume gallery skipped: " + e.Message); }
     }
-    static void Build(AHGame g)
+    // editor test: the gallery built right next to you, with every costume (nothing is saved or given)
+    public static void Preview(AHGame g) { Build(g, true); }
+    static void Build(AHGame g, bool preview)
     {
-        var p = g.player; if (AHGame.AreaId != AHHome.Area || p == null || g.data == null || g.data.spawn == null) return;
-        var own = new List<string>(); foreach (var d in AHCostumes.All) if (AHCostumes.Owns(p, d.id) && AHCostumes.Exists(p.look, d.id)) own.Add(d.id);
-        if (own.Count == 0) return;
+        var p = g.player; if ((!preview && AHGame.AreaId != AHHome.Area) || p == null || g.data == null || g.data.spawn == null) return;
+        var own = new List<string>(); foreach (var d in AHCostumes.All) if ((preview || AHCostumes.Owns(p, d.id)) && AHCostumes.Exists(p.look, d.id)) own.Add(d.id);
+        if (own.Count == 0) { if (preview) Debug.Log("Ashen Hollow: gallery preview found no costume models"); return; }
         int n = Mathf.Min(6, own.Count);
         var stone = new Material(Shader.Find("Universal Render Pipeline/Lit")); stone.SetColor("_BaseColor", new Color(0.5f, 0.46f, 0.42f));
         Vector3 c = g.W(g.data.spawn.x - 7f, g.data.spawn.z + 7f), face = g.W(g.data.spawn.x, g.data.spawn.z);
+        if (preview) { face = p.transform.position; c = face + p.transform.forward * 5f; }
         Vector3 fw = face - c; fw.y = 0; fw = fw.sqrMagnitude > 0.01f ? fw.normalized : Vector3.forward; Vector3 side = Vector3.Cross(Vector3.up, fw);
         for (int i = 0; i < n; i++)
         {
@@ -34,10 +37,10 @@ public static class AHGallery
             AHModel.SetShadows(holder.gameObject);
             // the name, on a sign in front
             var sign = new GameObject("Sign"); sign.transform.SetParent(holder, false); sign.transform.localPosition = new Vector3(0f, 0.15f, 0.75f);
-            var tm = sign.AddComponent<TextMesh>(); tm.text = AHCostumes.Get(id).name; tm.characterSize = 0.06f; tm.fontSize = 48; tm.anchor = TextAnchor.MiddleCenter; tm.color = new Color(1f, 0.85f, 0.5f);
+            var tm = sign.AddComponent<TextMesh>(); tm.text = AHCostumes.Get(id).name; tm.characterSize = 0.04f; tm.fontSize = 48; tm.anchor = TextAnchor.MiddleCenter; tm.color = new Color(1f, 0.85f, 0.5f);
             sign.transform.localRotation = Quaternion.Euler(20f, 180f, 0f);
         }
-        AHSpotLabel(g, c);
+        if (!preview) AHSpotLabel(g, c);
     }
     static void AHSpotLabel(AHGame g, Vector3 at)
     {

@@ -839,6 +839,21 @@ public static class AHMenu
         AHCine.Play(g, "Chapter 2 · " + c.name + " (preview)", c.intro, () => g.ui.Toast("Cutscene preview over. Nothing was changed.", 3f));
     }
 
+    [MenuItem("Ashen Hollow/Test: Tale Cutscene Preview")]
+    static void TaleCine()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        var t = AHTales.All[0]; var pt = t.parts[0];
+        AHCine.Play(g, t.name + " · part 1 (preview)", pt.intro, () => AHCine.Play(g, null, pt.outro, () => g.ui.Toast("Tale preview over. Nothing was changed.", 3f)));
+    }
+
+    [MenuItem("Ashen Hollow/Test: Costume Gallery Preview")]
+    static void GalleryPrev()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        AHGallery.Preview(g); Debug.Log("Ashen Hollow: gallery preview built in front of you (not saved)");
+    }
+
     // opens the Wardrobe as it is (costumes at the top), changing nothing
     [MenuItem("Ashen Hollow/Test: Open Wardrobe")]
     static void OpenWard() { var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return; g.ui.OpenWardrobe(); }

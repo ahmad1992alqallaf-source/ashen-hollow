@@ -322,7 +322,7 @@ public class AHCine : MonoBehaviour
 
     public static void Play(AHGame g, string title, AHStory.Line[] lines, Action done)
     {
-        if (I != null) Destroy(I.gameObject);
+        if (I != null) { I.Hide(false); Destroy(I.gameObject); }
         if (lines == null || lines.Length == 0) { if (done != null) done(); return; }
         var go = new GameObject("Cutscene"); I = go.AddComponent<AHCine>(); I.g = g; I.lines = lines; I.done = done; I.title = title;
         if (g.ui != null) { g.ui.ShowWork(false); }
@@ -379,14 +379,14 @@ public class AHCine : MonoBehaviour
         else
         {
             foreach (var go in hidden) if (go != null) go.SetActive(true);
-            hidden.Clear(); if (hud != null) hud.enabled = true;
+            hidden.Clear(); if (hud != null) hud.enabled = true; hud = null;
         }
     }
     void OnDestroy() { Hide(false); }
 
     void End()
     {
-        I = null; var d = done; Destroy(gameObject);
+        I = null; var d = done; Hide(false); Destroy(gameObject);   // shown again now, so a cutscene that follows can hide them
         if (d != null) d();
     }
 
