@@ -357,6 +357,35 @@ public static class AHMenu
     }
 
     // takes back the last workshop level (and pays it back): undoes a mistaken test purchase
+    [MenuItem("Ashen Hollow/Test: Open House Window")]
+    static void TestHouse()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        g.ui.OpenFarmPlot("house");
+        Debug.Log("Ashen Hollow: house window · homestead level " + AHTrophies.Level(g.player) + " · renown " + AHTrophies.Renown(g.player) + " · trophies " + AHTrophies.Count(g.player));
+    }
+
+    [MenuItem("Ashen Hollow/Test: Trophy Statues")]
+    static void TestTrophies()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        var stand = new GameObject("TrophyTestStand").transform; stand.position = new Vector3(5000f, -900f, 0f);
+        var list = AHTrophies.Sample("troll", "alphawolf", "boarlord", "banditchief", "wyrm", "grull", "mirehulk", "saltbeard");
+        var top = GameObject.CreatePrimitive(PrimitiveType.Cube); top.transform.SetParent(stand, false); top.transform.localPosition = new Vector3(0, 0.52f, 0); top.transform.localScale = new Vector3(list.Count * 0.7f + 0.4f, 1.04f, 0.7f);
+        AHTrophies.BuildStand(g, stand, list);
+        foreach (var t in stand.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = 29;
+        foreach (var r in stand.GetComponentsInChildren<Renderer>(true)) r.forceRenderingOff = false;
+        var cg = new GameObject("TrophyCam"); var cam = cg.AddComponent<Camera>(); cam.fieldOfView = 30f; cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(0.55f, 0.6f, 0.68f); cam.cullingMask = 1 << 29;
+        var lg = new GameObject("TrophyLight"); var li = lg.AddComponent<Light>(); li.type = LightType.Directional; li.intensity = 1.3f; li.cullingMask = 1 << 29; lg.transform.rotation = Quaternion.Euler(35f, 160f, 0f);
+        var c = stand.position + Vector3.up * 1.2f;
+        cam.transform.position = c + new Vector3(0f, 1.0f, -6.5f); cam.transform.LookAt(c);
+        var rt = new RenderTexture(1200, 600, 24); cam.targetTexture = rt; cam.Render();
+        var tex = new Texture2D(1200, 600, TextureFormat.RGB24, false); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, 1200, 600), 0, 0); tex.Apply(); RenderTexture.active = null;
+        System.IO.File.WriteAllBytes(System.IO.Path.Combine(Application.dataPath, "../HeroShots/trophies.png"), tex.EncodeToPNG());
+        cam.targetTexture = null; Object.Destroy(cg); Object.Destroy(lg); Object.Destroy(rt); Object.Destroy(tex); Object.Destroy(stand.gameObject);
+        Debug.Log("Ashen Hollow: trophy statues saved to HeroShots/trophies.png (" + list.Count + ")");
+    }
+
     [MenuItem("Ashen Hollow/Test: World Event")]
     static void TestEvent()
     {

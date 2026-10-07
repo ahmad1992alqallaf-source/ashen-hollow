@@ -341,6 +341,7 @@ public class AHMob : MonoBehaviour
         if (by != null) AHLoot.OnKill(g, this, by);
         if (by != null) AHTreasure.OnKill(g, this, by);
         if (by != null) AHGoblin.OnKill(g, this, by);
+        if (by != null) AHTrophies.OnKill(g, this, by);
         AHDungeon.OnMobDown(g, this);
     }
 

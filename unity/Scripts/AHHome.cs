@@ -36,7 +36,7 @@ public static class AHHome
     public static AHField Field(AHHomeState H, string id) { return H.fields.Find(f => f.id == id); }
     public static AHPen Pen(AHHomeState H, string id) { var p = H.pens.Find(f => f.id == id); if (p == null) { p = new AHPen { id = id, last = NowMs }; H.pens.Add(p); } return p; }
     public static bool Built(AHHomeState H, string id) { return H != null && H.built.Contains(id); }
-    public static int Cap(AHPlayer p) { return p.home == null ? 0 : (int)AHJson.N(Tier(p.home.tier), "cap", 3) + (p.Spec("farmer", "ranch") ? 2 : 0); }
+    public static int Cap(AHPlayer p) { return p.home == null ? 0 : (int)AHJson.N(Tier(p.home.tier), "cap", 3) + (p.Spec("farmer", "ranch") ? 2 : 0) + AHTrophies.PenBonus(p); }
     static float GrowK(AHPlayer p) { return (p.Perk("farmer", 5) ? 0.85f : 1f) * (p.Spec("farmer", "crops") ? 0.75f : 1f); }
     static float AnimalK(AHPlayer p) { return (p.Perk("farmer", 40) ? 0.75f : 1f) * (p.Spec("farmer", "ranch") ? 0.75f : 1f); }
     static float FeedK(AHPlayer p) { return p.Perk("farmer", 20) ? 2f : 1f; }
@@ -54,7 +54,7 @@ public static class AHHome
 
     // ---------- rested XP (web restCap / addRested / restUpdate) ----------
     public static long LevelStep(AHPlayer p) { var t = AHDB.ClAt; int L = p.level; return L + 1 < t.Length ? t[L + 1] - t[L] : 1000; }
-    public static long RestCap(AHPlayer p) { return (long)Math.Round(LevelStep(p) * 1.5 * (1 + ComfortPts(p) * 0.04)); }
+    public static long RestCap(AHPlayer p) { return (long)Math.Round(LevelStep(p) * 1.5 * (1 + ComfortPts(p) * 0.04) * AHTrophies.RestK(p)); }
     static float restT;
     public static void RestTick(AHGame g, float dt)
     {
@@ -797,7 +797,12 @@ public class AHHomeView : MonoBehaviour
             case "swing": foreach (float s in new[] { -0.6f, 0.6f }) Prim(PrimitiveType.Cube, t, new Vector3(s, 1.2f, 0), new Vector3(0.03f, 2f, 0.03f), Straw); Prim(PrimitiveType.Cube, t, new Vector3(0, 0.25f, 0), new Vector3(1.4f, 0.08f, 0.4f), Wood); Prim(PrimitiveType.Cube, t, new Vector3(0, 2.25f, 0), new Vector3(2.4f, 0.2f, 0.2f), Dark); break;
             case "fountain": Prim(PrimitiveType.Cylinder, t, new Vector3(0, 0.3f, 0), new Vector3(2.6f, 0.3f, 2.6f), Stone); Prim(PrimitiveType.Cylinder, t, new Vector3(0, 0.62f, 0), new Vector3(2.3f, 0.02f, 2.3f), 0x2f6f95); Prim(PrimitiveType.Cylinder, t, new Vector3(0, 0.9f, 0), new Vector3(0.3f, 0.6f, 0.3f), Stone); Prim(PrimitiveType.Cylinder, t, new Vector3(0, 1.5f, 0), new Vector3(1f, 0.08f, 1f), Stone); break;
             case "gazebo": Prim(PrimitiveType.Cylinder, t, new Vector3(0, 0.1f, 0), new Vector3(4.4f, 0.1f, 4.4f), Stone); for (int i = 0; i < 6; i++) { float a = i / 6f * Mathf.PI * 2; Prim(PrimitiveType.Cylinder, t, new Vector3(Mathf.Cos(a) * 1.9f, 1.3f, Mathf.Sin(a) * 1.9f), new Vector3(0.18f, 1.2f, 0.18f), White); } Roof(t, new Vector3(0, 2.5f, 0), 4.6f, 4.6f, 1.4f, Red); break;
-            case "trophies": Prim(PrimitiveType.Cube, t, new Vector3(0, 0.5f, 0), new Vector3(2f, 1f, 0.6f), Wood); Prim(PrimitiveType.Sphere, t, new Vector3(-0.5f, 1.25f, 0), new Vector3(0.5f, 0.5f, 0.5f), 0x6a8a5a); Prim(PrimitiveType.Capsule, t, new Vector3(0.5f, 1.3f, 0), new Vector3(0.2f, 0.35f, 0.2f), White); break;
+            case "trophies":
+                // a long oak stand; your last eight trophies stand on it as little golden statues
+                Prim(PrimitiveType.Cube, t, new Vector3(0, 0.52f, 0), new Vector3(Mathf.Max(2f, Mathf.Min(8, AHTrophies.Count(g.player)) * 0.7f + 0.4f), 1.04f, 0.7f), Wood);
+                if (AHTrophies.Count(g.player) == 0) { Prim(PrimitiveType.Sphere, t, new Vector3(-0.5f, 1.25f, 0), new Vector3(0.5f, 0.5f, 0.5f), 0x6a8a5a); Prim(PrimitiveType.Capsule, t, new Vector3(0.5f, 1.3f, 0), new Vector3(0.2f, 0.35f, 0.2f), White); }
+                else AHTrophies.BuildStand(g, t);
+                break;
             case "telescope": foreach (float s in new[] { -0.35f, 0.35f }) Prim(PrimitiveType.Cube, t, new Vector3(s, 0.6f, 0), new Vector3(0.06f, 1.2f, 0.06f), Dark); Prim(PrimitiveType.Cylinder, t, new Vector3(0, 1.4f, 0.2f), new Vector3(0.25f, 0.8f, 0.25f), 0xc89a4a, new Vector3(-55, 0, 0)); break;
         }
     }

@@ -90,6 +90,12 @@ public partial class AHUI
     {
         var H = p.home; var T0 = AHHome.Tier(H.tier); var nx = AHHome.Tier(H.tier + 1);
         rows.Add(slot => Row(slot, AHJson.S(T0, "name"), new Color(1f, 0.8f, 0.45f), AHJson.S(T0, "blurb"), "Pens hold up to " + AHHome.Cap(p) + " animals · Comfort " + AHHome.ComfortPts(p) + " · rested XP " + p.rested.ToString("#,0") + " / " + AHHome.RestCap(p).ToString("#,0")));
+        AHTrophies.Backfill(p);
+        int hl = AHTrophies.Level(p), nxt = AHTrophies.NextAt(p);
+        rows.Add(slot => Row(slot, "Homestead level " + hl + " / 10", new Color(0.6f, 0.9f, 0.5f), "Renown " + AHTrophies.Renown(p) + (nxt > 0 ? " · next level at " + nxt : " · the finest homestead in the realm") + " (house, buildings, comforts and trophies)", AHTrophies.Perks(p)));
+        var tl = p.prog.trophies;
+        rows.Add(slot => Row(slot, "Trophies · " + tl.Count, Gold, tl.Count == 0 ? "Beat a boss, an elite or a rare beast to win its trophy." : "Each one adds renown." + (H.comf.Contains("trophies") ? " Your last eight stand on the Trophy stand." : " Build the Trophy stand to show them off."), ""));
+        for (int ti = tl.Count - 1; ti >= 0; ti--) { var tt = tl[ti]; rows.Add(slot => Row(slot, "  " + AHTrophies.Name(tt), new Color(1f, 0.85f, 0.5f), "", "")); }
         if (nx != null)
         {
             var rq = AHJson.O(nx, "req"); int rc = (int)AHJson.N(rq, "cls", 0), rf = (int)AHJson.N(rq, "farming", 0);
