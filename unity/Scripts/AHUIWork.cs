@@ -185,7 +185,7 @@ public partial class AHUI
         else if (wkMode == "emotes") RenderEmotes(p);
         else if (wkMode == "art") RenderArtisan(p);
         else if (wkMode == "loadouts") RenderLoadouts(p);
-        else if (wkMode == "world") RenderWorld(p);
+        else if (wkMode == "world") RenderRealm(p);
         else RenderProf(p);
     }
 

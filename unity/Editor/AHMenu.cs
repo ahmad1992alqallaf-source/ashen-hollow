@@ -356,6 +356,16 @@ public static class AHMenu
         p.bag.Add(best); testGift = best; Debug.Log("Ashen Hollow: gave " + best);
     }
 
+    // takes back the last workshop level (and pays it back): undoes a mistaken test purchase
+    [MenuItem("Ashen Hollow/Test: Refund Kitchen Upgrade")]
+    static void RefundKitchen()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return; var p = g.player; var s = AHArtisan.St(p);
+        if (s.kitchen <= 0) { Debug.Log("Ashen Hollow: no kitchen upgrade to refund"); return; }
+        s.kitchen--; long c = AHArtisan.Cost(p, "kitchen"); p.bag.money += c; g.SaveProgress();
+        Debug.Log("Ashen Hollow: kitchen upgrade refunded (" + AHItems.MoneyText(c) + ")");
+    }
+
     [MenuItem("Ashen Hollow/Test: Hero Snapshots %&k")]
     static void HeroShots() { HeroShots("hero"); }
     static void HeroShots(string prefix)

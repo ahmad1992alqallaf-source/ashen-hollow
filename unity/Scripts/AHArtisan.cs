@@ -254,9 +254,9 @@ public static class AHArtisan
     public static List<KeyValuePair<string, int>> Field(AHPlayer p)
     {
         var rnd = new System.Random(AHDaily.MonthKey(DateTime.Now).GetHashCode());
-        int top = 40 + Mathf.Clamp(p.BestMastery(), 0, 40) * 4;
+        int top = 70 + Mathf.Clamp(p.BestMastery(), 0, 40) * 5;
         var l = new List<KeyValuePair<string, int>>();
-        foreach (var n in Rivals) l.Add(new KeyValuePair<string, int>(n, Mathf.RoundToInt(top * (0.45f + (float)rnd.NextDouble() * 0.6f))));
+        foreach (var n in Rivals) l.Add(new KeyValuePair<string, int>(n, Mathf.RoundToInt(top * (n == "Corvin Vale" ? 1.15f : 0.55f + (float)rnd.NextDouble() * 0.65f))));
         return l;
     }
     public static void RefreshContest(AHPlayer p)
@@ -320,7 +320,8 @@ public partial class AHUI
                 bool isGive = s0.t == "give" || s0.t == "givefine" || s0.t == "givemw";
                 rows.Add(s => Row(s, "Chapter " + (s0.ch + 1) + ": " + AHArtisan.Chapters[s0.ch], new Color(1f, 0.7f, 0.35f), "Step " + (AHArtisan.Saga.FindAll(x => x.ch == s0.ch).IndexOf(s0) + 1) + " of " + AHArtisan.Saga.FindAll(x => x.ch == s0.ch).Count, ""));
                 // the story, wrapped over a few rows
-                foreach (var line in Wrap(s0.story, 92)) { var ln = line; rows.Add(s => Row(s, "", Color.white, "<i>" + ln + "</i>", "")); }
+                var lines = Wrap(s0.story, 92);
+                for (int li = 0; li < lines.Count; li += 2) { var a = lines[li]; var b = li + 1 < lines.Count ? lines[li + 1] : ""; rows.Add(s => Row(s, "", Color.white, "<i>" + a + "</i>", b != "" ? "<i>" + b + "</i>" : "")); }
                 rows.Add(s => Row(s, s0.label, Color.white, (s0.t == "mastery" ? p.BestMastery() : st.sagaP) + " / " + s0.n + (isGive && id != null ? " · you have " + p.bag.Count(id) : ""), "",
                     isGive ? new WkBtn { label = "Hand in", on = give && p.path == "artisan", col = Go, act = () => { AHArtisan.Give(g); RenderWork(); } } : null));
             }

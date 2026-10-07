@@ -216,7 +216,7 @@ public partial class AHUI
     string worldTab = "lore";
     public void OpenWorld(string tab = null) { if (tab != null) worldTab = tab; wkMode = "world"; wkPageI = 0; ShowWork(true); RenderWork(); }
 
-    void RenderWorld(AHPlayer p)
+    void RenderRealm(AHPlayer p)
     {
         var st = AHWorld.St(p); AHWorld.Refresh(p);
         wkTitle.text = "The realm";
@@ -235,8 +235,8 @@ public partial class AHUI
             var ids = new List<int>(st.lore); ids.Sort();
             foreach (var i in ids)
             {
-                var L = AHWorld.Lore[i]; bool first = true;
-                foreach (var line in Wrap(L[1], 92)) { var ln = line; bool f = first; first = false; rows.Add(s => Row(s, f ? L[0] : "", new Color(1f, 0.85f, 0.55f), "<i>" + ln + "</i>", "")); }
+                var L = AHWorld.Lore[i]; var lines = Wrap(L[1], 92);
+                for (int li = 0; li < lines.Count; li += 2) { var a = lines[li]; var b = li + 1 < lines.Count ? lines[li + 1] : ""; bool f = li == 0; rows.Add(s => Row(s, f ? L[0] : "", new Color(1f, 0.85f, 0.55f), "<i>" + a + "</i>", b != "" ? "<i>" + b + "</i>" : "")); }
             }
         }
         else if (worldTab == "tour")
