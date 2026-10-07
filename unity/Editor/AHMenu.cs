@@ -773,6 +773,9 @@ public static class AHMenu
         cam.targetTexture = null; Object.DestroyImmediate(go); Object.DestroyImmediate(lg); Object.Destroy(rt); Object.Destroy(tex); Object.Destroy(sheet);
         if (destroy) foreach (var o in objs) Object.DestroyImmediate(o);
     }
+    // opens the Wardrobe as it is (costumes at the top), changing nothing
+    [MenuItem("Ashen Hollow/Test: Open Wardrobe")]
+    static void OpenWard() { var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return; g.ui.OpenWardrobe(); }
     [MenuItem("Ashen Hollow/Test: Give Cosmetics")]
     static void GiveCos()
     {

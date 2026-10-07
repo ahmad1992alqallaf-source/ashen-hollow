@@ -107,8 +107,9 @@ public static class AHVRoidTools
         var cg = new GameObject("VRShotCam"); var cam = cg.AddComponent<Camera>(); cam.fieldOfView = 24f; cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(0.55f, 0.6f, 0.68f);
         var lg = new GameObject("VRShotLight"); var li = lg.AddComponent<Light>(); li.type = LightType.Directional; li.intensity = 1.2f; lg.transform.rotation = Quaternion.Euler(30f, 160f, 0f);
         var rt = new RenderTexture(400, 640, 24); cam.targetTexture = rt; var tex = new Texture2D(400, 640, TextureFormat.RGB24, false);
-        foreach (var f in Directory.GetFiles(Dir, "hero_*.prefab"))
+        foreach (var f in Directory.GetFiles(Dir, "*.prefab"))
         {
+            string fn = Path.GetFileName(f); if (!fn.StartsWith("hero_") && !fn.StartsWith("costume_")) continue;
             var pf = AssetDatabase.LoadAssetAtPath<GameObject>(f.Replace('\\', '/')); if (pf == null) continue;
             var go = (GameObject)Object.Instantiate(pf, new Vector3(0f, -500f, 0f), Quaternion.identity);
             var sheet = new Texture2D(1200, 640, TextureFormat.RGB24, false);
@@ -143,9 +144,40 @@ public static class AHVRoidTools
     static readonly System.Collections.Generic.List<GameObject> gearStands = new System.Collections.Generic.List<GameObject>();
     static int gearFrame;
 
+    // the costumes on a male and a female hero (HeroShots/costume_m.png and costume_f.png): each costume, then the
+    // plain under-clothes with full armour on top
+    static bool costumeMode;
+    [MenuItem("Ashen Hollow/VRoid: Costume Shots")]
+    static void CostumeShots()
+    {
+        if (!Application.isPlaying || AHGame.I == null) { Debug.Log("Ashen Hollow: Costume Shots needs Play mode"); return; }
+        foreach (var s in gearStands) if (s != null) Object.Destroy(s);
+        gearStands.Clear();
+        string[] slots = { "head", "shoulders", "chest", "hands", "legs", "feet", "cape" };
+        string[] hairs = { "pony", "long", "short", "braid", "twin", "bun" };
+        int n = AHCostumes.All.Length + 1;
+        for (int sx = 0; sx < 2; sx++)
+            for (int i = 0; i < n; i++)
+            {
+                var holder = new GameObject("GearStand_" + sx + "_" + i).transform;
+                holder.position = new Vector3(4000f + i * 12f, -900f, sx * 12f + 60f);
+                var look = new AHLook { sex = sx == 0 ? "m" : "f", hair = hairs[i % hairs.Length], hairCol = 2 + i, skin = (i * 2) % 9 };
+                var set = GearSets[i % 3];
+                AHAnim a; var rig = AHPeople.BuildHero(holder, AHClasses.Get(set[0]), look, AHGame.I, out a);
+                if (rig == null) { Object.Destroy(holder.gameObject); continue; }
+                if (i < AHCostumes.All.Length && AHCostumes.Apply(rig, AHCostumes.All[i].id, look)) AHWardrobe.DressWith(rig, holder, s => null, () => false);
+                else { AHCostumes.Apply(rig, AHCostumes.Under, look); AHWardrobe.DressWith(rig, holder, s => { int k = System.Array.IndexOf(slots, s); return k >= 0 ? set[k + 1] : null; }, () => false); }
+                if (a != null) { a.Play("Idle", true); holder.gameObject.AddComponent<AHStudioPose>().anim = a; }
+                gearStands.Add(holder.gameObject);
+            }
+        costumeMode = true; gearFrame = Time.frameCount;
+        EditorApplication.update -= GearStep; EditorApplication.update += GearStep;
+    }
+
     [MenuItem("Ashen Hollow/VRoid: Gear Shots")]
     static void GearShots()
     {
+        costumeMode = false;
         if (!Application.isPlaying || AHGame.I == null) { Debug.Log("Ashen Hollow: Gear Shots needs Play mode"); return; }
         foreach (var s in gearStands) if (s != null) Object.Destroy(s);
         gearStands.Clear();
@@ -180,7 +212,7 @@ public static class AHVRoidTools
         var rt = new RenderTexture(W, H, 24); cam.targetTexture = rt; var tex = new Texture2D(W, H, TextureFormat.RGB24, false);
         for (int sx = 0; sx < 2; sx++)
         {
-            int n = GearSets.Length; var sheet = new Texture2D(W * 3, H * n, TextureFormat.RGB24, false);
+            int n = costumeMode ? AHCostumes.All.Length + 1 : GearSets.Length; var sheet = new Texture2D(W * 3, H * n, TextureFormat.RGB24, false);
             for (int i = 0; i < n; i++)
             {
                 var st = gearStands.Find(o => o != null && o.name == "GearStand_" + sx + "_" + i); if (st == null) continue;
@@ -194,7 +226,7 @@ public static class AHVRoidTools
                 }
             }
             sheet.Apply();
-            File.WriteAllBytes(Path.Combine(Application.dataPath, "../HeroShots/gear_" + (sx == 0 ? "m" : "f") + ".png"), sheet.EncodeToPNG());
+            File.WriteAllBytes(Path.Combine(Application.dataPath, "../HeroShots/" + (costumeMode ? "costume_" : "gear_") + (sx == 0 ? "m" : "f") + ".png"), sheet.EncodeToPNG());
             Object.Destroy(sheet);
         }
         cam.targetTexture = null; Object.Destroy(cg); Object.Destroy(lg); Object.Destroy(rt); Object.Destroy(tex);

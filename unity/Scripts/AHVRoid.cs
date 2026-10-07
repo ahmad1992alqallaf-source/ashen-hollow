@@ -361,6 +361,64 @@ public static class AHVRoid
         return true;
     }
 
+    // a costume (or the plain clothes worn under gear): the body of another export of the same VRoid hero, moved onto
+    // this hero's own skeleton. The same body and the same bones, so it fits exactly and bends with every pose. Bones
+    // only the costume has (a coat's tails, a cape) come along, under the same parent bone. The hero keeps their own
+    // face and hair; from the hero's old body only the back hair stays, from the costume everything but its hair.
+    public static SkinnedMeshRenderer WearBody(GameObject v, GameObject pf, string name)
+    {
+        if (v == null || pf == null) return null;
+        SkinnedMeshRenderer mine = null;
+        foreach (var s in v.GetComponentsInChildren<SkinnedMeshRenderer>(true)) if (s.name == "Body") { mine = s; break; }
+        if (mine == null) return null;
+        var tmp = new GameObject("CostumeTmp"); tmp.SetActive(false);   // built switched off: none of its scripts wake up
+        var inst = Object.Instantiate(pf, tmp.transform, false);
+        SkinnedMeshRenderer theirs = null;
+        foreach (var s in inst.GetComponentsInChildren<SkinnedMeshRenderer>(true)) if (s.name == "Body") { theirs = s; break; }
+        if (theirs == null) { Object.Destroy(tmp); return null; }
+        var bones = new Dictionary<string, Transform>();
+        foreach (var t in v.GetComponentsInChildren<Transform>(true)) if (!bones.ContainsKey(t.name)) bones[t.name] = t;
+        var src = theirs.bones; var nb = new Transform[src.Length];
+        for (int i = 0; i < src.Length; i++)
+        {
+            var b = src[i]; if (b == null) continue;
+            if (!bones.ContainsKey(b.name))
+            {
+                // the highest bone of this branch the hero lacks moves across whole, with its children
+                var top = b; while (top.parent != null && top.parent != inst.transform && !bones.ContainsKey(top.parent.name)) top = top.parent;
+                Transform at; if (top.parent == null || !bones.TryGetValue(top.parent.name, out at)) at = mine.rootBone != null ? mine.rootBone : v.transform;
+                top.SetParent(at, false);
+                foreach (var t in top.GetComponentsInChildren<Transform>(true)) if (!bones.ContainsKey(t.name)) bones[t.name] = t;
+            }
+            Transform m; nb[i] = bones.TryGetValue(b.name, out m) ? m : null;
+        }
+        Transform rb = null; if (theirs.rootBone != null) bones.TryGetValue(theirs.rootBone.name, out rb);
+        theirs.transform.SetParent(mine.transform.parent, false);
+        theirs.bones = nb; theirs.rootBone = rb != null ? rb : mine.rootBone;
+        theirs.name = name; theirs.updateWhenOffscreen = true; theirs.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+        theirs.sharedMesh = Keep(theirs.sharedMesh, theirs.sharedMaterials, false);
+        mine.sharedMesh = Keep(mine.sharedMesh, mine.sharedMaterials, true);
+        Object.Destroy(tmp);
+        return theirs;
+    }
+
+    // a copy of a mesh with only its hair parts (hair = true) or only the rest; made once and reused
+    static readonly Dictionary<Mesh, Mesh> keepHair = new Dictionary<Mesh, Mesh>(), keepRest = new Dictionary<Mesh, Mesh>();
+    static Mesh Keep(Mesh m, Material[] mats, bool hair)
+    {
+        if (m == null) return null;
+        var cache = hair ? keepHair : keepRest; Mesh c;
+        if (cache.TryGetValue(m, out c) && c != null) return c;
+        if (keepHair.ContainsValue(m) || keepRest.ContainsValue(m)) return m;   // already a kept copy
+        c = Object.Instantiate(m); c.name = m.name + (hair ? "_hair" : "_body");
+        for (int i = 0; i < c.subMeshCount && i < mats.Length; i++)
+        {
+            bool isHair = mats[i] != null && mats[i].name.ToUpperInvariant().Contains("_HAIR");
+            if (isHair != hair) c.SetTriangles(new int[0], i);
+        }
+        cache[m] = c; return c;
+    }
+
     // the head itself (not hair, brows, eyes or a beard): every vertex that mostly follows the head bone, in the world
     static bool HeadBox(SkinnedMeshRenderer[] smrs, Transform head, out Bounds b)
     {

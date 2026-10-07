@@ -19,6 +19,7 @@ public static class AHPeople
         { "Levelup", "Yes" }, { "Ride", "Sitting_Idle_Loop" }, { "Fish", "Idle_Lantern_Loop" },
     };
 
+    public static Color SkinColor(AHLook look) { return LookColor("SKIN", look != null ? look.skin : 1); }
     public static Color OutfitColor(AHLook look) { return look == null ? Color.white : LookColor("CLOTH", look.cloth, 0); }
     static Color LookColor(string list, int i, int field = 0)
     {

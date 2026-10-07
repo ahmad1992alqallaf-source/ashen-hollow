@@ -40,6 +40,7 @@ public class AHProgress
     public List<AHKV> weaponKills = new List<AHKV>();            // kills by weapon kind (weapon mastery)
     public List<AHKV> wear = new List<AHKV>();                   // gear wear points by "slot|item" (AHWear)
     public List<AHKS> trophies = new List<AHKS>();
+    public List<string> costumes = new List<string>(); public string costume = "";   // costumes bought, and the one shown ("" shows gear)
     public List<string> recipes = new List<string>();            // rare recipes learned (AHRareRecipes)               // bosses, elites and rare beasts beaten (id, name|model)
 
     public static long Get(List<AHKV> l, string k) { foreach (var e in l) if (e.k == k) return e.v; return 0; }
