@@ -847,6 +847,20 @@ public static class AHMenu
         AHCine.Play(g, t.name + " · part 1 (preview)", pt.intro, () => AHCine.Play(g, null, pt.outro, () => g.ui.Toast("Tale preview over. Nothing was changed.", 3f)));
     }
 
+    [MenuItem("Ashen Hollow/Test: Win Derby")]
+    static void WinDerby()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        AHDerby.TestWin(g); g.ui.OpenDerby();
+    }
+
+    [MenuItem("Ashen Hollow/Test: Win Cook-off")]
+    static void WinCook()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) { EditorUtility.DisplayDialog("Ashen Hollow", "Press Play first.", "OK"); return; }
+        AHCookOff.TestWin(g); g.ui.OpenCookOff();
+    }
+
     [MenuItem("Ashen Hollow/Test: Costume Gallery Preview")]
     static void GalleryPrev()
     {

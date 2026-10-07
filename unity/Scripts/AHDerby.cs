@@ -27,6 +27,12 @@ public static class AHDerby
         Vector2 k; if (!Kg.TryGetValue(fish, out k)) return;
         float r = UnityEngine.Random.value; float kg = (float)Math.Round(Mathf.Lerp(k.x, k.y, r * r * r), 2);   // big ones are rare
         var it = AHItems.Get(fish); string nm = it != null ? it.name.Replace("Raw ", "").ToLowerInvariant() : fish;
+        Record(g, nm, kg);
+    }
+    // editor test: a catch just heavier than the week's leader
+    public static void TestWin(AHGame g) { float lead = 0f; for (int i = 0; i < Rivals.Length; i++) lead = Mathf.Max(lead, RivalKg(i)); Record(g, "swordfish", (float)Math.Round(Mathf.Max(lead, Best) + 1.5f, 2)); }
+    static void Record(AHGame g, string nm, float kg)
+    {
         if (kg <= Best) { AHChat.Add("system", "You caught a " + kg.ToString("0.00") + " kg " + nm + "."); return; }
         AHPrefs.SetFloat(BestKey, kg); AHPrefs.SetString(FishKey, nm);
         AHChat.Add("system", "Derby: a new best this week, a " + kg.ToString("0.00") + " kg " + nm + "!");

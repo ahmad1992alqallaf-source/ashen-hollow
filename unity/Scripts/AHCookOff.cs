@@ -21,6 +21,8 @@ public static class AHCookOff
     public static bool Prized { get { return AHPrefs.GetString(PrizeKey, "") == Week(); } }
     public static int Leader { get { int m = 0; for (int i = 0; i < Rivals.Length; i++) m = Mathf.Max(m, RivalScore(i)); return m; } }
 
+    // editor test: cook swordfish (no fish used up) until you pass the week's leader
+    public static void TestWin(AHGame g) { for (int i = 0; i < 400 && Score <= Leader; i++) OnCook(g, "swordfish", false); }
     public static void OnCook(AHGame g, string dish, bool burnt)
     {
         Roll();
