@@ -352,6 +352,8 @@ public static class AHWardrobe
         Vector3 lr = tl.position - tr.position; lr.y = 0f; float half = lr.magnitude * 0.5f; Vector3 side = lr.sqrMagnitude > 1e-6f ? lr.normalized : hold.right * -1f;
         Vector3 fwd = hold.forward; fwd.y = 0f; fwd.Normalize();
         float sh = ual != null && uar != null ? Vector3.Distance(ual.position, uar.position) * 0.5f : 0.18f * k;
+        // a VRoid body is slimmer than the old one: the robe's smallest sizes shrink with it
+        float km = rig.GetComponent<AHVRoidLink>() != null ? k * 0.8f : k; if (km < k) { sh *= 0.8f; half *= 0.8f; }
         Vector3 c = (tl.position + tr.position) * 0.5f;
         float chestY = s3.position.y - 0.02f * k, waistY = Mathf.Lerp(pel.position.y, s1.position.y, 0.6f), hipY = pel.position.y - 0.04f * k, hem = ground + 0.1f * k;
         // how far the body itself reaches at each height (sides, and front or back), measured from its posed mesh,
@@ -366,20 +368,20 @@ public static class AHWardrobe
         Func<float, float, float, float, float, Vector4> fit = (y, rs, rf, w, band) =>
         {
             var r = reach(y, band); float ks = w >= 0f ? 1.18f : 1.12f;   // the legs swing out a little when standing: more room at the sides
-            return new Vector4(y, Mathf.Max(rs, r.x * ks + 0.03f * k), Mathf.Max(rf, r.y * 1.15f + 0.03f * k), w);
+            return new Vector4(y, Mathf.Max(rs, r.x * ks + 0.03f * km), Mathf.Max(rf, r.y * 1.15f + 0.03f * km), w);
         };
         // rings from the chest down: height, side radius, front radius, how much of the legs it follows (<0 bodice)
         var ring = new List<Vector4>();
-        ring.Add(fit(chestY, sh * 0.7f, 0.12f * k, -1f, 0.04f * k));
-        ring.Add(fit(Mathf.Lerp(chestY, waistY, 0.5f), sh * 0.62f, 0.11f * k, -0.5f, 0.04f * k));
-        var wr = fit(waistY, half + 0.04f * k, 0.105f * k, 0f, 0.03f * k); ring.Add(wr);
+        ring.Add(fit(chestY, sh * 0.7f, 0.12f * km, -1f, 0.04f * km));
+        ring.Add(fit(Mathf.Lerp(chestY, waistY, 0.5f), sh * 0.62f, 0.11f * km, -0.5f, 0.04f * km));
+        var wr = fit(waistY, half + 0.04f * km, 0.105f * km, 0f, 0.03f * km); ring.Add(wr);
         const int nv = 9;
         float prevS = 0f, prevF = 0f;
         for (int j = 0; j <= nv; j++)
         {
             // fitted over the hips, then an A-line that opens out to a wide hem, so the legs never push through
             float v = j / (float)nv, fl = Mathf.Pow(v, 1.1f), y = Mathf.Lerp(hipY, hem, v);
-            var R = fit(y, Mathf.Lerp(wr.y + 0.03f * k, half + 0.13f * k, fl), Mathf.Lerp(wr.z + 0.01f * k, 0.15f * k, fl), v, 0.07f * k);
+            var R = fit(y, Mathf.Lerp(wr.y + 0.03f * km, half + 0.13f * km, fl), Mathf.Lerp(wr.z + 0.01f * km, 0.15f * km, fl), v, 0.07f * km);
             R.y = Mathf.Max(R.y, prevS); R.z = Mathf.Max(R.z, prevF); prevS = R.y; prevF = R.z;
             ring.Add(R);
         }
@@ -432,6 +434,23 @@ public static class AHWardrobe
     static List<Vector3> BodyPoints(GameObject rig)
     {
         var pts = new List<Vector3>(); var baked = new Mesh();
+        // on a VRoid hero the robe is fitted to the VRoid body (slimmer than the old one it hides)
+        var link = rig.GetComponent<AHVRoidLink>();
+        if (link != null && link.Body != null)
+        {
+            foreach (var smr in link.Body.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                string n = smr.name; if (n.Contains("Hair") || n.Contains("Face")) continue;
+                var sm = smr.sharedMesh; if (sm == null || smr.bones == null || smr.bones.Length == 0) continue;
+                smr.BakeMesh(baked, true); var vs = baked.vertices; var bws = sm.boneWeights; if (bws.Length != vs.Length) continue;
+                var keep = new bool[smr.bones.Length];
+                for (int i = 0; i < keep.Length; i++) { var b = smr.bones[i]; if (b == null) continue; string bn = b.name; keep[i] = bn.Contains("Hips") || bn.Contains("Spine") || bn.Contains("Chest") || bn.Contains("UpperLeg") || bn.Contains("LowerLeg"); }
+                var M = smr.transform.localToWorldMatrix;
+                for (int i = 0; i < vs.Length; i += 2) { int bi = bws[i].boneIndex0; if (bi < keep.Length && keep[bi] && bws[i].weight0 > 0.5f) pts.Add(M.MultiplyPoint3x4(vs[i])); }
+            }
+            if (pts.Count > 50) { UnityEngine.Object.Destroy(baked); return pts; }
+            pts.Clear();
+        }
         foreach (var smr in rig.GetComponentsInChildren<SkinnedMeshRenderer>(true))
         {
             string n = smr.name; if (n.StartsWith("Outfit") || n.Contains("Hair") || n.Contains("Head") || n.Contains("Brow") || n.Contains("Eye") || n.Contains("Beard") || n.Contains("Hood")) continue;
@@ -627,7 +646,10 @@ public static class AHWardrobe
                 K.Prim(PrimitiveType.Cube, new Vector3(0, 0.08f, 0.04f), new Vector3(0.25f, 0.012f, 0.02f), Vector3.zero, K.Gold);
             }
             else K.Prim(PrimitiveType.Sphere, new Vector3(0, 0.1f, -0.045f), new Vector3(0.27f, 0.22f, 0.28f), Vector3.zero);
+            // (the VRoid body sits beside the old rig in the same holder: its hair goes too)
             if (covers) foreach (var r in rig.GetComponentsInChildren<Renderer>(true)) if (r.name.Contains("Hair") && !r.name.Contains("Beard")) r.enabled = false;
+            var vlink = rig.GetComponent<AHVRoidLink>();
+            if (vlink != null && vlink.Body != null && (f == "helm" || f == "forgehelm")) foreach (var r in vlink.Body.GetComponentsInChildren<Renderer>(true)) if (r.name.Contains("Hair")) r.enabled = false;
         }
 
         // ---- shoulders ----
@@ -689,7 +711,7 @@ public static class AHWardrobe
             var ft = Bone(rig, "foot_" + side); if (ft == null) continue;
             var K = start(ft, new Vector3(ft.position.x, ground, ft.position.z) + hold.forward * 0.035f * k, fid);
             float bw = rig.GetComponent<AHVRoidLink>() != null ? 0.72f : 1f;   // VRoid legs are slimmer
-            K.Prim(PrimitiveType.Sphere, new Vector3(0, 0.055f, 0.04f), new Vector3(0.115f * bw, 0.1f, 0.27f * Mathf.Lerp(1f, bw, 0.5f)), Vector3.zero);
+            if (bw >= 1f) K.Prim(PrimitiveType.Sphere, new Vector3(0, 0.055f, 0.04f), new Vector3(0.115f * bw, 0.1f, 0.27f * Mathf.Lerp(1f, bw, 0.5f)), Vector3.zero);
             var cb = Bone(rig, "calf_" + side);
             Vector3 ankle = ft.position, knee = cb != null ? cb.position : ft.position + Vector3.up * 0.42f * k;
             if (cb == null || (knee - ankle).magnitude < 0.1f * k) { K.Mesh(shell, new Vector3(0, 0.04f, -0.015f), new Vector3(0.06f, 0.18f, 0.064f), Vector3.zero); K.Mesh(torus, new Vector3(0, 0.215f, -0.015f), new Vector3(0.13f, 0.4f, 0.135f), Vector3.zero, K.Dark); continue; }
@@ -775,6 +797,18 @@ public static class AHWardrobe
             }
             if (ch) r.materials = mats;
         }
+        var link = rig.GetComponent<AHVRoidLink>();
+        if (link != null && link.Body != null)
+            foreach (var r in link.Body.GetComponentsInChildren<Renderer>(true))
+            {
+                var mats = r.materials; bool ch = false;
+                foreach (var m in mats)
+                {
+                    if (m == null || !m.name.ToUpperInvariant().Contains("_CLOTH")) continue;
+                    foreach (var prop in new[] { "_Color", "_BaseColor" }) if (m.HasProperty(prop)) { var b = m.GetColor(prop); var t2 = Color.Lerp(b, lift, 0.6f); t2.a = b.a; m.SetColor(prop, t2); ch = true; }
+                }
+                if (ch) r.materials = mats;
+            }
     }
 }
 

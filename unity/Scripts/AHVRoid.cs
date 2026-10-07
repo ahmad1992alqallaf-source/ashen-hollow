@@ -124,6 +124,14 @@ public static class AHVRoid
         // (strands stretched across the screen, NaN pixels flashing white); the hair stays styled as made
         foreach (var c in v.GetComponentsInChildren<MonoBehaviour>(true)) if (c != null && c.GetType().Name == "VRMSpringBone") c.enabled = false;
         foreach (var smr in v.GetComponentsInChildren<SkinnedMeshRenderer>(true)) { smr.updateWhenOffscreen = true; smr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On; }
+        // the two heads, measured in the rest pose before the old one hides: helms, hoods and hats were shaped for the
+        // old head, so they move onto the VRoid head top to top and scale to its width
+        Transform qHead = null; foreach (var t in arm.GetComponentsInChildren<Transform>(true)) if (t.name == "Head") { qHead = t; break; }
+        var vHead = an.GetBoneTransform(HumanBodyBones.Head);
+        Bounds qb = new Bounds(), vb = new Bounds();
+        bool headOk = qHead != null && vHead != null
+            && HeadBox(rig.GetComponentsInChildren<SkinnedMeshRenderer>(true), qHead, out qb)
+            && HeadBox(v.GetComponentsInChildren<SkinnedMeshRenderer>(true), vHead, out vb);
         // the old body vanishes (its bones keep moving)
         // (only the body's own meshes: anything hanging from a bone, like the weapon in the hand, stays)
         var boneNames = new HashSet<string>(); for (int i = 0; i < Map.GetLength(0); i++) boneNames.Add(Map[i, 1]);
@@ -134,7 +142,38 @@ public static class AHVRoid
         }
         var link = rig.AddComponent<AHVRoidLink>();
         link.Setup(arm, av, v.transform, an.avatar);
+        if (headOk)
+        {
+            // the VRoid skull plus its hair is about an eighth wider than the face mesh alone
+            float qw = Mathf.Max(qb.size.x, qb.size.z), vw = Mathf.Max(vb.size.x, vb.size.z) * 1.22f;
+            link.SetupHead(qHead, qHead.InverseTransformPoint(new Vector3(qb.center.x, qb.max.y, qb.center.z)),
+                           vHead, vHead.InverseTransformPoint(new Vector3(vb.center.x, vb.max.y - 0.005f, vb.center.z)),
+                           qw > 1e-3f ? Mathf.Clamp(vw / qw, 0.6f, 1.4f) : 1f);
+        }
         return true;
+    }
+
+    // the head itself (not hair, brows, eyes or a beard): every vertex that mostly follows the head bone, in the world
+    static bool HeadBox(SkinnedMeshRenderer[] smrs, Transform head, out Bounds b)
+    {
+        b = new Bounds(); bool any = false; var baked = new Mesh();
+        foreach (var smr in smrs)
+        {
+            string n = smr.name; if (n.Contains("Hair") || n.Contains("Brow") || n.Contains("Eye") || n.Contains("Beard") || n.StartsWith("Outfit")) continue;
+            var sm = smr.sharedMesh; if (sm == null || smr.bones == null) continue;
+            int hi = System.Array.IndexOf(smr.bones, head); if (hi < 0) continue;
+            var bws = sm.boneWeights; if (bws.Length != sm.vertexCount) continue;
+            smr.BakeMesh(baked, true); var vs = baked.vertices; if (vs.Length != bws.Length) continue;
+            var M = smr.transform.localToWorldMatrix;
+            for (int i = 0; i < vs.Length; i++)
+            {
+                if (bws[i].boneIndex0 != hi || bws[i].weight0 < 0.6f) continue;
+                var p = M.MultiplyPoint3x4(vs[i]);
+                if (!any) { b = new Bounds(p, Vector3.zero); any = true; } else b.Encapsulate(p);
+            }
+        }
+        Object.Destroy(baked);
+        return any && b.size.y > 0.05f;
     }
 }
 
@@ -213,10 +252,21 @@ public class AHVRoidLink : MonoBehaviour
             for (int i = b.childCount - 1; i >= 0; i--)
             {
                 var c = b.GetChild(i); if (skeleton.Contains(c)) continue;
+                if (b == qHead && vHead != null && kv.Value == vHead && c.name.StartsWith("Outfit"))
+                {
+                    // headgear: top of the old head onto the top of the VRoid head, sized to it
+                    Vector3 qt = b.TransformPoint(qTop), vt = vHead.TransformPoint(vTop);
+                    c.position = vt + (c.position - qt) * headK; c.localScale *= headK;
+                    c.SetParent(vHead, true); continue;
+                }
                 // keep where it sits relative to the bone (not where it was in the world): the VRoid body is
                 // slimmer and its arms shorter, so a glove follows the VRoid hand, a pauldron the VRoid shoulder
                 Vector3 off = c.position - b.position; float k = Scale(b, kv.Value);
-                c.position = kv.Value.position + off * k; c.localScale *= Mathf.Lerp(1f, k, 0.8f);
+                Transform qc = null, vc = null; foreach (Transform cc in b) if (boneMap.ContainsKey(cc)) { qc = cc; vc = boneMap[cc]; break; }
+                if (qc != null && (c.position - qc.position).sqrMagnitude < off.sqrMagnitude)
+                    c.position = vc.position + (c.position - qc.position) * k;   // nearer the next joint: keep to it (a boot shaft at the ankle)
+                else c.position = kv.Value.position + off * k;
+                c.localScale *= Mathf.Lerp(1f, k, 0.8f);
                 c.SetParent(kv.Value, true);
             }
         }
@@ -224,6 +274,9 @@ public class AHVRoidLink : MonoBehaviour
     }
 
     // how much smaller the VRoid body is around this bone (by the length of the limb it starts)
+    Transform qHead, vHead; Vector3 qTop, vTop; float headK = 1f;
+    public void SetupHead(Transform q, Vector3 qTopLocal, Transform v, Vector3 vTopLocal, float k) { qHead = q; qTop = qTopLocal; vHead = v; vTop = vTopLocal; headK = k; lastKids = -1; }
+
     float Scale(Transform s, Transform d)
     {
         float k; if (scaleOf.TryGetValue(s, out k)) return k;
