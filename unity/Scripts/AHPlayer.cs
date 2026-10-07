@@ -240,6 +240,7 @@ public class AHPlayer : MonoBehaviour
         stat = bag.Stats();
         AHFinder.Apply(stat);
         AHPower.Apply(this, stat);
+        AHWear.Apply(this, stat);   // worn and broken gear gives less
         pass = AHEvo.CalcPass(this);
         stat.dmg += AHEvo.Pass(this, "dmg"); stat.hp += Mathf.RoundToInt(AHEvo.Pass(this, "hp")); stat.heal += AHEvo.Pass(this, "heal");
         stat.crit += AHEvo.Pass(this, "crit"); stat.evade += AHEvo.Pass(this, "evade"); stat.aspd += AHEvo.Pass(this, "atkspd");
@@ -1074,6 +1075,7 @@ public class AHPlayer : MonoBehaviour
         lastHurt = Time.time;
         CancelAction();
         hp -= hit;
+        AHWear.OnHurt(g, this);
         AHSound.Play("hurt");
         if (src != null && !src.dead && AHEvo.Pass(this, "thorns") > 0f) src.Hurt(Mathf.Max(1, Mathf.RoundToInt(hit * AHEvo.Pass(this, "thorns"))), this, true);
         if (g.ui != null) g.ui.Float(transform.position + Vector3.up * 2f, "-" + hit, new Color(1f, 0.48f, 0.42f));

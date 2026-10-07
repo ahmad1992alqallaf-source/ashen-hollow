@@ -123,6 +123,13 @@ public partial class AHUI
         rows.Add(slot => Row(slot, shopSell ? "Selling" : "Buying", new Color(1f, 0.8f, 0.45f), shopSell ? "Tap Sell to sell one, Sell all for the stack." : "Tap a price to buy.", "",
             new WkBtn { label = "Buy", on = shopSell, col = Plain, act = () => { shopSell = false; wkPageI = 0; RenderWork(); } },
             new WkBtn { label = "Sell", on = !shopSell, col = Plain, act = () => { shopSell = true; wkPageI = 0; RenderWork(); } }));
+        // gear repair: any shopkeeper mends everything you wear
+        if (AHWear.WornCount(p) > 0)
+        {
+            long rc = AHWear.RepairCost(p); int lo = AHWear.LowestCondition(p);
+            rows.Add(slot => Row(slot, "Repair all your gear", lo <= 30 ? new Color(1f, 0.55f, 0.45f) : new Color(0.75f, 0.9f, 1f), "Your most worn piece is at " + lo + "%" + (lo <= 0 ? " (broken: no stats)" : lo <= 30 ? " (worn: half stats)" : ""), "",
+                new WkBtn { label = "Repair · " + AHItems.MoneyText(rc, 2), on = p.bag.money >= rc, col = Go, act = () => { p.bag.money -= rc; AHWear.RepairAll(g, p, false); RenderWork(); } }));
+        }
         if (!shopSell)
         {
             var stock = AHJson.A(sh, "stock");

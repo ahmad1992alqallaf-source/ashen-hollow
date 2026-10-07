@@ -259,3 +259,92 @@ public partial class AHUI
         Debug.Log("Ashen Hollow: photo saved as " + System.IO.Path.Combine(Application.persistentDataPath, name));
     }
 }
+
+// ===================== gear wear and repair (moved here from AHWear.cs) =====================
+// Ashen Hollow: gear wear and repair. Gear slowly wears as you fight: armor when you take hits, your weapon with each
+// kill. Condition runs from 100% down to 0%:
+//   100-31%: full stats.   30-1%: "Worn": the piece gives half its stats.   0%: "Broken": it gives nothing.
+// A warning shows when a piece drops to 30% and when it breaks. Any shopkeeper repairs everything you wear for coins
+// (Repair all, at the top of the shop).
+// Cosmetics, rings and amulets never wear. Wear stays with the piece (a fresh piece starts at 100%).
+
+public static class AHWear
+{
+    public const int Max = 1000;   // wear points until broken
+    static readonly string[] Armor = { "head", "shoulders", "chest", "hands", "legs", "feet", "cape" };
+
+    static string Key(string slot, string id) { return slot + "|" + id; }
+    public static bool Wears(string slot, ItemDef d) { return d != null && !d.cosmetic && slot != "ring" && slot != "amulet"; }
+
+    public static int Points(AHPlayer p, string slot)
+    {
+        string id = p.bag.Worn(slot); if (id == null) return 0;
+        return (int)AHProgress.Get(p.prog.wear, Key(slot, id));
+    }
+    // condition as 0..100
+    public static int Condition(AHPlayer p, string slot) { return Mathf.Clamp(100 - Mathf.CeilToInt(Points(p, slot) * 100f / Max), 0, 100); }
+    public static float StatK(AHPlayer p, string slot) { int c = Condition(p, slot); return c <= 0 ? 0f : c <= 30 ? 0.5f : 1f; }
+
+    static void Add(AHGame g, AHPlayer p, string slot, int n)
+    {
+        string id = p.bag.Worn(slot); var d = AHItems.Get(id); if (!Wears(slot, d)) return;
+        int before = Condition(p, slot);
+        string k = Key(slot, id);
+        long cur = AHProgress.Get(p.prog.wear, k); if (cur >= Max) return;
+        AHProgress.Add(p.prog.wear, k, Mathf.Min(n, Max - (int)cur));
+        int after = Condition(p, slot);
+        if ((before > 30) != (after > 30) || (before > 0) != (after > 0))
+        {
+            p.Recalc(); g.MarkDirty();
+            if (g.ui != null) g.ui.Banner(after <= 0 ? d.name + " is broken!" : d.name + " is worn", after <= 0 ? "It gives no stats until repaired. Any shopkeeper can fix it." : "Down to " + after + "%: half its stats. Repair it at any shop.");
+        }
+    }
+
+    // AHPlayer.Hurt (a hit that landed): one piece of armor takes it
+    public static void OnHurt(AHGame g, AHPlayer p)
+    {
+        if (g == null || p == null || p.prog == null) return;
+        var worn = new List<string>(); foreach (var s in Armor) if (p.bag.Worn(s) != null) worn.Add(s);
+        if (worn.Count == 0) return;
+        Add(g, p, worn[UnityEngine.Random.Range(0, worn.Count)], 2);
+    }
+    // AHMob.Die: your weapon
+    public static void OnKill(AHGame g, AHPlayer p) { if (g != null && p != null && p.prog != null) Add(g, p, "weapon", 3); }
+
+    // the bag's stats, less what worn and broken pieces have lost (AHPlayer.Recalc)
+    public static void Apply(AHPlayer p, AHStats s)
+    {
+        if (p == null || p.prog == null) return;
+        foreach (var slot in AHItems.GearSlots)
+        {
+            float k = StatK(p, slot); if (k >= 1f) continue;
+            var d = AHItems.Get(p.bag.Worn(slot)); if (d == null) continue;
+            float lose = 1f - k;
+            s.atk -= Mathf.RoundToInt(d.atk * lose); s.def -= Mathf.RoundToInt(d.def * lose); s.hp -= Mathf.RoundToInt(d.hp * lose);
+            s.dmg -= d.dmg * lose; s.cdr -= d.cdr * lose; s.heal -= d.heal * lose;
+        }
+    }
+
+    // ---------- repair ----------
+    public static long RepairCost(AHPlayer p)
+    {
+        long c = 0;
+        foreach (var slot in AHItems.GearSlots)
+        {
+            int pts = Points(p, slot); if (pts <= 0) continue;
+            long v = System.Math.Max(10, AHComp.Value(p.bag.Worn(slot)));
+            c += System.Math.Max(1, (long)System.Math.Round(v * 0.25 * pts / Max));
+        }
+        return c * AHDB.CU;
+    }
+    public static int WornCount(AHPlayer p) { int n = 0; foreach (var slot in AHItems.GearSlots) if (Points(p, slot) > 0) n++; return n; }
+    public static int LowestCondition(AHPlayer p) { int lo = 100; foreach (var slot in AHItems.GearSlots) if (p.bag.Worn(slot) != null && Wears(slot, AHItems.Get(p.bag.Worn(slot)))) lo = Mathf.Min(lo, Condition(p, slot)); return lo; }
+
+    public static void RepairAll(AHGame g, AHPlayer p, bool free)
+    {
+        p.prog.wear.Clear();
+        p.Recalc(); g.MarkDirty(); AHSound.Play("anvil");
+        if (g.ui != null) g.ui.Toast(free ? "Repaired with a kit: your gear is like new." : "Repaired: your gear is like new.", 2f);
+    }
+}
+

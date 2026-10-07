@@ -79,6 +79,7 @@ public partial class AHUI
         var worn = AHItems.Get(bag.Worn(d.slot)); bool wearing = bag.Worn(d.slot) == d.id;
         string t = AHItems.StatLine(d) + SetLine(d, bag);
         if (!d.cosmetic) t += "\n\n" + (wearing ? "<color=#ffd86a>You are wearing this.</color>" : "Against " + (worn != null ? worn.name : "nothing worn") + ":\n" + Compare(d, worn));
+        if (wearing && AHWear.Wears(d.slot, d)) { int cond = AHWear.Condition(p, d.slot); t += "\n" + (cond <= 0 ? "<color=#ff8a7a>Condition 0%: broken, no stats. Repair it at any shop.</color>" : cond <= 30 ? "<color=#ffb070>Condition " + cond + "%: worn, half stats.</color>" : "Condition " + cond + "%"); }
         if (!AHItems.CanUse(d.id, p.cls.id)) t += "\n\n<color=#ff8a7a>Your class can’t use this.</color>";
         if (!string.IsNullOrEmpty(d.note)) t += "\n\n<i>" + d.note + "</i>";
         if (AHArtisan.Made(p, d.id) > 0) t += "\n\n<color=#c9e0a0>Maker's mark: " + (string.IsNullOrEmpty(p.heroName) ? "you" : p.heroName) + "</color>";

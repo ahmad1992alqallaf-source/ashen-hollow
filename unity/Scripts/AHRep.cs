@@ -38,6 +38,7 @@ public class AHProgress
     public List<AHLoadout> loadouts = new List<AHLoadout>();     // saved gear sets
     public string seasonKey = ""; public int seasonXp, seasonClaimed;   // the season track
     public List<AHKV> weaponKills = new List<AHKV>();            // kills by weapon kind (weapon mastery)
+    public List<AHKV> wear = new List<AHKV>();                   // gear wear points by "slot|item" (AHWear)
     public List<AHKS> trophies = new List<AHKS>();               // bosses, elites and rare beasts beaten (id, name|model)
 
     public static long Get(List<AHKV> l, string k) { foreach (var e in l) if (e.k == k) return e.v; return 0; }
