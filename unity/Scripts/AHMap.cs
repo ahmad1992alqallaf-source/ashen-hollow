@@ -215,6 +215,9 @@ public partial class AHUI
             if (AHWays.Ways != null) foreach (var w in AHWays.Ways) if (AHJson.S(w, "area") == AHGame.AreaId) mark(g.W((float)AHJson.N(w, "x") * S, (float)AHJson.N(w, "y") * S), AHWays.Known(p, w) ? new Color(0.35f, 0.65f, 0.95f) : new Color(0.5f, 0.5f, 0.55f), 14f, true, null);
             if (AHWays.Treasures != null) foreach (var t in AHWays.Treasures) if (AHJson.S(t, "area") == AHGame.AreaId && p.prog.found.Contains(AHJson.S(t, "id"))) mark(g.W((float)AHJson.N(t, "x") * S, (float)AHJson.N(t, "y") * S), new Color(0.95f, 0.75f, 0.25f), 10f, false, null);
             AHTreasure.MapMarks(p, (wp, nm) => mark(wp, new Color(0.95f, 0.55f, 0.15f), 15f, true, nm));
+            foreach (var sp in AHSecrets.FoundSpots()) mark(sp, new Color(1f, 0.9f, 0.35f), 12f, true, null);
+            Vector3 ev; if (AHSecrets.EventAt(out ev)) mark(ev, new Color(0.45f, 0.95f, 1f), 17f, true, "Event!");
+            var pins = AHSecrets.Pins(); for (int pi = 0; pi < pins.Count; pi++) mark(pins[pi], new Color(0.9f, 0.2f, 0.55f), 15f, false, "Pin " + (pi + 1));
             mark(p.transform.position, Color.white, 18f, false, "You");
         }
         // the side panel: the land's name, its levels and what the marks mean
@@ -223,16 +226,20 @@ public partial class AHUI
         wkItems.Add(side.gameObject);
         MapText(side, g.data.region, 24, new Vector2(14, -10), new Vector2(sw - 28, 30), TextAnchor.UpperLeft, new Color(0.3f, 0.12f, 0.06f), true);
         var sub = MapText(side, g.AreaSub(), 15, new Vector2(14, -44), new Vector2(sw - 28, 60), TextAnchor.UpperLeft, new Color(0.25f, 0.17f, 0.1f)); sub.horizontalOverflow = HorizontalWrapMode.Wrap;
-        string[] keyText = { "You", "Ways out", "Dungeon doors", "Waystones" + (ways > 0 ? "  " + waysK + " / " + ways : ""), "Boards and found treasure" + (tr > 0 ? "  " + trK + " / " + tr : "") };
-        Color[] keyCol = { Color.white, new Color(0.3f, 0.75f, 0.35f), new Color(0.85f, 0.2f, 0.15f), new Color(0.35f, 0.65f, 0.95f), new Color(0.95f, 0.75f, 0.25f) };
+        string[] keyText = { "You", "Ways out", "Dungeon doors", "Waystones" + (ways > 0 ? "  " + waysK + " / " + ways : ""), "Boards and found treasure" + (tr > 0 ? "  " + trK + " / " + tr : ""), "Secrets found  " + AHSecrets.FoundHere() + " / " + AHSecrets.PerLand, "Your pins  " + AHSecrets.Pins().Count + " / " + AHSecrets.MaxPins };
+        Color[] keyCol = { Color.white, new Color(0.3f, 0.75f, 0.35f), new Color(0.85f, 0.2f, 0.15f), new Color(0.35f, 0.65f, 0.95f), new Color(0.95f, 0.75f, 0.25f), new Color(1f, 0.9f, 0.35f), new Color(0.9f, 0.2f, 0.55f) };
         for (int i = 0; i < keyText.Length; i++)
         {
-            float y = -118f - i * 30f;
-            var dot = Img("Key", side, i >= 3 ? white : circle, new Vector2(0f, 1f), new Vector2(26f, y - 10f), new Vector2(14, 14), keyCol[i]);
-            if (i >= 3) dot.localRotation = Quaternion.Euler(0, 0, 45);
+            float y = -110f - i * 23f;
+            bool dia = i >= 3 && i <= 5;
+            var dot = Img("Key", side, dia ? white : circle, new Vector2(0f, 1f), new Vector2(26f, y - 10f), new Vector2(14, 14), keyCol[i]);
+            if (dia) dot.localRotation = Quaternion.Euler(0, 0, 45);
             var ol = dot.gameObject.AddComponent<Outline>(); ol.effectColor = new Color(0.15f, 0.1f, 0.06f, 0.95f);
             MapText(side, keyText[i], 15, new Vector2(44, y), new Vector2(sw - 56, 20), TextAnchor.UpperLeft, new Color(0.22f, 0.15f, 0.09f));
         }
+        float half = (sw - 36f) / 2f;
+        MapButton(side, "Pin here", new Vector2(14f + half / 2f, -size + 88f), half, () => { if (AHSecrets.AddPin(p.transform.position)) Toast("Pinned where you stand"); else Toast("Six pins at most: clear them first"); StartCoroutine(SnapMap()); });
+        MapButton(side, "Clear pins", new Vector2(22f + half * 1.5f, -size + 88f), half, () => { AHSecrets.ClearPins(); Toast("Pins cleared"); StartCoroutine(SnapMap()); });
         MapButton(side, "World map ▶", new Vector2(sw / 2f, -size + 34f), sw - 28f, () => { wkPageI = 1; RenderWork(); });
     }
 

@@ -146,6 +146,32 @@ public static class AHSecrets
         if (g.ui != null) g.ui.Banner("Secret found! (" + FoundHere() + " / " + spots.Count + " in this land)", AHDaily.Text(rw));
     }
 
+    // the map: secrets found in this land, and the world event's beam
+    public static List<Vector3> FoundSpots() { var l = new List<Vector3>(); for (int i = 0; i < spots.Count; i++) if (Found(AHGame.AreaId, i)) l.Add(spots[i]); return l; }
+    public static bool EventAt(out Vector3 at) { at = evAt; return evGo != null; }
+
+    // map pins: up to six of your own marks per land, where you stood when you pinned
+    public const int MaxPins = 6;
+    static string PinKey { get { return "ah_pins_" + AHGame.AreaId; } }
+    public static List<Vector3> Pins()
+    {
+        var l = new List<Vector3>(); var s = AHPrefs.GetString(PinKey, "");
+        foreach (var e in s.Split(';'))
+        {
+            var a = e.Split(','); float x, y, z;
+            if (a.Length == 3 && float.TryParse(a[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out x) && float.TryParse(a[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out y) && float.TryParse(a[2], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out z)) l.Add(new Vector3(x, y, z));
+        }
+        return l;
+    }
+    static void SavePins(List<Vector3> l)
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var v in l) { if (sb.Length > 0) sb.Append(';'); sb.Append(v.x.ToString("F1", System.Globalization.CultureInfo.InvariantCulture) + "," + v.y.ToString("F1", System.Globalization.CultureInfo.InvariantCulture) + "," + v.z.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)); }
+        AHPrefs.SetString(PinKey, sb.ToString());
+    }
+    public static bool AddPin(Vector3 at) { var l = Pins(); if (l.Count >= MaxPins) return false; l.Add(at); SavePins(l); return true; }
+    public static void ClearPins() { SavePins(new List<Vector3>()); }
+
     // tests: the nearest unfound secret spot (or null)
     public static bool NearestSecret(AHGame g, out Vector3 at)
     {
