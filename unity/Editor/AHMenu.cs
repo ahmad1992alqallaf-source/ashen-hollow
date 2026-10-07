@@ -357,6 +357,15 @@ public static class AHMenu
     }
 
     // takes back the last workshop level (and pays it back): undoes a mistaken test purchase
+    [MenuItem("Ashen Hollow/Test: World Event")]
+    static void TestEvent()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        bool ok = AHSecrets.StartEvent(g, UnityEngine.Random.Range(0, 3));
+        Vector3 at; string s = AHSecrets.NearestSecret(g, out at) ? " · nearest secret " + Mathf.RoundToInt((at - g.player.transform.position).magnitude) + " m away at " + at.ToString("F0") : " · no secrets left here";
+        Debug.Log("Ashen Hollow: world event " + (ok ? "started" : "already running") + s + " · found " + AHSecrets.FoundHere() + " here");
+    }
+
     [MenuItem("Ashen Hollow/Test: Treasure Goblin")]
     static void TestGoblin()
     {

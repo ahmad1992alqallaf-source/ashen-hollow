@@ -870,6 +870,7 @@ public class AHGame : MonoBehaviour
         AHWays.Tick(this, Time.deltaTime);
         AHKQ.Tick(this, Time.deltaTime);
         AHGoblin.Tick(this, Time.deltaTime);
+        AHSecrets.Tick(this, Time.deltaTime);
         AHNight.Tick(this);
         AHWardrobe.Tick(this);
         if (player != null && player.cls != null) AHDaily.Tick(this, Time.deltaTime);
