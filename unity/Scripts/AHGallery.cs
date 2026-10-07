@@ -7,6 +7,10 @@ public static class AHGallery
 {
     public static void Setup(AHGame g)
     {
+        try { Build(g); } catch (System.Exception e) { Debug.LogWarning("Ashen Hollow: costume gallery skipped: " + e.Message); }
+    }
+    static void Build(AHGame g)
+    {
         var p = g.player; if (AHGame.AreaId != AHHome.Area || p == null || g.data == null || g.data.spawn == null) return;
         var own = new List<string>(); foreach (var d in AHCostumes.All) if (AHCostumes.Owns(p, d.id) && AHCostumes.Exists(p.look, d.id)) own.Add(d.id);
         if (own.Count == 0) return;

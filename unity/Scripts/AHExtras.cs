@@ -255,7 +255,7 @@ public partial class AHUI
     }
     // the photo filters: a soft wash of colour over the picture (in the saved photo too)
     static readonly string[] FilterNames = { "FILTER", "WARM", "COLD", "SEPIA", "NIGHT", "DREAM" };
-    static readonly Color[] FilterCols = { new Color(0, 0, 0, 0), new Color(1f, 0.6f, 0.2f, 0.16f), new Color(0.3f, 0.55f, 1f, 0.16f), new Color(0.55f, 0.4f, 0.2f, 0.3f), new Color(0.05f, 0.08f, 0.22f, 0.36f), new Color(1f, 0.6f, 0.9f, 0.16f) };
+    static readonly Color[] FilterCols = { new Color(0, 0, 0, 0), new Color(1f, 0.55f, 0.15f, 0.24f), new Color(0.25f, 0.5f, 1f, 0.24f), new Color(0.5f, 0.34f, 0.14f, 0.45f), new Color(0.03f, 0.06f, 0.2f, 0.5f), new Color(1f, 0.55f, 0.9f, 0.24f) };
     static readonly string[] PhotoPoses = { "wave", "cheer", "bow", "point", "dance", "sit", "fold" };
     int photoFilterI, photoPose = -1; Text photoFilterT; Image photoWash;
     void CycleFilter() { photoFilterI = (photoFilterI + 1) % FilterNames.Length; ApplyFilter(); }
