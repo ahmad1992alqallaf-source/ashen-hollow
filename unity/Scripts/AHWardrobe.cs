@@ -514,7 +514,7 @@ public static class AHWardrobe
         if (hoods.TryGetValue(key, out m) && m != null) return m;
         var v = new List<Vector3>(); var tr = new List<int>();
         const int nu = 28, nv = 16;
-        Vector3 ctr = new Vector3(0, 0.1f, -0.025f);
+        Vector3 ctr = new Vector3(0, 0.075f, -0.025f);
         Func<float, float, Vector3> P = (u, w) =>
         {
             // u: round the head from the front (0) ; w: 0 top .. 1 the shoulders
@@ -524,13 +524,13 @@ public static class AHWardrobe
             {
                 float el = Mathf.Lerp(Mathf.PI * 0.5f, -Mathf.PI * 0.28f, w / 0.62f);   // elevation: crown to below the jaw
                 float r = Mathf.Cos(el);
-                p = ctr + new Vector3(sn * r * 0.112f, Mathf.Sin(el) * 0.13f, cs * r * 0.135f);
-                { float back = Mathf.Max(0f, -cs); p += (point ? new Vector3(0, 0.07f, -0.05f) : new Vector3(0, 0.015f, -0.035f)) * back * Mathf.Pow(Mathf.Max(0f, Mathf.Sin(el)), 3f); }
+                p = ctr + new Vector3(sn * r * 0.118f, Mathf.Sin(el) * 0.122f, cs * r * 0.135f);
+                { float back = Mathf.Max(0f, -cs); p += (point ? new Vector3(0, 0.07f, -0.05f) : new Vector3(0, 0f, -0.03f)) * back * Mathf.Pow(Mathf.Max(0f, Mathf.Sin(el)), 3f); }
             }
             else
             {
                 float t = (w - 0.62f) / 0.38f; float el = -Mathf.PI * 0.28f, r0 = Mathf.Cos(el);
-                Vector3 top = ctr + new Vector3(sn * r0 * 0.112f, Mathf.Sin(el) * 0.13f, cs * r0 * 0.135f);
+                Vector3 top = ctr + new Vector3(sn * r0 * 0.118f, Mathf.Sin(el) * 0.122f, cs * r0 * 0.135f);
                 // down over the shoulders, wider at the sides than front and back
                 float spread = Mathf.Lerp(1f, cowl ? 1.75f : 1.55f, t) ;
                 p = new Vector3(top.x * Mathf.Lerp(1f, 1.7f, t) * spread / 1.2f, top.y - t * (cowl ? 0.2f : 0.15f), (top.z + 0.03f) * spread * 0.8f - 0.03f);
@@ -601,7 +601,7 @@ public static class AHWardrobe
             go.transform.SetParent(bone, true);
             bool isMetal = Metal.Contains(d.form ?? "");
             var kind = isMetal ? AHGearTex.Kind.Metal : Leathery(d) ? AHGearTex.Kind.Leather : AHGearTex.Kind.Cloth;
-            return new Kit { root = go.transform, k = k, kind = kind, col = dyeOn && !isMetal ? Color.Lerp(d.color, dye, 0.55f) : d.color, metal = isMetal, glow = d.form == "molten" || d.form == "ember" || d.form == "halo" ? 1.6f : d.rarity == "legend" ? 0.55f : d.rarity == "set" ? 0.18f : 0f };   // legendary and set pieces shine a little
+            return new Kit { root = go.transform, k = k, kind = kind, col = dyeOn && !isMetal ? Color.Lerp(d.color, dye, 0.55f) : d.color, metal = isMetal, glow = d.form == "halo" ? 1.6f : d.form == "molten" ? 0.5f : d.form == "ember" ? 0.25f : d.rarity == "legend" ? 0.55f : d.rarity == "set" ? 0.18f : 0f };   // legendary and set pieces shine a little
         };
 
         // ---- head ----
@@ -612,9 +612,13 @@ public static class AHWardrobe
             bool covers = f == "helm" || f == "forgehelm" || f == "hood" || f == "cowl";
             if (f == "helm" || f == "forgehelm")
             {
-                K.Prim(PrimitiveType.Sphere, new Vector3(0, 0.1f, -0.045f), new Vector3(0.27f, 0.22f, 0.28f), Vector3.zero);
-                K.Mesh(torus, new Vector3(0, 0.085f, -0.04f), new Vector3(0.275f, 0.5f, 0.285f), Vector3.zero, K.Dark);
-                if (f == "forgehelm") K.Prim(PrimitiveType.Cube, new Vector3(0, 0.22f, -0.05f), new Vector3(0.03f, 0.07f, 0.24f), Vector3.zero, K.Dark);
+                // an open-faced helm: the cap sits above the brow so the eyes and face show
+                K.Prim(PrimitiveType.Sphere, new Vector3(0, 0.135f, -0.05f), new Vector3(0.265f, 0.17f, 0.29f), Vector3.zero);
+                K.Mesh(torus, new Vector3(0, 0.07f, -0.045f), new Vector3(0.27f, 0.45f, 0.29f), Vector3.zero, K.Dark);
+                K.Prim(PrimitiveType.Cube, new Vector3(0, 0.035f, 0.1f), new Vector3(0.022f, 0.075f, 0.018f), Vector3.zero, K.Dark);   // nose guard
+                foreach (int sx in new[] { -1, 1 }) K.Prim(PrimitiveType.Cube, new Vector3(sx * 0.122f, 0.0f, -0.02f), new Vector3(0.02f, 0.11f, 0.13f), new Vector3(0, sx * 8, 0));   // cheek guards
+                K.Prim(PrimitiveType.Cube, new Vector3(0, 0.0f, -0.15f), new Vector3(0.2f, 0.1f, 0.02f), new Vector3(-12, 0, 0));   // neck guard
+                if (f == "forgehelm") K.Prim(PrimitiveType.Cube, new Vector3(0, 0.235f, -0.05f), new Vector3(0.03f, 0.06f, 0.24f), Vector3.zero, K.Dark);
             }
             else if (f == "mhood")
             {
@@ -633,7 +637,7 @@ public static class AHWardrobe
                 if (f == "crown") for (int i = 0; i < 7; i++) { float a = i * Mathf.PI * 2 / 7; K.Mesh(cone, new Vector3(Mathf.Cos(a) * 0.115f, 0.095f, Mathf.Sin(a) * 0.12f - 0.03f), new Vector3(0.05f, 0.08f, 0.05f), Vector3.zero); }
                 else K.Prim(PrimitiveType.Sphere, new Vector3(0, 0.085f, 0.09f), Vector3.one * 0.03f, Vector3.zero, K.Gold);
             }
-            else if (f == "halo") K.Mesh(torus, new Vector3(0, 0.3f, -0.04f), new Vector3(0.26f, 0.7f, 0.26f), Vector3.zero);
+            else if (f == "halo") K.Mesh(torus, new Vector3(0, 0.22f, -0.04f), new Vector3(0.24f, 0.6f, 0.24f), Vector3.zero);
             else if (f == "horns" || f == "antlers")
             {
                 foreach (int sx in new[] { -1, 1 })
@@ -680,10 +684,20 @@ public static class AHWardrobe
             if (f == "armor" || f == "plate" || f == "molten")
             {
                 var K = start(chest, chest.position, cid);
-                K.Mesh(shell, new Vector3(0, -0.16f, 0.01f), new Vector3(0.17f, 0.32f, 0.125f), Vector3.zero);
-                K.Mesh(torus, new Vector3(0, -0.16f, 0.01f), new Vector3(0.33f, 0.7f, 0.25f), Vector3.zero, K.Dark);
-                K.Mesh(torus, new Vector3(0, 0.15f, 0.0f), new Vector3(0.3f, 0.6f, 0.22f), Vector3.zero, K.Dark);
-                if (f == "molten") K.Prim(PrimitiveType.Cube, new Vector3(0, 0.0f, 0.13f), new Vector3(0.04f, 0.2f, 0.02f), Vector3.zero, K.Gold);
+                // measure the clothed body round the chest, so the plate always sits on the outside
+                float rx = 0.17f, rf = 0.125f, rb = 0.125f; Vector3 cc = chest.position, sv = hold.right, fv = hold.forward;
+                foreach (var bp in BodyPoints(rig))
+                {
+                    float dy = bp.y - cc.y; if (dy < -0.2f * k || dy > 0.12f * k) continue;
+                    Vector3 d = bp - cc; rx = Mathf.Max(rx, Mathf.Abs(Vector3.Dot(d, sv)) / k * 1.06f + 0.015f);
+                    float z = Vector3.Dot(d, fv) / k; if (z > 0) rf = Mathf.Max(rf, z * 1.06f + 0.015f); else rb = Mathf.Max(rb, -z * 1.06f + 0.015f);
+                }
+                rx = Mathf.Min(rx, 0.26f); rf = Mathf.Min(rf, 0.22f); rb = Mathf.Min(rb, 0.22f);
+                float rz = (rf + rb) * 0.5f, oz = (rf - rb) * 0.5f;
+                K.Mesh(shell, new Vector3(0, -0.2f, oz), new Vector3(rx, 0.34f, rz), Vector3.zero);
+                K.Mesh(torus, new Vector3(0, -0.2f, oz), new Vector3(rx * 1.98f, 0.7f, rz * 1.98f), Vector3.zero, K.Dark);
+                K.Mesh(torus, new Vector3(0, 0.13f, oz), new Vector3(rx * 1.9f, 0.6f, rz * 1.9f), Vector3.zero, K.Dark);
+                K.Prim(PrimitiveType.Cube, new Vector3(0, -0.04f, oz + rz * 0.98f), new Vector3(0.035f, 0.26f, 0.025f), Vector3.zero, f == "molten" ? K.Gold : K.Dark);   // the ridge down the front
             }
             else if (f == "robe" && pelvis != null)
             {
@@ -793,7 +807,7 @@ public static class AHWardrobe
     static void TintCloth(GameObject rig, Color c)
     {
         // the piece's colour, kept light enough that the clothes' own texture still shows through
-        float hh, ss, vv; Color.RGBToHSV(c, out hh, out ss, out vv); Color lift = Color.HSVToRGB(hh, Mathf.Min(ss, 0.75f), Mathf.Clamp(vv * 1.5f, 0.6f, 0.95f));
+        float hh, ss, vv; Color.RGBToHSV(c, out hh, out ss, out vv); Color lift = Color.HSVToRGB(hh, Mathf.Min(ss, 0.8f), Mathf.Clamp(vv, 0.28f, 0.78f));
         foreach (var r in rig.GetComponentsInChildren<Renderer>(true))
         {
             if (r.name == "Piece") continue; var mats = r.materials; bool ch = false;
