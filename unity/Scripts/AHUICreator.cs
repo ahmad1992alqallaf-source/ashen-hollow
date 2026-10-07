@@ -109,6 +109,8 @@ public partial class AHUI
         crCancel.gameObject.SetActive(paid || (mode == "new" && AHPrefs.Slots().Count > 0 && !AHPrefs.Slots().Contains(AHPrefs.Slot)));
         crTitle.text = paid ? (mode == "mirror" ? "Your mirror" : "The barber’s chair") : "Create your hero";
         crBeginText.text = paid ? "Done" : "Begin";
+        // the hint keeps clear of the Cancel button when it shows
+        var hr = crHint.rectTransform; hr.sizeDelta = new Vector2(crCancel.gameObject.activeSelf ? 236f : 380f, 60f);
         RenderCreator();
     }
 
@@ -318,7 +320,7 @@ public partial class AHUI
                 for (int i = 0; i < list.Count; i++) sw.Add(new KeyValuePair<string, string>(i.ToString(), (string)((List<object>)list[i])[1]));
                 CrChips(sw, v => LookGet(L, k) == v, v => { LookSet(L, k, v); p.ApplyLook(); }, v => AHGame.Hex((int)(double)((List<object>)list[int.Parse(v)])[0]));
             }
-            crHint.text = crTab == "face" ? "Skin, hair, brows and outfit show on your hero. Eye shape, nose, ears and markings are kept for a later face." : "Your hero changes as you choose.";
+            crHint.text = "Drag your hero to turn them. Pinch or scroll to zoom.";
         }
         CrScrollBy(0f);
     }

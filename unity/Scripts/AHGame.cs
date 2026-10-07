@@ -14,6 +14,7 @@ public class AHGame : MonoBehaviour
     [System.NonSerialized] public float cineT;
     public float camPitch = 22f;          // degrees above the hero
     public float camYaw = 90f;
+    float crSpin, crDist = 4.2f; bool wasCreating;   // the hero creator's own turn and zoom
     [Header("Day")]
     [Tooltip("Seconds for a whole day and night (24 minutes in the web game)")]
     public float dayLength = 1440f;
@@ -896,7 +897,8 @@ public class AHGame : MonoBehaviour
         float aspect = Screen.height > 0 ? (float)Screen.width / Screen.height : 1.78f;
         float wantFov = Mathf.Max(58f, 2f * Mathf.Atan(Mathf.Tan(37.5f * Mathf.Deg2Rad) / Mathf.Max(0.5f, aspect)) * Mathf.Rad2Deg);
         if (Mathf.Abs(cam.fieldOfView - wantFov) > 0.05f && !(ui != null && ui.CreatorOpen)) cam.fieldOfView = wantFov;
-        if (ui != null)
+        bool creating = ui != null && ui.CreatorOpen;
+        if (ui != null && !creating)
         {
             camYaw += ui.camDelta.x * 0.22f;
             camPitch = Mathf.Clamp(camPitch - ui.camDelta.y * 0.15f, 5f, 65f);
@@ -905,16 +907,25 @@ public class AHGame : MonoBehaviour
         if (cineT > 0f) { cineT -= Time.unscaledDeltaTime; camYaw += Time.unscaledDeltaTime * 150f; }   // the level-up swing
         camTarget = Vector3.Lerp(camTarget, player.transform.position, 1f - Mathf.Exp(-Time.deltaTime * 10f));
         // making your hero: a close shot with the hero on the left, facing you, clear of the creator panel
-        if (ui != null && ui.CreatorOpen)
+        // drag the hero to turn them round; pinch (or the mouse wheel) to zoom in on the face
+        if (creating)
         {
-            Quaternion cq = Quaternion.Euler(8f, camYaw, 0);
+            if (!wasCreating) { crSpin = 0f; crDist = 4.2f; }
+            crSpin -= ui.camDelta.x * 0.45f;
+            crDist = Mathf.Clamp(crDist * ui.zoom, 1.1f, 4.6f);
+            float near = Mathf.InverseLerp(4.2f, 1.1f, crDist);
+            float tall = player.transform.lossyScale.y;
+            Quaternion cq = Quaternion.Euler(Mathf.Lerp(8f, 3f, near), camYaw, 0);
             Vector3 right = cq * Vector3.right;
-            Vector3 head = player.transform.position + Vector3.up * 1.05f;
-            cam.transform.position = head - cq * Vector3.forward * 4.2f + right * 1.25f;
+            Vector3 head = player.transform.position + Vector3.up * Mathf.Lerp(1.05f, 1.5f, near) * Mathf.Max(0.6f, tall);
+            cam.transform.position = head - cq * Vector3.forward * crDist + right * 1.25f * (crDist / 4.2f);
             cam.transform.rotation = cq;
-            player.transform.rotation = Face(cam.transform.position - player.transform.position);
+            Vector3 toCam = cam.transform.position - player.transform.position; toCam.y = 0f;
+            player.transform.rotation = Face(Quaternion.Euler(0f, crSpin, 0f) * toCam);
+            wasCreating = true;
             return;
         }
+        wasCreating = false;
         Vector3 look = camTarget + Vector3.up * (1.55f + (player.mounted ? 0.65f : 0f));
         // in caves and among cliffs the camera rises over the rock rather than diving into it
         // a big beast close by (a boss, a golem, a dragon): step back and up so it all fits in the view

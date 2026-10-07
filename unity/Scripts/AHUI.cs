@@ -560,6 +560,8 @@ public partial class AHUI : MonoBehaviour
         int modal = Modal;
         foreach (var t in taps)
             if (t.layer == modal && t.rt != null && t.rt.gameObject.activeInHierarchy && Inside(t.rt, q.pos, 4f * k)) { pt.tap = t; return Role.Tap; }
+        // making your hero: a finger on the hero (off the panel) turns them, two fingers zoom in and out
+        if (modal == 4 && crPanel != null && !Inside(crPanel, q.pos, 0f)) return Role.Cam;
         if (modal != 0) return Role.None;
         if (q.id == -2 || PhotoOn) return Role.Cam;
         for (int i = 0; i < 6; i++)
@@ -623,7 +625,11 @@ public partial class AHUI : MonoBehaviour
         else pinchLast = 0f;
         float wheel = AHInput.Wheel();
         if (Mathf.Abs(wheel) > 0.01f && Modal == 0) zoom *= Mathf.Pow(0.9f, wheel);
-        if (Mathf.Abs(wheel) > 0.01f && CreatorOpen) CrScrollBy(-wheel * 40f);
+        if (Mathf.Abs(wheel) > 0.01f && CreatorOpen)
+        {
+            if (Inside(crPanel, AHInput.MousePos(), 0f)) CrScrollBy(-wheel * 40f);
+            else zoom *= Mathf.Pow(0.8f, wheel);
+        }
 
         // released fingers: taps fire when lifted over their button
         gone.Clear();

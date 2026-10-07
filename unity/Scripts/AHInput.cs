@@ -226,13 +226,28 @@ public static class AHInput
 #endif
     }
 
+    // where the mouse is (for the wheel: zoom the hero or scroll the list it is over)
+    public static Vector2 MousePos()
+    {
+#if ENABLE_LEGACY_INPUT_MANAGER
+        return Input.mousePosition;
+#elif ENABLE_INPUT_SYSTEM
+        return Mouse.current != null ? Mouse.current.position.ReadValue() : Vector2.zero;
+#else
+        return Vector2.zero;
+#endif
+    }
+
     // mouse wheel, in notches
     public static float Wheel()
     {
 #if ENABLE_LEGACY_INPUT_MANAGER
         return Input.mouseScrollDelta.y;
 #elif ENABLE_INPUT_SYSTEM
-        return Mouse.current != null ? Mouse.current.scroll.ReadValue().y / 120f : 0f;
+        // older Input System versions give 120 per notch on Windows, newer ones give 1 per notch
+        if (Mouse.current == null) return 0f;
+        float y = Mouse.current.scroll.ReadValue().y;
+        return Mathf.Abs(y) >= 20f ? y / 120f : y;
 #else
         return 0f;
 #endif

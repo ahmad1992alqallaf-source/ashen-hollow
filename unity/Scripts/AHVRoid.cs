@@ -91,8 +91,18 @@ public static class AHVRoid
 
     // tint the VRoid materials by kind (VRoid names them ..._HAIR, ..._SKIN, ..._CLOTH); a plain colour dyes the
     // texture: a dark hair colour gives dark hair, the skin tone only nudges (the face is painted)
+    static readonly Dictionary<Material, Color> shade0 = new Dictionary<Material, Color>();
+    // the skin tone, strong enough that Deep and Ebony read as dark and Porcelain stays fair, never brighter than the paint
+    public static Color SkinTint(Color skin)
+    {
+        Color k = Color.Lerp(Color.white, skin * 1.12f, 0.8f);
+        k = new Color(Mathf.Min(1f, k.r), Mathf.Min(1f, k.g), Mathf.Min(1f, k.b), 1f);
+        return k * 0.94f;
+    }
+
     public static void Dye(GameObject v, Color hair, Color skin, Color cloth)
     {
+        if (shade0.Count > 400) { var dead = new List<Material>(); foreach (var km in shade0.Keys) if (km == null) dead.Add(km); foreach (var km in dead) shade0.Remove(km); }
         foreach (var r in v.GetComponentsInChildren<Renderer>(true))
         {
             var mats = r.materials; bool ch = false;
@@ -100,11 +110,17 @@ public static class AHVRoid
             {
                 if (m == null) continue; string n = m.name.ToUpperInvariant(); Color k;
                 if (n.Contains("_HAIR")) k = Color.Lerp(hair * 1.6f, Color.white, 0.15f);
-                else if (n.Contains("_SKIN") || n.Contains("_FACE")) k = Color.Lerp(Color.white, skin * 1.25f, 0.45f);
+                else if (n.Contains("_SKIN") || n.Contains("_FACE")) k = SkinTint(skin);
                 else if (n.Contains("_CLOTH")) k = Color.Lerp(Color.white, cloth * 1.5f, 0.6f) * 1.3f;   // the robe is mid grey: a lighter dye, brightened, keeps it light
                 else continue;
                 k.a = 1f;
                 foreach (var pr in new[] { "_Color", "_BaseColor" }) if (m.HasProperty(pr)) { var c0 = m.GetColor(pr); m.SetColor(pr, new Color(k.r, k.g, k.b, c0.a)); }
+                // the skin's shadow side takes the tone too, or a dark skin keeps pale pink shadows
+                if ((n.Contains("_SKIN") || n.Contains("_FACE")) && m.HasProperty("_ShadeColor"))
+                {
+                    Color s0; if (!shade0.TryGetValue(m, out s0)) { s0 = m.GetColor("_ShadeColor"); shade0[m] = s0; }   // dyed again and again: start from the first
+                    m.SetColor("_ShadeColor", new Color(s0.r * k.r, s0.g * k.g, s0.b * k.b, s0.a));
+                }
                 ch = true;
             }
             if (ch) r.materials = mats;
@@ -177,7 +193,7 @@ public static class AHVRoid
         {
             // ears that sweep up and back from the side of the head, in the face's own tone
             float L = look.ears == "elven" ? 0.42f : 0.26f;
-            Color sk = new Color(1f, 0.88f, 0.8f) * Color.Lerp(Color.white, skin * 1.25f, 0.3f); sk.a = 1f;
+            Color sk = new Color(1f, 0.88f, 0.8f) * SkinTint(skin); sk.a = 1f;
             var em = new Material(Shader.Find("Universal Render Pipeline/Unlit")); em.SetColor("_BaseColor", sk);   // flat, like the VRoid face
             foreach (int sx in new[] { -1, 1 })
             {
