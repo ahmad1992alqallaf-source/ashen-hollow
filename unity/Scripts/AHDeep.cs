@@ -41,6 +41,22 @@ public static class AHDeep
     };
     public static BossDef WeekBoss { get { return Bosses[((WeekNo() % Bosses.Length) + Bosses.Length) % Bosses.Length]; } }
 
+    // ---- this week's twist on every run ----
+    public class Twist { public string id, name, blurb; }
+    public static readonly Twist[] Twists =
+    {
+        new Twist { id = "embers", name = "Ember Floors", blurb = "fire vents in every fighting room" },
+        new Twist { id = "swarm",  name = "The Swarm",    blurb = "bigger packs of frailer foes" },
+        new Twist { id = "elites", name = "Elite Hunt",   blurb = "two Deep-touched in every pack, richer chests" },
+        new Twist { id = "bounty", name = "Bounty Week",  blurb = "every foe drops coin" },
+    };
+    public static Twist WeekTwist { get { int n = Twists.Length; return Twists[(((WeekNo() * 3 + 1) % n) + n) % n]; } }
+    public static bool Is(string twist) { return WeekTwist.id == twist; }
+
+    // ---- the Hall of the Deep: the fastest clears (yours among the delvers of the Hollow) ----
+    public static readonly string[] RivalNames = { "Varn the Swift", "Ilsa Ashborn", "Brother Odo", "Mira Quickstep", "Teodric the Old" };
+    public static readonly int[] RivalTimes = { 7 * 60 + 42, 9 * 60 + 15, 11 * 60 + 3, 13 * 60 + 48, 17 * 60 + 30 };
+
     // the foes of the Deep: existing beasts (for their bodies), with stats made here
     static readonly string[][] Pool =
     {
@@ -83,7 +99,7 @@ public static class AHDeep
         }
         rooms[0].role = "start"; rooms[rooms.Count - 1].role = floor >= Floors ? "boss" : "stairs";
         rooms[1 + rnd.Next(rooms.Count - 2)].role = "treasure";
-        foreach (var r in rooms) if (r.role == "fight" && floor >= 2 && rnd.NextDouble() < 0.4) r.traps = true;
+        foreach (var r in rooms) if (r.role == "fight" && ((floor >= 2 && rnd.NextDouble() < 0.4) || Is("embers"))) r.traps = true;
         halls = new List<Rect>();
         for (int i = 1; i < rooms.Count; i++)
         {
@@ -144,7 +160,7 @@ public static class AHDeep
         var t = new AHMobType
         {
             id = e[0], model = e[1], name = (elite ? "Deep-touched " : "") + e[2], lvl = L + (floor - 1) / 2,
-            hp = Mathf.RoundToInt(9f * Mathf.Pow(L, 1.3f) * k * (elite ? 2.4f : 1f)),
+            hp = Mathf.RoundToInt(9f * Mathf.Pow(L, 1.3f) * k * (elite ? 2.4f : 1f) * (Is("swarm") ? 0.8f : 1f)),
             dmg = Mathf.RoundToInt((3f + 1.25f * L) * (1f + 0.08f * (floor - 1)) * (elite ? 1.3f : 1f)),
             xp = Mathf.RoundToInt(L * 14 * k * (elite ? 3f : 1f)), gold = L * (elite ? 8 : 3),
             speed = 125f * AHDB.S, radius = 15f * AHDB.S, aggro = 280f * AHDB.S, atkCd = 1.5f, respawn = 1e9f, noSkin = true, elite = elite,
@@ -210,6 +226,7 @@ public static class AHDeep
         if (AHGame.AreaId != Area || !foes.Contains(m)) return;
         var p = g.player;
         if (m == boss) { BossDown(g, m); return; }
+        if (Is("bounty")) p.AddMoney((long)(Mathf.Max(1, p.level) * 6) * AHDB.CU, m.transform.position);
         int left = Left;
         if (left == 0)
         {
@@ -251,7 +268,7 @@ public static class AHDeep
     public static void OpenChest(AHGame g, Vector3 at)
     {
         var p = g.player; int L = Mathf.Max(1, p.level);
-        p.AddMoney((long)(L * 40 * Floor) * AHDB.CU, at);
+        p.AddMoney((long)(L * 40 * Floor * (Is("elites") ? 1.5f : 1f)) * AHDB.CU, at);
         string got = "";
         if (UnityEngine.Random.value < 0.35f) { p.bag.Add("enh_stone"); got = " and an enhancement stone"; }
         if (UnityEngine.Random.value < 0.12f) { AHRareRecipes.Give(g, p, "a chest in the Deep"); }
@@ -343,7 +360,7 @@ public class AHDeepView : MonoBehaviour
     System.Collections.IEnumerator Hello()
     {
         yield return new WaitForSeconds(1.2f);
-        if (floor < AHDeep.Floors) g.ui.Banner("The Ashen Deep · floor " + floor + " of " + AHDeep.Floors, "Clear every foe to open the stairs · " + AHDeep.Clock(AHDeep.Elapsed));
+        if (floor < AHDeep.Floors) g.ui.Banner("The Ashen Deep · floor " + floor + " of " + AHDeep.Floors, "This week: " + AHDeep.WeekTwist.name + " (" + AHDeep.WeekTwist.blurb + ") · " + AHDeep.Clock(AHDeep.Elapsed));
         else g.ui.Banner("The Ashen Deep · the last floor", AHDeep.WeekBoss.name + " waits below · " + AHDeep.Clock(AHDeep.Elapsed));
     }
 
@@ -511,13 +528,14 @@ public class AHDeepView : MonoBehaviour
 
     void Pack(AHDeep.Room room, System.Random rnd, int max = 0)
     {
-        Rect R = U(room.r); int n = max > 0 ? max : 2 + rnd.Next(2) + Mathf.Min(2, floor / 2);
+        Rect R = U(room.r); int n = max > 0 ? max : 2 + rnd.Next(2) + Mathf.Min(2, floor / 2) + (AHDeep.Is("swarm") ? 2 : 0);
         int kind = rnd.Next(64);
         for (int i = 0; i < n; i++)
         {
             float a = i / (float)n * 6.28f + (float)rnd.NextDouble();
             Vector3 at = new Vector3(R.center.x + Mathf.Cos(a) * R.width * 0.22f, 0, R.center.y + Mathf.Sin(a) * R.height * 0.22f);
-            Foe(AHDeep.Spawn(g, kind + (rnd.NextDouble() < 0.35 ? rnd.Next(8) : 0), preview ? at : g.Resolve(at, 0.6f), i == 0 && max == 0, floor));
+            bool elite = max == 0 && (i == 0 || (i == 1 && AHDeep.Is("elites")));
+            Foe(AHDeep.Spawn(g, kind + (rnd.NextDouble() < 0.35 ? rnd.Next(8) : 0), preview ? at : g.Resolve(at, 0.6f), elite, floor));
         }
     }
 
@@ -551,5 +569,30 @@ public class AHDeepView : MonoBehaviour
             }
         }
         wasDead = p.dead;
+    }
+}
+
+public partial class AHUI
+{
+    public void OpenDeepHall() { wkMode = "deephall"; wkPageI = 0; ShowWork(true); RenderWork(); }
+    void RenderDeepHall(AHPlayer p)
+    {
+        wkTitle.text = "Hall of the Deep";
+        wkHint.text = "The fastest full clears of the Ashen Deep. This week: " + AHDeep.WeekBoss.name + " · " + AHDeep.WeekTwist.name + " (" + AHDeep.WeekTwist.blurb + ").";
+        var list = new List<KeyValuePair<string, int>>();
+        for (int i = 0; i < AHDeep.RivalNames.Length; i++) list.Add(new KeyValuePair<string, int>(AHDeep.RivalNames[i], AHDeep.RivalTimes[i]));
+        string me = string.IsNullOrEmpty(p.heroName) ? "You" : p.heroName;
+        if (AHDeep.Best > 0) list.Add(new KeyValuePair<string, int>("\u0001" + me, AHDeep.Best));
+        list.Sort((a, b) => a.Value.CompareTo(b.Value));
+        var rows = new List<Action<int>>();
+        for (int i = 0; i < list.Count; i++)
+        {
+            bool mine = list[i].Key.Length > 0 && list[i].Key[0] == (char)1; string nm = mine ? list[i].Key.Substring(1) : list[i].Key; int rank = i + 1, t = list[i].Value;
+            Color c = mine ? new Color(1f, 0.82f, 0.4f) : rank == 1 ? new Color(1f, 0.9f, 0.6f) : new Color(0.85f, 0.8f, 0.95f);
+            rows.Add(s => Row(s, "#" + rank + "  " + nm + (mine ? "  (you)" : ""), c, "Cleared in " + AHDeep.Clock(t), ""));
+        }
+        if (AHDeep.Best == 0) rows.Add(s => Row(s, "Your name is not here yet", new Color(1f, 1f, 1f, 0.6f), "Clear all five floors to set your time.", ""));
+        int from = Paged(rows.Count);
+        for (int i = from; i < Mathf.Min(rows.Count, from + RowsPerPage); i++) rows[i](i - from);
     }
 }

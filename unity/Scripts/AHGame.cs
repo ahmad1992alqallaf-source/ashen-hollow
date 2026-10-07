@@ -1061,6 +1061,8 @@ public class AHGame : MonoBehaviour
 
     public float DayLight { get; private set; }
     public bool IsNight { get { return DayLight < 0.2f; } }
+    // the hour of the Hollow's day, as a clock (for the chat's /time)
+    public string TimeText() { float f = dayLength > 0f ? Mathf.Repeat(dayT / dayLength, 1f) : 0f; int m = Mathf.FloorToInt(f * 24f * 60f); return (m / 60).ToString("00") + ":" + (m % 60).ToString("00"); }
 
     public void SetTimeOfDay(float frac) { dayT = Mathf.Repeat(frac, 1f) * dayLength; UpdateDay(); }
     void UpdateDay()

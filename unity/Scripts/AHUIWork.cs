@@ -192,6 +192,7 @@ public partial class AHUI
         else if (wkMode == "ward") RenderWardrobe(p);
         else if (wkMode == "dye") RenderDye(p);
         else if (wkMode == "story") RenderStory(p);
+        else if (wkMode == "deephall") RenderDeepHall(p);
         else if (wkMode == "house") RenderHouse(p);
         else if (wkMode == "settings") RenderOptions(p);
         else if (wkMode == "emotes") RenderEmotes(p);

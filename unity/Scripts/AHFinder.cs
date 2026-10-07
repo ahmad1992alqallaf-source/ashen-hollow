@@ -223,9 +223,10 @@ public partial class AHUI
         rows.Add(s => Row(s, "Story: The Ashen King", new Color(1f, 0.75f, 0.4f), AHStory.Done(p) ? "Done · you are Kingsbane" : "Chapter " + (p.prog.storyCh + 1) + " of " + AHStory.Chapters.Length + " · " + AHStory.Chapters[Mathf.Min(p.prog.storyCh, AHStory.Chapters.Length - 1)].name, AHStory.Status(p),
             new WkBtn { label = "Open", on = true, col = AHStory.Done(p) ? Plain : Go, act = OpenStory }));
         rows.Add(s => Row(s, "The Ashen Deep", new Color(0.75f, 0.55f, 1f),
-            AHDeep.InRun ? "You are on floor " + AHDeep.Floor + " of " + AHDeep.Floors + " · " + AHDeep.Clock(AHDeep.Elapsed) : "Five floors, new rooms every run · this week: " + AHDeep.WeekBoss.name,
+            AHDeep.InRun ? "You are on floor " + AHDeep.Floor + " of " + AHDeep.Floors + " · " + AHDeep.Clock(AHDeep.Elapsed) : "This week: " + AHDeep.WeekBoss.name + " · " + AHDeep.WeekTwist.name,
             (AHDeep.Best > 0 ? "Best clear " + AHDeep.Clock(AHDeep.Best) + " · " : "") + AHDeep.Clears + " clears · " + (AHDeep.BossLooted ? "weekly reward taken" : "weekly reward waiting"),
-            new WkBtn { label = AHDeep.InRun ? "In a run" : "Enter", on = !AHDeep.InRun && p.level >= AHDeep.MinLevel && !AHFinder.In, col = Go, act = () => { ShowWork(false); AHDeep.Start(g); } }));
+            new WkBtn { label = AHDeep.InRun ? "In a run" : "Enter", on = !AHDeep.InRun && p.level >= AHDeep.MinLevel && !AHFinder.In, col = Go, act = () => { ShowWork(false); AHDeep.Start(g); } },
+            new WkBtn { label = "Records", on = true, col = Plain, act = OpenDeepHall }));
         if (AHFinder.Run != "")
             rows.Add(s => Row(s, "Leave the group", new Color(1f, 0.55f, 0.45f), AHFinder.NameOf(AHFinder.Run) + " · " + AHFinder.RoleName(AHFinder.Role), "Your own companions come back when you leave.",
                 new WkBtn { label = "Leave", on = true, col = new Color(0.45f, 0.22f, 0.17f, 1f), act = () => { ShowWork(false); AHFinder.Leave(g); } }));

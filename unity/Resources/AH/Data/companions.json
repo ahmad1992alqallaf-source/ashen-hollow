@@ -187,6 +187,19 @@
    "blurb": "Heals you and the party, and smites with holy bolts.",
    "weapon": "mace",
    "shield": false
+  },
+  "kael": {
+   "name": "Kael the Ember Monk",
+   "role": "Monk · damage",
+   "price": 0,
+   "hp": 170,
+   "dmg": 10,
+   "range": 50,
+   "speed": 185,
+   "armor": 0.7,
+   "blurb": "Last of the Ember order. His blows burn, and he never leaves a friend behind.",
+   "weapon": "fist",
+   "shield": false
   }
  },
  "SEAT": {

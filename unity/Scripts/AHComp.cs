@@ -302,6 +302,14 @@ public class AHAlly : MonoBehaviour
     // the three sellswords, dressed like the hero: body, hair, kit drawn from real items, and their KayKit weapons
     GameObject BuildRig(string k)
     {
+        if (k == "kael")
+        {
+            // Kael from the Ashen King story: his VRoid figure in the Emberfist Garb
+            var look = new AHLook { sex = "m", hair = "pony", hairCol = 0, skin = 4, eye = -1 };
+            AHAnim ka; GameObject kr = null;
+            try { kr = AHPeople.BuildHero(transform, AHClasses.Get("shaman"), look, g, out ka); } catch { ka = null; }
+            if (kr != null) { AHCostumes.Apply(kr, "ember", look); anim = ka; if (anim != null) anim.Play("Idle", true); return kr; }
+        }
         string body, wm, main, off; uint hairC; var parts = new System.Collections.Generic.List<string>(); string[] kit;
         if (k == "knight") { body = "qMaleRanger"; parts.AddRange(new[] { "qHead_Male", "qHair_Beard", "qEyebrows_Regular" }); hairC = 0x6a4a2a; wm = "Knight_t"; main = "1H_Sword"; off = "Round_Shield"; kit = new[] { "steel_helm", "iron_pauldrons", "steel_plate", "iron_gauntlets", "iron_greaves", "iron_boots", "royal_cape" }; }
         else if (k == "ranger") { body = "qFemalePeasant"; parts.AddRange(new[] { "qHead_Female", "qHair_Long", "qEyebrows_Female" }); hairC = 0x8a4a22; wm = "Rogue_t"; main = "2H_Crossbow"; off = null; kit = new[] { "verdant_hood", "verdant_mantle", "verdant_vest", "boar_gloves", null, "deer_boots", "verdant_quiver" }; }

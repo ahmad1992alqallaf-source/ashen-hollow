@@ -17,7 +17,7 @@ public partial class AHUI : MonoBehaviour
     public bool PickerOpen { get { return picker != null && picker.gameObject.activeSelf; } }
     public bool BagOpen { get { return bagRoot != null && bagRoot.gameObject.activeSelf; } }
     // which window is in front: 0 none (the game), 1 class picker, 2 bag, 3 talking, 4 making your hero, 5 crafting / professions
-    public int Modal { get { return AHCine.Active ? 8 : InspectOpen ? 7 : SelectOpen ? 6 : CreatorOpen ? 4 : WorkOpen ? 5 : PickerOpen ? 1 : BagOpen ? 2 : DialogOpen ? 3 : 0; } }
+    public int Modal { get { return AHCine.Active ? 8 : ChatOpen ? 9 : InspectOpen ? 7 : SelectOpen ? 6 : CreatorOpen ? 4 : WorkOpen ? 5 : PickerOpen ? 1 : BagOpen ? 2 : DialogOpen ? 3 : 0; } }
 
     AHGame g;
     Canvas canvas;
@@ -230,7 +230,7 @@ public partial class AHUI : MonoBehaviour
         BuildShopHud();
         BuildMenuHud();
         BuildEmoteHud();
-        BuildLeapHud(); BuildPetHud(); BuildExtraHud();
+        BuildLeapHud(); BuildPetHud(); BuildExtraHud(); BuildChat();
         BuildDailyHud();
         BuildEvHud();
         ApplySkin();
@@ -418,6 +418,7 @@ public partial class AHUI : MonoBehaviour
         if (title != null && (title.StartsWith("Level ") || sub == "Achievement unlocked" || title.StartsWith("Success") || sub == "Level up" || title.Contains("cleared") || title.StartsWith("Victory"))) AHSound.Play("level");
         else if (title != null && (title.StartsWith("Wave ") || title.Contains("wakes") || title.Contains("enraged") || sub == "Rare monster" || title == "World boss")) AHSound.Play("roar");
         else AHSound.Play("loot");
+        AHChat.Add(title != null && (title.StartsWith("Chapter") || title == "Kingsbane") ? "story" : "system", title + (string.IsNullOrEmpty(sub) ? "" : " · " + sub));
         if (bannerTitle == null) return;
         bannerTitle.text = title;
         bannerSub.text = sub;
@@ -427,7 +428,7 @@ public partial class AHUI : MonoBehaviour
     public string lastToast;   // for tests
     public void Toast(string s, float time = 1.4f)
     {
-        lastToast = s;
+        lastToast = s; AHChat.FromToast(s);
         if (toastText == null || string.IsNullOrEmpty(s)) return;
         float t = Mathf.Max(time, 1.4f + s.Length * 0.025f);
         // a message that has only just appeared is not wiped out: the new one waits its turn (at most 3 wait)
@@ -511,7 +512,7 @@ public partial class AHUI : MonoBehaviour
         UpdatePotions();
         ShopKeys();
         if (Modal == 0) AHTutorial.Tick(g, this, dt);
-        InspectTick(); UpgradeTick(dt); LeapHudTick(); PetHudTick(); ExtraHudTick(dt);
+        InspectTick(); UpgradeTick(dt); LeapHudTick(); PetHudTick(); ExtraHudTick(dt); ChatTick(dt);
         Camera cam = g.cam;
         int n = 0;
         if (cam != null && p != null && !PickerOpen)
@@ -575,6 +576,7 @@ public partial class AHUI : MonoBehaviour
     void ReadPointers()
     {
         if (CreatorOpen) { CreatorKeys(); }
+        else if (ChatOpen) { }   // typing in the chat: no hotkeys
         else if (WorkOpen) WorkKeys();
         else if (AHInput.BagKey() && !PickerOpen && Time.frameCount != workShutFrame) ShowBag(!BagOpen);
         if (AHInput.BackKey() && BagOpen) ShowBag(false);

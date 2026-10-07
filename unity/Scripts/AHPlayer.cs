@@ -454,7 +454,7 @@ public class AHPlayer : MonoBehaviour
         Vector2 stick = g.ui != null ? g.ui.stick : Vector2.zero;
         Vector2 keys = AHInput.Keys();
         if (keys.sqrMagnitude > stick.sqrMagnitude) stick = keys;
-        if (AHCine.Active) stick = Vector2.zero;   // a cutscene is playing
+        if (AHCine.Active || (g.ui != null && g.ui.ChatOpen)) stick = Vector2.zero;   // a cutscene is playing, or you are typing
         Vector3 move = g.CamForward() * stick.y + g.CamRight() * stick.x;
         if (move.sqrMagnitude > 1f) move.Normalize();
         // AUTO quest steers when you are not (moving the stick takes over)
@@ -465,7 +465,8 @@ public class AHPlayer : MonoBehaviour
             else move = AHAuto.Steer(this, dt);
         }
 
-        bool wantDodge = (g.ui != null && g.ui.dodgePressed) || AHInput.DodgeKey();
+        bool keysOff = g.ui != null && g.ui.ChatOpen;   // letters typed in the chat are not fight keys
+        bool wantDodge = (g.ui != null && g.ui.dodgePressed) || (!keysOff && AHInput.DodgeKey());
         if (wantDodge && dodgeCd <= 0f)
         {
             if (mounted) AHComp.Dismount(g, true);
@@ -536,12 +537,12 @@ public class AHPlayer : MonoBehaviour
         if (target != null) targetRing.transform.position = target.transform.position + Vector3.up * 0.06f;
 
         // basic attack
-        bool wantAtk = (g.ui != null && g.ui.attackHeld) || AHInput.AttackKey() || (AHAuto.On && AHAuto.WantAttack);
+        bool wantAtk = (g.ui != null && g.ui.attackHeld) || (!keysOff && AHInput.AttackKey()) || (AHAuto.On && AHAuto.WantAttack);
         if (wantAtk && atkCd <= 0f && dodgeT <= 0f) Attack();
 
         // spells
         for (int i = 0; i < Spells.Length && i < 6; i++)
-            if (((g.ui != null && g.ui.spellPressed[i]) || AHInput.SpellKey(i) || AHAuto.WantCast(i)) && cds[i] <= 0f && dodgeT <= 0f) Cast(i);
+            if (((g.ui != null && g.ui.spellPressed[i]) || (!keysOff && AHInput.SpellKey(i)) || AHAuto.WantCast(i)) && cds[i] <= 0f && dodgeT <= 0f) Cast(i);
 
         if (atkT > 0f)
         {

@@ -70,7 +70,7 @@ public static class AHStory
         var p = g.player; int ch = p.prog.storyCh;
         // who stands in the meadow now
         Spawn(g, "Seren");
-        if (ch >= 3) Spawn(g, "Kael");
+        if (ch >= 3 && !p.party.Contains("kael")) Spawn(g, "Kael");   // once he travels with you, he is not waiting here
         if (ch == 1 && p.prog.storyState == 1) { Spawn(g, "Varek"); Herald(g); }
         if (ch == 4 && p.prog.storyState == 1) { Spawn(g, "Ashen King"); King(g); }
         if (Done(p)) Statue(g);
@@ -169,6 +169,7 @@ public static class AHStory
     public static void Talk(AHGame g, string who)
     {
         var p = g.player; var c = Cur(p);
+        if (who == "Kael" && p.prog.storyCh >= 4 && !p.party.Contains("kael")) { JoinKael(g); return; }
         if (c == null) { g.ui.Toast(who + ": " + (who == "Seren" ? "The meadow is quiet again, thanks to you, Kingsbane." : "My fists are yours whenever the ash returns."), 3.5f); return; }
         if (p.prog.storyState == 0 && who == c.giver)
         {
@@ -223,9 +224,22 @@ public static class AHStory
             g.ui.Banner("Chapter " + (was + 1) + " complete", c.name + " · +" + c.xp + " xp · " + AHItems.MoneyText(c.gold * AHDB.CU));
             AHSound.Play("level");
             if (was == 2) Spawn(g, "Kael");
+            if (was == 3) JoinKael(g);
             if (Done(p)) { g.ui.Banner("Kingsbane", "The story is done · your title is in Deeds"); Statue(g); }
             Mark(g); g.SaveProgress();
         });
+    }
+
+    // Kael keeps his word: he travels with you (dismiss him in Companions; talk to him in the meadow to have him back)
+    static void JoinKael(AHGame g)
+    {
+        var p = g.player; if (p.party.Contains("kael")) return;
+        if (p.party.Count >= AHComp.PartyMax) { g.ui.Toast("Kael: Your party is full. Make room in Companions, then come and find me here.", 4f); return; }
+        p.party.Add("kael"); AHComp.SpawnAllies(g);
+        GameObject a; if (actors.TryGetValue("Kael", out a) && a != null) { UnityEngine.Object.Destroy(a); actors.Remove("Kael"); }
+        AHGather.Spots.RemoveAll(s => s.type == "story" && s.name == "Talk to Kael");
+        g.ui.Banner("Kael the Ember Monk", "joins your party");
+        g.SaveProgress();
     }
 
     static void Vanish(string who)
@@ -382,7 +396,9 @@ public class AHCine : MonoBehaviour
         var g = I.g; Transform f = g.player.transform; float h = 1.6f;
         if (I.i >= 0 && I.i < I.lines.Length)
         {
-            var who = GameObject.Find("Story " + I.lines[I.i].who); if (who != null) { f = who.transform; h = 1.55f * who.transform.lossyScale.y; }
+            var who = GameObject.Find("Story " + I.lines[I.i].who);
+            if (who == null && I.lines[I.i].who == "Kael") who = GameObject.Find("Kael the Ember Monk");   // Kael walking with you
+            if (who != null) { f = who.transform; h = 1.55f * who.transform.lossyScale.y; }
         }
         Vector3 head = f.position + Vector3.up * h;
         Vector3 fwd = f.forward; fwd.y = 0; if (fwd.sqrMagnitude < 0.01f) fwd = Vector3.forward; fwd.Normalize();
@@ -416,7 +432,16 @@ public partial class AHUI
         {
             var c = AHStory.Chapters[i]; bool done = p.prog.storyCh > i, now = p.prog.storyCh == i;
             string line = done ? "Done" : now ? AHStory.Status(p) : "Opens at level " + c.lvl;
-            rows.Add(s => Row(s, "Chapter " + (Array.IndexOf(AHStory.Chapters, c) + 1) + " · " + c.name, done ? new Color(0.6f, 0.9f, 0.5f) : now ? new Color(1f, 0.8f, 0.45f) : new Color(1f, 1f, 1f, 0.5f), line, now || done ? c.task : ""));
+            string title = "Chapter " + (i + 1) + " · " + c.name;
+            Color col = done ? new Color(0.6f, 0.9f, 0.5f) : now ? new Color(1f, 0.8f, 0.45f) : new Color(1f, 1f, 1f, 0.5f);
+            if (done)
+            {
+                // watch the chapter's scenes again (nothing changes)
+                var all = new List<AHStory.Line>(); all.AddRange(c.intro); if (c.after != null) all.AddRange(c.after); all.AddRange(c.outro);
+                var lines = all.ToArray();
+                rows.Add(s => Row(s, title, col, line, c.task, new WkBtn { label = "Watch", on = !AHCine.Active, col = Plain, act = () => { ShowWork(false); AHCine.Play(g, title, lines, null); } }));
+            }
+            else rows.Add(s => Row(s, title, col, line, now ? c.task : ""));
         }
         int from = Paged(rows.Count);
         for (int i = from; i < Mathf.Min(rows.Count, from + RowsPerPage); i++) rows[i](i - from);
