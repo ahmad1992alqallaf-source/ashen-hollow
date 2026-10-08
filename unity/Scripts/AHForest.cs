@@ -19,9 +19,82 @@ public static class AHForest
     static object data;
     static readonly GameObject[] prefabs = new GameObject[6];
 
+    // the crowns through the year (AHSeason calls this): autumn reds and golds on the leafy trees, frost on every crown
+    // and snow on the pines in winter, a little blossom in spring, the area's own green in summer
+    static readonly Material[,] seasonMats = new Material[2, 3]; static readonly Color[,] seasonBase = new Color[2, 3];
+    // the Dreamscape trees (Hollow Meadow) keep their own textured leaves: they get their own copies of the leaf
+    // materials (never the pack's), tinted over the texture
+    static readonly Dictionary<Material, Material> dreamCopy = new Dictionary<Material, Material>();
+    static readonly List<Material> dreamLeaves = new List<Material>(); static readonly List<Color> dreamBase = new List<Color>(), dreamTop = new List<Color>(), dreamBot = new List<Color>();
+    static bool Leafy(Material m) { string n = m.name.ToLowerInvariant(); return n.Contains("leaf") || n.Contains("leav") || n.Contains("foli") || n.Contains("canopy") || n.Contains("crown") || n.Contains("needle") || n.Contains("_bb"); }   // _BB: the far-off billboard of the whole tree
+    static void CopyDreamLeaves()
+    {
+        if (dreamLeaves.Count > 0) return;
+        var names = new HashSet<string>();
+        foreach (var t in Trees)
+        {
+            if (t.crown == null || t.trunk != null) continue;   // the Dreamscape trees have no separate trunk
+            foreach (var r in t.crown.GetComponentsInChildren<Renderer>(true))
+            {
+                var ms = r.sharedMaterials; bool ch = false;
+                for (int i = 0; i < ms.Length; i++)
+                {
+                    var m = ms[i]; if (m == null) continue; names.Add(m.name + (Leafy(m) ? "*" : ""));
+                    if (!Leafy(m)) continue;
+                    Material c; if (!dreamCopy.TryGetValue(m, out c)) { c = new Material(m); c.name = m.name + " (season)"; dreamCopy[m] = c; dreamLeaves.Add(c); dreamBase.Add(c.HasProperty("_BaseColor") ? c.GetColor("_BaseColor") : c.HasProperty("_Color") ? c.GetColor("_Color") : c.HasProperty("_TintColor") ? c.GetColor("_TintColor") : Color.white);
+                        dreamTop.Add(c.HasProperty("_Foliage_Color_Top") ? c.GetColor("_Foliage_Color_Top") : Color.white); dreamBot.Add(c.HasProperty("_Foliage_Color_Bottom") ? c.GetColor("_Foliage_Color_Bottom") : Color.white); }
+                    ms[i] = c; ch = true;
+                }
+                if (ch) r.sharedMaterials = ms;
+            }
+        }
+        if (names.Count > 0) Debug.Log("Ashen Hollow: tree materials (* = leaves, tinted by season): " + string.Join(", ", names));
+    }
+
+    public static void ApplySeason(string season)
+    {
+        CopyDreamLeaves();
+        for (int i = 0; i < dreamLeaves.Count; i++)
+        {
+            var m = dreamLeaves[i];
+            if (m.HasProperty("_Foliage_Color_Top"))
+            {
+                // the Polyart foliage: a colour at the top of the crown and one underneath; set both
+                Color top = dreamTop[i], bot = dreamBot[i];
+                if (season == "autumn")
+                {
+                    Color[] t3 = { new Color(1f, 0.42f, 0.06f), new Color(1f, 0.72f, 0.1f), new Color(0.92f, 0.24f, 0.08f) };
+                    top = t3[i % 3]; bot = Color.Lerp(t3[i % 3], new Color(0.5f, 0.12f, 0.04f), 0.55f);
+                }
+                else if (season == "winter") { top = Color.Lerp(top, new Color(0.88f, 0.92f, 0.97f), 0.6f); bot = Color.Lerp(bot, new Color(0.45f, 0.5f, 0.55f), 0.4f); }
+                else if (season == "spring" && i % 2 == 1) top = Color.Lerp(top, new Color(1f, 0.78f, 0.88f), 0.45f);
+                m.SetColor("_Foliage_Color_Top", top); m.SetColor("_Foliage_Color_Bottom", bot);
+                continue;
+            }
+            Color b = dreamBase[i], k = Color.white;
+            if (season == "autumn") k = i % 3 == 0 ? new Color(2.1f, 0.55f, 0.28f) : i % 3 == 1 ? new Color(2.2f, 1.05f, 0.25f) : new Color(1.9f, 0.85f, 0.3f);
+            else if (season == "winter") k = new Color(1.25f, 1.12f, 1.4f);
+            else if (season == "spring") k = new Color(1.1f, 1.15f, 0.95f);
+            var c = new Color(b.r * k.r, b.g * k.g, b.b * k.b, b.a);
+            foreach (var pr in new[] { "_BaseColor", "_Color", "_TintColor" }) if (m.HasProperty(pr)) m.SetColor(pr, c);
+        }
+        Color[] autumn = { new Color(0.78f, 0.28f, 0.1f), new Color(0.86f, 0.52f, 0.12f), new Color(0.7f, 0.42f, 0.1f) };
+        for (int k = 0; k < 2; k++) for (int s = 0; s < 3; s++)
+        {
+            var m = seasonMats[k, s]; if (m == null) continue; Color b = seasonBase[k, s], c = b;
+            if (season == "autumn" && k == 0) c = Color.Lerp(b, autumn[s], 0.72f);
+            else if (season == "winter") c = Color.Lerp(b, new Color(0.86f, 0.9f, 0.95f), k == 0 ? 0.5f : 0.38f);
+            else if (season == "spring" && k == 0) c = s == 2 ? Color.Lerp(b, new Color(0.98f, 0.78f, 0.86f), 0.45f) : Color.Lerp(b, new Color(0.55f, 0.82f, 0.35f), 0.25f);
+            c.a = 1f;
+            foreach (var pr in new[] { "baseColorFactor", "_BaseColor", "_Color" }) if (m.HasProperty(pr)) m.SetColor(pr, c);
+        }
+    }
+
     public static void Setup(AHGame g, Transform world)
     {
         Trees.Clear();
+        for (int k = 0; k < 2; k++) for (int s = 0; s < 3; s++) seasonMats[k, s] = null;
+        dreamCopy.Clear(); dreamLeaves.Clear(); dreamBase.Clear(); dreamTop.Clear(); dreamBot.Clear();
         if (world == null) return;
         if (data == null) { var ta = Resources.Load<TextAsset>("AH/Data/treelook"); if (ta == null) return; data = AHJson.Parse(ta.text); }
         var area = AHJson.O(data, AHGame.AreaId); if (area == null) return;
@@ -47,7 +120,7 @@ public static class AHForest
                 var m = new Material(src.sharedMaterial); m.enableInstancing = true;
                 Color lin = c * (0.86f + 0.14f * s) * 1.25f; Color tint = new Color(lin.r, lin.g, lin.b, 1f).gamma;
                 foreach (var pr in new[] { "baseColorFactor", "_BaseColor", "_Color" }) if (m.HasProperty(pr)) m.SetColor(pr, tint);
-                crownMats[k, s] = m;
+                crownMats[k, s] = m; seasonMats[k, s] = m; seasonBase[k, s] = tint;
             }
             if (trunkMat == null) { var t = Part(prefabs[k * 3], "Trunk"); if (t != null) { trunkMat = new Material(t.sharedMaterial); trunkMat.enableInstancing = true; } }
         }

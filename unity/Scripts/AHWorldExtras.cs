@@ -64,8 +64,8 @@ public class AHWeather : MonoBehaviour
         if (fall != null)
         {
             var main = fall.main; var em = fall.emission; var rr = fall.GetComponent<ParticleSystemRenderer>();
-            if (Now == Kind.Rain) { main.startSpeed = 18f; main.startLifetime = 1.1f; main.startSize = 0.05f; main.startColor = new Color(0.75f, 0.82f, 0.95f, 0.45f); em.rateOverTime = 700f; rr.renderMode = ParticleSystemRenderMode.Stretch; rr.velocityScale = 0.06f; rr.lengthScale = 1f; }
-            else if (Now == Kind.Snow) { main.startSpeed = 1.6f; main.startLifetime = 7f; main.startSize = 0.09f; main.startColor = new Color(1f, 1f, 1f, 0.85f); em.rateOverTime = 260f; rr.renderMode = ParticleSystemRenderMode.Billboard; }
+            if (Now == Kind.Rain) { main.startSpeed = 18f; main.startLifetime = 1.1f; main.startSize = 0.05f; main.startColor = new Color(0.75f, 0.82f, 0.95f, 0.45f); em.rateOverTime = 1500f; rr.renderMode = ParticleSystemRenderMode.Stretch; rr.velocityScale = 0.06f; rr.lengthScale = 1f; }
+            else if (Now == Kind.Snow) { main.startSpeed = 1.6f; main.startLifetime = 7f; main.startSize = 0.09f; main.startColor = new Color(1f, 1f, 1f, 0.85f); em.rateOverTime = 420f; rr.renderMode = ParticleSystemRenderMode.Billboard; }
             if (falls) { if (!fall.isPlaying) fall.Play(); } else fall.Stop(true, ParticleSystemStopBehavior.StopEmitting);
         }
     }
@@ -75,8 +75,10 @@ public class AHWeather : MonoBehaviour
         var mat = AHGame.LoadMat("AH/Materials/Spark", "AshenHollow/Spark"); if (mat == null) mat = AHFx.Mat; if (mat == null) return null;
         var go = new GameObject("WeatherFall"); go.transform.SetParent(transform, false);
         var ps = go.AddComponent<ParticleSystem>(); ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-        var main = ps.main; main.loop = true; main.playOnAwake = false; main.maxParticles = 3000; main.simulationSpace = ParticleSystemSimulationSpace.World; main.gravityModifier = 0f;
-        var sh = ps.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.Box; sh.scale = new Vector3(40f, 1f, 40f);
+        var main = ps.main; main.loop = true; main.playOnAwake = false; main.maxParticles = 4000; main.simulationSpace = ParticleSystemSimulationSpace.World; main.gravityModifier = 0f;
+        // a wide ring round the camera, open in the middle: a drop falling right past the lens showed as a great white
+        // streak down the screen (the old emitter was a flat sheet that could stand right through the camera)
+        var sh = ps.shape; sh.enabled = true; sh.shapeType = ParticleSystemShapeType.Circle; sh.radius = 24f; sh.radiusThickness = 0.86f;
         go.transform.rotation = Quaternion.Euler(90f, 0f, 0f);   // the box emits downward (its z), spread across the sky
         var r = go.GetComponent<ParticleSystemRenderer>(); r.sharedMaterial = mat; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; r.receiveShadows = false;
         return ps;
@@ -91,7 +93,7 @@ public class AHWeather : MonoBehaviour
         // the day cycle sets the light every frame; the weather dims it after
         if (RenderSettings.sun != null) RenderSettings.sun.intensity *= sunK;
         if (!AHDungeon.IsDungeon(AHGame.AreaId)) { float reach = AHSettings.Reach; RenderSettings.fogStartDistance = reach * 0.36f * fogK; RenderSettings.fogEndDistance = (reach - 5f) * Mathf.Max(0.45f, fogK); }
-        if (fall != null) fall.transform.position = g.cam.transform.position + Vector3.up * 14f + g.cam.transform.forward * 6f;
+        if (fall != null) fall.transform.position = g.cam.transform.position + Vector3.up * 14f;
     }
 }
 
