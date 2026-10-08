@@ -66,7 +66,7 @@ public static class AHForest
                     Color[] t3 = { new Color(1f, 0.42f, 0.06f), new Color(1f, 0.72f, 0.1f), new Color(0.92f, 0.24f, 0.08f) };
                     top = t3[i % 3]; bot = Color.Lerp(t3[i % 3], new Color(0.5f, 0.12f, 0.04f), 0.55f);
                 }
-                else if (season == "winter") { top = Color.Lerp(top, new Color(0.88f, 0.92f, 0.97f), 0.6f); bot = Color.Lerp(bot, new Color(0.45f, 0.5f, 0.55f), 0.4f); }
+                else if (season == "winter") { top = new Color(0.9f, 0.93f, 0.97f); bot = Color.Lerp(bot, new Color(0.3f, 0.32f, 0.3f), 0.7f); }   // snow lying on the crowns
                 else if (season == "spring" && i % 2 == 1) top = Color.Lerp(top, new Color(1f, 0.78f, 0.88f), 0.45f);
                 m.SetColor("_Foliage_Color_Top", top); m.SetColor("_Foliage_Color_Bottom", bot);
                 continue;
@@ -83,7 +83,7 @@ public static class AHForest
         {
             var m = seasonMats[k, s]; if (m == null) continue; Color b = seasonBase[k, s], c = b;
             if (season == "autumn" && k == 0) c = Color.Lerp(b, autumn[s], 0.72f);
-            else if (season == "winter") c = Color.Lerp(b, new Color(0.86f, 0.9f, 0.95f), k == 0 ? 0.5f : 0.38f);
+            else if (season == "winter") c = Color.Lerp(b, new Color(0.86f, 0.9f, 0.95f), k == 0 ? 0.68f : 0.45f);
             else if (season == "spring" && k == 0) c = s == 2 ? Color.Lerp(b, new Color(0.98f, 0.78f, 0.86f), 0.45f) : Color.Lerp(b, new Color(0.55f, 0.82f, 0.35f), 0.25f);
             c.a = 1f;
             foreach (var pr in new[] { "baseColorFactor", "_BaseColor", "_Color" }) if (m.HasProperty(pr)) m.SetColor(pr, c);

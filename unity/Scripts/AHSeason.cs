@@ -29,6 +29,7 @@ public class AHSeason : MonoBehaviour
         // what lies on the ground: snow in winter and fallen leaves in autumn, but not in the hot lands
         bool hot = System.Array.IndexOf(Hot, a) >= 0, cold = a == "frost" || a == "hc_city";
         AHForest.ApplySeason(hot ? "" : cold && Now != "winter" ? "" : Now);   // and the trees turn with the year
+        AHMountains.ApplySeason(!hot && Now == "winter");                         // and the peaks go white
         if (!hot && Now == "winter") Shader.SetGlobalFloat("_AHSnow", cold ? 1f : 0.85f);
         if (!hot && !cold && Now == "autumn") Shader.SetGlobalFloat("_AHLeaves", 1f);
         var s = new GameObject("Season").AddComponent<AHSeason>(); s.g = g; s.Build();

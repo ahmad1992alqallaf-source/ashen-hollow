@@ -198,6 +198,31 @@ public static class AHMountains
         AHModel.SetShadows(go.gameObject);
         return go;
     }
+    // winter: every peak (outside the hot lands) wears a snow cap like the grey ones do all year
+    public static void ApplySeason(bool winter)
+    {
+        if (root == null) return;
+        for (int i = root.childCount - 1; i >= 0; i--) if (root.GetChild(i).name == "WinterCap") Object.Destroy(root.GetChild(i).gameObject);
+        if (!winter) return;
+        var capped = new List<Vector3>(); foreach (Transform c in root) if (c.name == "Snowcap") capped.Add(c.position);
+        var list = new List<Transform>(); foreach (Transform c in root) if (c.name == "Mountain") list.Add(c);
+        int made = 0;
+        foreach (var go in list)
+        {
+            bool has = false; foreach (var cp in capped) { Vector2 d = new Vector2(cp.x - go.position.x, cp.z - go.position.z); if (d.magnitude < Mathf.Max(1f, go.localScale.x * 0.3f)) { has = true; break; } }
+            if (has) continue;
+            var r0 = go.GetComponentInChildren<Renderer>(); if (r0 == null) continue;
+            var snow = Object.Instantiate(go.gameObject, root, false).transform; snow.name = "WinterCap";
+            const float f = 0.36f;
+            snow.localScale = new Vector3(go.localScale.x * f * 1.06f, go.localScale.y * f, go.localScale.z * f * 1.06f);
+            snow.position = go.position + Vector3.up * (go.localScale.y * (1f - f) + 0.05f); snow.rotation = go.rotation;
+            var sm = SnowMat(r0.sharedMaterial);
+            foreach (var r2 in snow.GetComponentsInChildren<Renderer>(true)) r2.sharedMaterial = sm;
+            made++;
+        }
+        Debug.Log("Ashen Hollow: winter snow caps on " + made + " peaks");
+    }
+
     static Material snowMat;
     static Material SnowMat(Material src)
     {
