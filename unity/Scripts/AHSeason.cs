@@ -9,13 +9,27 @@ public class AHSeason : MonoBehaviour
     public static string Now { get { if (!string.IsNullOrEmpty(Force)) return Force; int m = System.DateTime.Now.Month; return m == 12 || m <= 2 ? "winter" : m <= 5 ? "spring" : m <= 8 ? "summer" : "autumn"; } }
     public static string Name { get { switch (Now) { case "winter": return "Winter"; case "spring": return "Spring"; case "summer": return "Summer"; default: return "Autumn"; } } }
     AHGame g; ParticleSystem ps; bool nightOnly;
+    static readonly string[] Hot = { "sands", "ss_city", "ember", "ch_city", "isle", "co_city" };
+
+    // grass in the season: frosted pale in winter, a third of it gone gold and rust in autumn
+    public static Color GrassTint(Color c, float h)
+    {
+        if (Shader.GetGlobalFloat("_AHSnow") > 0.01f) return Color.Lerp(c, new Color(0.62f, 0.66f, 0.7f), 0.55f + 0.25f * h);
+        if (Shader.GetGlobalFloat("_AHLeaves") > 0.01f && h < 0.4f) return Color.Lerp(c, h < 0.2f ? new Color(0.5f, 0.33f, 0.06f) : new Color(0.42f, 0.16f, 0.04f), 0.6f);
+        return c;
+    }
 
     // test tools: put the current season's weather away and build it again (after Force changes)
     public static void Rebuild(AHGame g) { foreach (var s in FindObjectsByType<AHSeason>(FindObjectsSortMode.None)) Destroy(s.gameObject); Setup(g); }
     public static void Setup(AHGame g)
     {
         string a = AHGame.AreaId;
+        Shader.SetGlobalFloat("_AHSnow", 0f); Shader.SetGlobalFloat("_AHLeaves", 0f);
         if (AHDungeon.IsDungeon(a) || a == AHDeep.Area || a == "raid" || a == "tutorial") return;
+        // what lies on the ground: snow in winter and fallen leaves in autumn, but not in the hot lands
+        bool hot = System.Array.IndexOf(Hot, a) >= 0, cold = a == "frost" || a == "hc_city";
+        if (!hot && Now == "winter") Shader.SetGlobalFloat("_AHSnow", cold ? 1f : 0.85f);
+        if (!hot && !cold && Now == "autumn") Shader.SetGlobalFloat("_AHLeaves", 1f);
         var s = new GameObject("Season").AddComponent<AHSeason>(); s.g = g; s.Build();
         string line = Now == "autumn" ? "Autumn in the Hollow: the leaves are turning and falling." : Now == "winter" ? "Winter in the Hollow: snow on the wind." : Now == "spring" ? "Spring in the Hollow: blossom on the air." : "Summer in the Hollow: fireflies come out at night.";
         AHChat.Add("system", line);

@@ -88,12 +88,61 @@ public static class AHChecks
     static void EnterDeep() { var g = AHGame.I; if (!Application.isPlaying || g == null) return; Debug.Log("Ashen Hollow: entering the Deep, twist " + AHDeep.WeekTwist.name); AHDeep.Start(g); }
 
     static readonly string[] Seasons = { "autumn", "winter", "spring", "summer" };
-    [MenuItem("Ashen Hollow/Test: Next Season")]
+    [MenuItem("Ashen Hollow/Test: Describe Ground %&d")]
+    static void DescribeGround()
+    {
+        var sb = new StringBuilder("Ashen Hollow: ground\n");
+        foreach (var r in UnityEngine.Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+        {
+            if (!r.name.StartsWith("AH_GROUND")) continue; var m = r.sharedMaterial;
+            sb.AppendLine(r.name + " on=" + r.enabled + " vis=" + !r.forceRenderingOff + " b=" + r.bounds + " shader=" + (m != null ? m.shader.name : "none") + " tex=" + (m != null && m.HasProperty("_BaseMap") && m.GetTexture("_BaseMap") != null ? m.GetTexture("_BaseMap").name + " " + m.GetTexture("_BaseMap").width : "none") + " tint=" + (m != null && m.HasProperty("_Tint") ? m.GetColor("_Tint").ToString() : "-"));
+        }
+        sb.AppendLine("fog " + RenderSettings.fog + " " + RenderSettings.fogMode + " " + RenderSettings.fogStartDistance + ".." + RenderSettings.fogEndDistance + " col " + RenderSettings.fogColor + " weather " + AHWeather.Name);
+        sb.AppendLine("ambient " + RenderSettings.ambientMode + " sky " + RenderSettings.ambientSkyColor + " eq " + RenderSettings.ambientEquatorColor + " gr " + RenderSettings.ambientGroundColor + " int " + RenderSettings.ambientIntensity);
+        var sh = RenderSettings.ambientProbe; Vector3[] dirs = { Vector3.up, Vector3.down }; Color[] res = new Color[2]; sh.Evaluate(dirs, res); sb.AppendLine("probe up " + res[0] + " down " + res[1]);
+        if (RenderSettings.sun != null) sb.AppendLine("sun " + RenderSettings.sun.intensity + " " + RenderSettings.sun.color);
+        if (AHGame.I != null && AHGame.I.cam != null) sb.AppendLine("cam " + AHGame.I.cam.transform.position + " far " + AHGame.I.cam.farClipPlane);
+        // the ground map itself, and where the hero stands on it
+        var g = AHGame.I;
+        foreach (var r in UnityEngine.Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+        {
+            if (!r.name.StartsWith("AH_GROUND")) continue; var m = r.sharedMaterial; if (m == null || !m.HasProperty("_BaseMap")) continue;
+            var tex = m.GetTexture("_BaseMap"); if (tex == null) continue;
+            var rt = RenderTexture.GetTemporary(tex.width, tex.height, 0); Graphics.Blit(tex, rt);
+            var prev = RenderTexture.active; RenderTexture.active = rt; var t2 = new Texture2D(tex.width, tex.height, TextureFormat.RGB24, false); t2.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0); t2.Apply(); RenderTexture.active = prev; RenderTexture.ReleaseTemporary(rt);
+            string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
+            System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, "ground_map.png"), t2.EncodeToPNG());
+            if (g != null && g.player != null)
+            {
+                RaycastHit hit; var o = g.player.transform.position + Vector3.up * 2f;
+                var mc = r.GetComponent<MeshCollider>(); bool made = false;
+                if (mc == null) { mc = r.gameObject.AddComponent<MeshCollider>(); made = true; Physics.SyncTransforms(); }
+                if (g.grass != null)
+                {
+                    var sm = typeof(AHGrass).GetMethod("Sample", BindingFlags.Instance | BindingFlags.NonPublic);
+                    var wp = g.ToWeb(g.player.transform.position); object[] a = { wp.x, wp.y, null };
+                    bool ok = (bool)sm.Invoke(g.grass, a); sb.AppendLine("web " + wp + " grass map ok=" + ok + " colour " + a[2] + " groundMap " + JsonUtility.ToJson(g.data.groundMap));
+                }
+                sb.AppendLine("hero at " + g.player.transform.position + " mesh uv rect from bounds; tex " + tex.width + "x" + tex.height + " st=" + m.GetVector("_BaseMap_ST"));
+                if (mc != null && mc.Raycast(new Ray(o, Vector3.down), out hit, 10f)) { var c = t2.GetPixelBilinear(hit.textureCoord.x, hit.textureCoord.y); sb.AppendLine("uv under hero " + hit.textureCoord + " colour " + c); }
+                else sb.AppendLine("no hit on ground mesh");
+                if (made) UnityEngine.Object.Destroy(mc);
+            }
+            UnityEngine.Object.Destroy(t2); break;
+        }
+        Debug.Log(sb.ToString());
+        System.IO.File.WriteAllText(System.IO.Path.Combine(Application.dataPath, "../HeroShots/ground.txt"), sb.ToString());
+    }
+
+    [MenuItem("Ashen Hollow/Test: Next Weather %&r")]
+    static void NextWeather() { if (!Application.isPlaying) return; AHWeather.TestNext(); Debug.Log("Ashen Hollow: weather " + AHWeather.Name); }
+
+    [MenuItem("Ashen Hollow/Test: Next Season %&n")]
     static void NextSeason()
     {
         var g = AHGame.I; if (!Application.isPlaying || g == null) return;
         int i = Array.IndexOf(Seasons, AHSeason.Now); AHSeason.Force = Seasons[(i + 1) % Seasons.Length];
-        AHSeason.Rebuild(g); g.ui.Toast("Season: " + AHSeason.Name, 2f);
+        AHSeason.Rebuild(g); if (g.grass != null) g.grass.Regrow(); g.ui.Toast("Season: " + AHSeason.Name, 2f); Debug.Log("Ashen Hollow: season " + AHSeason.Now + ", snow " + Shader.GetGlobalFloat("_AHSnow") + ", leaves " + Shader.GetGlobalFloat("_AHLeaves"));
     }
 
     [MenuItem("Ashen Hollow/Test: Next Deep Twist")]

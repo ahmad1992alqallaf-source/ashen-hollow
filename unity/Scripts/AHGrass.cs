@@ -17,6 +17,9 @@ public class AHGrass : MonoBehaviour
     public float radius = 14f;
     public float density = 0.62f;
 
+    // grow every patch again (the season changed its colour)
+    public void Regrow() { foreach (var kv in chunks) if (kv.Value != null) Destroy(kv.Value); chunks.Clear(); timer = 0f; }
+
     public static AHGrass Create(AHGame game)
     {
         if (AHDungeon.IsDungeon(AHGame.AreaId)) return null;   // no grass underground
@@ -112,6 +115,7 @@ public class AHGrass : MonoBehaviour
                 { Vector3 wp = g.W(x, z); if (AHVillage.Paved.width > 0f && AHVillage.Paved.Contains(new Vector2(wp.x, wp.z))) continue; }   // the cobbled village
                 float s = 0.65f + Fr(h * 31.1f) * 0.75f, sy = s * (0.8f + Fr(h * 17.3f) * 0.7f), rot = h * 40f;
                 Color baseC = new Color(c.r / 255f * 1.05f, c.g / 255f * 1.12f, c.b / 255f * 0.95f).linear;
+                baseC = AHSeason.GrassTint(baseC, Fr(h * 53.3f));
                 Tuft(verts, cols, tris, g.W(x, z) - origin, s, sy, rot, baseC);
             }
         var go = new GameObject("GrassPatch");

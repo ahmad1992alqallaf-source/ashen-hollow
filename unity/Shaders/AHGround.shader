@@ -3,6 +3,7 @@
 // Lit by URP's own lighting (sun with shadows, campfires and other lights, ambient occlusion).
 // In the cities the streets and squares inside the walls are laid with cobblestones (_PaveMap), keeping the map's own
 // colours, so each city has its own stone; grass and water stay as they are.
+// The seasons lie on it too (set by AHSeason as globals): snow in drifts in winter, fallen leaves in autumn.
 Shader "AshenHollow/Ground"
 {
     Properties
@@ -38,6 +39,9 @@ Shader "AshenHollow/Ground"
             // looked toward the sun) and no sun glints
             #define _ENVIRONMENTREFLECTIONS_OFF 1
             #define _SPECULARHIGHLIGHTS_OFF 1
+            // and no grey sheen either: with the plain (metallic) setup every surface still reflects 4% of the sky,
+            // rising to most of it at a glancing angle, which laid a pale blue-grey film over the whole land
+            #define _SPECULAR_SETUP 1
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
@@ -53,6 +57,7 @@ Shader "AshenHollow/Ground"
                 float4 _PaveRect;
                 half _PaveGrass;
             CBUFFER_END
+            half _AHSnow, _AHLeaves;   // globals, 0..1
 
             struct Attributes { float4 positionOS : POSITION; float3 normalOS : NORMAL; float2 uv : TEXCOORD0; };
             struct Varyings { float4 positionCS : SV_POSITION; float3 positionWS : TEXCOORD0; float2 uv : TEXCOORD1; float fogFactor : TEXCOORD2; float3 normalWS : TEXCOORD3; };
@@ -105,9 +110,32 @@ Shader "AshenHollow/Ground"
                     g = float2(cx - c, cz - c) * 12.0 * pm;
                 }
                 albedo = lerp(albedo, det, max(_Detail, pm));
+                // the season on the ground: only on the flat, never on water, thinner on the streets
+                float up = saturate((normalize(i.normalWS).y - 0.55) * 3.0), snowK = 0.0;
+                if (_AHSnow > 0.001)
+                {
+                    float drift = Fbm(p * 0.07 + 11.0), fine = Noise(p * 1.7) * 0.5 + Noise(p * 5.3) * 0.5;
+                    float cover = saturate((drift * 0.9 + fine * 0.25 + _AHSnow * 0.5 - 0.6) * 4.0) * up * (1.0 - blue) * lerp(1.0, 0.45, pm);
+                    float3 snow = float3(0.74, 0.77, 0.83) * lerp(0.93, 1.03, fine);
+                    snowK = cover * _AHSnow;
+                    albedo = lerp(albedo, snow, snowK);
+                }
+                if (_AHLeaves > 0.001)
+                {
+                    float2 lp = p * 2.6, cell = floor(lp), f = frac(lp) - 0.5;
+                    float hh = Hash(cell), ang = hh * 6.283;
+                    f -= (float2(Hash(cell + 3.1), Hash(cell + 7.7)) - 0.5) * 0.5;
+                    float2 rf = float2(f.x * cos(ang) - f.y * sin(ang), f.x * sin(ang) + f.y * cos(ang));
+                    float d = length(rf * float2(1.0, 2.1)), r = 0.13 + Hash(cell + 9.2) * 0.07;
+                    float leaf = (1.0 - smoothstep(r - 0.03, r, d)) * step(0.3, hh);
+                    float pile = saturate((Fbm(p * 0.12 + 4.0) - 0.4) * 3.0);
+                    float amt = leaf * saturate(pile + 0.25) * up * (1.0 - blue) * (1.0 - pm * 0.6) * _AHLeaves;
+                    float3 lc = lerp(float3(0.55, 0.17, 0.04), float3(0.7, 0.48, 0.08), Hash(cell + 1.7)) * lerp(0.8, 1.05, Hash(cell + 5.5));
+                    albedo = lerp(albedo, lc, amt);
+                }
                 // small bumps
                 float e = 0.04, b0 = Noise(p * 2.4), bx = Noise((p + float2(e, 0)) * 2.4), bz = Noise((p + float2(0, e)) * 2.4);
-                g += float2(bx - b0, bz - b0) / e * 0.08 * _Bump * (1.0 - pm * 0.7);
+                g += float2(bx - b0, bz - b0) / e * 0.08 * _Bump * (1.0 - pm * 0.7) * (1.0 - snowK * 0.6);
                 float3 n = normalize(normalize(i.normalWS) + float3(-g.x, 0, -g.y));
 
                 InputData id = (InputData)0;
@@ -125,13 +153,15 @@ Shader "AshenHollow/Ground"
                 sd.albedo = albedo;
                 sd.alpha = 1;
                 sd.metallic = 0;
-                sd.smoothness = 0.08 + grain * 0.06 + pm * 0.06;
+                sd.smoothness = 0.08 + grain * 0.06 + pm * 0.06 + snowK * 0.12;
                 sd.occlusion = lerp(0.85, 1.0, macro);
                 sd.normalTS = float3(0, 0, 1);
                 sd.specular = 0;
 
                 half4 c = UniversalFragmentPBR(id, sd);
-                c.rgb = MixFog(c.rgb, i.fogFactor);
+                // fog worked out here, per pixel: the ground is a few huge triangles, and fog from their far-off corners,
+                // smeared across them, laid a pale film over the land right at your feet whenever the fog drew in
+                c.rgb = MixFog(c.rgb, ComputeFogFactor(TransformWorldToHClip(i.positionWS).z));
                 return half4(c.rgb, 1);
             }
             ENDHLSL

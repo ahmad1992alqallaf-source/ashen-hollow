@@ -22,7 +22,7 @@ public static class AHGrade
             bloom = prof.Add<Bloom>(true); bloom.threshold.Override(1.15f); bloom.intensity.Override(0.38f); bloom.scatter.Override(0.6f); bloom.highQualityFiltering.Override(false);
             ca = prof.Add<ColorAdjustments>(true); ca.postExposure.Override(0.12f); ca.contrast.Override(16f); ca.saturation.Override(14f);
             smh = prof.Add<ShadowsMidtonesHighlights>(true);
-            lgg = prof.Add<LiftGammaGain>(true); lgg.lift.Override(new Vector4(1f, 1f, 1.02f, -0.06f)); lgg.gamma.Override(new Vector4(1f, 1f, 1f, -0.03f));   // deeper blacks: the haze lifts off the picture
+            lgg = prof.Add<LiftGammaGain>(true); lgg.lift.Override(new Vector4(1f, 1f, 1.02f, -0.02f)); lgg.gamma.Override(new Vector4(1f, 1f, 1f, 0f));   // a touch deeper blacks
             vig = prof.Add<Vignette>(true); vig.intensity.Override(0.24f); vig.smoothness.Override(0.42f); vig.color.Override(new Color(0.05f, 0.03f, 0.06f));
         }
         Mood(AHGame.AreaId);
@@ -34,10 +34,11 @@ public static class AHGrade
     {
         if (smh == null) return;
         Vector4 sh = new Vector4(0.96f, 0.98f, 1.06f, -0.03f), hi = new Vector4(1.05f, 1.01f, 0.95f, 0.02f);   // cool shadows, warm highlights
-        float sat = 22f, con = 24f, exp = 0.1f;
-        if (AHDungeon.IsDungeon(area) || area == AHDeep.Area) { sh = new Vector4(0.94f, 0.96f, 1.1f, -0.05f); sat = 10f; con = 26f; exp = 0.2f; }
-        else if (area == "ember") { hi = new Vector4(1.1f, 1f, 0.9f, 0.03f); sat = 26f; }
-        else if (area == "frost") { sh = new Vector4(0.95f, 1f, 1.1f, -0.02f); hi = new Vector4(1f, 1.02f, 1.05f, 0.02f); sat = 12f; }
+        // (gentle now: the strong grade was there to fight a pale film over the ground, which was the ground's fog)
+        float sat = 4f, con = 12f, exp = 0.12f;
+        if (AHDungeon.IsDungeon(area) || area == AHDeep.Area) { sh = new Vector4(0.94f, 0.96f, 1.1f, -0.05f); sat = 4f; con = 20f; exp = 0.2f; }
+        else if (area == "ember") { hi = new Vector4(1.1f, 1f, 0.9f, 0.03f); sat = 10f; }
+        else if (area == "frost") { sh = new Vector4(0.95f, 1f, 1.1f, -0.02f); hi = new Vector4(1f, 1.02f, 1.05f, 0.02f); sat = 0f; }
         smh.shadows.Override(sh); smh.highlights.Override(hi);
         ca.saturation.Override(sat); ca.contrast.Override(con); ca.postExposure.Override(exp);
     }

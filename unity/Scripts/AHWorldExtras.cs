@@ -33,6 +33,8 @@ public class AHWeather : MonoBehaviour
         inst.nextT = 0f;
         if (AHDungeon.IsDungeon(AHGame.AreaId) || AHGame.AreaId == AHDeep.Area) { Now = Kind.Clear; inst.Apply(); }   // no weather underground (the Deep too)
     }
+    // test tools: step to the next kind of weather (and snap to it, without the slow change)
+    public static void TestNext() { if (inst == null) return; Now = (Kind)(((int)Now + 1) % 5); inst.nextT = 900f; inst.Apply(); inst.sunK = inst.wantSun; inst.fogK = inst.wantFog; }
     public static string Name { get { return Now == Kind.Rain ? "Rain" : Now == Kind.Fog ? "Fog" : Now == Kind.Snow ? "Snow" : Now == Kind.Cloudy ? "Clouds" : "Clear"; } }
     // gathering in the weather: rain brings fish to the surface and opens the herbs
     public static float GatherK(string kind) { return Now == Kind.Rain ? (kind == "fish" ? 1.25f : kind == "herb" ? 1.15f : 1f) : 1f; }
