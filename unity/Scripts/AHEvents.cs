@@ -62,7 +62,7 @@ public static class AHEvents
     }
 
     // web evTick for every event beast in this area
-    static float t;
+    static float t; static readonly HashSet<string> introDone = new HashSet<string>();
     public static void Tick(AHGame g, float dt)
     {
         t -= dt; if (t > 0f) return; t = 1f;
@@ -75,6 +75,12 @@ public static class AHEvents
             if (w.active && !killed)
             {
                 if (m.evHold) { m.evHold = false; }
+                // a world boss makes its entrance the first time it turns on you (AHBossIntro)
+                if (IsWorldBoss(m.type.id) && m.Chasing && !m.dead && !p.dead)
+                {
+                    string key = m.type.id + ":" + w.id;
+                    if (!introDone.Contains(key)) { introDone.Add(key); AHBossIntro.Play(g, m, m.type.name, "World boss of " + Where(m.type.id)); }
+                }
                 if (AHProgress.Get(p.prog.evSeen, m.type.id) != w.id + 1)
                 {
                     Set(p.prog.evSeen, m.type.id, w.id + 1);

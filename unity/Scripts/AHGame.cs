@@ -970,7 +970,7 @@ public class AHGame : MonoBehaviour
             float cl = Mathf.Min(AHMountains.Clear(look, bk, distShown), OccClear(look, bk, distShown));
             if (tiles != null) cl = Mathf.Min(cl, RockClear(look, bk, distShown));
             if (cl >= distShown * 0.9f) { wantPitch = pt; break; }
-            if (firstOk < 0f && pt <= 50f && cl >= Mathf.Max(3.2f, distShown * 0.45f)) { firstOk = pt; firstCl = cl; }
+            if (firstOk < 0f && pt <= 50f && cl >= Mathf.Max(2.6f, distShown * 0.35f)) { firstOk = pt; firstCl = cl; }
         }
         if (wantPitch < 0f || (wantPitch > 50f && firstOk >= 0f)) { if (firstOk >= 0f) { wantPitch = firstOk; pull = firstCl * 0.92f; } else wantPitch = 74f; }
         pitchShown = pitchShown <= 0f ? wantPitch : Mathf.Lerp(pitchShown, wantPitch, 1f - Mathf.Exp(-Time.deltaTime * 4f));
