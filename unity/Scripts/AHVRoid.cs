@@ -565,6 +565,7 @@ public class AHVRoidLink : MonoBehaviour
 
     // how much smaller the VRoid body is around this bone (by the length of the limb it starts)
     Transform qHead, vHead; Vector3 qTop, vTop; float headK = 1f;
+    public float HeadScale { get { return headK; } }   // how much bigger the VRoid head is than the old one
     public void SetupHead(Transform q, Vector3 qTopLocal, Transform v, Vector3 vTopLocal, float k) { qHead = q; qTop = qTopLocal; vHead = v; vTop = vTopLocal; headK = k; lastKids = -1; }
 
     float Scale(Transform s, Transform d)

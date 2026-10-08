@@ -139,7 +139,7 @@ public static class AHVRoidTools
         new[] { "warrior", "gold_crown", "forge_pauldrons", "forge_plate", "forge_gauntlets", "forge_greaves", "forge_boots", "forge_cape" },
         new[] { "priest", "wolf_hood", "shadow_mantle", "holy_robe", "holy_gloves", null, "bronze_boots", "void_wings" },
         new[] { "ranger", "corsair_hat", "frost_mantle", "corsair_coat", "boar_gloves", "bronze_greaves", "deer_boots", "shadow_coat" },
-        new[] { "druid", "wyrm_horns", null, null, null, null, null, null },
+        new[] { "druid", "wyrm_horns", null, "grove_robe", null, null, null, null },
     };
     static readonly System.Collections.Generic.List<GameObject> gearStands = new System.Collections.Generic.List<GameObject>();
     static int gearFrame;
@@ -192,7 +192,7 @@ public static class AHVRoidTools
                 var look = new AHLook { sex = sx == 0 ? "m" : "f", hair = hairs[i], hairCol = 3 + i, cloth = i };
                 AHAnim a; var rig = AHPeople.BuildHero(holder, AHClasses.Get(set[0]), look, AHGame.I, out a);
                 if (rig == null) { Object.Destroy(holder.gameObject); continue; }
-                AHWardrobe.DressWith(rig, holder, s => { int k = System.Array.IndexOf(slots, s); return k >= 0 ? set[k + 1] : null; }, () => false);
+                AHWardrobe.DressWith(rig, holder, s => { int k = System.Array.IndexOf(slots, s); return k >= 0 ? set[k + 1] : null; }, () => false, look.sex);
                 if (a != null) { a.Play("Idle", true); holder.gameObject.AddComponent<AHStudioPose>().anim = a; }
                 gearStands.Add(holder.gameObject);
             }

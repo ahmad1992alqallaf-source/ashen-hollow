@@ -188,6 +188,22 @@ public static class AHChecks
         ScreenCapture.CaptureScreenshot(f, 2); Debug.Log("Ashen Hollow: screen capture " + f);
     }
 
+    // put a real outfit (Quaternius) on the hero, or take it off again; the hand-made gear hides while it is on
+    [MenuItem("Ashen Hollow/Test: Try Outfit Knight")] static void TryKnight() { TryOutfit("qoMale_Knight"); }
+    static GameObject tryOn;
+    static void TryOutfit(string model)
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        if (tryOn != null) { UnityEngine.Object.Destroy(tryOn); tryOn = null; ShowGear(g, true); Debug.Log("Ashen Hollow: outfit off"); return; }
+        GameObject rig = null; var link = g.player.GetComponentInChildren<AHVRoidLink>(true);
+        if (link != null) rig = link.gameObject;
+        else foreach (var t in g.player.GetComponentsInChildren<Transform>(true)) if (t.name == "pelvis") { rig = t.root == t ? t.gameObject : FindRig(t, g.player.transform); break; }
+        tryOn = AHQOutfit.Wear(rig, model); ShowGear(g, false);
+        Debug.Log("Ashen Hollow: outfit " + model + (tryOn != null ? " on" : " failed") + (link != null ? " (VRoid body)" : " (classic body)"));
+    }
+    static GameObject FindRig(Transform bone, Transform player) { var t = bone; while (t.parent != null && t.parent != player) t = t.parent; return t.gameObject; }
+    static void ShowGear(AHGame g, bool on) { foreach (var t in g.player.GetComponentsInChildren<Transform>(true)) if (t.name.StartsWith("Outfit_")) t.gameObject.SetActive(on); }
+
     [MenuItem("Ashen Hollow/Test: Next Season %&n")]
     static void NextSeason()
     {

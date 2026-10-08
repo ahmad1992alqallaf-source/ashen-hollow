@@ -576,18 +576,33 @@ public static class AHWardrobe
         if (cos != null && AHCostumes.Apply(rig, cos, p.look, AHFashion.DyeOf(p, cos))) { DressWith(rig, p.transform, s => null, () => p.Moving); dyeOn = false; return; }
         // armour on the chest: plain close-fitting clothes under it instead of the starting robe
         if (Shown(p, "chest") != null) AHCostumes.Apply(rig, AHCostumes.Under, p.look);
-        DressWith(rig, p.transform, s => Shown(p, s), () => p.Moving);
+        DressWith(rig, p.transform, s => Shown(p, s), () => p.Moving, p.look != null && p.look.sex == "f" ? "f" : "m");
         dyeOn = false;
     }
     // the outfit colour chosen in the look editor dyes the cloth and leather of worn gear (metal keeps its own colour)
     static Color dye = Color.white; static bool dyeOn;
 
     // dresses any rig of the hero's kind: 'shown' gives the item id for a slot (or null), 'moving' drives the cape
-    public static void DressWith(GameObject rig, Transform hold, Func<string, string> shown, Func<bool> moving)
+    // heroes (sex given: "m" or "f") wear real outfits for their chest, hands, legs and feet (and helms, hoods and pauldrons that
+    // match one); the wardrobe draws only what the outfit doesn't
+    public static bool RealOutfits = true;
+    public static void DressWith(GameObject rig, Transform hold, Func<string, string> shown, Func<bool> moving, string heroSex = null)
     {
         if (rig == null) return;
         Transform head = Bone(rig, "Head"), chest = Bone(rig, "spine_03"), pelvis = Bone(rig, "pelvis");
         if (head == null || chest == null) return;   // the KayKit class hero has no such rig: nothing to dress
+        var old = rig.GetComponent<AHQOutfitAuto>(); if (old != null) UnityEngine.Object.Destroy(old);
+        if (heroSex != null && RealOutfits)
+        {
+            bool fem = heroSex == "f";
+            var covered = new HashSet<string>(); Color tint; float tk;
+            string spec = AHQOutfitPlan.Spec(fem, shown, covered, out tint, out tk);
+            if (spec != null)
+            {
+                var auto = rig.AddComponent<AHQOutfitAuto>(); auto.spec = spec; auto.tint = tint; auto.tintK = tk;
+                var all = shown; shown = s => covered.Contains(s) ? null : all(s);
+            }
+        }
         if (lit == null) lit = Shader.Find("Universal Render Pipeline/Lit");
         if (cone == null) { cone = Frustum(0f, 0.5f, 1f); frustum = Frustum(0.55f, 1f, 1f); torus = Torus(0.5f, 0.06f); shell = Frustum(1f, 0.85f, 1f); }
         float ground = hold.position.y;
