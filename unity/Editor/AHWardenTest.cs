@@ -1,5 +1,6 @@
-// Ashen Hollow (editor test): "Test: Warden Skill Check". Play as a Warden. Four harmless stone dummies appear around
-// the hero; each of the five Warden skills (and Pebble Throw) is cast in turn, a second apart, and what each one did
+// Ashen Hollow (editor test): "Test: Warden Skill Check". Play as a Warden. Five harmless stone dummies appear around
+// the hero (one right where Rockwall rises); every Warden skill (the five, the ten from the spellbook, the two path
+// skills and the four ultimates) is cast in turn, about a second apart, and what each one did
 // is written to the console and to HeroShots/warden_check.txt: damage dealt, who was taunted, held, slowed or pulled,
 // the stone skin and the wall. The dummies are removed at the end.
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ public static class AHWardenTest
     static int step; static double next; static StringBuilder log;
     static readonly Dictionary<AHMob, int> hpBefore = new Dictionary<AHMob, int>();
     static readonly Dictionary<AHMob, Vector3> posBefore = new Dictionary<AHMob, Vector3>();
+    static readonly List<Vector3> home = new List<Vector3>(); static Vector3 facing;
 
     [MenuItem("Ashen Hollow/Test: Warden Skill Check")]
     static void Run()
@@ -23,7 +25,8 @@ public static class AHWardenTest
         if (p.cls.id != "warden") { Debug.Log("Ashen Hollow: play as a Warden for this check (now " + p.cls.id + ")"); return; }
         Clear(g);
         Vector3 me = p.transform.position; Vector3 f = p.transform.forward; f.y = 0f; f.Normalize(); Vector3 r = Vector3.Cross(Vector3.up, f);
-        Vector3[] at = { me + f * 2.5f, me + f * 4.5f + r * 1.5f, me - r * 3.5f, me + f * 11f };   // close, near, beside, far (for Pebble Throw)
+        Vector3[] at = { me + f * 2.5f, me + f * 4.5f + r * 1.5f, me - r * 3.5f, me + f * 11f, me + f * 3.9f - r * 1.2f };   // close, near, beside, far (Pebble Throw), in the wall's way
+        home.Clear(); foreach (var v in at) home.Add(v); facing = f;
         for (int i = 0; i < at.Length; i++)
         {
             var t = new AHMobType { id = "wardentest" + i, model = "Web/mGolem", name = "Stone Dummy " + (i + 1), lvl = 1, hp = 100000, dmg = 0, xp = 0, gold = 0, speed = 1f, radius = 0.6f, aggro = 0f, atkCd = 99f, respawn = 1e9f, noSkin = true };
@@ -62,7 +65,9 @@ public static class AHWardenTest
         return sb.ToString();
     }
 
-    static readonly string[] Order = { "stonehammer", "emberquake", "bedrockroar", "rockwall", "stoneskin", "pebblethrow" };
+    static readonly string[] Order = { "stonehammer", "emberquake", "bedrockroar", "rockwall", "stoneskin",
+        "shieldslam", "pebblethrow", "earthengrip", "guardward", "fossilshell", "avalanche", "tremor", "emberbrand", "faultline", "rampart",
+        "bulwark", "magmaquake", "mountain", "titanfall", "magmacore", "eruption" };
     static void Tick()
     {
         var g = AHGame.I;
@@ -76,17 +81,29 @@ public static class AHWardenTest
         int slot = -1; for (int i = 0; i < p.Spells.Length; i++) if (p.Spells[i].id == id) slot = i;
         if (slot < 0)
         {
-            SpellDef sp = AHEvo.Book("warden").Find(s => s.id == id);
+            SpellDef sp = AHEvo.Book("warden").Find(s => s.id == id) ?? AHEvo.Evo(id);
             if (sp == null) { log.Append(id + ": not found\n"); next = EditorApplication.timeSinceStartup + 0.1; return; }
             var arr = p.Spells; slot = arr.Length - 1; arr[slot] = sp;
         }
         for (int i = 0; i < p.cds.Length; i++) p.cds[i] = 0f;
+        // every dummy back in its place, unharmed by what came before, the hero facing the same way
+        for (int i = 0; i < dummies.Count; i++)
+        {
+            var m = dummies[i]; if (m == null) continue;
+            m.transform.position = g.Resolve(home[i], 0.6f); m.hp = m.type.hp;
+            foreach (var n in new[] { "slowT", "rootT", "stunT", "burnT", "poisonT", "fearT" })
+            {
+                var fi = typeof(AHMob).GetField(n, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
+                if (fi != null && fi.FieldType == typeof(float)) fi.SetValue(m, 0f);
+            }
+        }
+        p.transform.rotation = Quaternion.LookRotation(facing, Vector3.up);
         if (id == "pebblethrow") p.target = dummies[3];
         else p.target = dummies[0];
         Snap();
         log.Append(id + " (" + p.Spells[slot].name + ", " + p.Spells[slot].kind + "):\n");
         p.Cast(slot);
-        next = EditorApplication.timeSinceStartup + (id == "pebblethrow" ? 2.0 : 1.2);
+        next = EditorApplication.timeSinceStartup + (id == "pebblethrow" ? 2.0 : id == "tremor" ? 1.6 : 1.3);
     }
 
     static void Finish(AHGame g)

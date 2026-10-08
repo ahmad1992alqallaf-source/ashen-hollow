@@ -107,7 +107,7 @@ public static class AHPeople
 
         // the weapon from the KayKit set, held in the right hand (and an off-hand item in the left)
         string wm, main, off; WeaponFor(cls.id, out wm, out main, out off);
-        if (wm != null) Arm(rig, wm, main, off, g);
+        if (wm != null) Arm(rig, wm, main, off, g, cls.id == "warrior" ? "steel" : cls.id == "warden" ? "ember" : null);   // our crest on the class shield
         // a VRoid body, if one has been made for this hero (AHVRoid)
         var vm = AHVRoid.ModelFor(cls, look);
         if (vm != null && AHVRoid.Link(rig, holder, body, vm))
@@ -124,7 +124,7 @@ public static class AHPeople
         return rig;
     }
 
-    public static void Arm(GameObject rig, string wm, string main, string off, AHGame g)
+    public static void Arm(GameObject rig, string wm, string main, string off, AHGame g, string crest = null)
     {
         var pf = Resources.Load<GameObject>("AH/Models/" + wm);
         if (pf == null) return;
@@ -142,6 +142,32 @@ public static class AHPeople
         if (main == "StoneHammer") StoneHammer(hr, q, p); else Grab(tmp.transform, main, hr, q, p);
         if (off != null) { Grip(off, false, out q, out p); Grab(tmp.transform, off, hl, q, p); }
         Object.Destroy(tmp);
+        if (crest != null && off != null && off.Contains("Shield") && hl != null) ShieldCrest(hl.Find("Weapon_" + off), crest);
+    }
+
+    // the Ashen Hollow crest (ours, drawn in code) on the face of a hero's shield: a thin disc with the crest on it,
+    // a little proud of the shield's boss, the shield's own art showing round it
+    static readonly System.Collections.Generic.Dictionary<string, Material> crestMats = new System.Collections.Generic.Dictionary<string, Material>();
+    static void ShieldCrest(Transform shield, string crest)
+    {
+        if (shield == null) return;
+        var mf = shield.GetComponentInChildren<MeshFilter>(); if (mf == null || mf.sharedMesh == null) return;
+        Material m; if (!crestMats.TryGetValue(crest, out m) || m == null)
+        {
+            var tex = Resources.Load<Texture2D>("AH/Textures/Crest/ashen_crest_" + crest); if (tex == null) return;
+            m = new Material(Shader.Find("Universal Render Pipeline/Lit")); m.SetTexture("_BaseMap", tex); m.SetColor("_BaseColor", Color.white);
+            m.SetFloat("_Metallic", 0.6f); m.SetFloat("_Smoothness", 0.55f); m.SetFloat("_AlphaClip", 1f); m.SetFloat("_Cutoff", 0.5f); m.EnableKeyword("_ALPHATEST_ON");
+            m.EnableKeyword("_EMISSION"); m.SetTexture("_EmissionMap", tex); m.SetColor("_EmissionColor", new Color(0.25f, 0.18f, 0.1f));
+            crestMats[crest] = m;
+        }
+        // KayKit shields face +z; the crest goes on the front, centred, about half the shield's width
+        var b = mf.sharedMesh.bounds; float size = Mathf.Min(b.size.x, b.size.y) * 0.5f;
+        var q = GameObject.CreatePrimitive(PrimitiveType.Quad); Object.Destroy(q.GetComponent<Collider>()); q.name = "Piece";
+        q.transform.SetParent(mf.transform, false);
+        q.transform.localPosition = new Vector3(b.center.x, b.center.y, b.max.z + size * 0.03f);
+        q.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+        q.transform.localScale = new Vector3(size, size, 1f);
+        var r = q.GetComponent<Renderer>(); r.sharedMaterial = m; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
     }
 
     // how each kind of weapon sits in the hand, worked out from the Quaternius hand bones (as glTFast imports them:
