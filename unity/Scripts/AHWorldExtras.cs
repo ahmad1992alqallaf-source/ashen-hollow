@@ -31,7 +31,7 @@ public class AHWeather : MonoBehaviour
     {
         if (inst == null) { var go = new GameObject("Weather"); inst = go.AddComponent<AHWeather>(); }
         inst.nextT = 0f;
-        if (AHDungeon.IsDungeon(AHGame.AreaId)) { Now = Kind.Clear; inst.Apply(); }
+        if (AHDungeon.IsDungeon(AHGame.AreaId) || AHGame.AreaId == AHDeep.Area) { Now = Kind.Clear; inst.Apply(); }   // no weather underground (the Deep too)
     }
     public static string Name { get { return Now == Kind.Rain ? "Rain" : Now == Kind.Fog ? "Fog" : Now == Kind.Snow ? "Snow" : Now == Kind.Cloudy ? "Clouds" : "Clear"; } }
     // gathering in the weather: rain brings fish to the surface and opens the herbs
@@ -45,7 +45,7 @@ public class AHWeather : MonoBehaviour
     {
         string a = AHGame.AreaId ?? "";
         float r = UnityEngine.Random.value;
-        if (AHDungeon.IsDungeon(a)) Now = Kind.Clear;
+        if (AHDungeon.IsDungeon(a) || a == AHDeep.Area) Now = Kind.Clear;
         else if (Cold(a)) Now = r < 0.45f ? Kind.Snow : r < 0.7f ? Kind.Cloudy : Kind.Clear;
         else if (Dry(a)) Now = r < 0.2f ? Kind.Cloudy : Kind.Clear;
         else Now = r < 0.2f ? Kind.Rain : r < 0.32f ? Kind.Fog : r < 0.55f ? Kind.Cloudy : Kind.Clear;

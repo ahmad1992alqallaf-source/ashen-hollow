@@ -158,6 +158,7 @@ public class AHNpc : MonoBehaviour
     public static void SpawnTown(AHGame game)
     {
         All.Clear();
+        if (AHGame.AreaId == AHDeep.Area) return;   // the Deep's map overlaps a town's on the world grid: no townsfolk down there
         var npc = AHDB.Table("npcs", "NPC");
         if (npc != null && game.InArea(game.W((float)AHJson.N(npc, "x") * AHDB.S, (float)AHJson.N(npc, "y") * AHDB.S)))
         {

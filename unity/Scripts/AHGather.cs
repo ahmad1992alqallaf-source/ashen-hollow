@@ -418,11 +418,36 @@ public static class AHGather
         Vector3 dd = actSpot.pos - p.transform.position; dd.y = 0;
         if (actSpot.kind != "light" && dd.magnitude > actSpot.reach + 1f) { Cancel(); return; }   // pushed or carried away
         actT += dt;
+        Feel(p, actSpot, actT - dt, actT);
         if (actT < actDur) return;
         var s = actSpot; var r = actRecipe;
         actSpot = null; actRecipe = null;
         bool again = Finish(p, s, r);
         if (again && CanDo(p, s, false)) { actSpot = s; actRecipe = null; actT = 0f; actDur = Dur(s.kind) / Speed(p, s.kind); }
+    }
+
+    // the feel of the work, in time with the swing: wood chips fly from the axe, sparks and grit from the pick, leaves
+    // and glints as you pick herbs, rings spreading round your line while you fish
+    static bool Crossed(float a, float b, float period, float at) { return Mathf.Floor((a - at) / period) != Mathf.Floor((b - at) / period) && b > at; }
+    static void Feel(AHPlayer p, AHSpot s, float a, float b)
+    {
+        if (s == null || actRecipe != null) return;
+        Vector3 toMe = p.transform.position - s.pos; toMe.y = 0f; toMe = toMe.sqrMagnitude > 0.01f ? toMe.normalized : Vector3.forward;
+        switch (s.kind)
+        {
+            case "chop":
+                if (Crossed(a, b, 1f, 0.45f)) { Vector3 at = s.pos + Vector3.up * 0.9f + toMe * 0.35f; AHSpark.Burst(at, new Color(0.62f, 0.42f, 0.22f), 10, 3.2f, 0.6f, 0.07f, 1.6f); AHSpark.Burst(at, new Color(0.9f, 0.75f, 0.5f), 4, 2f, 0.4f, 0.05f, 1f); AHJuice.Shake(0.03f, 0.08f); }
+                break;
+            case "mine":
+                if (Crossed(a, b, 1f, 0.5f)) { Vector3 at = s.pos + Vector3.up * 0.35f + toMe * 0.45f; AHSpark.Burst(at, new Color(1f, 0.85f, 0.4f), 12, 4f, 0.35f, 0.05f, 1.2f); AHSpark.Burst(at, new Color(0.55f, 0.55f, 0.58f), 8, 2.4f, 0.6f, 0.08f, 1.4f); AHJuice.Shake(0.035f, 0.08f); }
+                break;
+            case "herb": case "bog": case "reef":
+                if (Crossed(a, b, 0.8f, 0.3f)) { Vector3 at = s.pos + Vector3.up * 0.25f; AHSpark.Burst(at, new Color(0.55f, 1f, 0.5f), 6, 1.2f, 0.7f, 0.06f, 1.4f); AHSpark.Burst(at, new Color(1f, 1f, 0.7f), 3, 0.8f, 0.8f, 0.04f, 1.8f); }
+                break;
+            case "fish": case "sea": case "lava":
+                if (Crossed(a, b, 2.2f, 0.2f)) { g.Ripple(s.pos, 1f); AHSpark.Ring(s.pos + Vector3.up * 0.05f, s.kind == "lava" ? new Color(1f, 0.5f, 0.15f) : new Color(0.75f, 0.9f, 1f), 10, 1.1f, 0.6f, 0.08f); }
+                break;
+        }
     }
 
     // web finishAction. Returns true to keep going (chopping, fishing, cooking, smelting repeat)

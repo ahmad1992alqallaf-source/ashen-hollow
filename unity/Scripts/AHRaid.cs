@@ -65,7 +65,7 @@ public static class AHRaid
     public static bool Think(AHGame g, AHMob m, float dt)
     {
         Brain b; if (!brains.TryGetValue(m, out b)) brains[m] = b = new Brain();
-        if (!b.engaged) { b.engaged = true; b.aT = 4f; b.bT = 9f; b.t = 0f; g.ui.Banner("Vaelor wakes", "Spread out, watch the ground, kill the imps"); }
+        if (!b.engaged) { b.engaged = true; b.aT = 4f; b.bT = 9f; b.t = 0f; g.ui.Banner("Vaelor wakes", "Spread out, watch the ground, kill the imps"); AHBossIntro.Play(g, m, "Vaelor", "Spread out, watch the ground, kill the imps"); }
         b.t += dt; float f = m.hp / m.type.hp; bool enr = b.t > 420f; float fast = enr ? 0.5f : f < 0.35f ? 0.75f : 1f, hit = Mathf.Round(m.type.dmg * (enr ? 3f : 1.5f));
         if (enr && !b.enr) { b.enr = true; m.enraged = true; g.ui.Banner("Vaelor is enraged", "Seven minutes have passed. Finish him!"); }
         if (!b.add1 && f < 0.7f) { b.add1 = true; Imps(g, m, 3); }

@@ -19,7 +19,7 @@ public static class AHGrade
             V = go.AddComponent<Volume>(); V.isGlobal = true; V.priority = 50f;
             prof = ScriptableObject.CreateInstance<VolumeProfile>(); V.sharedProfile = prof;
             var tm = prof.Add<Tonemapping>(true); tm.mode.Override(TonemappingMode.Neutral);
-            bloom = prof.Add<Bloom>(true); bloom.threshold.Override(1.0f); bloom.intensity.Override(0.5f); bloom.scatter.Override(0.62f); bloom.highQualityFiltering.Override(false);
+            bloom = prof.Add<Bloom>(true); bloom.threshold.Override(1.15f); bloom.intensity.Override(0.38f); bloom.scatter.Override(0.6f); bloom.highQualityFiltering.Override(false);
             ca = prof.Add<ColorAdjustments>(true); ca.postExposure.Override(0.12f); ca.contrast.Override(16f); ca.saturation.Override(14f);
             smh = prof.Add<ShadowsMidtonesHighlights>(true);
             lgg = prof.Add<LiftGammaGain>(true); lgg.lift.Override(new Vector4(1f, 1f, 1.02f, -0.06f)); lgg.gamma.Override(new Vector4(1f, 1f, 1f, -0.03f));   // deeper blacks: the haze lifts off the picture

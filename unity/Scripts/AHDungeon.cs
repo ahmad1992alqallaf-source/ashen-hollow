@@ -313,7 +313,7 @@ public class AHDungeon : MonoBehaviour
     bool BossThink(AHMob m, float dt)
     {
         var b = BrainOf(m); var lines = Lines(); float S = AHDB.S;
-        if (!b.engaged) { b.engaged = true; b.aT = 3f; b.bT = 7f; b.cT = 11f; g.ui.Banner(m.type.name, lines[0]); }
+        if (!b.engaged) { b.engaged = true; b.aT = 3f; b.bT = 7f; b.cT = 11f; g.ui.Banner(m.type.name, lines[0]); AHBossIntro.Play(g, m, m.type.name, lines[0]); }
         float f = m.hp / m.type.hp, fast = f < 0.3f ? 0.65f : 1f;
         string shortName = m.type.name.Split(',')[0];
         if (f < 0.3f && !m.enraged) { m.enraged = true; g.ui.Banner(shortName + " is enraged", "Attacks come faster"); }
@@ -350,7 +350,7 @@ public class AHDungeon : MonoBehaviour
     bool GrullThink(AHMob m, float dt)
     {
         var b = BrainOf(m);
-        if (!b.engaged) { b.engaged = true; b.slamT = 3f; g.ui.Toast("Forgemaster Grull: \"Who dares enter my forge?\"", 3f); }
+        if (!b.engaged) { b.engaged = true; b.slamT = 3f; g.ui.Toast("Forgemaster Grull: \"Who dares enter my forge?\"", 3f); AHBossIntro.Play(g, m, "Forgemaster Grull", "Who dares enter my forge?"); }
         float f = m.hp / m.type.hp;
         if (!b.add1 && f < 0.7f) { b.add1 = true; g.ui.Toast("Grull calls imps from the forge!", 2.5f); Adds(m, "imp", 2, 90f); }
         if (!b.add2 && f < 0.35f) { b.add2 = true; g.ui.Toast("Grull calls imps from the forge!", 2.5f); Adds(m, "imp", 2, 90f); }

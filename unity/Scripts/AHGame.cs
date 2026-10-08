@@ -910,6 +910,7 @@ public class AHGame : MonoBehaviour
         float wantFov = Mathf.Max(58f, 2f * Mathf.Atan(Mathf.Tan(37.5f * Mathf.Deg2Rad) / Mathf.Max(0.5f, aspect)) * Mathf.Rad2Deg);
         if (Mathf.Abs(cam.fieldOfView - wantFov) > 0.05f && !(ui != null && ui.CreatorOpen)) cam.fieldOfView = wantFov;
         if (AHCine.Drive(cam)) return;   // a story cutscene holds the camera
+        if (AHBossIntro.Drive(cam)) return;   // a boss makes its entrance
         bool creating = ui != null && ui.CreatorOpen;
         if (ui != null && !creating)
         {

@@ -75,6 +75,18 @@ public static class AHChecks
         Debug.Log("Ashen Hollow: checks done, see HeroShots/checks.txt");
     }
 
+    [MenuItem("Ashen Hollow/Test: Boss Intro Preview %&i")]
+    static void BossIntro()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) { Debug.Log("Ashen Hollow: boss intro preview needs Play mode"); return; }
+        AHMob best = null; float bd = 1e9f; foreach (var m in g.mobs) { if (m == null || m.dead || !m.gameObject.activeInHierarchy) continue; float d = (m.transform.position - g.player.transform.position).sqrMagnitude; if (d < bd) { bd = d; best = m; } }
+        if (best == null) { Debug.Log("Ashen Hollow: no foe near"); return; }
+        AHBossIntro.Play(g, best, best.type.name, "A test of the boss entrance");
+    }
+
+    [MenuItem("Ashen Hollow/Test: Enter the Deep")]
+    static void EnterDeep() { var g = AHGame.I; if (!Application.isPlaying || g == null) return; Debug.Log("Ashen Hollow: entering the Deep, twist " + AHDeep.WeekTwist.name); AHDeep.Start(g); }
+
     static readonly string[] Seasons = { "autumn", "winter", "spring", "summer" };
     [MenuItem("Ashen Hollow/Test: Next Season")]
     static void NextSeason()

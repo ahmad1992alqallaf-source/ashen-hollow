@@ -197,7 +197,7 @@ public static class AHDeep
     {
         if (brain == null) brain = new Brain();
         var b = brain; float f = m.hp / m.type.hp, hit = Mathf.Round(m.type.dmg * 1.4f);
-        if (!b.engaged) { b.engaged = true; g.ui.Banner(m.type.name, WeekBoss.line); }
+        if (!b.engaged) { b.engaged = true; g.ui.Banner(m.type.name, WeekBoss.line); AHBossIntro.Play(g, m, m.type.name, WeekBoss.line); }
         if (!b.add1 && f < 0.6f) { b.add1 = true; Adds(g, m, 2); }
         if (!b.add2 && f < 0.3f) { b.add2 = true; Adds(g, m, 3); }
         b.aT -= dt; b.bT -= dt;
