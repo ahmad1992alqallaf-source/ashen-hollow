@@ -242,9 +242,9 @@ public class AHQOutfitFollow : MonoBehaviour
 // which real outfit a hero wears. Each class has its own outfit shape and colours (the chest piece shown must be
 // there, and its own colour tints the outfit a little, so every chest piece still looks its own):
 //   warrior  the Knight in plate (the Royal Guard tabard: the Knight in cloth), coloured by the metal
-//   rogue    a leather jerkin over a wizard's wrapped trousers and boots, dyed dark violet: an assassin's look
+//   rogue    a violet leather jerkin over a wizard's wrapped trousers and boots: an assassin's look
 //   ranger   the Ranger's leathers, with bracers and belts, in woodland green
-//   shaman   a tunic over leather sleeves and the Ranger's boots, in sea teal
+//   shaman   a tunic over teal leather sleeves and the Ranger's boots
 //   priest   the Noble's coat, in white and gold
 //   mage     the Wizard's coat, in arcane blue
 //   druid    a simple tunic (the men with leather sleeves), in leaf green
@@ -253,6 +253,8 @@ public class AHQOutfitFollow : MonoBehaviour
 public static class AHQOutfitPlan
 {
     static readonly HashSet<string> Priest = new HashSet<string> { "holy", "dawn", "sunflame", "pearl", "fenlight", "snowlight", "sunpriest", "emberlight", "dawnlight" };
+    // the Ranger's leathers in the class colour: violet for rogues, teal for shamans (recoloured copies of the pack)
+    static string RangerOf(string cls) { return cls == "rogue" ? "RangerShade" : cls == "shaman" ? "RangerTide" : "Ranger"; }
     static string Armor(ItemDef d) { return AHJson.S(AHJson.O(AHDB.Rules, "ARMOR_OF"), d.style ?? "", "leather"); }
 
     // the class's own outfit shape (S is "qoMale_" or "qoFemale_")
@@ -261,9 +263,9 @@ public static class AHQOutfitPlan
         switch (cls)
         {
             case "warrior": return S + ((chest.style ?? "") == "royal" ? "Knight_Cloth" : "Knight") + ":-Head,-Pauldron";
-            case "rogue": return S + "Ranger:Body,Arms,-Bracer+" + S + "Wizard:Legs,Feet";
+            case "rogue": return S + "RangerShade:Body,Arms,-Bracer+" + S + "Wizard:Legs,Feet";
             case "ranger": return S + "Ranger:-Head,-Pauldron";
-            case "shaman": return S + "Peasant:Body,Legs+" + S + "Ranger:Arms,Feet";
+            case "shaman": return S + "Peasant:Body,Legs+" + S + "RangerTide:Arms,Feet";
             case "priest": return S + "Noble:-Head,-Pauldron";
             case "mage": return S + "Wizard";
             case "druid": return fem ? S + "Peasant" : S + "Peasant:-Arms+" + S + "Ranger:Arms,-Bracer";
@@ -278,14 +280,30 @@ public static class AHQOutfitPlan
         switch (cls)
         {
             case "warrior": k = 0f; return Color.white;
-            case "rogue": k = 0.55f; return new Color(0.42f, 0.32f, 0.55f);
+            case "rogue": k = 0.2f; return new Color(0.75f, 0.68f, 0.85f);
             case "ranger": k = 0.25f; return new Color(0.55f, 0.75f, 0.45f);
-            case "shaman": k = 0.4f; return new Color(0.4f, 0.8f, 0.8f);
+            case "shaman": k = 0.3f; return new Color(0.7f, 0.92f, 0.9f);
             case "priest": k = 0.35f; return new Color(1f, 0.93f, 0.72f);
             case "mage": k = 0.4f; return new Color(0.55f, 0.6f, 1f);
             case "druid": k = 0.4f; return new Color(0.6f, 0.88f, 0.45f);
         }
         k = 0f; return Color.white;
+    }
+
+    // the class's Ashen Hollow crest (a hollow tree in a ring, an ember at its heart), worn as a badge on the chest
+    public static string CrestOf(string cls, out float size)
+    {
+        switch (cls)
+        {
+            case "warrior": size = 0.13f; return "steel";
+            case "priest": size = 0.11f; return "gold";
+            case "mage": size = 0.09f; return "arcane";
+            case "druid": size = 0.09f; return "leaf";
+            case "ranger": size = 0.08f; return "leaf";
+            case "shaman": size = 0.09f; return "teal";
+            case "rogue": size = 0.07f; return "violet";
+        }
+        size = 0f; return null;
     }
 
     // the outfit spec for AHQOutfit.Wear (null: no real outfit); 'covered' gets the slots it draws
@@ -307,7 +325,8 @@ public static class AHQOutfitPlan
             string f = hd.form ?? "", part = null;
             if (f == "helm" || f == "forgehelm") part = S + "Knight:Head";
             else if (f == "horns") part = S + "Knight_Cloth:Head";
-            else if (f == "hood" || f == "cowl" || f == "mhood") part = S + "Ranger:Head";
+            // the Ranger's green hood suits the leather classes; robed classes keep the wardrobe's hood in the item's colour
+            else if ((f == "hood" || f == "cowl" || f == "mhood") && cls != "mage" && cls != "priest" && cls != "druid") part = S + RangerOf(cls) + ":Head";
             if (part != null) { spec += "+" + part; covered.Add("head"); }
         }
         var sh = AHItems.Get(shown("shoulders") ?? "");
@@ -317,7 +336,7 @@ public static class AHQOutfitPlan
             if (f == "plates" || f == "spikes")
             {
                 if (sa == "plate") part = S + (f == "spikes" ? "Knight_Cloth" : "Knight") + ":Pauldron";
-                else if (sa == "leather") part = S + "Ranger:Pauldron";
+                else if (sa == "leather") part = S + RangerOf(cls) + ":Pauldron";
                 else part = S + (Priest.Contains(sh.style ?? "") || cls == "priest" ? "Noble:Lion" : "Noble:Pauldron,-Lion");
             }
             if (part != null) { spec += "+" + part; covered.Add("shoulders"); }
@@ -331,6 +350,7 @@ public static class AHQOutfitPlan
 public class AHQOutfitAuto : MonoBehaviour
 {
     public string spec; public Color tint = Color.white; public float tintK;
+    public string crest; public float crestSize;
     GameObject worn; int frames;
 
     void Update()
@@ -342,7 +362,51 @@ public class AHQOutfitAuto : MonoBehaviour
         if (!ready && frames < 30) return;
         worn = AHQOutfit.Wear(gameObject, spec);
         if (worn != null && tintK > 0f) Tint(worn, tint, tintK);
+        if (worn != null && crest != null) Badge(worn, crest, crestSize);
         enabled = false;
+    }
+
+    // the crest badge: a thin metal disc with the crest on its face, on the front of the outfit's chest, following it
+    void Badge(GameObject outfit, string name, float size)
+    {
+        var tex = Resources.Load<Texture2D>("AH/Textures/Crest/ashen_crest_" + name); if (tex == null) return;
+        Transform chest = null;
+        foreach (var t in outfit.GetComponentsInChildren<Transform>(true)) if (t.name == "stand_spine_03") { chest = t; break; }
+        if (chest == null) foreach (var t in GetComponentsInChildren<Transform>(true)) if (t.name == "spine_03") { chest = t; break; }   // the classic body
+        if (chest == null) return;
+        var link = GetComponent<AHVRoidLink>();
+        Vector3 fwd = link != null && link.Body != null ? link.Body.forward : transform.parent != null ? transform.parent.forward : transform.forward;
+        fwd.y = 0f; fwd.Normalize(); Vector3 right = Vector3.Cross(Vector3.up, fwd);
+        // the front of the chest: the outfit's furthest-forward point near the breastbone
+        float best = float.MinValue; Vector3 at = chest.position + fwd * 0.12f; var baked = new Mesh();
+        foreach (var smr in outfit.GetComponentsInChildren<SkinnedMeshRenderer>(false))
+        {
+            smr.BakeMesh(baked, true); var m = Matrix4x4.TRS(smr.transform.position, smr.transform.rotation, Vector3.one); var vs = baked.vertices;
+            for (int i = 0; i < vs.Length; i++)
+            {
+                var p = m.MultiplyPoint3x4(vs[i]); var d = p - chest.position;
+                if (Mathf.Abs(Vector3.Dot(d, right)) > 0.05f || d.y < -0.02f || d.y > 0.14f) continue;
+                float f = Vector3.Dot(d, fwd); if (f > best) { best = f; at = p; }
+            }
+        }
+        Destroy(baked);
+        var root = new GameObject("CrestBadge").transform; root.SetParent(chest, false);
+        root.position = at + fwd * 0.008f; root.rotation = Quaternion.LookRotation(fwd, Vector3.up);
+        // keep it its own size in the world, whatever the stand's scale
+        Vector3 ls = chest.lossyScale; root.localScale = new Vector3(1f / Mathf.Max(1e-4f, ls.x), 1f / Mathf.Max(1e-4f, ls.y), 1f / Mathf.Max(1e-4f, ls.z));
+        int layer = gameObject.layer;
+        var disc = GameObject.CreatePrimitive(PrimitiveType.Cylinder); Destroy(disc.GetComponent<Collider>()); disc.name = "Piece";
+        disc.transform.SetParent(root, false); disc.transform.localRotation = Quaternion.Euler(90f, 0f, 0f); disc.transform.localScale = new Vector3(size * 1.04f, 0.004f, size * 1.04f);
+        var lit = Shader.Find("Universal Render Pipeline/Lit");
+        var dm = new Material(lit); dm.SetColor("_BaseColor", new Color(0.16f, 0.15f, 0.17f)); dm.SetFloat("_Metallic", 0.7f); dm.SetFloat("_Smoothness", 0.5f);
+        disc.GetComponent<Renderer>().sharedMaterial = dm; disc.layer = layer;
+        var face = GameObject.CreatePrimitive(PrimitiveType.Quad); Destroy(face.GetComponent<Collider>()); face.name = "Piece";
+        face.transform.SetParent(root, false); face.transform.localPosition = new Vector3(0f, 0f, 0.0045f); face.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+        face.transform.localScale = new Vector3(size, size, 1f);
+        var fm = new Material(lit); fm.SetTexture("_BaseMap", tex); fm.SetColor("_BaseColor", Color.white); fm.SetFloat("_Metallic", 0.6f); fm.SetFloat("_Smoothness", 0.55f);
+        fm.SetFloat("_AlphaClip", 1f); fm.SetFloat("_Cutoff", 0.5f); fm.EnableKeyword("_ALPHATEST_ON");
+        fm.SetColor("_EmissionColor", new Color(0.25f, 0.18f, 0.1f)); fm.SetTexture("_EmissionMap", tex); fm.EnableKeyword("_EMISSION");
+        var fr = face.GetComponent<Renderer>(); fr.sharedMaterial = fm; face.layer = layer;
     }
     void OnDestroy() { if (worn != null) Destroy(worn); }
 

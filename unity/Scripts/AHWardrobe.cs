@@ -592,6 +592,7 @@ public static class AHWardrobe
         Transform head = Bone(rig, "Head"), chest = Bone(rig, "spine_03"), pelvis = Bone(rig, "pelvis");
         if (head == null || chest == null) return;   // the KayKit class hero has no such rig: nothing to dress
         var old = rig.GetComponent<AHQOutfitAuto>(); if (old != null) UnityEngine.Object.Destroy(old);
+        bool outfitOn = false;
         if (heroSex != null && RealOutfits)
         {
             bool fem = heroSex == "f";
@@ -599,7 +600,7 @@ public static class AHWardrobe
             string spec = AHQOutfitPlan.Spec(fem, heroCls, shown, covered, out tint, out tk);
             if (spec != null)
             {
-                var auto = rig.AddComponent<AHQOutfitAuto>(); auto.spec = spec; auto.tint = tint; auto.tintK = tk;
+                var auto = rig.AddComponent<AHQOutfitAuto>(); auto.spec = spec; auto.tint = tint; auto.tintK = tk; outfitOn = true; auto.crest = AHQOutfitPlan.CrestOf(heroCls, out auto.crestSize);
                 var all = shown; shown = s => covered.Contains(s) ? null : all(s);
             }
         }
@@ -774,12 +775,15 @@ public static class AHWardrobe
             if (f == "cloak" || f == "ember")
             {
                 // a draped cloak: wraps round the shoulders, falls in folds, flares and rounds off at the hem
-                K.Mesh(Cloak(L, 0f, 1f, 0f), Vector3.zero, Vector3.one, Vector3.zero);
-                K.Prim(PrimitiveType.Cube, new Vector3(0, 0.07f, -0.12f), new Vector3(0.42f, 0.06f, 0.08f), Vector3.zero, K.Dark);
-                foreach (int sx in new[] { -1, 1 }) K.Prim(PrimitiveType.Sphere, new Vector3(sx * 0.17f, 0.06f, -0.06f), new Vector3(0.055f, 0.055f, 0.03f), Vector3.zero, K.Gold);   // the clasps
-                if (f == "ember") K.Mesh(Cloak(L, 0.93f, 1f, -0.006f), Vector3.zero, Vector3.one, Vector3.zero, K.Gold);
+                // over a real outfit the cloak hangs a little further back (armour and coats are thicker than the body),
+                // and its collar bar is left off (it stood out above the outfit's shoulders)
+                var off = outfitOn ? new Vector3(0, 0.015f, -0.05f) : Vector3.zero;
+                K.Mesh(Cloak(L, 0f, 1f, 0f), off, Vector3.one, Vector3.zero);
+                if (!outfitOn) K.Prim(PrimitiveType.Cube, new Vector3(0, 0.07f, -0.12f), new Vector3(0.42f, 0.06f, 0.08f), Vector3.zero, K.Dark);
+                foreach (int sx in new[] { -1, 1 }) K.Prim(PrimitiveType.Sphere, new Vector3(sx * 0.17f, 0.06f, -0.06f) + off, new Vector3(0.055f, 0.055f, 0.03f), Vector3.zero, K.Gold);   // the clasps
+                if (f == "ember") K.Mesh(Cloak(L, 0.93f, 1f, -0.006f), off, Vector3.one, Vector3.zero, K.Gold);
             }
-            else if (f == "coat")
+            else if (f == "coat" && !outfitOn)   // a real outfit already has its own coat: no loose coat tails over it
                 foreach (int sx in new[] { -1, 1 }) K.Prim(PrimitiveType.Cube, new Vector3(sx * 0.1f, -L * 0.62f, -0.2f - L * 0.08f), new Vector3(0.2f, L * 0.55f, 0.025f), new Vector3(9, 0, sx * 4));
             else if (f == "wings")
             {
