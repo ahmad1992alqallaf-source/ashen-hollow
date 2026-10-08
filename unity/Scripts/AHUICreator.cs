@@ -103,6 +103,7 @@ public partial class AHUI
         crRoot.gameObject.SetActive(true);
         crRoot.SetAsLastSibling();
         Time.timeScale = 0f;
+        if (mode == "new") { AHHeroHall.Open(g, crRoot); AHHeroHall.Shift = 1f; }   // a new hero is made by the campfire, the game put away
         ptrs.Clear();
         crTab = paid ? "hair" : "class";
         foreach (var kv in crTabImgs) kv.Value.gameObject.SetActive(!paid || (kv.Key != "class" && kv.Key != "path"));
@@ -120,7 +121,7 @@ public partial class AHUI
         {
             // a new hero not made after all: back to the hero select screen
             var l = AHPrefs.Slots(); if (l.Count == 0) return;
-            crRoot.gameObject.SetActive(false); Time.timeScale = 1f; ptrs.Clear();
+            crRoot.gameObject.SetActive(false); Time.timeScale = 1f; ptrs.Clear(); AHHeroHall.Close();
             AHPrefs.Use(l.Contains(AHPrefs.Prev) ? AHPrefs.Prev : l[0]);
             g.Reload(true, true);
             return;
@@ -153,6 +154,7 @@ public partial class AHUI
         crRoot.gameObject.SetActive(false);
         Time.timeScale = 1f;
         ptrs.Clear();
+        AHHeroHall.Close();
         g.FinishCreation();
     }
 
@@ -323,6 +325,7 @@ public partial class AHUI
             crHint.text = "Drag your hero to turn them. Pinch or scroll to zoom.";
         }
         CrScrollBy(0f);
+        if (crMode == "new" && AHHeroHall.Showing) AHHeroHall.Show(p.cls, p.look, s => AHWardrobe.Shown(p, s), p);   // the hero by the fire, as made so far
     }
 
     void CrY(float dy) { crY += dy; }

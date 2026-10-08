@@ -268,6 +268,9 @@ public class AHGame : MonoBehaviour
 
     // ---------- several heroes: log out, change hero ----------
     public static bool SelectAtStart = true;   // the hero select screen when the game starts and after logging out
+    // every start of the game begins at hero select (in the editor Play can start without reloading the scripts, which
+    // left this switched off after the first run)
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] static void ResetAtStart() { SelectAtStart = true; }
     public void Logout()
     {
         if (leaving) return;
@@ -936,6 +939,7 @@ public class AHGame : MonoBehaviour
             cam.transform.rotation = cq;
             Vector3 toCam = cam.transform.position - player.transform.position; toCam.y = 0f;
             player.transform.rotation = Face(Quaternion.Euler(0f, crSpin, 0f) * toCam);
+            AHHeroHall.Spin = -crSpin; AHHeroHall.Near = near;   // a new hero is made by the campfire: the hall turns and zooms the same way
             wasCreating = true;
             return;
         }

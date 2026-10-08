@@ -10,7 +10,7 @@ public class AHHeroHall : MonoBehaviour
     public const int Layer = 28;
     static AHHeroHall I;
     Camera cam; Transform root, heroHold, fireT; Light fireLight, rim; Transform[] flames; GameObject hero; string heroSig;
-    float t; Camera worldCam; readonly List<GameObject> hiddenUi = new List<GameObject>();
+    float t, sNear; Camera worldCam; readonly List<GameObject> hiddenUi = new List<GameObject>();
     static readonly Vector3 At = new Vector3(0f, -3000f, 0f);
 
     // ---- open, show a hero, close ----
@@ -29,10 +29,12 @@ public class AHHeroHall : MonoBehaviour
         if (I == null) return;
         foreach (var o in I.hiddenUi) if (o != null) o.SetActive(true); I.hiddenUi.Clear();
         if (I.worldCam != null) I.worldCam.enabled = true;
-        if (I.hero != null) Destroy(I.hero); I.hero = null; I.heroSig = null;
+        if (I.hero != null) Destroy(I.hero); I.hero = null; I.heroSig = null; Spin = 0f; Near = 0f; Shift = 0f;
         I.gameObject.SetActive(false);
     }
     public static bool Showing { get { return I != null && I.gameObject.activeSelf; } }
+    // making a hero here: drag to turn them (degrees), and how close the camera has come to the face (0 far .. 1 near)
+    public static float Spin, Near, Shift;   // Shift 1: the creator's wider panel, so the hero stands further left
 
     // the hero to stand by the fire (the one picked in the list)
     public static void Show(ClassDef cls, AHLook look, System.Func<string, string> shown, AHPlayer p)
@@ -175,9 +177,12 @@ public class AHHeroHall : MonoBehaviour
         fireLight.intensity = 2.6f + Mathf.PerlinNoise(t * 6f, 0f) * 1.6f;
         if (hero != null && Mathf.Repeat(t, 1f) < dt * 1.5f) SetLayer(hero.transform, Layer);   // the VRoid body may join late
         // the camera drifts slowly round the hero and fire; the hero sits in the left part of the picture
-        float yaw = Mathf.Sin(t * 0.12f) * 9f, dolly = Mathf.Sin(t * 0.09f) * 0.35f;
-        Vector3 focus = At + new Vector3(-1.45f, 1.0f, 0f);   // the hero at the left, the fire beside them, the list over the right
-        Vector3 off = Quaternion.Euler(0f, yaw, 0f) * new Vector3(0.3f, 0.55f, 7.2f + dolly);
+        heroHold.localRotation = Quaternion.Slerp(heroHold.localRotation, Quaternion.Euler(0f, -16f + Spin, 0f), 1f - Mathf.Exp(-dt * 12f));
+        sNear = Mathf.Lerp(sNear, Near, 1f - Mathf.Exp(-dt * 6f));
+        float yaw = Mathf.Sin(t * 0.12f) * 9f * (1f - sNear), dolly = Mathf.Sin(t * 0.09f) * 0.35f * (1f - sNear);
+        // the hero at the left, the fire beside them, the list over the right; closer in, the face
+        Vector3 focus = At + Vector3.Lerp(new Vector3(-1.45f - 0.55f * Shift, 1.0f, 0f), new Vector3(-0.62f, 1.42f, 0f), sNear);
+        Vector3 off = Quaternion.Euler(0f, yaw, 0f) * new Vector3(Mathf.Lerp(0.3f, 0.05f, sNear), Mathf.Lerp(0.55f, 0.12f, sNear), Mathf.Lerp(7.2f, 2.9f, sNear) + dolly);
         cam.transform.position = focus + off; cam.transform.LookAt(focus);
     }
 }
