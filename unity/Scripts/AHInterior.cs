@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class AHInterior
+public static partial class AHInterior
 {
     public class Piece { public string id, name, blurb; public long cost; public int pts; }
     public static readonly Piece[] Pieces =
@@ -29,15 +29,17 @@ public static class AHInterior
     public static int Pts(AHPlayer p) { int n = 0; if (p.home != null && p.home.furn != null) foreach (var x in Pieces) if (p.home.furn.Contains(x.id)) n += x.pts; return n; }
     public static object Cost(Piece x) { return new Dictionary<string, object> { { "money", (double)x.cost } }; }
 
-    public const float W = 10f, D = 8f, H = 3f;
+    public static float W = 10f, D = 8f, H = 3f;   // the room's size: your house, or the guild hall (AHGuildHall.cs)
     public static bool Inside { get { return root != null; } }
+    public static bool InGuild { get { return root != null && guild; } }
+    static bool guild;
     static bool preview;
     static Transform root; static Vector3 c, outside; static float outYaw;
     static readonly List<GameObject> hidden = new List<GameObject>();
     static readonly List<AHSpot> spots = new List<AHSpot>();
     static readonly List<KeyValuePair<Transform, Vector3>> walls = new List<KeyValuePair<Transform, Vector3>>();
 
-    public static void Setup(AHGame g) { root = null; preview = false; hidden.Clear(); spots.Clear(); walls.Clear(); }
+    public static void Setup(AHGame g) { root = null; preview = false; guild = false; hidden.Clear(); spots.Clear(); walls.Clear(); }
 
     // the room keeps you inside its walls (instead of the land's rules)
     public static Vector3 Clamp(Vector3 p, float r)
@@ -52,6 +54,7 @@ public static class AHInterior
     static IEnumerable<Rect> Blocks()
     {
         var pl = AHGame.I != null ? AHGame.I.player : null; if (pl == null) yield break;
+        if (guild) { foreach (var b in GuildBlocks()) yield return b; yield break; }
         if (Has(pl, "bed")) yield return R(-3.2f, 2.5f, 1.8f, 2.6f);
         if (Has(pl, "table")) yield return R(2.6f, 0.6f, 1.3f, 1.3f);
         if (Has(pl, "fire")) yield return R(0f, 3.55f, 2.2f, 0.9f);
@@ -78,6 +81,13 @@ public static class AHInterior
         var p = g.player; if (p == null || Inside) return;
         if (!asPreview && p.home == null) { g.ui.Toast("You need a house first."); return; }
         if (!asPreview && AHGame.AreaId != AHHome.Area) { g.ui.Toast("Go home to your homestead to step inside your house."); return; }
+        guild = false; W = 10f; D = 8f; H = 3f;
+        GoIn(g, asPreview);
+        AHChat.Add("system", preview ? "Inside your house (preview: every piece shown, nothing bought)." : "You step inside your house.");
+    }
+    static void GoIn(AHGame g, bool asPreview)
+    {
+        var p = g.player;
         preview = asPreview;
         if (p.mounted) AHComp.Dismount(g, true);
         outside = p.transform.position; outYaw = g.camYaw;
@@ -93,7 +103,6 @@ public static class AHInterior
         Build(g);
         p.transform.position = c + new Vector3(0f, 0f, -D / 2 + 1.2f); p.transform.rotation = Quaternion.identity;
         g.camYaw = 0f;
-        AHChat.Add("system", preview ? "Inside your house (preview: every piece shown, nothing bought)." : "You step inside your house.");
         g.ui.Invoke("FadeOff", 0.5f);
     }
     static bool Keep(AHGame g, GameObject top)
@@ -113,7 +122,7 @@ public static class AHInterior
         foreach (var s in spots) AHGather.Spots.Remove(s); spots.Clear(); walls.Clear();
         UnityEngine.Object.Destroy(root.gameObject); root = null;
         foreach (var h in hidden) if (h != null) h.SetActive(true); hidden.Clear();
-        var p = g.player; p.transform.position = outside; g.camYaw = outYaw; preview = false;
+        var p = g.player; p.transform.position = outside; g.camYaw = outYaw; preview = false; guild = false;
         g.ui.Invoke("FadeOff", 0.5f);
     }
 
@@ -124,6 +133,10 @@ public static class AHInterior
     public static void Tick(AHGame g)
     {
         if (!Inside || g.cam == null) return;
+        // indoors the sun only comes in through the windows: the day's light is turned well down (the day cycle sets
+        // it again every frame, so this never adds up)
+        if (RenderSettings.sun != null) RenderSettings.sun.intensity *= 0.35f;
+        RenderSettings.ambientSkyColor *= 0.6f; RenderSettings.ambientEquatorColor *= 0.6f;
         Vector3 cp = g.cam.transform.position;
         foreach (var w in walls) { bool show = Vector3.Dot(cp - w.Key.position, w.Value) < 0f; if (w.Key.gameObject.activeSelf != show) w.Key.gameObject.SetActive(show); }
     }
@@ -151,6 +164,7 @@ public static class AHInterior
 
     static void Build(AHGame g)
     {
+        if (guild) { BuildGuild(g); return; }
         var p = g.player;
         root = new GameObject("House interior").transform; root.position = c;
         // darkness all round (an inside-out box) and a floor under it all
@@ -251,21 +265,26 @@ public static class AHInterior
             float mid = (from + to) / 2, l = to - from; if (l <= 0.01f) return;
             Box(w, alongX ? new Vector3(mid, (y0 + y1) / 2, 0) : new Vector3(0, (y0 + y1) / 2, mid), alongX ? new Vector3(l, y1 - y0, th) : new Vector3(th, y1 - y0, l), hex);
         };
-        if (door) { seg(-len / 2, -0.7f, 0, 1.0f, Oak); seg(0.7f, len / 2, 0, 1.0f, Oak); seg(-len / 2, -0.7f, 1.0f, H, Plaster); seg(0.7f, len / 2, 1.0f, H, Plaster); seg(-0.7f, 0.7f, 2.2f, H, Plaster); }
-        else { seg(-len / 2, len / 2, 0, 1.0f, Oak); seg(-len / 2, len / 2, 1.0f, H, Plaster); }
+        int low = guild ? Stone : Oak; float dw = guild ? 1.1f : 0.7f, dh = guild ? 3f : 2.2f;   // the guild hall: stone below, a tall double door
+        if (door) { seg(-len / 2, -dw, 0, 1.0f, low); seg(dw, len / 2, 0, 1.0f, low); seg(-len / 2, -dw, 1.0f, H, Plaster); seg(dw, len / 2, 1.0f, H, Plaster); seg(-dw, dw, dh, H, Plaster); }
+        else { seg(-len / 2, len / 2, 0, 1.0f, low); seg(-len / 2, len / 2, 1.0f, H, Plaster); }
         seg(-len / 2, len / 2, 0.98f, 1.06f, DarkOak); seg(-len / 2, len / 2, H - 0.12f, H, DarkOak);
         // a window of warm light on the long walls
         if (!door)
         {
             var win = new GameObject("Window").transform; win.SetParent(w, false);
             Vector3 inward = -outward * (th / 2 + 0.01f);
-            foreach (float off in alongX ? new[] { -3f, 3f } : new[] { 0f })
+            // the hall: tall windows high up between the banners; the house: two (one on the short walls)
+            float wy = guild ? 3.4f : 1.9f, ww = guild ? 0.8f : 0.9f, wh = guild ? 1.6f : 0.9f;
+            float[] offs = guild ? (alongX ? new[] { -4f, 4f } : new[] { -4f, 0f, 4f }) : alongX ? new[] { -3f, 3f } : new[] { 0f };
+            foreach (float off in offs)
             {
                 var q = GameObject.CreatePrimitive(PrimitiveType.Quad); UnityEngine.Object.Destroy(q.GetComponent<Collider>()); q.transform.SetParent(win, false);
-                q.transform.localPosition = (alongX ? new Vector3(off, 1.9f, 0) : new Vector3(0, 1.9f, off)) + inward; q.transform.localScale = new Vector3(0.9f, 0.9f, 1f);
-                q.transform.localRotation = Quaternion.LookRotation(outward); q.GetComponent<Renderer>().sharedMaterial = Glow(new Color(1f, 0.85f, 0.55f));
-                Box(win, (alongX ? new Vector3(off, 1.9f, 0) : new Vector3(0, 1.9f, off)) + inward * 1.5f, alongX ? new Vector3(0.06f, 0.95f, 0.04f) : new Vector3(0.04f, 0.95f, 0.06f), DarkOak);
-                Box(win, (alongX ? new Vector3(off, 1.9f, 0) : new Vector3(0, 1.9f, off)) + inward * 1.5f, alongX ? new Vector3(0.95f, 0.06f, 0.04f) : new Vector3(0.04f, 0.06f, 0.95f), DarkOak);
+                q.transform.localPosition = (alongX ? new Vector3(off, wy, 0) : new Vector3(0, wy, off)) + inward; q.transform.localScale = new Vector3(ww, wh, 1f);
+                q.transform.localRotation = Quaternion.LookRotation(outward); q.GetComponent<Renderer>().sharedMaterial = Glow(guild ? new Color(0.75f, 0.85f, 1f) : new Color(1f, 0.85f, 0.55f));
+                Box(win, (alongX ? new Vector3(off, wy, 0) : new Vector3(0, wy, off)) + inward * 1.5f, alongX ? new Vector3(0.06f, wh + 0.05f, 0.04f) : new Vector3(0.04f, wh + 0.05f, 0.06f), DarkOak);
+                Box(win, (alongX ? new Vector3(off, wy, 0) : new Vector3(0, wy, off)) + inward * 1.5f, alongX ? new Vector3(ww + 0.05f, 0.06f, 0.04f) : new Vector3(0.04f, 0.06f, ww + 0.05f), DarkOak);
+                if (guild) Box(win, (alongX ? new Vector3(off, wy - wh / 2 - 0.06f, 0) : new Vector3(0, wy - wh / 2 - 0.06f, off)) + inward * 2f, alongX ? new Vector3(ww + 0.25f, 0.1f, 0.2f) : new Vector3(0.2f, 0.1f, ww + 0.25f), Stone);   // a stone sill
             }
         }
         walls.Add(new KeyValuePair<Transform, Vector3>(w, outward));

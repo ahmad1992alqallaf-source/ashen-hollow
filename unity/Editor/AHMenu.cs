@@ -854,6 +854,14 @@ public static class AHMenu
         if (AHInterior.Inside) AHInterior.Leave(g); else AHInterior.Enter(g, true);
     }
 
+    // the real guild hall (your own banners, orders and trophies); again to leave
+    [MenuItem("Ashen Hollow/Test: Guild Hall Visit")]
+    static void GuildVisit()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        if (AHInterior.Inside) AHInterior.Leave(g); else AHInterior.EnterGuild(g, false);
+    }
+
     [MenuItem("Ashen Hollow/Test: Open Furnish Window")]
     static void FurnishWin() { var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return; g.ui.OpenFurnish(); }
 

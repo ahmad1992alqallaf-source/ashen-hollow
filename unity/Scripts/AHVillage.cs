@@ -91,6 +91,13 @@ public static class AHVillage
                 Vector3 rc = rb.center; if (rc.x > lot.min.x && rc.x < lot.max.x && rc.z > lot.min.z && rc.z < lot.max.z) r.enabled = false;
             }
             AHGather.Spots.RemoveAll(s => s.kind == "chop" && InLots(s.pos));
+            // the guild hall's door opens: step inside (AHGuildHall.cs)
+            if (pl.name == "Guild hall")
+            {
+                Vector3 fw = dir.normalized; float reachOut = Mathf.Abs(fw.x) * lot.extents.x + Mathf.Abs(fw.z) * lot.extents.z;
+                Vector3 doorAt = new Vector3(lot.center.x, c.y, lot.center.z) + fw * (reachOut + 0.9f);
+                AHGather.Spots.Add(new AHSpot { kind = "use", type = "hall", name = "Enter the guild hall", pos = doorAt, r = 0.6f, reach = 2.4f, use = () => AHInterior.EnterGuild(AHGame.I) });
+            }
             built++;
         }
         if (built > 0) Debug.Log("Ashen Hollow: " + built + " village buildings around the square");
