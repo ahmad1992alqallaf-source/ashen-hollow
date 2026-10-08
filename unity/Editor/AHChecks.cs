@@ -178,6 +178,16 @@ public static class AHChecks
         ptAt = Time.realtimeSinceStartup + all[ptI].len * (all[ptI].id == "spin" ? 0.35f : all[ptI].id == "flip" ? 0.4f : 0.5f);
     }
 
+    // exactly what the game view shows (with its buttons), at twice its size: HeroShots/screen_<time>.png
+    [MenuItem("Ashen Hollow/Test: Screen Capture")]
+    static void ScreenCap()
+    {
+        if (!Application.isPlaying) return;
+        string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
+        string f = System.IO.Path.Combine(dir, "screen_" + DateTime.Now.ToString("HHmmss") + ".png");
+        ScreenCapture.CaptureScreenshot(f, 2); Debug.Log("Ashen Hollow: screen capture " + f);
+    }
+
     [MenuItem("Ashen Hollow/Test: Next Season %&n")]
     static void NextSeason()
     {

@@ -187,7 +187,8 @@ public static class AHFossils
         for (int i = 0; i < nv; i++)
         {
             if (spine[i].y < -vr) continue;
-            var q = Quaternion.LookRotation(i < nv - 1 ? spine[i + 1] - spine[i] : spine[i] - spine[i - 1]);
+            Vector3 along = i < nv - 1 ? spine[i + 1] - spine[i] : spine[i] - spine[i - 1];
+            var q = along.sqrMagnitude > 1e-8f ? Quaternion.LookRotation(along) : Quaternion.identity;   // a tiny ribcage: no direction to face
             mb.Ball(spine[i], new Vector3(vr * 1.1f, vr * 0.95f, vr * 0.8f), q, 8, 5);
             // the spine on top of each vertebra, leaning back
             float sh = vr * R(1.4f, 2.4f) * Mathf.Sin(Mathf.PI * i / (nv - 1));
