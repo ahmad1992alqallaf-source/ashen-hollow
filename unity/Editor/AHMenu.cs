@@ -149,6 +149,41 @@ public static class AHMenu
     static int landVisit;
 
     // six views of the whole area from above its edges and centre, into HeroShots/area_<id>.png (a 3x2 sheet)
+    // every land in turn, seen from the hero's own camera a few seconds after arriving, on one sheet (HeroShots/lands.png):
+    // to check the look of the whole world at once after a change to the light, fog or colours
+    static readonly string[] SweepIds = { "meadow", "mill", "silkwood", "mire", "vale", "city", "frost", "hc_city", "sands", "ss_city", "mw_city", "isle", "tide", "co_city", "ember", "ch_city", "fossil" };
+    static int swI; static float swAt; static Texture2D swSheet;
+    [MenuItem("Ashen Hollow/Test: Land Sweep (hero view)")]
+    static void LandSweep()
+    {
+        if (!Application.isPlaying || AHGame.I == null) return;
+        swI = 0; swSheet = new Texture2D(480 * 5, 270 * 4, TextureFormat.RGB24, false);
+        var px = swSheet.GetPixels32(); for (int i = 0; i < px.Length; i++) px[i] = new Color32(20, 20, 24, 255); swSheet.SetPixels32(px);
+        TravelTo(SweepIds[0]); swAt = Time.realtimeSinceStartup + 14f;
+        EditorApplication.update -= LandSweepTick; EditorApplication.update += LandSweepTick;
+    }
+    static void LandSweepTick()
+    {
+        var g = AHGame.I;
+        if (!Application.isPlaying || g == null) { EditorApplication.update -= LandSweepTick; return; }
+        if (Time.realtimeSinceStartup < swAt) return;
+        if (g.cam != null && AHGame.AreaId == SweepIds[swI])
+        {
+            var rt = new RenderTexture(480, 270, 24); var was = g.cam.targetTexture; g.cam.targetTexture = rt; g.cam.Render(); g.cam.targetTexture = was;
+            RenderTexture.active = rt; swSheet.ReadPixels(new Rect(0, 0, 480, 270), (swI % 5) * 480, (3 - swI / 5) * 270); RenderTexture.active = null; rt.Release(); Object.DestroyImmediate(rt);
+            Debug.Log("Ashen Hollow: land sweep " + (swI + 1) + "/" + SweepIds.Length + " " + SweepIds[swI]);
+        }
+        swI++;
+        if (swI >= SweepIds.Length)
+        {
+            EditorApplication.update -= LandSweepTick; swSheet.Apply();
+            string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
+            System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, "lands.png"), swSheet.EncodeToPNG());
+            Debug.Log("Ashen Hollow: land sweep saved (HeroShots/lands.png)"); return;
+        }
+        TravelTo(SweepIds[swI]); swAt = Time.realtimeSinceStartup + 14f;
+    }
+
     [MenuItem("Ashen Hollow/Test: Area Overview Shots")]
     static void AreaShots()
     {

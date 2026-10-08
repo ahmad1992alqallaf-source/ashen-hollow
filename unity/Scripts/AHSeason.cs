@@ -8,7 +8,7 @@ public class AHSeason : MonoBehaviour
     public static string Force;   // test tools: show another season
     public static string Now { get { if (!string.IsNullOrEmpty(Force)) return Force; int m = System.DateTime.Now.Month; return m == 12 || m <= 2 ? "winter" : m <= 5 ? "spring" : m <= 8 ? "summer" : "autumn"; } }
     public static string Name { get { switch (Now) { case "winter": return "Winter"; case "spring": return "Spring"; case "summer": return "Summer"; default: return "Autumn"; } } }
-    AHGame g; ParticleSystem ps; bool nightOnly; Material mat;
+    AHGame g; ParticleSystem ps; bool nightOnly; Material mat; string look;
     static readonly string[] Hot = { "sands", "ss_city", "ember", "ch_city", "isle", "co_city" };
 
     // grass in the season: frosted pale in winter, a third of it gone gold and rust in autumn
@@ -32,7 +32,11 @@ public class AHSeason : MonoBehaviour
         AHMountains.ApplySeason(!hot && Now == "winter");                         // and the peaks go white
         if (!hot && Now == "winter") Shader.SetGlobalFloat("_AHSnow", cold ? 1f : 0.85f);
         if (!hot && !cold && Now == "autumn") Shader.SetGlobalFloat("_AHLeaves", 1f);
-        var s = new GameObject("Season").AddComponent<AHSeason>(); s.g = g; s.Build();
+        // what falls from the sky: snow all year in the frozen lands; nothing in the hot ones (no autumn leaves over the
+        // desert), except fireflies on a summer night
+        if (hot && Now != "summer") return;
+        var s = new GameObject("Season").AddComponent<AHSeason>(); s.g = g; s.look = cold ? "winter" : Now; s.Build();
+        if (cold) return;
         string line = Now == "autumn" ? "Autumn in the Hollow: the leaves are turning and falling." : Now == "winter" ? "Winter in the Hollow: snow on the wind." : Now == "spring" ? "Spring in the Hollow: blossom on the air." : "Summer in the Hollow: fireflies come out at night.";
         AHChat.Add("system", line);
     }
@@ -46,7 +50,7 @@ public class AHSeason : MonoBehaviour
         var vel = ps.velocityOverLifetime; vel.enabled = true; vel.space = ParticleSystemSimulationSpace.World;
         var rot = ps.rotationOverLifetime; var noise = ps.noise;
         Color a, b;
-        switch (Now)
+        switch (look)
         {
             case "winter":
                 a = new Color(1f, 1f, 1f, 0.9f); b = new Color(0.85f, 0.9f, 1f, 0.8f);
@@ -84,7 +88,7 @@ public class AHSeason : MonoBehaviour
         if (sh2 != null)
         {
             var m = new Material(sh2); m.SetColor("_BaseColor", Color.white);
-            m.SetTexture("_BaseMap", Dot(Now == "autumn" || Now == "spring"));
+            m.SetTexture("_BaseMap", Dot(look == "autumn" || look == "spring"));
             m.SetFloat("_AlphaClip", 1f); m.SetFloat("_Cutoff", 0.35f); m.EnableKeyword("_ALPHATEST_ON");
             m.SetFloat("_Cull", 0f);
             r.sharedMaterial = m; mat = m;
