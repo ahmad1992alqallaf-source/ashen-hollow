@@ -207,6 +207,8 @@ public class AHGame : MonoBehaviour
         AHJuice.Ensure(this); AHJuice.SetupDummy(this);   // hit-stop, shake, combos; the Training Golem in the meadow
         AHSeason.Setup(this);     // falling leaves, snow, blossom or fireflies, by the real season
         AHGallery.Setup(this);
+        AHGrade.Setup(this);
+        AHCamFade.Ensure(this);   // trees and roofs between the camera and you step aside   // the picture: tone curve, bloom, colour, vignette
         AHInterior.Setup(this); if (GetComponent<AHInteriorTick>() == null) gameObject.AddComponent<AHInteriorTick>();    // your costumes on plinths by your house
         AHKQ.Setup(this);
         AHComp.SpawnPet(this);

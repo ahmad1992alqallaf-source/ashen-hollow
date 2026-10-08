@@ -54,6 +54,7 @@ public static class AHSettings
             {
                 cd.antialiasing = AA == 0 ? AntialiasingMode.None : AA == 1 ? AntialiasingMode.FastApproximateAntialiasing : AntialiasingMode.SubpixelMorphologicalAntiAliasing;
                 cd.renderPostProcessing = Post == 1;
+                AHGrade.Enable(Post == 1); AHGrade.AO(Post == 1 && Shadows == 2 && !Application.isMobilePlatform);   // contact shadows on the best setting, not on phones
             }
             float reach = View == 0 ? 140f : View == 1 ? 195f : 250f;
             var lc = new float[32]; for (int i = 0; i < 32; i++) lc[i] = reach; lc[AHRange.Layer] = 420f; g.cam.layerCullDistances = lc;
@@ -199,35 +200,40 @@ public partial class AHUI
         ShowBag(false); ShowDialog(false); ShowWork(false);
         if (selRoot == null) BuildSelect();
         selRoot.gameObject.SetActive(true); selRoot.SetAsLastSibling();
+        AHHeroHall.Open(g, selRoot);   // the night scene by the campfire, full screen
         Time.timeScale = 0f; ptrs.Clear();
         selPick = AHPrefs.Slot; selDelArm = 0f;
         if (!AHPrefs.Slots().Contains(selPick)) { var l = AHPrefs.Slots(); selPick = l.Count > 0 ? l[0] : -1; }
         RenderSelect();
     }
-    void CloseSelect() { if (selRoot != null) selRoot.gameObject.SetActive(false); Time.timeScale = 1f; ptrs.Clear(); AHItemStudio.StopHero(); RemoveTaps("sel"); }
+    void CloseSelect() { if (selRoot != null) selRoot.gameObject.SetActive(false); AHHeroHall.Close(); Time.timeScale = 1f; ptrs.Clear(); AHItemStudio.StopHero(); RemoveTaps("sel"); }
 
     void BuildSelect()
     {
         selRoot = Box("Select", transform, Vector2.zero, Vector2.zero, Vector2.zero, Vector2.zero);
         selRoot.anchorMin = Vector2.zero; selRoot.anchorMax = Vector2.one; selRoot.offsetMin = selRoot.offsetMax = Vector2.zero;
-        var dim = Img("Dim", selRoot, white, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero, new Color(0.03f, 0.025f, 0.02f, 0.82f));
+        var dim = Img("Dim", selRoot, white, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero, new Color(0.03f, 0.025f, 0.02f, 0f));   // the hall shows through
         dim.anchorMin = Vector2.zero; dim.anchorMax = Vector2.one; dim.offsetMin = dim.offsetMax = Vector2.zero;
-        var t = Center(Label(selRoot, "Title", "Choose your hero", 40, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(900, 56), Gold));
-        t.rectTransform.anchorMin = t.rectTransform.anchorMax = new Vector2(0.5f, 1f); t.rectTransform.anchoredPosition = new Vector2(0, -42); t.fontStyle = FontStyle.Bold;
+        // the list sits on a dark glass panel on the right
+        var back = Img("ListBack", selRoot, white, new Vector2(0.5f, 0.5f), new Vector2(250, 0), new Vector2(590, 560), new Color(0.02f, 0.02f, 0.04f, 0.55f));
+        Img("ListEdge", back, white, new Vector2(0f, 0.5f), new Vector2(1, 0), new Vector2(2, 540), new Color(1f, 0.78f, 0.4f, 0.5f));
+        var gt = Label(selRoot, "Game", "ASHEN HOLLOW", 54, TextAnchor.UpperLeft, Vector2.zero, new Vector2(800, 70), new Color(1f, 0.84f, 0.5f));
+        gt.rectTransform.anchorMin = gt.rectTransform.anchorMax = gt.rectTransform.pivot = new Vector2(0f, 1f); gt.rectTransform.anchoredPosition = new Vector2(36, -22); gt.fontStyle = FontStyle.Bold;
+        var go1 = gt.gameObject.AddComponent<Outline>(); go1.effectColor = new Color(0.25f, 0.08f, 0f, 0.9f); go1.effectDistance = new Vector2(2f, -2f);
+        var t = Label(selRoot, "Title", "Choose your hero", 26, TextAnchor.UpperLeft, Vector2.zero, new Vector2(800, 36), new Color(1f, 1f, 1f, 0.85f));
+        t.rectTransform.anchorMin = t.rectTransform.anchorMax = t.rectTransform.pivot = new Vector2(0f, 1f); t.rectTransform.anchoredPosition = new Vector2(40, -90); t.fontStyle = FontStyle.Italic;
         // the hero standing, on the left
-        var stand = Img("Stand", selRoot, panel9 != null ? panel9 : white, new Vector2(0.5f, 0.5f), new Vector2(-265, -15), new Vector2(300, 470), new Color(0.13f, 0.1f, 0.08f, 0.96f));
-        if (panel9 != null) stand.GetComponent<Image>().type = Image.Type.Sliced;
-        if (glow != null) Img("Glow", stand, glow, new Vector2(0.5f, 0.5f), new Vector2(0, 40), new Vector2(300, 340), new Color(1f, 0.75f, 0.4f, 0.28f));
+        var stand = Img("Stand", selRoot, white, new Vector2(0.5f, 0.5f), new Vector2(-330, -15), new Vector2(300, 470), new Color(0, 0, 0, 0));   // the hero stands in the hall itself now
         selView = Box("Hero", stand, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -8), new Vector2(260, 364));
         selRaw = selView.gameObject.AddComponent<RawImage>(); selRaw.raycastTarget = false;
-        selName = Center(Label(stand, "Name", "", 26, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(290, 32), Gold)); selName.fontStyle = FontStyle.Bold;
-        selName.rectTransform.anchoredPosition = new Vector2(0, -172);
+        selName = Center(Label(stand, "Name", "", 34, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(420, 40), Gold)); selName.fontStyle = FontStyle.Bold;
+        selName.rectTransform.anchoredPosition = new Vector2(0, -212); { var ol = selName.gameObject.AddComponent<Outline>(); ol.effectColor = new Color(0, 0, 0, 0.85f); ol.effectDistance = new Vector2(2f, -2f); }
         selInfo = Center(Label(stand, "Info", "", 16, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(290, 24), new Color(1f, 1f, 1f, 0.75f)));
-        selInfo.rectTransform.anchoredPosition = new Vector2(0, -200);
+        selInfo.rectTransform.anchoredPosition = new Vector2(0, -244); selInfo.rectTransform.sizeDelta = new Vector2(420, 24); { var ol = selInfo.gameObject.AddComponent<Outline>(); ol.effectColor = new Color(0, 0, 0, 0.85f); }
         // the list, on the right
         selList = Box("List", selRoot, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(230, 40), new Vector2(620, 460));
         selMsg = Center(Label(selRoot, "Msg", "", 16, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(620, 24), new Color(1f, 0.7f, 0.55f)));
-        selMsg.rectTransform.anchoredPosition = new Vector2(150, -205);
+        selMsg.rectTransform.anchoredPosition = new Vector2(250, -205);
         selRoot.gameObject.SetActive(false);
     }
 
@@ -249,7 +255,7 @@ public partial class AHUI
         for (int i = 0; i < AHPrefs.MaxHeroes; i++)
         {
             int col = i % 2, row = i / 2;
-            Vector2 pos = new Vector2(20 + col * 262, 160 - row * 94);
+            Vector2 pos = new Vector2(120 + col * 262, 160 - row * 94);
             if (i < slots.Count)
             {
                 int sl = slots[i]; var h = HeroInfo(sl); var cls = AHClasses.Get(h.cls);
@@ -277,22 +283,21 @@ public partial class AHUI
             var h = HeroInfo(selPick); var cls = AHClasses.Get(h.cls);
             selName.text = string.IsNullOrEmpty(h.name) ? "Unnamed hero" : h.name;
             selInfo.text = "Level " + h.level + " " + (cls != null ? cls.name : "") + " · " + AreaName(h.area);
-            AHItemStudio.Campfire = true;   // the hero select screen: your hero stands by a campfire
-            if (selPick == AHPrefs.Slot && g.player != null) selRaw.texture = AHItemStudio.Hero(g.player);
+            if (selPick == AHPrefs.Slot && g.player != null) { var pl = g.player; AHHeroHall.Show(pl.cls, pl.look, s => AHWardrobe.Shown(pl, s), pl); selRaw.texture = null; }
             else
             {
                 AHLook look = null; try { if (!string.IsNullOrEmpty(h.look)) look = JsonUtility.FromJson<AHLook>(h.look); } catch { }
                 var gear = new Dictionary<string, string>();
                 foreach (var kv in (h.gear ?? "").Split(',')) { int e = kv.IndexOf('='); if (e > 0 && e < kv.Length - 1) gear[kv.Substring(0, e)] = kv.Substring(e + 1); }
-                selRaw.texture = AHItemStudio.HeroOf(cls ?? g.player.cls, look, s => { string v; return gear.TryGetValue(s, out v) ? v : null; });
+                AHHeroHall.Show(cls ?? (g.player != null ? g.player.cls : AHClasses.All[0]), look, s => { string v; return gear.TryGetValue(s, out v) ? v : null; }, null); selRaw.texture = null;
             }
             selRaw.enabled = selRaw.texture != null;
-            SelBtn("Play", "Play", new Vector2(20, -140), new Vector2(240, 60), Go, PlaySel);
-            selDelT = Center(Label(SelBtn("Del", "", new Vector2(282, -140), new Vector2(240, 60), new Color(0.45f, 0.22f, 0.17f, 1f), DeleteSel), "D", selDelArm > Time.unscaledTime ? "Tap again to delete" : "Delete", 20, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(240, 34), Color.white));
+            SelBtn("Play", "Play", new Vector2(120, -140), new Vector2(240, 60), Go, PlaySel);
+            selDelT = Center(Label(SelBtn("Del", "", new Vector2(382, -140), new Vector2(240, 60), new Color(0.45f, 0.22f, 0.17f, 1f), DeleteSel), "D", selDelArm > Time.unscaledTime ? "Tap again to delete" : "Delete", 20, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(240, 34), Color.white));
         }
-        else { selName.text = "No heroes yet"; selInfo.text = "Make your first hero."; selRaw.enabled = false; SelBtn("New", "Make a hero", new Vector2(150, -140), new Vector2(260, 60), Go, NewHero); }
+        else { selName.text = "No heroes yet"; selInfo.text = "Make your first hero."; selRaw.enabled = false; SelBtn("New", "Make a hero", new Vector2(250, -140), new Vector2(260, 60), Go, NewHero); }
 #if !UNITY_EDITOR
-        SelBtn("Quit", "Quit", new Vector2(150, -250), new Vector2(160, 46), Plain, Application.Quit);
+        SelBtn("Quit", "Quit", new Vector2(250, -250), new Vector2(160, 46), Plain, Application.Quit);
 #endif
     }
 
