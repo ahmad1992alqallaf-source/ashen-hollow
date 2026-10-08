@@ -137,6 +137,47 @@ public static class AHChecks
     [MenuItem("Ashen Hollow/Test: Next Weather %&r")]
     static void NextWeather() { if (!Application.isPlaying) return; AHWeather.TestNext(); Debug.Log("Ashen Hollow: weather " + AHWeather.Name); }
 
+    // every pet trick, whatever the pet's level: each one started in turn and photographed halfway through, side by side
+    // in HeroShots/pet_tricks.png
+    static int ptI; static float ptAt; static Texture2D ptSheet; static Camera ptCam;
+    [MenuItem("Ashen Hollow/Test: Pet Trick Shots")]
+    static void PetTrickShots()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null) return;
+        var f = UnityEngine.Object.FindAnyObjectByType<AHPetFollow>(); if (f == null) { Debug.Log("Ashen Hollow: no pet out"); return; }
+        ptI = -1; ptAt = 0f; ptSheet = new Texture2D(320 * 4, 320 * 2, TextureFormat.RGB24, false);
+        var cg = new GameObject("PetShotCam"); ptCam = cg.AddComponent<Camera>(); ptCam.enabled = false; ptCam.fieldOfView = 40f;
+        ptCam.cullingMask = ~(1 << 5);
+        EditorApplication.update += PetTrickTick;
+    }
+    static void PetTrickTick()
+    {
+        var f = UnityEngine.Object.FindAnyObjectByType<AHPetFollow>();
+        if (!Application.isPlaying || f == null) { EditorApplication.update -= PetTrickTick; return; }
+        if (Time.realtimeSinceStartup < ptAt) return;
+        var all = AHPetTricks.All;
+        if (ptI >= 0)
+        {
+            // photograph the pet from the front-side
+            var t = f.transform; Vector3 at = t.position + Vector3.up * 0.45f;
+            ptCam.transform.position = at + t.forward * 2.6f + t.right * 1.2f + Vector3.up * 0.6f; ptCam.transform.LookAt(at);
+            var rt = RenderTexture.GetTemporary(320, 320, 24); ptCam.targetTexture = rt; ptCam.Render(); ptCam.targetTexture = null;
+            var prev = RenderTexture.active; RenderTexture.active = rt;
+            ptSheet.ReadPixels(new Rect(0, 0, 320, 320), (ptI % 4) * 320, (1 - ptI / 4) * 320); RenderTexture.active = prev; RenderTexture.ReleaseTemporary(rt);
+        }
+        ptI++;
+        if (ptI >= all.Length)
+        {
+            EditorApplication.update -= PetTrickTick; ptSheet.Apply();
+            string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
+            System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, "pet_tricks.png"), ptSheet.EncodeToPNG());
+            UnityEngine.Object.Destroy(ptCam.gameObject); Debug.Log("Ashen Hollow: pet trick shots saved (pet_tricks.png: " + string.Join(", ", Array.ConvertAll(all, x => x.name)) + ")");
+            return;
+        }
+        f.StartTrick(all[ptI]);
+        ptAt = Time.realtimeSinceStartup + all[ptI].len * (all[ptI].id == "spin" ? 0.35f : all[ptI].id == "flip" ? 0.4f : 0.5f);
+    }
+
     [MenuItem("Ashen Hollow/Test: Next Season %&n")]
     static void NextSeason()
     {

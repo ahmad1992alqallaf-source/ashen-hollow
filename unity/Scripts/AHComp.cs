@@ -201,6 +201,9 @@ public static class AHComp
 public class AHPetFollow : MonoBehaviour
 {
     AHGame g; string kind; bool fly; GameObject model; float phase, guardT = 2f, mendT = 8f; AHAnim anim;
+    // tricks (AHPetTricks): the one being done, how long the hero has stood still, when the pet may show off again
+    AHPetTricks.Trick trick; float trickT, modelH = 0.5f, stillT, showOffAt; Quaternion baseRot = Quaternion.identity; Vector3 baseScale = Vector3.one, lastHeroPos;
+    public void StartTrick(AHPetTricks.Trick t) { trick = t; trickT = 0f; showOffAt = Time.time + Random.Range(25f, 40f); }
 
     public void Setup(AHGame game, string k)
     {
@@ -224,6 +227,12 @@ public class AHPetFollow : MonoBehaviour
         // evolved pets are bigger, and a Mythic one glows
         int stage = AHComp.EvoStage(g.player, k);
         if (stage > 0 && model != null) model.transform.localScale *= 1f + 0.12f * stage;
+        if (model != null)
+        {
+            baseRot = model.transform.localRotation; baseScale = model.transform.localScale;
+            var rs = model.GetComponentsInChildren<Renderer>(true); if (rs.Length > 0) { var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); modelH = Mathf.Clamp(b.size.y, 0.2f, 2f); }
+        }
+        showOffAt = Time.time + 20f;
         if (stage >= 3 && model != null) { var gl = new GameObject("MythicGlow"); gl.transform.SetParent(model.transform, false); gl.transform.localPosition = Vector3.up * 0.4f; gl.AddComponent<AHWeaponGlow>().col = new Color(1f, 0.8f, 0.35f); }
     }
     void OnDestroy() { if (anim != null) anim.Dispose(); }
@@ -235,17 +244,37 @@ public class AHPetFollow : MonoBehaviour
         Vector3 goal = p.transform.position - p.transform.forward * 0.3f + p.transform.right * 1.5f;   // at your side, out of the camera's line
         Vector3 d = goal - transform.position; d.y = 0;
         if (d.magnitude > 20f) { transform.position = goal; d = Vector3.zero; }
-        float sp = d.magnitude > 0.32f ? Mathf.Min(d.magnitude * 3.2f, 13f) : 0f;
+        if (trick != null && d.magnitude > 3f) trick = null;   // you walked off: it runs after you
+        float sp = trick != null ? 0f : d.magnitude > 0.32f ? Mathf.Min(d.magnitude * 3.2f, 13f) : 0f;
         if (sp > 0f)
         {
             Vector3 np = transform.position + d.normalized * sp * dt;
             transform.position = fly ? np : g.Resolve(np, 0.2f);
             transform.rotation = Quaternion.Slerp(transform.rotation, g.Face(d), 1f - Mathf.Exp(-dt * 8f));
         }
-        else transform.rotation = Quaternion.Slerp(transform.rotation, p.transform.rotation, 1f - Mathf.Exp(-dt * 3f));
+        else if (trick == null) transform.rotation = Quaternion.Slerp(transform.rotation, p.transform.rotation, 1f - Mathf.Exp(-dt * 3f));
+        else { Vector3 toHero = p.transform.position - transform.position; toHero.y = 0f; if (toHero.sqrMagnitude > 0.01f) transform.rotation = Quaternion.Slerp(transform.rotation, g.Face(toHero), 1f - Mathf.Exp(-dt * 5f)); }   // it performs for you
         phase += dt;
         float y = fly ? 1.95f + Mathf.Sin(phase * 2.3f) * 0.15f : sp > 0f && anim == null ? Mathf.Abs(Mathf.Sin(phase * 12f)) * 0.13f : 0f;
-        model.transform.localPosition = new Vector3(0f, y, 0f);
+        model.transform.localPosition = new Vector3(0f, y, 0f); model.transform.localRotation = baseRot;
+        // standing about out of a fight: now and then the pet shows off a trick on its own
+        bool still = (p.transform.position - lastHeroPos).sqrMagnitude < 0.0004f; lastHeroPos = p.transform.position;
+        stillT = still && !p.InFight && !p.dead ? stillT + dt : 0f;
+        if (trick == null && stillT > 10f && Time.time >= showOffAt && sp == 0f)
+        {
+            var known = AHPetTricks.Known(p);
+            if (known.Count > 0) StartTrick(known[Random.Range(0, known.Count)]); else showOffAt = Time.time + 30f;
+        }
+        if (trick != null)
+        {
+            trickT += dt; float u = Mathf.Clamp01(trickT / trick.len);
+            Vector3 lift, eu; AHPetTricks.Pose(trick, u, trickT, modelH, out lift, out eu);
+            // turn about the middle of the body, not its feet
+            Quaternion q = Quaternion.Euler(eu); Vector3 c = Vector3.up * modelH * 0.5f;
+            model.transform.localRotation = q * baseRot;
+            model.transform.localPosition += c - q * c + lift;
+            if (trickT >= trick.len) { trick = null; AHPetTricks.Done(g, transform.position + Vector3.up * (y + modelH + 0.2f)); }
+        }
         if (anim != null)
         {
             // the animated pets (fox kits, baby dragon): walk, run, sit about, or keep their wings beating
@@ -255,7 +284,7 @@ public class AHPetFollow : MonoBehaviour
             else anim.Play("Idle", true);
             anim.Tick(dt);
         }
-        if (kind == "slime" || kind == "toad" || kind == "pumpkin_slime") model.transform.localScale = new Vector3(1f + Mathf.Sin(phase * 6f) * 0.07f, 1f - Mathf.Sin(phase * 6f) * 0.07f, 1f);
+        if (kind == "slime" || kind == "toad" || kind == "pumpkin_slime") model.transform.localScale = Vector3.Scale(baseScale, new Vector3(1f + Mathf.Sin(phase * 6f) * 0.07f, 1f - Mathf.Sin(phase * 6f) * 0.07f, 1f));   // (keeping an evolved pet's size)
         if (p.dead) return;
         // Guard: a bite every 2 s at whatever is hunting you
         guardT -= dt;

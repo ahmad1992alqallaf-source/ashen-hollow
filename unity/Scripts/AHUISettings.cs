@@ -184,10 +184,19 @@ public partial class AHUI
             }
             Row(r, gr[0], new Color(1f, 0.8f, 0.45f), "", "", btns.ToArray());
         }
-        Row(3, "Photo mode", new Color(0.8f, 0.8f, 1f), "Hide the screen buttons to take a picture (drag to turn the camera)", "",
+        // your pet's tricks: the newest three it knows, and one at random
+        if (p.pet != null)
+        {
+            var known = AHPetTricks.Known(p); var nx = AHPetTricks.Next(p); var tb = new List<WkBtn>();
+            for (int i = Mathf.Max(0, known.Count - 3); i < known.Count; i++) { string tid = known[i].id; tb.Add(new WkBtn { label = known[i].name, on = true, col = Plain, act = () => { ShowWork(false); AHPetTricks.Do(g, tid); } }); }
+            if (known.Count > 1) tb.Add(new WkBtn { label = "Any", on = true, col = Go, act = () => { ShowWork(false); AHPetTricks.Do(g, null); } });
+            Row(3, AHComp.PetName(p.pet) + "'s tricks", new Color(1f, 0.6f, 0.75f), known.Count + " of " + AHPetTricks.All.Length + " learned", nx != null ? "Next: " + nx.name + " at pet level " + nx.lv : "Every trick learned!", tb.ToArray());
+        }
+        else Row(3, "Pet tricks", new Color(1f, 0.6f, 0.75f, 0.6f), "Take a pet out and it learns tricks as it levels", "");
+        Row(4, "Photo mode", new Color(0.8f, 0.8f, 1f), "Hide the screen buttons to take a picture (drag to turn the camera)", "",
             new WkBtn { label = "Photo", on = true, col = Go, act = () => PhotoMode(true) });
         if (p.emote != null)
-            Row(4, "Stop", new Color(1f, 1f, 1f, 0.7f), "End the emote you are doing", "", new WkBtn { label = "Stop", on = true, col = Plain, act = () => { g.player.StopEmote(); RenderWork(); } });
+            Row(5, "Stop", new Color(1f, 1f, 1f, 0.7f), "End the emote you are doing", "", new WkBtn { label = "Stop", on = true, col = Plain, act = () => { g.player.StopEmote(); RenderWork(); } });
     }
 
     // ---------- the hero select screen ----------
