@@ -518,11 +518,35 @@ public class AHDeepView : MonoBehaviour
             for (int i = 0; i < n; i++)
             {
                 Vector3 at = new Vector3(Mathf.Lerp(R.xMin + 3f, R.xMax - 3f, (float)rnd.NextDouble()), 0, Mathf.Lerp(R.yMin + 3f, R.yMax - 3f, (float)rnd.NextDouble()));
-                var v = GameObject.CreatePrimitive(PrimitiveType.Cylinder); Destroy(v.GetComponent<Collider>());
-                v.name = "Vent"; v.transform.SetParent(transform, false); v.transform.position = at + Vector3.up * 0.03f; v.transform.localScale = new Vector3(1.1f, 0.03f, 1.1f);
-                v.GetComponent<Renderer>().sharedMaterial = ember; vents.Add(v.transform);
+                vents.Add(Vent(at));
             }
         }
+    }
+
+    // a fire vent: an iron grate standing proud of the floor (the old flat disc sank under the tiles and rubble), a
+    // glowing core under the bars and embers drifting up, so you can see where the fire will come from
+    static Material sparkMat;
+    Transform Vent(Vector3 at)
+    {
+        var v = new GameObject("Vent").transform; v.SetParent(transform, false); v.position = at;
+        System.Func<PrimitiveType, Vector3, Vector3, Material, Transform> part = (kind, pos, size, m) =>
+        {
+            var o = GameObject.CreatePrimitive(kind); Destroy(o.GetComponent<Collider>()); o.transform.SetParent(v, false);
+            o.transform.localPosition = pos; o.transform.localScale = size; o.GetComponent<Renderer>().sharedMaterial = m; return o.transform;
+        };
+        part(PrimitiveType.Cylinder, new Vector3(0, 0.07f, 0), new Vector3(1.25f, 0.07f, 1.25f), trim);
+        part(PrimitiveType.Cylinder, new Vector3(0, 0.12f, 0), new Vector3(0.95f, 0.02f, 0.95f), ember);
+        for (int i = -2; i <= 2; i++) { part(PrimitiveType.Cube, new Vector3(i * 0.18f, 0.15f, 0), new Vector3(0.06f, 0.05f, 0.98f - Mathf.Abs(i) * 0.12f), trim); }
+        part(PrimitiveType.Cube, new Vector3(0, 0.155f, 0), new Vector3(0.98f, 0.05f, 0.06f), trim);
+        // embers rising
+        var ps = v.gameObject.AddComponent<ParticleSystem>(); ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        var main = ps.main; main.startLifetime = new ParticleSystem.MinMaxCurve(1f, 1.8f); main.startSpeed = new ParticleSystem.MinMaxCurve(0.4f, 1f); main.startSize = new ParticleSystem.MinMaxCurve(0.04f, 0.08f);
+        main.startColor = new ParticleSystem.MinMaxGradient(new Color(1f, 0.55f, 0.15f), new Color(1f, 0.8f, 0.3f)); main.simulationSpace = ParticleSystemSimulationSpace.World; main.maxParticles = 30;
+        var em = ps.emission; em.rateOverTime = 5f;
+        var sh = ps.shape; sh.shapeType = ParticleSystemShapeType.Circle; sh.radius = 0.4f; sh.rotation = new Vector3(-90f, 0f, 0f); sh.position = new Vector3(0f, 0.15f, 0f);
+        if (sparkMat == null) sparkMat = AHGame.LoadMat("AH/Materials/Spark", "AshenHollow/Spark");
+        var r = v.GetComponent<ParticleSystemRenderer>(); r.sharedMaterial = sparkMat != null ? sparkMat : AHFx.Mat; ps.Play();
+        return v;
     }
 
     bool InHall(Vector3 p) { foreach (var h in halls) { var u = U(h); u.xMin -= 1f; u.xMax += 1f; u.yMin -= 1f; u.yMax += 1f; if (u.Contains(new Vector2(p.x, p.z))) return true; } return false; }

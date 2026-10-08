@@ -433,7 +433,7 @@ public partial class AHUI
         for (int i = 0; i < AHStory.Chapters.Length; i++)
         {
             var c = AHStory.Chapters[i]; bool done = p.prog.storyCh > i, now = p.prog.storyCh == i;
-            string line = done ? "Done" : now ? AHStory.Status(p) : "Opens at level " + c.lvl;
+            string line = done ? "Done · tap Watch to see its scenes again" : now ? AHStory.Status(p) : p.level >= c.lvl ? "Opens after Chapter " + i : "Opens at level " + c.lvl + (i > 0 ? ", after Chapter " + i : "");
             string title = "Chapter " + (i + 1) + " · " + c.name;
             Color col = done ? new Color(0.6f, 0.9f, 0.5f) : now ? new Color(1f, 0.8f, 0.45f) : new Color(1f, 1f, 1f, 0.5f);
             if (done)
