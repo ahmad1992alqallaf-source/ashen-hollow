@@ -1070,6 +1070,7 @@ public class AHGame : MonoBehaviour
     static readonly Color NightH = Hex(0x141a2c), DuskH = Hex(0xa06a52), DayH = Hex(0x93a2b0);
     static readonly Color NightZ = Hex(0x060914), DuskZ = Hex(0x4a3f6e), DayZ = Hex(0x3f74b8);
     static readonly Color SunC = Hex(0xffd9a8), MoonC = Hex(0x8fa8ff);
+    static Color Max(Color a, Color b) { return new Color(Mathf.Max(a.r, b.r), Mathf.Max(a.g, b.g), Mathf.Max(a.b, b.b), 1f); }
     public static Color Hex(int h) { return new Color(((h >> 16) & 255) / 255f, ((h >> 8) & 255) / 255f, (h & 255) / 255f, 1f); }
 
     public float DayLight { get; private set; }
@@ -1086,8 +1087,9 @@ public class AHGame : MonoBehaviour
         Color hor = dl < 0.5f ? Color.Lerp(NightH, DuskH, dl * 2f) : Color.Lerp(DuskH, DayH, (dl - 0.5f) * 2f);
         Color zen = dl < 0.5f ? Color.Lerp(NightZ, DuskZ, dl * 2f) : Color.Lerp(DuskZ, DayZ, (dl - 0.5f) * 2f);
         RenderSettings.fogColor = hor;
-        RenderSettings.ambientSkyColor = Color.Lerp(hor, zen, 0.5f) * (0.55f + 0.5f * dl);
-        RenderSettings.ambientEquatorColor = hor * (0.5f + 0.4f * dl);
+        // a moonlit night you can still play in: the ambient never sinks below a cool blue floor
+        RenderSettings.ambientSkyColor = Max(Color.Lerp(hor, zen, 0.5f) * (0.55f + 0.5f * dl), new Color(0.12f, 0.15f, 0.25f));
+        RenderSettings.ambientEquatorColor = Max(hor * (0.5f + 0.4f * dl), new Color(0.09f, 0.11f, 0.17f));
         RenderSettings.ambientGroundColor = Hex(0x3e3a2c) * (0.4f + 0.5f * dl);
 
         // the light: the sun by day, the moon by night, never so low that shadows stretch forever
@@ -1095,7 +1097,7 @@ public class AHGame : MonoBehaviour
         float lx = up ? Mathf.Cos(a) : -Mathf.Cos(a), ly = Mathf.Max(0.35f, Mathf.Abs(sn));
         Vector3 toLight = new Vector3(-lx, ly, 0.35f).normalized;
         sun.transform.rotation = Quaternion.LookRotation(-toLight);
-        sun.intensity = 0.25f + 0.95f * dl;
+        sun.intensity = 0.42f + 0.78f * dl;   // the moon lights the night a little
         sun.color = Color.Lerp(MoonC, SunC, dl);
 
         Vector3 sunDir = new Vector3(-Mathf.Cos(a), Mathf.Sin(a), 0.45f).normalized;

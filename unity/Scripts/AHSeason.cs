@@ -8,7 +8,7 @@ public class AHSeason : MonoBehaviour
     public static string Force;   // test tools: show another season
     public static string Now { get { if (!string.IsNullOrEmpty(Force)) return Force; int m = System.DateTime.Now.Month; return m == 12 || m <= 2 ? "winter" : m <= 5 ? "spring" : m <= 8 ? "summer" : "autumn"; } }
     public static string Name { get { switch (Now) { case "winter": return "Winter"; case "spring": return "Spring"; case "summer": return "Summer"; default: return "Autumn"; } } }
-    AHGame g; ParticleSystem ps; bool nightOnly;
+    AHGame g; ParticleSystem ps; bool nightOnly; Material mat;
     static readonly string[] Hot = { "sands", "ss_city", "ember", "ch_city", "isle", "co_city" };
 
     // grass in the season: frosted pale in winter, a third of it gone gold and rust in autumn
@@ -86,7 +86,7 @@ public class AHSeason : MonoBehaviour
             m.SetTexture("_BaseMap", Dot(Now == "autumn" || Now == "spring"));
             m.SetFloat("_AlphaClip", 1f); m.SetFloat("_Cutoff", 0.35f); m.EnableKeyword("_ALPHATEST_ON");
             m.SetFloat("_Cull", 0f);
-            r.sharedMaterial = m;
+            r.sharedMaterial = m; mat = m;
         }
         r.renderMode = ParticleSystemRenderMode.Billboard;
         ps.Play();
@@ -113,6 +113,11 @@ public class AHSeason : MonoBehaviour
         if (nightOnly)
         {
             var em = ps.emission; em.enabled = g.IsNight;
+        }
+        else if (mat != null)
+        {
+            // leaves, snow and petals are not lit by the sun: dim them with the day so they don't glow in the dark
+            float k = Mathf.Lerp(0.28f, 1f, Mathf.Clamp01(g.DayLight * 1.4f)); mat.SetColor("_BaseColor", new Color(k, k, k * 1.05f, 1f));
         }
     }
 }

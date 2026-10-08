@@ -91,6 +91,17 @@ public static class AHVillage
                 Vector3 rc = rb.center; if (rc.x > lot.min.x && rc.x < lot.max.x && rc.z > lot.min.z && rc.z < lot.max.z) r.enabled = false;
             }
             AHGather.Spots.RemoveAll(s => s.kind == "chop" && InLots(s.pos));
+            // a street lamp by each front door: the village is lit at night (lamps light up after dark, near the hero)
+            {
+                Vector3 fw = dir.normalized, side = Vector3.Cross(Vector3.up, fw);
+                float reachOut = Mathf.Abs(fw.x) * lot.extents.x + Mathf.Abs(fw.z) * lot.extents.z, across = Mathf.Abs(side.x) * lot.extents.x + Mathf.Abs(side.z) * lot.extents.z;
+                Vector3 at = new Vector3(lot.center.x, c.y, lot.center.z) + fw * (reachOut + 0.7f) + side * (across * 0.62f);
+                if (!g.Blocked(at, 0.4f))
+                {
+                    var lamp = AHStations.Lamp(root, built); lamp.transform.position = at; lamp.transform.rotation = Quaternion.LookRotation(-side);
+                    AHModel.SetShadows(lamp); g.AddBlockBox(new Bounds(at + Vector3.up, new Vector3(0.4f, 2f, 0.4f)), 0.05f);
+                }
+            }
             // the guild hall's door opens: step inside (AHGuildHall.cs)
             if (pl.name == "Guild hall")
             {
