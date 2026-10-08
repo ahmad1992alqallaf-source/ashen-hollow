@@ -960,20 +960,24 @@ public class AHGame : MonoBehaviour
         if (occArea != AreaId) { occArea = AreaId; occAge = 0f; occ.Clear(); }
         float oa = occAge; occAge += Time.deltaTime;
         if ((oa < 1.5f && occAge >= 1.5f) || (oa < 6f && occAge >= 6f)) BuildOccluders();
-        float wantPitch = minPitch;
+        // first look for an ordinary angle with the view clear; failing that, an ordinary angle with the camera brought
+        // in closer (a wall right behind you, as at a city gate, used to send the camera straight overhead); only then
+        // climb over the rock
+        float wantPitch = -1f, pull = 1e9f, firstOk = -1f, firstCl = 0f;
         for (float pt = minPitch; pt <= 74f; pt += 6f)
         {
-            wantPitch = pt;
             Vector3 bk = -(Quaternion.Euler(pt, camYaw, 0) * Vector3.forward);
             float cl = Mathf.Min(AHMountains.Clear(look, bk, distShown), OccClear(look, bk, distShown));
             if (tiles != null) cl = Mathf.Min(cl, RockClear(look, bk, distShown));
-            if (cl >= distShown * 0.9f) break;
+            if (cl >= distShown * 0.9f) { wantPitch = pt; break; }
+            if (firstOk < 0f && pt <= 50f && cl >= Mathf.Max(3.2f, distShown * 0.45f)) { firstOk = pt; firstCl = cl; }
         }
+        if (wantPitch < 0f || (wantPitch > 50f && firstOk >= 0f)) { if (firstOk >= 0f) { wantPitch = firstOk; pull = firstCl * 0.92f; } else wantPitch = 74f; }
         pitchShown = pitchShown <= 0f ? wantPitch : Mathf.Lerp(pitchShown, wantPitch, 1f - Mathf.Exp(-Time.deltaTime * 4f));
         Quaternion q = Quaternion.Euler(pitchShown, camYaw, 0);
         Vector3 back = -(q * Vector3.forward);
         // come in quickly when a tree crown is in the way, ease back out once it is clear
-        float clear = ClearDistance(look, back, distShown);
+        float clear = Mathf.Min(ClearDistance(look, back, distShown), pull);
         if (camShown <= 0f || clear < camShown) camShown = clear;
         else camShown = Mathf.MoveTowards(camShown, clear, Time.deltaTime * 4f);
         cam.transform.position = look + back * camShown;
