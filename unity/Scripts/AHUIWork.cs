@@ -135,9 +135,12 @@ public partial class AHUI
             tx = 72f;
         }
         rowIcon = null; rowIconDim = false; rowItem = null;
-        var t = Label(bg, "Name", title, 19, TextAnchor.UpperLeft, new Vector2(tx, -4), new Vector2(520, 24), tc); t.fontStyle = FontStyle.Bold;
-        if (!string.IsNullOrEmpty(line2)) Label(bg, "L2", line2, 15, TextAnchor.UpperLeft, new Vector2(tx, -26), new Vector2(560 - (tx - 12f), 20), new Color(1f, 1f, 1f, 0.8f));
-        if (!string.IsNullOrEmpty(line3)) Label(bg, "L3", line3, 15, TextAnchor.UpperLeft, new Vector2(tx, -44), new Vector2(560 - (tx - 12f), 20), new Color(1f, 1f, 1f, 0.65f));
+        // the words stop short of the buttons (long lines shrink to fit instead of running underneath them)
+        float btnW = 0f; foreach (var b in btns) if (b != null) btnW += Mathf.Max(96f, b.label.Length * 11f + 24f) + 8f;
+        float textW = Mathf.Max(160f, (WkW - 36f) - tx - btnW - 16f), lineW = btnW > 0f ? Mathf.Min(560 - (tx - 12f), textW) : textW;
+        var t = Label(bg, "Name", title, 19, TextAnchor.UpperLeft, new Vector2(tx, -4), new Vector2(Mathf.Min(520f, textW), 24), tc); t.fontStyle = FontStyle.Bold; Fit(t, 13);
+        if (!string.IsNullOrEmpty(line2)) Fit(Label(bg, "L2", line2, 15, TextAnchor.UpperLeft, new Vector2(tx, -26), new Vector2(lineW, 20), new Color(1f, 1f, 1f, 0.8f)), 12);
+        if (!string.IsNullOrEmpty(line3)) Fit(Label(bg, "L3", line3, 15, TextAnchor.UpperLeft, new Vector2(tx, -44), new Vector2(lineW, 20), new Color(1f, 1f, 1f, 0.65f)), 12);
         float x = -12f;
         for (int i = btns.Length - 1; i >= 0; i--)
         {
@@ -150,6 +153,13 @@ public partial class AHUI
             var act = b.act; bool on = b.on;
             taps.Add(new TapBtn { rt = br, layer = 5, group = "work", act = () => { if (on && act != null) act(); } });
         }
+    }
+
+    // a one-line label that shrinks (down to min) rather than spill past its box
+    static void Fit(Text t, int min)
+    {
+        t.horizontalOverflow = HorizontalWrapMode.Wrap; t.verticalOverflow = VerticalWrapMode.Truncate;
+        t.resizeTextForBestFit = true; t.resizeTextMinSize = min; t.resizeTextMaxSize = t.fontSize;
     }
 
     static readonly Color Go = new Color(0.22f, 0.5f, 0.26f, 1f), Plain = new Color(0.35f, 0.27f, 0.2f, 1f);

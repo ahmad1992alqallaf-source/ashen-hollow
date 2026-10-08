@@ -100,7 +100,7 @@ public partial class AHUI
         {
             var rq = AHJson.O(nx, "req"); int rc = (int)AHJson.N(rq, "cls", 0), rf = (int)AHJson.N(rq, "farming", 0);
             bool rqOk = p.level >= rc && p.Skill("farming") >= rf; var cost = AHJson.O(nx, "cost");
-            rows.Add(slot => Row(slot, "Upgrade to " + AHJson.S(nx, "name"), Color.white, AHJson.S(nx, "blurb"), AHHome.CostText(p, cost) + (rc > 0 ? " · " + Bad("Level " + rc, p.level >= rc) + " · " + Bad("Farming " + rf, p.Skill("farming") >= rf) : ""),
+            rows.Add(slot => Row(slot, "Upgrade to " + AHJson.S(nx, "name"), Color.white, FirstLine(AHJson.S(nx, "blurb")), AHHome.CostText(p, cost) + (rc > 0 ? " · " + Bad("Level " + rc, p.level >= rc) + " · " + Bad("Farming " + rf, p.Skill("farming") >= rf) : ""),
                 new WkBtn { label = "Build", on = rqOk && AHHome.CanPay(p, cost), col = Go, act = () => { if (!AHHome.Pay(p, cost)) return; H.tier++; p.GainXp("farming", H.tier == 2 ? 300 : 900, false); Banner(AHJson.S(nx, "name"), "Your new home"); FarmChanged(); } }));
         }
         rows.Add(slot => Row(slot, "Inside your house", new Color(1f, 0.8f, 0.45f), "Walk in, and furnish it: " + AHInterior.Pts(p) + " comfort from furniture so far.", "",
@@ -242,4 +242,7 @@ public partial class AHUI
                     new WkBtn { label = "Put on stall", on = true, col = Go, act = () => { int k = p.OwnOf(iid); if (k <= 0 || H.stall.Count >= 6) return; p.bag.Take(iid, k); if (H.stall.Count == 0) H.stallLast = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); H.stall.Add(new AHStack { id = iid, n = k }); FarmChanged(); } }));
             }
     }
+
+    // a long description cut to its first sentence, so it fits on the row
+    static string FirstLine(string b) { if (string.IsNullOrEmpty(b)) return b; int i = b.IndexOf(". "); return i > 0 && i < b.Length - 2 ? b.Substring(0, i + 1) : b; }
 }
