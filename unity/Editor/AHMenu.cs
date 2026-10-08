@@ -862,6 +862,21 @@ public static class AHMenu
         if (AHInterior.Inside) AHInterior.Leave(g); else AHInterior.EnterGuild(g, false);
     }
 
+    // stand at the guild hall's door on the village square (Hollow Meadow), to try the way in
+    [MenuItem("Ashen Hollow/Test: Go To Guild Hall Door")]
+    static void GuildDoor()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        if (AHInterior.Inside) AHInterior.Leave(g);
+        foreach (var s in AHGather.Spots) if (s.name == "Enter the guild hall")
+        {
+            Vector3 d = s.pos - g.player.transform.position; d.y = 0f;
+            g.player.transform.position = g.Resolve(s.pos - Vector3.ProjectOnPlane(d, Vector3.up).normalized * 1.2f, 0.3f);
+            Debug.Log("Ashen Hollow: at the guild hall door " + s.pos); return;
+        }
+        Debug.Log("Ashen Hollow: no guild hall door here (it is on Hollow Meadow's square)");
+    }
+
     [MenuItem("Ashen Hollow/Test: Open Furnish Window")]
     static void FurnishWin() { var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return; g.ui.OpenFurnish(); }
 

@@ -1101,18 +1101,23 @@ public partial class AHUI : MonoBehaviour
         return AHNpc.Nearest(p.transform.position);
     }
 
+    // a person or a thing (a door, a bank, a chest) for the action button: whichever is nearer, but the one with
+    // your quest always wins. The label and the press both ask here, so the button does what it says.
+    AHNpc PersonOrThing(AHNpc n, AHSpot s)
+    {
+        if (n == null || s == null || s.kind != "use" || g.player == null) return n;
+        if (n.npcName == g.quests.NpcName) return n;
+        Vector3 pp = g.player.transform.position;
+        return (s.pos - pp).magnitude < n.DistTo(pp) ? null : n;
+    }
+
     public void OnAction()
     {
         if (g.player != null && g.player.Busy) return;
         var n = NearNpc();
         // people win over things (a shop door, a bank, a chest) unless the thing is much closer
         var s = g.player != null ? AHGather.Nearest(g.player.transform.position) : null;
-        if (n != null && s != null && s.kind == "use")
-        {
-            Vector3 pp = g.player.transform.position;
-            float ds = (s.pos - pp).magnitude, dn = n.DistTo(pp);
-            if (n.npcName != g.quests.NpcName && ds < dn * 0.5f) n = null;
-        }
+        n = PersonOrThing(n, s);   // the same choice the button's label shows
         if (n != null) { g.TalkTo(n); return; }
         if (g.player != null) g.player.Interact();
     }
@@ -1182,7 +1187,7 @@ public partial class AHUI : MonoBehaviour
         {
             var n = NearNpc();
             var us = AHGather.Nearest(p.transform.position);
-            if (n != null && us != null && us.kind == "use" && (us.pos - p.transform.position).sqrMagnitude < (n.transform.position - p.transform.position).sqrMagnitude) n = null;
+            n = PersonOrThing(n, us);
             if (p.Busy) act = p.ActionName.ToUpperInvariant() + "… " + Mathf.RoundToInt(p.ActionFrac * 100) + "%";
             else if (n != null) act = n.Label.ToUpperInvariant();
             else
