@@ -239,27 +239,66 @@ public class AHQOutfitFollow : MonoBehaviour
     }
 }
 
-// which real outfit a hero's shown gear becomes. The chest piece picks the whole outfit (its body, sleeves, legs and
-// boots always come together, so nothing is ever left bare): plate is the Knight (the Royal Guard tabard the Knight in
-// cloth), leather the Ranger, and cloth the Noble for priests' vestments, a peasant's tunic for druids' robes and the
-// Wizard for the rest. Helms, horns and hoods, and plate or spiked pauldrons, add the matching pieces; any other head,
-// shoulder or cape piece stays as the wardrobe draws it.
+// which real outfit a hero wears. Each class has its own outfit shape and colours (the chest piece shown must be
+// there, and its own colour tints the outfit a little, so every chest piece still looks its own):
+//   warrior  the Knight in plate (the Royal Guard tabard: the Knight in cloth), coloured by the metal
+//   rogue    a leather jerkin over a wizard's wrapped trousers and boots, dyed dark violet: an assassin's look
+//   ranger   the Ranger's leathers, with bracers and belts, in woodland green
+//   shaman   a tunic over leather sleeves and the Ranger's boots, in sea teal
+//   priest   the Noble's coat, in white and gold
+//   mage     the Wizard's coat, in arcane blue
+//   druid    a simple tunic (the men with leather sleeves), in leaf green
+// Helms, horns and hoods, and plate or spiked pauldrons, add the matching pieces; any other head, shoulder or cape
+// piece stays as the wardrobe draws it.
 public static class AHQOutfitPlan
 {
     static readonly HashSet<string> Priest = new HashSet<string> { "holy", "dawn", "sunflame", "pearl", "fenlight", "snowlight", "sunpriest", "emberlight", "dawnlight" };
-    static readonly HashSet<string> Druid = new HashSet<string> { "grove", "cinderbloom", "emberoot", "kelpheart", "mossweave", "snowbark", "oasis", "ashgrove", "rootsong" };
     static string Armor(ItemDef d) { return AHJson.S(AHJson.O(AHDB.Rules, "ARMOR_OF"), d.style ?? "", "leather"); }
 
+    // the class's own outfit shape (S is "qoMale_" or "qoFemale_")
+    static string Shape(string cls, string S, bool fem, ItemDef chest)
+    {
+        switch (cls)
+        {
+            case "warrior": return S + ((chest.style ?? "") == "royal" ? "Knight_Cloth" : "Knight") + ":-Head,-Pauldron";
+            case "rogue": return S + "Ranger:Body,Arms,-Bracer+" + S + "Wizard:Legs,Feet";
+            case "ranger": return S + "Ranger:-Head,-Pauldron";
+            case "shaman": return S + "Peasant:Body,Legs+" + S + "Ranger:Arms,Feet";
+            case "priest": return S + "Noble:-Head,-Pauldron";
+            case "mage": return S + "Wizard";
+            case "druid": return fem ? S + "Peasant" : S + "Peasant:-Arms+" + S + "Ranger:Arms,-Bracer";
+        }
+        // no class given: by the armour itself
+        string a = Armor(chest);
+        return a == "plate" ? S + "Knight:-Head,-Pauldron" : a == "cloth" ? S + "Wizard" : S + "Ranger:-Head,-Pauldron";
+    }
+    // the class's colour and how strongly it dyes the outfit
+    static Color ClassDye(string cls, out float k)
+    {
+        switch (cls)
+        {
+            case "warrior": k = 0f; return Color.white;
+            case "rogue": k = 0.55f; return new Color(0.42f, 0.32f, 0.55f);
+            case "ranger": k = 0.25f; return new Color(0.55f, 0.75f, 0.45f);
+            case "shaman": k = 0.4f; return new Color(0.4f, 0.8f, 0.8f);
+            case "priest": k = 0.35f; return new Color(1f, 0.93f, 0.72f);
+            case "mage": k = 0.4f; return new Color(0.55f, 0.6f, 1f);
+            case "druid": k = 0.4f; return new Color(0.6f, 0.88f, 0.45f);
+        }
+        k = 0f; return Color.white;
+    }
+
     // the outfit spec for AHQOutfit.Wear (null: no real outfit); 'covered' gets the slots it draws
-    public static string Spec(bool fem, System.Func<string, string> shown, HashSet<string> covered, out Color tint, out float tintK)
+    public static string Spec(bool fem, string cls, System.Func<string, string> shown, HashSet<string> covered, out Color tint, out float tintK)
     {
         tint = Color.white; tintK = 0f;
         var ch = AHItems.Get(shown("chest") ?? ""); if (ch == null) return null;
-        string S = fem ? "qoFemale_" : "qoMale_", a = Armor(ch), st = ch.style ?? "", spec;
-        if (a == "plate") spec = S + (st == "royal" ? "Knight_Cloth" : "Knight") + ":-Head,-Pauldron";
-        else if (a == "cloth") spec = Priest.Contains(st) ? S + "Noble:-Head,-Pauldron" : Druid.Contains(st) ? (fem ? S + "Peasant" : S + "Peasant:-Arms+" + S + "Ranger:Arms") : S + "Wizard";
-        else spec = S + "Ranger:-Head,-Pauldron";
-        tint = ch.color; tintK = a == "plate" ? 0.15f : 0.35f;
+        string S = fem ? "qoFemale_" : "qoMale_";
+        string spec = Shape(cls, S, fem, ch);
+        // the class colour, with the chest piece's own colour in it (plate takes the metal's colour)
+        float ck; var cc = ClassDye(cls, out ck);
+        if (cls == "warrior" || (cls == null && Armor(ch) == "plate")) { tint = ch.color; tintK = 0.3f; }
+        else { tint = Color.Lerp(cc, ch.color, ck > 0f ? 0.35f : 1f); tintK = Mathf.Max(ck, 0.3f); }
         covered.Add("chest"); covered.Add("hands"); covered.Add("legs"); covered.Add("feet");
 
         var hd = AHItems.Get(shown("head") ?? "");
@@ -279,7 +318,7 @@ public static class AHQOutfitPlan
             {
                 if (sa == "plate") part = S + (f == "spikes" ? "Knight_Cloth" : "Knight") + ":Pauldron";
                 else if (sa == "leather") part = S + "Ranger:Pauldron";
-                else part = S + (Priest.Contains(sh.style ?? "") ? "Noble:Lion" : "Noble:Pauldron,-Lion");
+                else part = S + (Priest.Contains(sh.style ?? "") || cls == "priest" ? "Noble:Lion" : "Noble:Pauldron,-Lion");
             }
             if (part != null) { spec += "+" + part; covered.Add("shoulders"); }
         }

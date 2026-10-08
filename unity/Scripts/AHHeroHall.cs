@@ -50,7 +50,7 @@ public class AHHeroHall : MonoBehaviour
         if (rig == null) { Destroy(holder.gameObject); return; }
         string cos = p != null ? AHCostumes.Worn(p) : null;
         if (cos != null && AHCostumes.Apply(rig, cos, look, AHFashion.DyeOf(p, cos))) AHWardrobe.DressWith(rig, holder, s => null, () => false);
-        else { if (shown("chest") != null) AHCostumes.Apply(rig, AHCostumes.Under, look); AHWardrobe.DressWith(rig, holder, shown, () => false, look != null && look.sex == "f" ? "f" : "m"); }
+        else { if (shown("chest") != null) AHCostumes.Apply(rig, AHCostumes.Under, look); AHWardrobe.DressWith(rig, holder, shown, () => false, look != null && look.sex == "f" ? "f" : "m", cls.id); }
         if (a != null) { a.Play("Idle", true); holder.gameObject.AddComponent<AHStudioPose>().anim = a; }
         I.hero = holder.gameObject; I.heroSig = sig; SetLayer(holder, Layer);
         I.rim.color = Color.Lerp(cls.color, Color.white, 0.25f);

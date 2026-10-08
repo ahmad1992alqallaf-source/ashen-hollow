@@ -576,7 +576,7 @@ public static class AHWardrobe
         if (cos != null && AHCostumes.Apply(rig, cos, p.look, AHFashion.DyeOf(p, cos))) { DressWith(rig, p.transform, s => null, () => p.Moving); dyeOn = false; return; }
         // armour on the chest: plain close-fitting clothes under it instead of the starting robe
         if (Shown(p, "chest") != null) AHCostumes.Apply(rig, AHCostumes.Under, p.look);
-        DressWith(rig, p.transform, s => Shown(p, s), () => p.Moving, p.look != null && p.look.sex == "f" ? "f" : "m");
+        DressWith(rig, p.transform, s => Shown(p, s), () => p.Moving, p.look != null && p.look.sex == "f" ? "f" : "m", p.cls != null ? p.cls.id : null);
         dyeOn = false;
     }
     // the outfit colour chosen in the look editor dyes the cloth and leather of worn gear (metal keeps its own colour)
@@ -586,7 +586,7 @@ public static class AHWardrobe
     // heroes (sex given: "m" or "f") wear real outfits for their chest, hands, legs and feet (and helms, hoods and pauldrons that
     // match one); the wardrobe draws only what the outfit doesn't
     public static bool RealOutfits = true;
-    public static void DressWith(GameObject rig, Transform hold, Func<string, string> shown, Func<bool> moving, string heroSex = null)
+    public static void DressWith(GameObject rig, Transform hold, Func<string, string> shown, Func<bool> moving, string heroSex = null, string heroCls = null)
     {
         if (rig == null) return;
         Transform head = Bone(rig, "Head"), chest = Bone(rig, "spine_03"), pelvis = Bone(rig, "pelvis");
@@ -596,7 +596,7 @@ public static class AHWardrobe
         {
             bool fem = heroSex == "f";
             var covered = new HashSet<string>(); Color tint; float tk;
-            string spec = AHQOutfitPlan.Spec(fem, shown, covered, out tint, out tk);
+            string spec = AHQOutfitPlan.Spec(fem, heroCls, shown, covered, out tint, out tk);
             if (spec != null)
             {
                 var auto = rig.AddComponent<AHQOutfitAuto>(); auto.spec = spec; auto.tint = tint; auto.tintK = tk;
