@@ -77,7 +77,7 @@ public static class AHEvo
         { "frozen", v => "+" + Pc(v) + " damage to frozen or stunned enemies" }, { "novaCd", v => "Frost Nova cooldown −" + v + "s" }, { "divineCd", v => "Divine Shield cooldown −" + v + "s" },
         { "chargeCd", v => "Charge cooldown −" + v + "s" }, { "barrier", v => "Mana Barrier absorbs +" + Pc(v) }, { "heal", v => "healing +" + Pc(v) },
         { "killHeal", v => "kills heal " + Pc(v) + " of your HP" }, { "atkspd", v => "attack speed +" + Pc(v) }, { "evo", v => "evolution spells +" + Pc(v) + " damage" },
-        { "arc", v => "basic bolts have " + Pc(v) + " chance to chain" }, { "smite", v => "Holy Fire heals you for " + Pc(v) + " of its damage" },
+        { "arc", v => "basic bolts have " + Pc(v) + " chance to chain" }, { "fort", v => "Stoneskin and Fossil Shell last " + Pc(v) + " longer" }, { "smite", v => "Holy Fire heals you for " + Pc(v) + " of its damage" },
         { "rage", v => "+20% damage while below half HP" }, { "explode", v => "enemies you kill explode in fire" }, { "cheat", v => "once every 2 minutes, survive a killing blow" },
         { "crit", v => Pc(v) + " chance to land a critical hit" }, { "evade", v => Pc(v) + " chance to evade attacks" },
         { "stunHit", v => "attacks stun for 1.2s (" + Pc(v) + " chance)" }, { "fearHit", v => "attacks terrify for 2.5s (" + Pc(v) + " chance)" },

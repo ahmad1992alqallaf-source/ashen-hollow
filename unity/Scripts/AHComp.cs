@@ -434,7 +434,7 @@ public class AHAlly : MonoBehaviour
             {
                 if (anim != null) anim.Play(id == "knight" ? "1H_Melee_Attack" : "Shoot", false, 1.4f, true);
                 atkPose = 0.6f;
-                if (id == "knight") { cd = 1.1f; t.Hurt(Mathf.RoundToInt(Dmg()), null); if (!t.dead && !t.type.elite) t.tgt = this; }
+                if (id == "knight") { cd = 1.1f; t.Hurt(Mathf.RoundToInt(Dmg()), null); if (!t.dead && !t.type.elite && !t.Taunted) t.tgt = this; }
                 else if (id == "ranger") { cd = 1.3f; int dm = Mathf.RoundToInt(Dmg()); AHFx.Shoot(transform.position + Vector3.up * 1.3f, t, new Color(0.94f, 0.9f, 0.82f), 0.12f, 28f, m => m.Hurt(dm, null)); }
                 else { cd = 1.9f; int dm = Mathf.RoundToInt(Dmg()); AHFx.Shoot(transform.position + Vector3.up * 1.4f, t, new Color(1f, 0.89f, 0.54f), 0.22f, 18f, m => m.Hurt(dm, null)); }
                 phase = 0f;

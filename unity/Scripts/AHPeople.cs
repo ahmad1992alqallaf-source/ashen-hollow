@@ -53,6 +53,7 @@ public static class AHPeople
             case "ranger": model = "Rogue_t"; main = "2H_Crossbow"; off = null; return;
             case "druid": model = "Mage_t"; main = "2H_Staff"; off = null; return;
             case "shaman": model = "Barbarian_t"; main = "1H_Axe"; off = null; return;
+            case "warden": model = "Knight_t"; main = "StoneHammer"; off = "Rectangle_Shield"; return;   // our own stone hammer and a tower shield
         }
         model = null; main = null; off = null;
     }
@@ -61,7 +62,7 @@ public static class AHPeople
     {
         anim = null;
         bool fem = look != null && look.sex == "f";
-        string body = fem ? "qFemalePeasant" : (cls.id == "warrior" || cls.id == "rogue" || cls.id == "ranger" || cls.id == "shaman") ? "qMaleRanger" : "qMalePeasant";
+        string body = fem ? "qFemalePeasant" : (cls.id == "warrior" || cls.id == "rogue" || cls.id == "ranger" || cls.id == "shaman" || cls.id == "warden") ? "qMaleRanger" : "qMalePeasant";
         var parts = new List<string> { fem ? "qHead_Female" : "qHead_Male" };
         string hp = HairPart(look.hair); if (hp != null) parts.Add(hp);
         if (!fem && look.beard != null && look.beard != "none") parts.Add("qHair_Beard");
@@ -137,7 +138,8 @@ public static class AHPeople
         }
         Transform hr = Find(rig.transform, "hand_r"), hl = Find(rig.transform, "hand_l");
         Quaternion q; Vector3 p;
-        Grip(main, true, out q, out p); Grab(tmp.transform, main, hr, q, p);
+        Grip(main, true, out q, out p);
+        if (main == "StoneHammer") StoneHammer(hr, q, p); else Grab(tmp.transform, main, hr, q, p);
         if (off != null) { Grip(off, false, out q, out p); Grab(tmp.transform, off, hl, q, p); }
         Object.Destroy(tmp);
     }
@@ -156,6 +158,41 @@ public static class AHPeople
         if (name.Contains("Crossbow")) { q = new Quaternion(0f, -0.7071068f, -0.7071068f, 0f); return; }
         if (name.Contains("Staff")) { q = Quaternion.AngleAxis(-12f, Vector3.right) * q; return; }   // upright from the fist, tipped a little forward
         if (name.Contains("Spellbook")) { p = new Vector3(right ? 0.07f : -0.07f, 0.09f, 0f); return; }   // held at its edge against the palm
+    }
+
+    // the Warden's stone hammer (ours): an ash-wood haft bound in iron, a squared head of grey stone with an ember
+    // seam glowing through it and an iron band round its middle. About 0.65 m long, held near the end of the haft.
+    static Material hamWood, hamStone, hamIron, hamEmber;
+    static void StoneHammer(Transform hand, Quaternion q, Vector3 p)
+    {
+        if (hand == null) return;
+        if (hamWood == null)
+        {
+            var sh = Shader.Find("Universal Render Pipeline/Lit");
+            hamWood = new Material(sh); hamWood.color = new Color(0.36f, 0.25f, 0.16f); hamWood.SetFloat("_Smoothness", 0.2f);
+            hamStone = new Material(sh); hamStone.color = new Color(0.52f, 0.49f, 0.45f); hamStone.SetFloat("_Smoothness", 0.1f);
+            hamIron = new Material(sh); hamIron.color = new Color(0.25f, 0.24f, 0.26f); hamIron.SetFloat("_Metallic", 0.8f); hamIron.SetFloat("_Smoothness", 0.5f);
+            hamEmber = new Material(sh); hamEmber.color = new Color(1f, 0.45f, 0.12f); hamEmber.EnableKeyword("_EMISSION"); hamEmber.SetColor("_EmissionColor", new Color(1f, 0.45f, 0.12f) * 2.2f);
+        }
+        var root = new GameObject("Weapon_StoneHammer").transform; root.SetParent(hand, false);
+        root.localPosition = p; root.localRotation = q;
+        Vector3 hs = hand.lossyScale; root.localScale = new Vector3(1f / Mathf.Max(1e-5f, hs.x), 1f / Mathf.Max(1e-5f, hs.y), 1f / Mathf.Max(1e-5f, hs.z));
+        System.Action<PrimitiveType, Vector3, Vector3, Vector3, Material> P = (t, pos, sc, rot, m) =>
+        {
+            var go = GameObject.CreatePrimitive(t); Object.Destroy(go.GetComponent<Collider>());
+            go.name = "Piece"; go.transform.SetParent(root, false); go.transform.localPosition = pos; go.transform.localScale = sc; go.transform.localEulerAngles = rot;
+            var r = go.GetComponent<Renderer>(); r.sharedMaterial = m; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+        };
+        P(PrimitiveType.Cylinder, new Vector3(0, 0.3f, 0), new Vector3(0.042f, 0.42f, 0.042f), Vector3.zero, hamWood);          // the haft
+        P(PrimitiveType.Cylinder, new Vector3(0, -0.1f, 0), new Vector3(0.055f, 0.03f, 0.055f), Vector3.zero, hamIron);         // the pommel
+        foreach (float y in new[] { 0.05f, 0.2f }) P(PrimitiveType.Cylinder, new Vector3(0, y, 0), new Vector3(0.05f, 0.012f, 0.05f), Vector3.zero, hamIron);   // the bindings
+        P(PrimitiveType.Cube, new Vector3(0, 0.78f, 0), new Vector3(0.34f, 0.17f, 0.17f), Vector3.zero, hamStone);               // the head
+        foreach (float sx in new[] { -1f, 1f }) P(PrimitiveType.Cube, new Vector3(sx * 0.185f, 0.78f, 0), new Vector3(0.04f, 0.2f, 0.2f), Vector3.zero, hamStone);   // the striking faces
+        P(PrimitiveType.Cube, new Vector3(0, 0.78f, 0), new Vector3(0.07f, 0.185f, 0.185f), Vector3.zero, hamIron);              // the band
+        P(PrimitiveType.Cube, new Vector3(0.1f, 0.79f, 0.087f), new Vector3(0.11f, 0.018f, 0.004f), new Vector3(0, 0, 14f), hamEmber);   // the ember seams
+        P(PrimitiveType.Cube, new Vector3(-0.11f, 0.77f, -0.087f), new Vector3(0.1f, 0.018f, 0.004f), new Vector3(0, 0, -10f), hamEmber);
+        P(PrimitiveType.Cube, new Vector3(0, 0.9f, 0), new Vector3(0.1f, 0.06f, 0.1f), Vector3.zero, hamStone);                  // the cap
+        root.localScale *= 0.68f;   // a one-handed hammer: about 0.65 m, its head the size of a loaf
     }
 
     // how long each kind of weapon is in the hand, in metres (the KayKit sets come in different sizes)

@@ -30,7 +30,7 @@ public static class AHFinder
     static float healT = 3f;
 
     public static int Runs { get { return AHPrefs.GetInt(RunsKey, 0); } }
-    public static string DefaultRole(AHPlayer p) { return p.cls.id == "warrior" ? "tank" : p.cls.id == "priest" || p.cls.id == "druid" || p.cls.id == "shaman" ? "healer" : "damage"; }
+    public static string DefaultRole(AHPlayer p) { return p.cls.id == "warrior" || p.cls.id == "warden" ? "tank" : p.cls.id == "priest" || p.cls.id == "druid" || p.cls.id == "shaman" ? "healer" : "damage"; }
     public static string ChosenRole(AHPlayer p) { if (Pick == "") Pick = AHPrefs.GetString(RoleKey, ""); return Pick != "" ? Pick : DefaultRole(p); }
     public static void SetRole(string r) { Pick = r; AHPrefs.SetString(RoleKey, r); }
     public static bool In { get { return Run != "" && AHGame.AreaId == AreaOf(Run); } }

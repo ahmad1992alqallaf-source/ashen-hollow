@@ -248,6 +248,7 @@ public class AHQOutfitFollow : MonoBehaviour
 //   priest   the Noble's coat, in white and gold
 //   mage     the Wizard's coat, in arcane blue
 //   druid    a simple tunic (the men with leather sleeves), in leaf green
+//   warden   the Knight under a cloth tabard, dyed sandstone and ember
 // Helms, horns and hoods, and plate or spiked pauldrons, add the matching pieces; any other head, shoulder or cape
 // piece stays as the wardrobe draws it.
 public static class AHQOutfitPlan
@@ -269,6 +270,7 @@ public static class AHQOutfitPlan
             case "priest": return S + "Noble:-Head,-Pauldron";
             case "mage": return S + "Wizard";
             case "druid": return fem ? S + "Peasant" : S + "Peasant:-Arms+" + S + "Ranger:Arms,-Bracer";
+            case "warden": return S + "KnightClothStone:-Head,-Pauldron";   // armour under a tabard, recoloured sandstone and ember
         }
         // no class given: by the armour itself
         string a = Armor(chest);
@@ -286,6 +288,7 @@ public static class AHQOutfitPlan
             case "priest": k = 0.35f; return new Color(1f, 0.93f, 0.72f);
             case "mage": k = 0.4f; return new Color(0.55f, 0.6f, 1f);
             case "druid": k = 0.4f; return new Color(0.6f, 0.88f, 0.45f);
+            case "warden": k = 0.15f; return new Color(0.95f, 0.85f, 0.72f);
         }
         k = 0f; return Color.white;
     }
@@ -302,6 +305,7 @@ public static class AHQOutfitPlan
             case "ranger": size = 0.08f; return "leaf";
             case "shaman": size = 0.09f; return "teal";
             case "rogue": size = 0.07f; return "violet";
+            case "warden": size = 0.13f; return "ember";
         }
         size = 0f; return null;
     }
@@ -323,7 +327,7 @@ public static class AHQOutfitPlan
         if (hd != null)
         {
             string f = hd.form ?? "", part = null;
-            if (f == "helm" || f == "forgehelm") part = S + "Knight:Head";
+            if (f == "helm" || f == "forgehelm") part = S + (cls == "warden" ? "KnightClothStone:Head" : "Knight:Head");   // the Warden's helm is horned stone
             else if (f == "horns") part = S + "Knight_Cloth:Head";
             // the Ranger's green hood suits the leather classes; robed classes keep the wardrobe's hood in the item's colour
             else if ((f == "hood" || f == "cowl" || f == "mhood") && cls != "mage" && cls != "priest" && cls != "druid") part = S + RangerOf(cls) + ":Head";
@@ -335,7 +339,7 @@ public static class AHQOutfitPlan
             string f = sh.form ?? "", sa = Armor(sh), part = null;
             if (f == "plates" || f == "spikes")
             {
-                if (sa == "plate") part = S + (f == "spikes" ? "Knight_Cloth" : "Knight") + ":Pauldron";
+                if (sa == "plate") part = S + (cls == "warden" ? "KnightClothStone" : f == "spikes" ? "Knight_Cloth" : "Knight") + ":Pauldron";
                 else if (sa == "leather") part = S + RangerOf(cls) + ":Pauldron";
                 else part = S + (Priest.Contains(sh.style ?? "") || cls == "priest" ? "Noble:Lion" : "Noble:Pauldron,-Lion");
             }

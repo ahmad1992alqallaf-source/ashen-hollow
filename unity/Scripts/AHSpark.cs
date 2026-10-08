@@ -115,6 +115,9 @@ public static class AHSpark
             case SpellKind.Buff: Ring(me + Vector3.up * 0.2f, h, 30, 4.5f, 0.5f); Rise(me, 0.7f, c, 20, 3.2f, 0.8f); break;
             case SpellKind.Stealth: Burst(chest, new Color(0.35f, 0.28f, 0.45f, 0.8f), 40, 1.6f, 0.9f, 0.3f, 0.6f); break;
             case SpellKind.Bear: Burst(chest, h, 40, 3.5f, 0.6f, 0.2f, 1f); break;
+            case SpellKind.Taunt: Ring(me + Vector3.up * 0.3f, h, 44, sp.radius * 2f, 0.55f, 0.2f); Burst(chest, c, 18, 3f, 0.5f); break;   // the roar rolls outward
+            case SpellKind.Wall: Rise(me + p.transform.forward * (sp.radius * 0.9f + 1f), sp.radius * 0.8f, c, 30, 1.6f, 0.7f, 0.12f); break;   // dust and grit as the stone breaks the ground
+            case SpellKind.Fortify: Spiral(me, 0.9f, c, 26, 1.8f); Burst(chest, h, 20, 1.8f, 0.6f, 0.15f); break;   // stone settling over the skin
             default: Burst(chest, h, 16, 3f, 0.5f); break;
         }
     }

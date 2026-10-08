@@ -169,6 +169,7 @@ public class AHPlayer : MonoBehaviour
 
     // buffs
     public float shield, shieldT, invulnT, hotT, hotRate, dmgBuff, dmgBuffT, stealthT, bearT;
+    public float fortT, fortV;   // the Warden's Stoneskin (and its kin): for fortT seconds, fortV of each hit is kept off
     bool critNext;
 
     AHGame g;
@@ -227,7 +228,7 @@ public class AHPlayer : MonoBehaviour
         if (moved > 0 && g.ui != null) g.ui.Toast(moved + " item" + (moved > 1 ? "s" : "") + " your class can’t use went to your bag");
         Recalc();
         hp = maxHp; mana = maxMana;
-        bearT = 0f; stealthT = 0f; ghosted = false; ghostRs = null; ghostKeep = null;
+        bearT = 0f; fortT = 0f; stealthT = 0f; ghosted = false; ghostRs = null; ghostKeep = null;
         ApplyLook();
     }
 
@@ -320,7 +321,7 @@ public class AHPlayer : MonoBehaviour
     }
     public float Damage() { return Mathf.Max(1f, Power * Random.Range(0.7f, 1.3f) * (hunger <= 0f ? 0.8f : 1f)); }
     // web: armorCut = 1 - 100 / (100 + armor * 5)
-    public float ArmorCut { get { return 1f - 100f / (100f + stat.def * 5f * (1f + (Elix("iron") ? 0.3f : 0f) + (Elix("titan") ? 0.25f : 0f) + AHMeal.Fx(this, "def") + AHEvo.Pass(this, "armor"))); } }
+    public float ArmorCut { get { return 1f - 100f / (100f + stat.def * 5f * (1f + (Elix("iron") ? 0.3f : 0f) + (Elix("titan") ? 0.25f : 0f) + AHMeal.Fx(this, "def") + AHEvo.Pass(this, "armor") + (cls != null && cls.id == "warden" ? 0.2f : 0f))); } }   // the Warden: stone-bound, 20% more from armour
 
     // ---------- wading: the shallow rim of a pond slows you, you sink a little and the water ripples ----------
     float wadeDepth, rippleT, modelBaseY = float.NaN;
@@ -683,8 +684,9 @@ public class AHPlayer : MonoBehaviour
             model.transform.localScale = LookScale * 1.25f;
             if (bearT <= 0f) model.transform.localScale = LookScale;
         }
-        shieldOrb.SetActive(shield > 0f || invulnT > 0f);
-        if (shieldOrb.activeSelf) AHFx.Paint(shieldOrb, invulnT > 0f ? new Color(1f, 0.85f, 0.4f, 0.4f) : new Color(0.5f, 0.8f, 1f, 0.3f), 0f);
+        if (fortT > 0f) fortT -= dt;
+        shieldOrb.SetActive(shield > 0f || invulnT > 0f || fortT > 0f);
+        if (shieldOrb.activeSelf) AHFx.Paint(shieldOrb, invulnT > 0f ? new Color(1f, 0.85f, 0.4f, 0.4f) : fortT > 0f && shield <= 0f ? new Color(0.62f, 0.56f, 0.5f, 0.38f) : new Color(0.5f, 0.8f, 1f, 0.3f), 0f);
         // see-through while hidden
         SetGhost(stealthT > 0f);
     }
@@ -821,6 +823,16 @@ public class AHPlayer : MonoBehaviour
         if (sp.status != AHStatus.None) m.AddStatus(sp.status, sp.statusTime, Power * Mathf.Max(0.4f, sp.mult) * 0.35f, this);
     }
 
+    // Pebble Throw: drag the enemy to your feet and make it fight you
+    void Pull(AHMob m)
+    {
+        if (m == null || m.dead || m.type.elite) { if (m != null && !m.dead) m.Taunt(4f); return; }   // bosses won't be dragged, only provoked
+        Vector3 d = m.transform.position - transform.position; d.y = 0f;
+        if (d.magnitude > 2.5f) m.transform.position = g.Resolve(transform.position + d.normalized * (Radius + m.type.radius + 0.6f), m.type.radius);
+        m.Taunt(4f);
+        AHFx.Ring(m.transform.position, 0.3f, 1.4f, new Color(0.75f, 0.6f, 0.45f), 0.35f);
+    }
+
     public void Cast(int i)
     {
         if (dead || i < 0 || i >= Spells.Length) return;
@@ -875,7 +887,7 @@ public class AHPlayer : MonoBehaviour
             case SpellKind.Bolt:
                 {
                     int dmg = Roll(sp.mult);
-                    AHFx.Shoot(Hand, t, sp.color, 0.3f, el == SpellEl.Arrow ? 24f : 16f, el, m => { AHSound.Spell(el, true); m.Hurt(dmg, this); if (sp.status != AHStatus.None) m.AddStatus(sp.status, sp.statusTime, Power * sp.mult * 0.3f, this); });
+                    AHFx.Shoot(Hand, t, sp.color, 0.3f, el == SpellEl.Arrow ? 24f : 16f, el, m => { AHSound.Spell(el, true); m.Hurt(dmg, this); if (sp.status != AHStatus.None) m.AddStatus(sp.status, sp.statusTime, Power * sp.mult * 0.3f, this); if (sp.id == "pebblethrow") Pull(m); });
                 }
                 break;
             case SpellKind.Multi:
@@ -1006,6 +1018,40 @@ public class AHPlayer : MonoBehaviour
                 AHTotem.Plant(this, sp, me + transform.forward * 1.2f, sp.time * (1f + AHEvo.Pass(this, "totem")));
                 pose = "Cheer";
                 break;
+            case SpellKind.Taunt:
+                {
+                    // every enemy around turns on you and stays on you (a sellsword's taunt can't take them back)
+                    int n = 0;
+                    foreach (var m in g.mobs)
+                    {
+                        if (m.dead) continue;
+                        Vector3 d = m.transform.position - me; d.y = 0;
+                        if (d.magnitude - m.type.radius > sp.radius) continue;
+                        m.Taunt(sp.time); n++;
+                        if (sp.mult > 0f) m.Hurt(Roll(sp.mult), this);
+                        if (sp.status != AHStatus.None) m.AddStatus(sp.status, sp.statusTime, Power * 0.3f, this);
+                    }
+                    AHFx.Ring(me, 0.6f, sp.radius, sp.color, 0.5f);
+                    AHFx.Ring(me, 0.3f, sp.radius * 0.7f, new Color(sp.color.r, sp.color.g, sp.color.b, 0.5f), 0.7f, true);
+                    AHJuice.Shake(0.12f, 0.25f);
+                    if (g.ui != null) g.ui.Float(me + Vector3.up * 2.4f, n > 0 ? "Taunted " + n : "Roar", sp.color);
+                }
+                break;
+            case SpellKind.Wall:
+                {
+                    // the wall rises a few steps ahead, across your path, and holds what it catches
+                    Vector3 f = transform.forward; f.y = 0f; f.Normalize();
+                    AHRockWall.Raise(this, sp, me + f * (sp.radius * 0.9f + 1f), f);
+                    AHJuice.Shake(0.1f, 0.3f);
+                }
+                break;
+            case SpellKind.Fortify:
+                fortT = sp.time * (1f + AHEvo.Pass(this, "fort")); fortV = Mathf.Clamp(sp.value + AHEvo.Pass(this, "fortV"), 0f, 0.8f);
+                AHFx.Ring(me, 0.5f, 2.2f, sp.color, 0.5f);
+                AHFx.Pillar(me, 0.7f, 2.6f, new Color(0.62f, 0.56f, 0.5f, 0.6f), 0.5f);
+                if (g.ui != null) g.ui.Float(me + Vector3.up * 2.4f, "Stoneskin", new Color(0.85f, 0.8f, 0.72f));
+                pose = "Cheer";
+                break;
             case SpellKind.Bear:
                 bearT = sp.time;
                 hp = Mathf.Min(maxHp, hp + maxHp * sp.value);
@@ -1065,7 +1111,7 @@ public class AHPlayer : MonoBehaviour
         if (iframe > 0f || invulnT > 0f) { if (g.ui != null) g.ui.Float(transform.position + Vector3.up * 2f, invulnT > 0f ? "Immune" : "Dodged", new Color(0.81f, 0.91f, 1f)); return; }
         if (AHEvo.Pass(this, "block") > 0f && Random.value < AHEvo.Pass(this, "block")) { if (g.ui != null) g.ui.Float(transform.position + Vector3.up * 2f, "Blocked", new Color(1f, 0.85f, 0.5f)); return; }
         if (stat.evade > 0f && Random.value < stat.evade) { if (g.ui != null) g.ui.Float(transform.position + Vector3.up * 2f, "Evaded", new Color(0.81f, 0.91f, 1f)); return; }
-        float red = bearT > 0f ? 0.4f : 0f;
+        float red = Mathf.Max(bearT > 0f ? 0.4f : 0f, fortT > 0f ? fortV : 0f);
         int hit = Mathf.Max(1, Mathf.RoundToInt(raw * (1f - ArmorCut) * (1f - red) * (Elix("ward") ? 0.75f : 1f) * (Elix("raid") ? 0.8f : 1f) * AHFinder.TakenK(g)));
         AHJuice.OnHurt(g, hit);   // a heavy blow shakes the camera
         if (shield > 0f)
@@ -1356,7 +1402,7 @@ public class AHPlayer : MonoBehaviour
     void Respawn()
     {
         dead = false;
-        hp = Mathf.Round(maxHp * 0.5f); mana = maxMana; hunger = Mathf.Max(hunger, 50f); shield = 0f; bearT = 0f;
+        hp = Mathf.Round(maxHp * 0.5f); mana = maxMana; hunger = Mathf.Max(hunger, 50f); shield = 0f; bearT = 0f; fortT = 0f;
         long lost = AHGame.AreaId == AHKQ.Area ? 0 : bag.money / 10; bag.money -= lost; bag.Touch();
         model.transform.localScale = LookScale;
         transform.position = g.W(g.data.spawn.x, g.data.spawn.z);

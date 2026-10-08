@@ -67,6 +67,10 @@ public static class AHSpellLook
         Set(SpellEl.War, "cry", "avatar", "rampage", "bearform", "bearroar", "feralfury", "wolfcall", "packhunt", "unstoppable", "shieldwall",
             "ironwill", "adrenaline");
         Set(SpellEl.Wind, "charge", "disengage");
+        // the Warden: stone, its roars, and the ember in the rock
+        Set(SpellEl.Earth, "stonehammer", "rockwall", "pebblethrow", "earthengrip", "avalanche", "tremor", "faultline", "rampart", "titanfall", "shieldslam");
+        Set(SpellEl.War, "bedrockroar", "stoneskin", "fossilshell", "guardward", "bulwark", "mountain");
+        Set(SpellEl.Fire, "emberquake", "emberbrand", "magmaquake", "magmacore", "eruption");
     }
 
     public static SpellEl Element(SpellDef sp)
@@ -90,7 +94,7 @@ public static class AHSpellLook
     public static string Pose(ClassDef cls, SpellDef sp)
     {
         string c = cls != null ? cls.id : "";
-        bool melee = c == "warrior" || c == "rogue", ranger = c == "ranger";
+        bool melee = c == "warrior" || c == "rogue" || c == "warden", ranger = c == "ranger", stone = c == "warden";
         switch (sp.kind)
         {
             case SpellKind.Strike:
@@ -100,13 +104,13 @@ public static class AHSpellLook
                 return c == "rogue" ? "stab" : "slash";
             case SpellKind.Arc: return melee ? "slash2" : "push";
             case SpellKind.Nova:
-                if (c == "warrior") return "slam";
+                if (c == "warrior" || stone) return "slam";
                 if (ranger) return "kneel";
                 return "burst";
             case SpellKind.Whirl: return melee ? "spin" : "roar";
             case SpellKind.Bolt: case SpellKind.Multi: return ranger ? "shoot" : "bolt";
             case SpellKind.GroundAt:
-                if (c == "warrior") return "slam";
+                if (c == "warrior" || stone) return "slam";
                 if (sp.id == "snare") return "kneel";
                 if (ranger) return "shoot";
                 if (sp.id == "bomb" || sp.id == "plague") return "throw";
@@ -117,7 +121,10 @@ public static class AHSpellLook
             case SpellKind.StepBehind: return "stab";
             case SpellKind.Leap: return "hop";
             case SpellKind.Heal: case SpellKind.Hot: return "raise";
-            case SpellKind.Shield: return c == "warrior" ? "push" : "raise";
+            case SpellKind.Shield: return c == "warrior" || stone ? "push" : "raise";
+            case SpellKind.Taunt: return "roar";
+            case SpellKind.Wall: return "slam";
+            case SpellKind.Fortify: return "raise";
             case SpellKind.Invuln: return c == "rogue" ? "roll" : "raise";
             case SpellKind.Buff: case SpellKind.Bear: return "roar";
             case SpellKind.Stealth: return sp.id == "smokebomb" ? "throw" : "roll";

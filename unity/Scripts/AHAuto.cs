@@ -82,7 +82,8 @@ public static class AHAuto
             if (p.cls.mana && p.mana < s.cost) continue;
             bool heal = s.kind == SpellKind.Heal || s.kind == SpellKind.Hot || (s.kind == SpellKind.Totem && s.id.Contains("heal"));
             if (heal) { if (p.hp < p.maxHp * 0.6f) { castI = i; return; } continue; }
-            if (s.kind == SpellKind.Blink || s.kind == SpellKind.Leap || s.kind == SpellKind.Stealth || s.kind == SpellKind.Invuln || s.kind == SpellKind.Shield) continue;
+            if (s.kind == SpellKind.Fortify) { if (p.hp < p.maxHp * 0.5f) { castI = i; return; } continue; }   // stone skin when the fight turns
+            if (s.kind == SpellKind.Blink || s.kind == SpellKind.Leap || s.kind == SpellKind.Stealth || s.kind == SpellKind.Invuln || s.kind == SpellKind.Shield || s.kind == SpellKind.Fortify) continue;
             castI = i; return;
         }
     }

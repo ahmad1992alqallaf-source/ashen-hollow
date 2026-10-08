@@ -19,6 +19,10 @@ public class AHMob : MonoBehaviour
     // a special attack: stand still while the warning circle fills
     public void Windup(float t) { windup = t; lungeHit = false; atkCd = Mathf.Max(atkCd, t); }
     public void Engage() { state = State.Chase; calmT = 0f; }
+    // the Warden's roar (and Pebble Throw): this enemy fights the hero for a while, whoever else hits it
+    float tauntUntil;
+    public bool Taunted { get { return Time.time < tauntUntil; } }
+    public void Taunt(float t) { tgt = null; tauntUntil = Mathf.Max(tauntUntil, Time.time + t); Engage(); }
     public void Scare(float t) { if (!dead) { state = State.Flee; fleeT = t; } }   // runs from you (the treasure goblin)
     float corpseT, respawnT;        // web: the body stays 40 s (1.2 s once skinned), then back in 18 s (or d.respawn)
     bool away;                      // night beasts by day, and anything waiting to come back
