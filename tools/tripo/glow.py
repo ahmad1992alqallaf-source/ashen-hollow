@@ -4,6 +4,7 @@ src, out = sys.argv[-2], sys.argv[-1]
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=src)
 for mat in bpy.data.materials:
+    mat.use_backface_culling = False   # double-sided: the plates' insides show, not the world through them
     if not mat.use_nodes: continue
     nt = mat.node_tree; bsdf = next((n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED'), None)
     if bsdf is None: continue

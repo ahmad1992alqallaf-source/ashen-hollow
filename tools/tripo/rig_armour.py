@@ -29,6 +29,14 @@ for side, s in (('l', 1), ('r', -1)):
     aim('thigh_' + side, (s * LEGO, 0.0, -0.43))
     aim('calf_' + side, (s * 0.044, 0.0, -0.47))
 bpy.context.view_layer.update()
+# how far each bone moved from its rest (a world-space transform): the game's skeleton keeps its own bone frames, so the
+# bind matrices are rebuilt from these after export (see fixbind.py)
+import json
+D = {}
+for pb in arm.pose.bones:
+    P = arm.matrix_world @ pb.matrix; Rm = arm.matrix_world @ pb.bone.matrix_local
+    D[pb.name] = [list(r) for r in (P @ Rm.inverted())]
+json.dump(D, open(out + '.delta.json', 'w'))
 
 # 2) the armour, fitted round the posed knight: across and front-to-back by X, up through the joints' heights
 bpy.ops.import_scene.gltf(filepath=src_t)

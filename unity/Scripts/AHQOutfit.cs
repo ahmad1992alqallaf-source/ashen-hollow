@@ -69,6 +69,8 @@ public class AHQOutfitHide : MonoBehaviour
     readonly List<Mesh> originals = new List<Mesh>(), cuts = new List<Mesh>();
     readonly List<SkinnedMeshRenderer> hiddenHair = new List<SkinnedMeshRenderer>();
     readonly List<Renderer> hiddenBits = new List<Renderer>();
+    readonly List<SkinnedMeshRenderer> darkened = new List<SkinnedMeshRenderer>();
+    static readonly Color Under = new Color(0.07f, 0.06f, 0.06f, 1f);
     const float Cell = 0.05f, Reach = 0.10f, Through = 0.07f, Close = 0.03f, Snug = 0.07f;
 
     public void Apply(Transform body, GameObject outfit, Transform head)
@@ -108,6 +110,9 @@ public class AHQOutfitHide : MonoBehaviour
             if (!mesh.isReadable || nm.Contains("face")) continue;   // the face stays (a helmet hides it or not)
             s.BakeMesh(baked, true); var m = Matrix4x4.TRS(s.transform.position, s.transform.rotation, Vector3.one);
             var v = baked.vertices; var hide = new bool[v.Length]; int nh = 0;
+            // under a closed suit of plate the body stays inside, darkened to a black under-suit, so no chink between
+            // the plates shows the world behind (only the hair, and whatever pokes out through the plates, goes)
+            if (closed) { var pb = new MaterialPropertyBlock(); s.GetPropertyBlock(pb); pb.SetColor("_Color", Under); pb.SetColor("_BaseColor", Under); pb.SetColor("_ShadeColor", Under); s.SetPropertyBlock(pb); darkened.Add(s); }
             for (int i = 0; i < v.Length; i++)
             {
                 var p = m.MultiplyPoint3x4(v[i]); var k = Key(p); float best = Reach * Reach; int bi = -1;
@@ -119,7 +124,8 @@ public class AHQOutfitHide : MonoBehaviour
                 if (bi < 0) continue;
                 // right at the surface, poking out along it, or just under it: hidden; past a sleeve's or a boot's edge (sideways from it) stays
                 float dist = Mathf.Sqrt(best), along = Vector3.Dot(p - pts[bi], nrm[bi]);
-                if (dist < Close || (along > 0.5f * dist && dist < Through) || along < -0.5f * dist) { hide[i] = true; nh++; }
+                // under a closed suit only what pokes out through the plates goes; what is under them stays, dark
+                if (dist < Close || (along > 0.5f * dist && dist < Through) || (!closed && along < -0.5f * dist)) { hide[i] = true; nh++; }
             }
             // which vertices hang mostly from a forearm, a hand or a finger
             var arm = new bool[v.Length]; var bw = mesh.boneWeights; var sb = s.bones;
@@ -144,7 +150,7 @@ public class AHQOutfitHide : MonoBehaviour
                 // the VRoid clothes (a long coat, skirts, shoes) go altogether: the outfit replaces them; so does hair under a helmet
                 string mn = sm < smats.Length && smats[sm] != null ? smats[sm].name.ToUpper() : "";
                 if (helmet && mn.Contains("HAIR")) { cutTris += t.Length / 3; cut.SetTriangles(keep, sm); continue; }
-                bool cloth = mn.Contains("CLOTH");
+                bool cloth = mn.Contains("CLOTH") && !closed;
                 for (int i = 0; i < t.Length; i += 3)
                 {
                     // the VRoid clothes go, except on the forearms and hands (often there is no skin under a VRoid sleeve):
@@ -174,6 +180,7 @@ public class AHQOutfitHide : MonoBehaviour
     {
         foreach (var h in hiddenHair) if (h != null) h.enabled = true;
         foreach (var b in hiddenBits) if (b != null) b.enabled = true;
+        foreach (var d in darkened) if (d != null) d.SetPropertyBlock(null);
         for (int i = 0; i < smrs.Count; i++) { if (smrs[i] != null && smrs[i].sharedMesh == cuts[i]) smrs[i].sharedMesh = originals[i]; if (cuts[i] != null) Destroy(cuts[i]); }
     }
 }
@@ -182,7 +189,7 @@ public class AHQOutfitHide : MonoBehaviour
 [DefaultExecutionOrder(20010)]
 public class AHQOutfitFollow : MonoBehaviour
 {
-    class S { public Transform stand, src, dst, anchorSrc, anchorDst; public bool head; }
+    class S { public Transform stand, src, dst, anchorSrc, anchorDst, kidSrc, kidDst; public bool head; }
     readonly Dictionary<Transform, S> map = new Dictionary<Transform, S>();
     readonly List<S> order = new List<S>();
     Transform rig, standRoot; AHVRoidLink link; Dictionary<string, Transform> ubc;
@@ -213,6 +220,9 @@ public class AHQOutfitFollow : MonoBehaviour
             // not a humanoid bone (root, finger tips, toe tips): keep its offset from the nearest one that is
             for (var p = src.parent; p != null && p != rig; p = p.parent) { var d = link.Map(p); if (d != null) { s.anchorSrc = p; s.anchorDst = d; break; } }
         }
+        // a limb or spine bone: the next joint down the chain, so the outfit's limb can be laid along the VRoid limb
+        if (s.dst != null && Limb(src.name))
+            foreach (Transform c in src) { var cd = link.Map(c); if (cd != null && !c.name.Contains("twist")) { s.kidSrc = c; s.kidDst = cd; break; } }
         map[src] = s; order.Add(s);
         Place(s);
         return s.stand;
@@ -225,8 +235,16 @@ public class AHQOutfitFollow : MonoBehaviour
         else if (s.anchorDst != null) s.stand.position = s.anchorDst.position + (s.src.position - s.anchorSrc.position) * bodyK;
         else s.stand.position = link.Body != null ? link.Body.position + (s.src.position - rig.position) * bodyK : s.src.position;
         s.stand.rotation = s.src.rotation;
+        // the hidden rig and the VRoid body don't always bend a limb quite alike (a wide stance, a raised arm): swing the
+        // stand so the outfit's limb lies along the VRoid limb it covers
+        if (s.kidSrc != null && s.kidDst != null)
+        {
+            Vector3 a = s.kidSrc.position - s.src.position, b = s.kidDst.position - s.dst.position;
+            if (a.sqrMagnitude > 1e-6f && b.sqrMagnitude > 1e-6f) s.stand.rotation = Quaternion.FromToRotation(a, b) * s.src.rotation;
+        }
         s.stand.localScale = s.src.lossyScale * k;
     }
+    static bool Limb(string n) { return n.StartsWith("thigh_") || n.StartsWith("calf_") || n.StartsWith("upperarm_") || n.StartsWith("lowerarm_"); }
     float HeadK() { return link != null ? Mathf.Max(1f, link.HeadScale / Mathf.Max(0.3f, bodyK)) : 1f; }
 
     void LateUpdate()
