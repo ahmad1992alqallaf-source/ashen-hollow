@@ -400,6 +400,7 @@ public class AHQOutfitAuto : MonoBehaviour
         if (worn != null && crest != null) Badge(worn, crest, crestSize);
         // the Warden's horned lava helm (Tripo) over the outfit's stone helm piece
         if (worn != null && spec.Contains("KnightClothStone:Head")) AHTripo.Helm(worn, transform, "warden_helmet");
+        if (worn != null && spec.Contains("LavaWarden") && GetComponent<AHArmSpread>() == null) gameObject.AddComponent<AHArmSpread>();
         enabled = false;
     }
 
@@ -462,5 +463,39 @@ public class AHQOutfitAuto : MonoBehaviour
             }
             r.materials = ms;
         }
+    }
+}
+
+// bulky plate (the Warden's lava armour): the arms are held a little out from the body, after the animation and before
+// the VRoid body and the outfit copy the pose, so the gauntlets and arm plates swing clear of the hips and the chest
+// instead of sinking into them. The weapons in the hands follow the same arms.
+[DefaultExecutionOrder(19990)]
+public class AHArmSpread : MonoBehaviour
+{
+    public float degrees = 15f;
+    Transform la, ra, spine;
+    void Start()
+    {
+        foreach (var t in GetComponentsInChildren<Transform>(true))
+        {
+            if (t.name == "upperarm_l") la = t; else if (t.name == "upperarm_r") ra = t; else if (t.name == "spine_03") spine = t;
+        }
+    }
+    void LateUpdate()
+    {
+        if (spine == null) return;
+        Spread(la); Spread(ra);
+    }
+    void Spread(Transform up)
+    {
+        if (up == null || up.childCount == 0) return;
+        Transform low = null; foreach (Transform c in up) if (c.name.StartsWith("lowerarm")) { low = c; break; }
+        if (low == null) return;
+        Vector3 d = low.position - up.position, o = up.position - spine.position; o -= Vector3.Project(o, transform.up);
+        if (d.sqrMagnitude < 1e-6f || o.sqrMagnitude < 1e-6f) return;
+        Vector3 axis = Vector3.Cross(d, o); if (axis.sqrMagnitude < 1e-8f) return;
+        // only an arm hanging down needs it: one raised to the side for a swing or a cast is already clear
+        float hang = Vector3.Dot(d.normalized, -transform.up); if (hang <= 0.2f) return;
+        up.rotation = Quaternion.AngleAxis(degrees * Mathf.Clamp01((hang - 0.2f) / 0.5f), axis.normalized) * up.rotation;
     }
 }
