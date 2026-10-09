@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class ItemDef
 {
-    public string id, name, icon, slot, style, form, rarity, set, note;
+    public string id, name, icon, slot, style, form, rarity, set, note, cls;   // cls: a collection piece made for one class
     public Color color = Color.white;
     public int atk, def, hp;
     public float dmg, cdr, heal;
@@ -84,6 +84,7 @@ public static class AHItems
             potion = AHJson.Has(raw, "potion"),
             meal = AHJson.Has(raw, "meal"),
             reins = AHJson.S(raw, "reins"),
+            cls = AHJson.S(raw, "cls", null),
         };
         var st = AHJson.O(raw, "stats");
         if (st != null)
@@ -122,6 +123,7 @@ public static class AHItems
         var it = Get(id);
         if (it == null || !it.IsGear) return false;
         if (it.cosmetic) return true;
+        if (!string.IsNullOrEmpty(it.cls)) return it.cls == cls;   // the collections: each piece is cut for its own class
         if (it.slot == "weapon") { if (AHJson.S(AHJson.O(AHDB.Rules, "WEAPON_CLASS"), it.form ?? "") == cls) return true; var also = AHJson.A(AHJson.O(AHDB.Rules, "WEAPON_ALSO"), cls); return also != null && also.Contains(it.form ?? ""); }
         string armor = AHJson.S(AHJson.O(AHDB.Rules, "ARMOR_OF"), it.style ?? "", "leather");
         var who = AHJson.A(AHJson.O(AHDB.Rules, "ARMOR_CLASSES"), armor);
@@ -134,6 +136,7 @@ public static class AHItems
         if (it == null || !it.IsGear) return "";
         if (it.cosmetic) return "Cosmetic · all classes";
         if (it.slot == "ring" || it.slot == "amulet") return "Jewelry · all classes";
+        if (!string.IsNullOrEmpty(it.cls)) return AHJson.S(AHJson.O(AHDB.Classes, it.cls), "name", it.cls) + " only · " + AHJson.S(AHJson.O(AHJson.O(AHDB.Rules, "SETS"), it.set ?? ""), "name", "") + " set";
         if (it.slot == "weapon")
         {
             string c = AHJson.S(AHJson.O(AHDB.Rules, "WEAPON_CLASS"), it.form ?? "", "");

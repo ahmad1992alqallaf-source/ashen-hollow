@@ -15,6 +15,15 @@ public static class AHLoot
         return 1f + Mathf.Min(gap, 10) * 0.04f;
     }
 
+    // a random piece of a collection (draconic, lava, demonic, fossil) made for this class: <coll>_<class>_<slot>
+    public static string CollectionPiece(string coll, string cls)
+    {
+        var pool = new List<string>(); string pre = coll + "_" + cls + "_";
+        var items = AHDB.Items;
+        if (items != null) foreach (var k in items.Keys) if (k.StartsWith(pre)) pool.Add(k);
+        return pool.Count > 0 ? pool[Random.Range(0, pool.Count)] : null;
+    }
+
     public static void OnKill(AHGame g, AHMob m, AHPlayer p)
     {
         var t = m.type;
@@ -44,6 +53,15 @@ public static class AHLoot
                 }
                 var d = AHItems.Get(id);
                 if (d != null && p.bag.Add(id)) got.Add(d.name);
+                else if (d != null && g.ui != null) g.ui.Toast(p.bag.lastWarn ?? "Your bag is full.");
+            }
+        // a collection boss: a piece of its armour made for your class every time, now and then a second
+        if (!string.IsNullOrEmpty(t.classSet))
+            for (int n = 0; n < (Random.value < 0.3f ? 2 : 1); n++)
+            {
+                string id = CollectionPiece(t.classSet, p.cls.id);
+                var d = id != null ? AHItems.Get(id) : null;
+                if (d != null && p.bag.Add(id)) { got.Add(d.name); if (g.ui != null) g.ui.Banner(d.name, AHItems.WhoUses(id)); }
                 else if (d != null && g.ui != null) g.ui.Toast(p.bag.lastWarn ?? "Your bag is full.");
             }
         if (got.Count > 0 && g.ui != null)

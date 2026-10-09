@@ -260,6 +260,7 @@ public class AHGame : MonoBehaviour
         t.respawn = (float)AHJson.N(d, "respawn", 18);
         t.night = AHJson.B(d, "night"); t.lunge = AHJson.B(d, "lunge"); t.elite = AHJson.B(d, "elite"); t.rare = AHJson.B(d, "rare");
         t.drops = AHJson.A(d, "drops");
+        t.classSet = AHJson.S(d, "classSet", null);   // a world boss that drops its armour collection, a piece for your class
         var sk = AHJson.A(AHJson.O(AHDB.Rules, "MOB_SKIN"), t.id);
         if (sk != null) { t.skin = new string[sk.Count]; for (int i = 0; i < sk.Count; i++) t.skin[i] = (string)sk[i]; }
     }

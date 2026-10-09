@@ -833,37 +833,91 @@
      "infernal_head",
      "infernal_chest",
      "infernal_hands",
-     "infernal_weapon"
+     "infernal_weapon",
+     "lava_warrior_head",
+     "lava_warrior_shoulders",
+     "lava_warrior_chest",
+     "lava_warrior_hands",
+     "lava_warrior_legs",
+     "lava_warrior_feet",
+     "lava_warrior_weapon"
     ],
     "mage": [
      "hellweave_head",
      "hellweave_chest",
      "hellweave_hands",
-     "hellweave_weapon"
+     "hellweave_weapon",
+     "lava_mage_head",
+     "lava_mage_shoulders",
+     "lava_mage_chest",
+     "lava_mage_hands",
+     "lava_mage_feet",
+     "lava_mage_weapon"
     ],
     "priest": [
      "emberlight_head",
      "emberlight_chest",
      "emberlight_hands",
-     "emberlight_weapon"
+     "emberlight_weapon",
+     "lava_priest_head",
+     "lava_priest_shoulders",
+     "lava_priest_chest",
+     "lava_priest_hands",
+     "lava_priest_feet",
+     "lava_priest_weapon"
     ],
     "rogue": [
      "cinderfang_head",
      "cinderfang_chest",
      "cinderfang_hands",
-     "cinderfang_weapon"
+     "cinderfang_weapon",
+     "lava_rogue_head",
+     "lava_rogue_shoulders",
+     "lava_rogue_chest",
+     "lava_rogue_hands",
+     "lava_rogue_feet",
+     "lava_rogue_weapon"
     ],
     "ranger": [
      "blazewind_head",
      "blazewind_chest",
      "blazewind_hands",
-     "blazewind_weapon"
+     "blazewind_weapon",
+     "lava_ranger_head",
+     "lava_ranger_shoulders",
+     "lava_ranger_chest",
+     "lava_ranger_hands",
+     "lava_ranger_feet",
+     "lava_ranger_weapon"
     ],
     "druid": [
      "ashgrove_head",
      "ashgrove_chest",
      "ashgrove_hands",
-     "ashgrove_weapon"
+     "ashgrove_weapon",
+     "lava_druid_head",
+     "lava_druid_shoulders",
+     "lava_druid_chest",
+     "lava_druid_hands",
+     "lava_druid_feet",
+     "lava_druid_weapon"
+    ],
+    "warden": [
+     "lava_warden_head",
+     "lava_warden_shoulders",
+     "lava_warden_chest",
+     "lava_warden_hands",
+     "lava_warden_legs",
+     "lava_warden_feet",
+     "lava_warden_weapon"
+    ],
+    "shaman": [
+     "lava_shaman_head",
+     "lava_shaman_shoulders",
+     "lava_shaman_chest",
+     "lava_shaman_hands",
+     "lava_shaman_feet",
+     "lava_shaman_weapon"
     ]
    },
    "z": {
@@ -1030,37 +1084,91 @@
      "starguard_head",
      "starguard_chest",
      "starguard_hands",
-     "starguard_weapon"
+     "starguard_weapon",
+     "demonic_warrior_head",
+     "demonic_warrior_shoulders",
+     "demonic_warrior_chest",
+     "demonic_warrior_hands",
+     "demonic_warrior_legs",
+     "demonic_warrior_feet",
+     "demonic_warrior_weapon"
     ],
     "mage": [
      "nightweave_head",
      "nightweave_chest",
      "nightweave_hands",
-     "nightweave_weapon"
+     "nightweave_weapon",
+     "demonic_mage_head",
+     "demonic_mage_shoulders",
+     "demonic_mage_chest",
+     "demonic_mage_hands",
+     "demonic_mage_feet",
+     "demonic_mage_weapon"
     ],
     "priest": [
      "dawnlight_head",
      "dawnlight_chest",
      "dawnlight_hands",
-     "dawnlight_weapon"
+     "dawnlight_weapon",
+     "demonic_priest_head",
+     "demonic_priest_shoulders",
+     "demonic_priest_chest",
+     "demonic_priest_hands",
+     "demonic_priest_feet",
+     "demonic_priest_weapon"
     ],
     "rogue": [
      "hollowshade_head",
      "hollowshade_chest",
      "hollowshade_hands",
-     "hollowshade_weapon"
+     "hollowshade_weapon",
+     "demonic_rogue_head",
+     "demonic_rogue_shoulders",
+     "demonic_rogue_chest",
+     "demonic_rogue_hands",
+     "demonic_rogue_feet",
+     "demonic_rogue_weapon"
     ],
     "ranger": [
      "starshot_head",
      "starshot_chest",
      "starshot_hands",
-     "starshot_weapon"
+     "starshot_weapon",
+     "demonic_ranger_head",
+     "demonic_ranger_shoulders",
+     "demonic_ranger_chest",
+     "demonic_ranger_hands",
+     "demonic_ranger_feet",
+     "demonic_ranger_weapon"
     ],
     "druid": [
      "rootsong_head",
      "rootsong_chest",
      "rootsong_hands",
-     "rootsong_weapon"
+     "rootsong_weapon",
+     "demonic_druid_head",
+     "demonic_druid_shoulders",
+     "demonic_druid_chest",
+     "demonic_druid_hands",
+     "demonic_druid_feet",
+     "demonic_druid_weapon"
+    ],
+    "warden": [
+     "demonic_warden_head",
+     "demonic_warden_shoulders",
+     "demonic_warden_chest",
+     "demonic_warden_hands",
+     "demonic_warden_legs",
+     "demonic_warden_feet",
+     "demonic_warden_weapon"
+    ],
+    "shaman": [
+     "demonic_shaman_head",
+     "demonic_shaman_shoulders",
+     "demonic_shaman_chest",
+     "demonic_shaman_hands",
+     "demonic_shaman_feet",
+     "demonic_shaman_weapon"
     ]
    },
    "z": {

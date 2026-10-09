@@ -99,7 +99,7 @@ public class AHQOutfitHide : MonoBehaviour
                 Transform a = an.GetBoneTransform(side[0]), h = an.GetBoneTransform(side[1]), f = an.GetBoneTransform(side[2]);
                 if (a == null || h == null) continue; segs.Add(a.position); segs.Add(f != null ? f.position : h.position);
             }
-        int cutTris = 0; bool closed = outfit.name.Contains("LavaWarden");
+        int cutTris = 0; bool closed = outfit.name.Contains("tqo_");
         foreach (var s in body.GetComponentsInChildren<SkinnedMeshRenderer>(true))
         {
             var mesh = s.sharedMesh; if (mesh == null) continue;
@@ -282,8 +282,22 @@ public static class AHQOutfitPlan
 {
     static readonly HashSet<string> Priest = new HashSet<string> { "holy", "dawn", "sunflame", "pearl", "fenlight", "snowlight", "sunpriest", "emberlight", "dawnlight" };
     // the Ranger's leathers in the class colour: violet for rogues, teal for shamans (recoloured copies of the pack)
-    public static bool LavaWarden { get { if (lava < 0) lava = Resources.Load<GameObject>("AH/Models/Outfits/qoMale_LavaWarden") != null ? 1 : 0; return lava == 1; } }
-    static int lava = -1;
+    // the collections' own armour models (made with Tripo from our concept art), by the chest piece's style
+    // ("lava_warrior"): Resources/AH/Models/Outfits/tqo_<collection>_<class>. A class without its own model yet borrows
+    // one made for a class in the same armour (the Warden wears the Warrior's plate); with none, the class's usual
+    // outfit is worn in the collection's colours.
+    static readonly Dictionary<string, string> tqo = new Dictionary<string, string>();
+    public static string CollectionModel(string style)
+    {
+        if (string.IsNullOrEmpty(style) || style.IndexOf('_') < 0) return null;
+        string m; if (tqo.TryGetValue(style, out m)) return m;
+        string coll = style.Substring(0, style.IndexOf('_')), cls = style.Substring(style.IndexOf('_') + 1);
+        string arm = AHJson.S(AHJson.O(AHDB.Rules, "ARMOR_OF"), style, "");
+        m = null;
+        foreach (var c in new[] { cls, arm == "plate" ? (cls == "warden" ? "warrior" : "warden") : null })
+            if (c != null && m == null && Resources.Load<GameObject>("AH/Models/Outfits/tqo_" + coll + "_" + c) != null) m = "tqo_" + coll + "_" + c;
+        tqo[style] = m; return m;
+    }
     static string RangerOf(string cls) { return cls == "rogue" ? "RangerShade" : cls == "shaman" ? "RangerTide" : "Ranger"; }
     static string Armor(ItemDef d) { return AHJson.S(AHJson.O(AHDB.Rules, "ARMOR_OF"), d.style ?? "", "leather"); }
 
@@ -334,7 +348,7 @@ public static class AHQOutfitPlan
             case "ranger": size = 0.08f; return "leaf";
             case "shaman": size = 0.09f; return "teal";
             case "rogue": size = 0.07f; return "violet";
-            case "warden": if (LavaWarden) break; size = 0.13f; return "ember";   // the lava armour has its own glowing emblem
+            case "warden": size = 0.13f; return "ember";
         }
         size = 0f; return null;
     }
@@ -345,13 +359,15 @@ public static class AHQOutfitPlan
         tint = Color.white; tintK = 0f;
         var ch = AHItems.Get(shown("chest") ?? ""); if (ch == null) return null;
         // the Warden's own lava armour (made with Tripo from our concept art), helm and pauldrons included, in its own colours
-        if (cls == "warden" && LavaWarden) { foreach (var sl in new[] { "chest", "hands", "legs", "feet", "head", "shoulders" }) covered.Add(sl); return "qoMale_LavaWarden"; }
+        var cm = CollectionModel(ch.style);
+        if (cm != null) { foreach (var sl in new[] { "chest", "hands", "legs", "feet", "head", "shoulders" }) covered.Add(sl); return cm; }   // the whole suit, helm and all
         string S = fem ? "qoFemale_" : "qoMale_";
         string spec = Shape(cls, S, fem, ch);
         // the class colour, with the chest piece's own colour in it (plate takes the metal's colour)
         float ck; var cc = ClassDye(cls, out ck);
         if (cls == "warrior" || (cls == null && Armor(ch) == "plate")) { tint = ch.color; tintK = 0.3f; }
         else { tint = Color.Lerp(cc, ch.color, ck > 0f ? 0.35f : 1f); tintK = Mathf.Max(ck, 0.3f); }
+        if (!string.IsNullOrEmpty(ch.cls)) { tint = ch.color; tintK = 0.5f; }   // a collection piece with no model of its own yet: the class's outfit in the collection's colours
         covered.Add("chest"); covered.Add("hands"); covered.Add("legs"); covered.Add("feet");
 
         var hd = AHItems.Get(shown("head") ?? "");
@@ -397,10 +413,10 @@ public class AHQOutfitAuto : MonoBehaviour
         if (!ready && frames < 30) return;
         worn = AHQOutfit.Wear(gameObject, spec);
         if (worn != null && tintK > 0f) Tint(worn, tint, tintK);
-        if (worn != null && crest != null) Badge(worn, crest, crestSize);
+        if (worn != null && crest != null && !spec.Contains("tqo_")) Badge(worn, crest, crestSize);   // a collection suit has its own emblem
         // the Warden's horned lava helm (Tripo) over the outfit's stone helm piece
         if (worn != null && spec.Contains("KnightClothStone:Head")) AHTripo.Helm(worn, transform, "warden_helmet");
-        if (worn != null && spec.Contains("LavaWarden") && GetComponent<AHArmSpread>() == null) gameObject.AddComponent<AHArmSpread>();
+        if (worn != null && spec.Contains("tqo_") && GetComponent<AHArmSpread>() == null) gameObject.AddComponent<AHArmSpread>();
         enabled = false;
     }
 

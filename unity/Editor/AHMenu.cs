@@ -377,6 +377,21 @@ public static class AHMenu
 
     // a weapon a little better than the one worn (to see the better-gear card); run again to take it back
     static string testGift;
+    // puts on your class's whole set from the next armour collection (Lava, Draconic, Demonic, Fossil), then takes it off
+    static int collI = -1;
+    [MenuItem("Ashen Hollow/Test: Wear Collection Set %&z")]
+    static void WearCollection()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return; var p = g.player;
+        string[] colls = { "lava", "draconic", "demonic", "fossil" };
+        // off with the last one
+        foreach (var sl in AHItems.GearSlots) { var w = p.bag.Worn(sl); if (w != null && AHItems.Get(w) != null && AHItems.Get(w).cls != null) { p.bag.Unequip(sl); p.bag.Take(w); } }
+        collI++; if (collI >= colls.Length) { collI = -1; p.bag.Touch(); Debug.Log("Ashen Hollow: collection set taken off"); return; }
+        string pre = colls[collI] + "_" + p.cls.id + "_"; int n = 0;
+        foreach (var id in AHDB.Items.Keys) if (id.StartsWith(pre)) { p.bag.Add(id); p.bag.Equip(id, p.cls.id); n++; }
+        Debug.Log("Ashen Hollow: wearing the " + colls[collI] + " set for " + p.cls.id + " (" + n + " pieces)");
+    }
+
     [MenuItem("Ashen Hollow/Test: Give Better Weapon")]
     static void GiveBetter()
     {

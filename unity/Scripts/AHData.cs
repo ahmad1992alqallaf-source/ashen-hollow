@@ -7,7 +7,7 @@ using System;
 {
     public string id, name, model; public int lvl, hp, dmg, xp; public float speed, radius, aggro; public bool flee;
     // from the web game's MOBS table (monsters.json), filled in by AHGame
-    public int gold, skinReq; public float atkCd = 1.3f, respawn = 18f; public bool night, lunge, elite, rare, noSkin; public string[] skin;
+    public int gold, skinReq; public float atkCd = 1.3f, respawn = 18f; public bool night, lunge, elite, rare, noSkin; public string[] skin; public string classSet;
     [NonSerialized] public System.Collections.Generic.List<object> drops;
 }
 [Serializable] public class AHMobSpawn { public string type; public float x, z; }
