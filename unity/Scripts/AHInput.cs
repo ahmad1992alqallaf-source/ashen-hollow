@@ -53,10 +53,12 @@ public static class AHInput
         return list;
     }
 
+    // a held direction set by an editor test (walking the hero for snapshots); zero in play
+    public static Vector2 TestMove;
     // WASD or arrow keys, for playing in the editor
     public static Vector2 Keys()
     {
-        Vector2 v = Vector2.zero;
+        Vector2 v = TestMove;
 #if ENABLE_LEGACY_INPUT_MANAGER
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) v.y += 1;
         if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) v.y -= 1;

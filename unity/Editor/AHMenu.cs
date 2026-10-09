@@ -456,6 +456,22 @@ public static class AHMenu
         Debug.Log("Ashen Hollow: kitchen upgrade refunded (" + AHItems.MoneyText(c) + ")");
     }
 
+    // the hero walking: snapshots at three moments of the stride (HeroShots/walk1_*, walk2_*, walk3_*)
+    [MenuItem("Ashen Hollow/Test: Walk Snapshots %&q")]
+    static void WalkShots()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        AHInput.TestMove = new Vector2(0.35f, 1f).normalized; double t0 = EditorApplication.timeSinceStartup; int shot = 0;
+        EditorApplication.CallbackFunction f = null;
+        f = () =>
+        {
+            double t = EditorApplication.timeSinceStartup - t0;
+            if (shot < 3 && t > 1.0 + shot * 0.23) { shot++; HeroShots("walk" + shot); }
+            if (shot >= 3 || t > 4.0 || !Application.isPlaying) { AHInput.TestMove = Vector2.zero; EditorApplication.update -= f; }
+        };
+        EditorApplication.update += f;
+    }
+
     [MenuItem("Ashen Hollow/Test: Hero Snapshots %&k")]
     static void HeroShots() { HeroShots("hero"); }
     static void HeroShots(string prefix)

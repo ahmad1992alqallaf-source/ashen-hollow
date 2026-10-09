@@ -70,7 +70,7 @@ public class AHQOutfitHide : MonoBehaviour
     readonly List<SkinnedMeshRenderer> hiddenHair = new List<SkinnedMeshRenderer>();
     readonly List<Renderer> hiddenBits = new List<Renderer>();
     readonly List<SkinnedMeshRenderer> darkened = new List<SkinnedMeshRenderer>();
-    static readonly Color Under = new Color(0.07f, 0.06f, 0.06f, 1f);
+    static readonly Color Under = new Color(0.2f, 0.15f, 0.13f, 1f);   // a dark padded under-suit, warm like the basalt plates
     const float Cell = 0.05f, Reach = 0.10f, Through = 0.07f, Close = 0.03f, Snug = 0.07f;
 
     public void Apply(Transform body, GameObject outfit, Transform head)
@@ -150,7 +150,7 @@ public class AHQOutfitHide : MonoBehaviour
                 // the VRoid clothes (a long coat, skirts, shoes) go altogether: the outfit replaces them; so does hair under a helmet
                 string mn = sm < smats.Length && smats[sm] != null ? smats[sm].name.ToUpper() : "";
                 if (helmet && mn.Contains("HAIR")) { cutTris += t.Length / 3; cut.SetTriangles(keep, sm); continue; }
-                bool cloth = mn.Contains("CLOTH") && !closed;
+                bool cloth = mn.Contains("CLOTH");   // loose VRoid clothes swing out past the plates when walking: they always go
                 for (int i = 0; i < t.Length; i += 3)
                 {
                     // the VRoid clothes go, except on the forearms and hands (often there is no skin under a VRoid sleeve):
