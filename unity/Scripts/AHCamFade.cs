@@ -9,6 +9,14 @@ public class AHCamFade : MonoBehaviour
 {
     readonly List<Renderer> cands = new List<Renderer>();
     readonly HashSet<Renderer> hidden = new HashSet<Renderer>();
+    // no flicker: a tree goes only after it has blocked the view for a moment, and comes back only once the view has
+    // been clear for a while (walking past a trunk used to make trees blink in and out)
+    readonly Dictionary<Renderer, float> since = new Dictionary<Renderer, float>(), clearSince = new Dictionary<Renderer, float>();
+    const float HideAfter = 0.18f, ShowAfter = 0.7f;
+    // a hidden tree still casts its shade (only its picture goes), so the light on the hero doesn't jump as it hides
+    readonly Dictionary<Renderer, UnityEngine.Rendering.ShadowCastingMode> modes = new Dictionary<Renderer, UnityEngine.Rendering.ShadowCastingMode>();
+    void Hide(Renderer r) { if (!modes.ContainsKey(r)) modes[r] = r.shadowCastingMode; if (r.shadowCastingMode != UnityEngine.Rendering.ShadowCastingMode.Off) r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly; else r.forceRenderingOff = true; }
+    void Show(Renderer r) { UnityEngine.Rendering.ShadowCastingMode m; if (modes.TryGetValue(r, out m)) { r.shadowCastingMode = m; modes.Remove(r); } r.forceRenderingOff = false; }
     string area; float scanAt;
 
     public static void Ensure(AHGame g) { if (g.GetComponent<AHCamFade>() == null) g.gameObject.AddComponent<AHCamFade>(); }
@@ -46,10 +54,15 @@ public class AHCamFade : MonoBehaviour
             bool block = b.Contains(cp) || (b.IntersectRay(ray, out hit) && hit < len - 0.6f);
             if (block) now.Add(r);
         }
-        foreach (var r in now) if (!hidden.Contains(r)) { r.forceRenderingOff = true; }
-        foreach (var r in hidden) if (r != null && !now.Contains(r)) r.forceRenderingOff = false;
-        hidden.Clear(); foreach (var r in now) hidden.Add(r);
+        float t = Time.time;
+        foreach (var r in now) { if (!since.ContainsKey(r)) since[r] = t; clearSince.Remove(r); }
+        var drop = new List<Renderer>(); foreach (var kv in since) if (!now.Contains(kv.Key)) drop.Add(kv.Key);
+        foreach (var r in drop) { since.Remove(r); if (hidden.Contains(r) && !clearSince.ContainsKey(r)) clearSince[r] = t; }
+        foreach (var r in now) if (!hidden.Contains(r) && t - since[r] >= HideAfter && r != null) { Hide(r); hidden.Add(r); }
+        var back = new List<Renderer>();
+        foreach (var r in hidden) { float c; if (r == null || (clearSince.TryGetValue(r, out c) && t - c >= ShowAfter)) back.Add(r); }
+        foreach (var r in back) { if (r != null) Show(r); hidden.Remove(r); clearSince.Remove(r); }
     }
 
-    void Restore() { foreach (var r in hidden) if (r != null) r.forceRenderingOff = false; hidden.Clear(); }
+    void Restore() { foreach (var r in hidden) if (r != null) Show(r); hidden.Clear(); modes.Clear(); since.Clear(); clearSince.Clear(); }
 }
