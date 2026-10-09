@@ -139,10 +139,18 @@ public static class AHPeople
         Transform hr = Find(rig.transform, "hand_r"), hl = Find(rig.transform, "hand_l");
         Quaternion q; Vector3 p;
         Grip(main, true, out q, out p);
-        if (main == "StoneHammer") StoneHammer(hr, q, p); else Grab(tmp.transform, main, hr, q, p);
-        if (off != null) { Grip(off, false, out q, out p); Grab(tmp.transform, off, hl, q, p); }
+        // the Warden's lava hammer and shield (made with Tripo from our concept art); our code-built ones if they are missing
+        bool warden = main == "StoneHammer", tripoShield = false;
+        if (warden) { if (AHTripo.Hold(hr, "warden_hammer", main, q, p, 0.6f, 0.2f, false) == null) StoneHammer(hr, q, p); }
+        else Grab(tmp.transform, main, hr, q, p);
+        if (off != null)
+        {
+            Grip(off, false, out q, out p);
+            tripoShield = warden && AHTripo.Hold(hl, "warden_shield", off, q, p, 0.66f, 0f, true) != null;
+            if (!tripoShield) Grab(tmp.transform, off, hl, q, p);
+        }
         Object.Destroy(tmp);
-        if (crest != null && off != null && off.Contains("Shield") && hl != null) ShieldCrest(hl.Find("Weapon_" + off), crest);
+        if (crest != null && !tripoShield && off != null && off.Contains("Shield") && hl != null) ShieldCrest(hl.Find("Weapon_" + off), crest);
     }
 
     // the Ashen Hollow crest (ours, drawn in code) on the face of a hero's shield: a thin disc with the crest on it,

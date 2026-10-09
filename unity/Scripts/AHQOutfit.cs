@@ -367,6 +367,8 @@ public class AHQOutfitAuto : MonoBehaviour
         worn = AHQOutfit.Wear(gameObject, spec);
         if (worn != null && tintK > 0f) Tint(worn, tint, tintK);
         if (worn != null && crest != null) Badge(worn, crest, crestSize);
+        // the Warden's horned lava helm (Tripo) over the outfit's stone helm piece
+        if (worn != null && spec.Contains("KnightClothStone:Head")) AHTripo.Helm(worn, transform, "warden_helmet");
         enabled = false;
     }
 
