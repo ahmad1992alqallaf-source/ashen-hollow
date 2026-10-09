@@ -1,0 +1,137 @@
+# rig a Tripo full-body armour (A-pose, Tripo units) onto the Quaternius outfit skeleton, so the game can wear it like
+# the other outfits: the Quaternius knight is posed into the armour's stance, the armour is fitted round it, the knight's
+# bone weights are copied across, the stance becomes the bind pose, and the armour is exported with that skeleton.
+import bpy, sys, math, mathutils, numpy as np
+A = sys.argv
+src_q, src_t, out, prev = A[-4], A[-3], A[-2], A[-1]
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.import_scene.gltf(filepath=src_q)
+for o in list(bpy.context.scene.objects):
+    if o.type == 'MESH' and o.parent is None: bpy.data.objects.remove(o)
+arm = [o for o in bpy.context.scene.objects if o.type == 'ARMATURE'][0]
+qmeshes = [o for o in bpy.context.scene.objects if o.type == 'MESH']
+print('arm mw', [list(r) for r in arm.matrix_world])
+
+# 1) pose the knight's arms down into the armour's stance
+X = 1.85; LEGO = float(A[-5])
+def aim(name, d):
+    pb = arm.pose.bones[name]; bpy.context.view_layer.update()
+    cur = (pb.tail - pb.head).normalized(); d = mathutils.Vector(d).normalized()
+    R = cur.rotation_difference(d).to_matrix().to_4x4()
+    T = mathutils.Matrix.Translation(pb.head)
+    pb.matrix = T @ R @ T.inverted() @ pb.matrix
+    bpy.context.view_layer.update()
+for side, s in (('l', 1), ('r', -1)):
+    aim('upperarm_' + side, (s * 0.141, 0.0, -0.295))
+    aim('lowerarm_' + side, (s * 0.07, 0.0, -0.284))
+    aim('hand_' + side, (s * 0.05, 0.0, -0.3))
+    # the legs in the armour's wide stance
+    aim('thigh_' + side, (s * LEGO, 0.0, -0.43))
+    aim('calf_' + side, (s * 0.044, 0.0, -0.47))
+bpy.context.view_layer.update()
+
+# 2) the armour, fitted round the posed knight: across and front-to-back by X, up through the joints' heights
+bpy.ops.import_scene.gltf(filepath=src_t)
+t = [o for o in bpy.context.scene.objects if o.type == 'MESH' and o not in qmeshes][0]
+t.name = 'LavaWarden_Armour'
+bpy.context.view_layer.update()
+mw = t.matrix_world.copy(); t.parent = None
+tz = [0.0, 0.07, 0.28, 0.45, 0.73, 0.80, 0.98]          # the armour's ground, ankle, knee, hip, shoulder, head joint, top
+qz = [0.0, 0.086, 0.542, 0.971, 1.456, 1.600, 1.600 + 0.18 * 2.06]
+me = t.data
+armv = []
+for v in me.vertices:
+    p = mw @ v.co
+    armv.append((v.index, p.x, p.z, p.y))
+    v.co = mathutils.Vector((p.x * X, p.y * X + 0.03, float(np.interp(p.z, tz, qz))))
+t.matrix_world = mathutils.Matrix.Identity(4)
+me.update()
+
+# 3) the knight's weights onto the armour (from the posed knight, nearest surface)
+names = set(b.name for b in arm.data.bones)
+for o in qmeshes: names |= set(g.name for g in o.vertex_groups)
+for n in sorted(names): t.vertex_groups.new(name=n)
+bpy.ops.object.select_all(action='DESELECT')
+for o in qmeshes: o.select_set(True)
+bpy.context.view_layer.objects.active = qmeshes[0]
+bpy.ops.object.duplicate(); dup = list(bpy.context.selected_objects)
+bpy.context.view_layer.objects.active = dup[0]; bpy.ops.object.join(); src = bpy.context.view_layer.objects.active
+# a second source without the knight's arms, for everything that is not an arm (the hands hang beside the thighs)
+bpy.ops.object.select_all(action='DESELECT')
+for o in qmeshes:
+    if 'Arms' not in o.name and 'Pauldron' not in o.name: o.select_set(True)
+bpy.context.view_layer.objects.active = [o for o in qmeshes if o.select_get()][0]
+bpy.ops.object.duplicate(); bpy.ops.object.join(); src2 = bpy.context.view_layer.objects.active
+def weights_from(so):
+    c = t.copy(); c.data = t.data.copy(); bpy.context.scene.collection.objects.link(c)
+    dt = c.modifiers.new('dt', 'DATA_TRANSFER'); dt.object = so; dt.use_vert_data = True; dt.data_types_verts = {'VGROUP_WEIGHTS'}
+    dt.vert_mapping = 'POLYINTERP_NEAREST'; dt.layers_vgroup_select_src = 'ALL'; dt.layers_vgroup_select_dst = 'NAME'
+    bpy.ops.object.select_all(action='DESELECT'); c.select_set(True); bpy.context.view_layer.objects.active = c
+    bpy.ops.object.modifier_apply(modifier='dt')
+    gn = {g.index: g.name for g in c.vertex_groups}
+    W = [[(gn[g.group], g.weight) for g in v.groups if g.weight > 1e-4] for v in c.data.vertices]
+    bpy.data.objects.remove(c); return W
+WA = weights_from(src); WB = weights_from(src2)
+ARMK = ('upperarm', 'lowerarm', 'hand', 'thumb', 'index', 'middle', 'ring', 'pinky')
+isarm = lambda n: any(k in n for k in ARMK)
+cls = [False] * len(me.vertices)
+for i, x, z, y in armv:
+    if z < 0.36: cls[i] = False
+    elif z < 0.47: cls[i] = abs(x) > 0.172                      # by the hands: only what stands clear of the thighs
+    else: cls[i] = bool(WA[i]) and isarm(max(WA[i], key=lambda e: e[1])[0])   # higher: as the knight's nearest surface says
+MAIN = ['pelvis','spine_01','spine_02','spine_03','neck_01','Head'] + [b + s for b in ('clavicle_','upperarm_','lowerarm_','hand_','thigh_','calf_','foot_') for s in 'lr']
+def main(n):
+    if n in MAIN: return n
+    sd = n[-1] if n[-2:] in ('_l', '_r') else None
+    if sd is None: return None
+    for k, m in (('upperarm', 'upperarm_'), ('lowerarm', 'lowerarm_'), ('thumb', 'hand_'), ('index', 'hand_'), ('middle', 'hand_'), ('ring', 'hand_'), ('pinky', 'hand_'), ('thigh', 'thigh_'), ('calf', 'calf_'), ('ball', 'foot_')):
+        if k in n: return m + sd
+    return None
+def clean(W):
+    d = {}
+    for n, w in W:
+        m = main(n)
+        if m: d[m] = d.get(m, 0) + w
+    return list(d.items())
+WA = [clean(W) for W in WA]; WB = [clean(W) for W in WB]
+for i in range(len(me.vertices)):
+    if cls[i]:
+        W = [(n, w) for n, w in WA[i] if isarm(n) or n.startswith('clavicle')]
+        if not W: W = [('hand_l' if armv[i][1] > 0 else 'hand_r', 1.0)]
+    else:
+        W = [(n, w) for n, w in WB[i] if not isarm(n)]
+        _, x, z, y = armv[i]
+        # the tabard in front and the cape flap behind hang from the belt, not from either thigh
+        if abs(x) < 0.075 and ((0.1 < z < 0.47 and y < -0.09) or (0.22 < z < 0.47 and y > 0.08)): W = [('pelvis', 1.0)]
+    for n, w in W: t.vertex_groups[n].add([i], w, 'REPLACE')
+# the few faces joining a hand to a thigh plate (or an arm to the body) would stretch: they go
+import bmesh
+bm = bmesh.new(); bm.from_mesh(me)
+cut = [f for f in bm.faces if len(set(cls[v.index] for v in f.verts)) > 1]
+print('bridging faces cut', len(cut))
+bmesh.ops.delete(bm, geom=cut, context='FACES'); bm.to_mesh(me); bm.free(); me.update()
+
+# smooth the weights a little, keep four per vertex
+bpy.ops.object.select_all(action='DESELECT'); t.select_set(True); bpy.context.view_layer.objects.active = t
+bpy.ops.object.mode_set(mode='WEIGHT_PAINT')
+bpy.ops.object.vertex_group_smooth(group_select_mode='ALL', factor=0.5, repeat=2)
+bpy.ops.object.vertex_group_limit_total(group_select_mode='ALL', limit=4)
+bpy.ops.object.vertex_group_normalize_all(lock_active=False)
+bpy.ops.object.mode_set(mode='OBJECT')
+for o in qmeshes + [src, src2]: bpy.data.objects.remove(o)
+
+# 4) the stance becomes the rest (bind) pose, and the armour hangs from the skeleton
+bpy.context.view_layer.objects.active = arm; arm.select_set(True)
+bpy.ops.object.mode_set(mode='POSE'); bpy.ops.pose.select_all(action='SELECT'); bpy.ops.pose.armature_apply(selected=False); bpy.ops.object.mode_set(mode='OBJECT')
+t.parent = arm; am = t.modifiers.new('Armature', 'ARMATURE'); am.object = arm
+bpy.ops.object.select_all(action='DESELECT'); arm.select_set(True); t.select_set(True)
+bpy.ops.export_scene.gltf(filepath=out, export_format='GLB', use_selection=True, export_skins=True, export_animations=False, export_jpeg_quality=88)
+print('exported', out)
+
+# 5) a test: arms raised to the side and one knee bent, to see the weights at work
+def rot(name, axis, deg):
+    pb = arm.pose.bones[name]; pb.rotation_mode = 'XYZ'; e = list(pb.rotation_euler); e['XYZ'.index(axis)] += math.radians(deg); pb.rotation_euler = e
+bpy.context.view_layer.objects.active = arm; bpy.ops.object.mode_set(mode='POSE')
+exec(open('/tmp/claude-0/tripo/testpose.py').read())
+bpy.ops.object.mode_set(mode='OBJECT')
+exec(open('/tmp/claude-0/tripo/render3.py').read())

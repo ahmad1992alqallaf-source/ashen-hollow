@@ -146,7 +146,7 @@ public static class AHPeople
         if (off != null)
         {
             Grip(off, false, out q, out p);
-            tripoShield = warden && AHTripo.Hold(hl, "warden_shield", off, q, p, 0.66f, 0f, true) != null;
+            tripoShield = warden && AHTripo.Hold(hl, "warden_shield", off, q, new Vector3(0.085f, -0.07f, 0f), 0.66f, 0f, true) != null;   // its middle on the back of the forearm, just above the wrist
             if (!tripoShield) Grab(tmp.transform, off, hl, q, p);
         }
         Object.Destroy(tmp);

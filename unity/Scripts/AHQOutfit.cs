@@ -97,12 +97,14 @@ public class AHQOutfitHide : MonoBehaviour
                 Transform a = an.GetBoneTransform(side[0]), h = an.GetBoneTransform(side[1]), f = an.GetBoneTransform(side[2]);
                 if (a == null || h == null) continue; segs.Add(a.position); segs.Add(f != null ? f.position : h.position);
             }
-        int cutTris = 0;
+        int cutTris = 0; bool closed = outfit.name.Contains("LavaWarden");
         foreach (var s in body.GetComponentsInChildren<SkinnedMeshRenderer>(true))
         {
             var mesh = s.sharedMesh; if (mesh == null) continue;
             string nm = s.name.ToLower();
             if (helmet && nm.Contains("hair")) { if (s.enabled) { s.enabled = false; hiddenHair.Add(s); } continue; }
+            // a closed great helm (the Warden's lava armour) hides the face too: it would show through the visor
+            if (helmet && closed && nm.Contains("face")) { if (s.enabled) { s.enabled = false; hiddenHair.Add(s); } continue; }
             if (!mesh.isReadable || nm.Contains("face")) continue;   // the face stays (a helmet hides it or not)
             s.BakeMesh(baked, true); var m = Matrix4x4.TRS(s.transform.position, s.transform.rotation, Vector3.one);
             var v = baked.vertices; var hide = new bool[v.Length]; int nh = 0;
@@ -255,6 +257,8 @@ public static class AHQOutfitPlan
 {
     static readonly HashSet<string> Priest = new HashSet<string> { "holy", "dawn", "sunflame", "pearl", "fenlight", "snowlight", "sunpriest", "emberlight", "dawnlight" };
     // the Ranger's leathers in the class colour: violet for rogues, teal for shamans (recoloured copies of the pack)
+    public static bool LavaWarden { get { if (lava < 0) lava = Resources.Load<GameObject>("AH/Models/Outfits/qoMale_LavaWarden") != null ? 1 : 0; return lava == 1; } }
+    static int lava = -1;
     static string RangerOf(string cls) { return cls == "rogue" ? "RangerShade" : cls == "shaman" ? "RangerTide" : "Ranger"; }
     static string Armor(ItemDef d) { return AHJson.S(AHJson.O(AHDB.Rules, "ARMOR_OF"), d.style ?? "", "leather"); }
 
@@ -305,7 +309,7 @@ public static class AHQOutfitPlan
             case "ranger": size = 0.08f; return "leaf";
             case "shaman": size = 0.09f; return "teal";
             case "rogue": size = 0.07f; return "violet";
-            case "warden": size = 0.13f; return "ember";
+            case "warden": if (LavaWarden) break; size = 0.13f; return "ember";   // the lava armour has its own glowing emblem
         }
         size = 0f; return null;
     }
@@ -315,6 +319,8 @@ public static class AHQOutfitPlan
     {
         tint = Color.white; tintK = 0f;
         var ch = AHItems.Get(shown("chest") ?? ""); if (ch == null) return null;
+        // the Warden's own lava armour (made with Tripo from our concept art), helm and pauldrons included, in its own colours
+        if (cls == "warden" && LavaWarden) { foreach (var sl in new[] { "chest", "hands", "legs", "feet", "head", "shoulders" }) covered.Add(sl); return "qoMale_LavaWarden"; }
         string S = fem ? "qoFemale_" : "qoMale_";
         string spec = Shape(cls, S, fem, ch);
         // the class colour, with the chest piece's own colour in it (plate takes the metal's colour)
