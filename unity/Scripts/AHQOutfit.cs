@@ -70,7 +70,7 @@ public class AHQOutfitHide : MonoBehaviour
     readonly List<SkinnedMeshRenderer> hiddenHair = new List<SkinnedMeshRenderer>();
     readonly List<Renderer> hiddenBits = new List<Renderer>();
     readonly List<SkinnedMeshRenderer> darkened = new List<SkinnedMeshRenderer>();
-    static readonly Color Under = new Color(0.2f, 0.15f, 0.13f, 1f);   // a dark padded under-suit, warm like the basalt plates
+    static readonly Color Under = new Color(0.3f, 0.23f, 0.2f, 1f);   // a dark padded under-suit, warm like the basalt plates
     const float Cell = 0.05f, Reach = 0.10f, Through = 0.07f, Close = 0.03f, Snug = 0.07f;
 
     public void Apply(Transform body, GameObject outfit, Transform head)
@@ -133,7 +133,11 @@ public class AHQOutfitHide : MonoBehaviour
                 for (int i = 0; i < v.Length; i++)
                 {
                     int bi = bw[i].boneIndex0; var bt = bi >= 0 && bi < sb.Length ? sb[bi] : null; if (bt == null) continue;
-                    string n = bt.name; arm[i] = n.Contains("LowerArm") || n.Contains("Hand") || n.Contains("Thumb") || n.Contains("Index") || n.Contains("Middle") || n.Contains("Ring") || n.Contains("Little");
+                    string n = bt.name;
+                    // under closed plate the shins, feet and hands are all plate: the body's own there would only peek out
+                    // below the boots or past the gauntlets as a dark shape when walking, so it goes
+                    if (closed && (n.Contains("LowerLeg") || n.Contains("Foot") || n.Contains("Toe") || n.Contains("Hand") || n.Contains("Thumb") || n.Contains("Index") || n.Contains("Middle") || n.Contains("Ring") || n.Contains("Little"))) { if (!hide[i]) { hide[i] = true; nh++; } continue; }
+                    arm[i] = n.Contains("LowerArm") || n.Contains("Hand") || n.Contains("Thumb") || n.Contains("Index") || n.Contains("Middle") || n.Contains("Ring") || n.Contains("Little");
                     // only the snug part of a sleeve: a wide bell cuff would hang off the hand
                     if (arm[i] && segs.Count > 0)
                     {

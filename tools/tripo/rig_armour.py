@@ -112,12 +112,38 @@ for i in range(len(me.vertices)):
         # the tabard in front and the cape flap behind hang from the belt, not from either thigh
         if abs(x) < 0.075 and ((0.1 < z < 0.47 and y < -0.09) or (0.22 < z < 0.47 and y > 0.08)): W = [('pelvis', 1.0)]
     for n, w in W: t.vertex_groups[n].add([i], w, 'REPLACE')
-# the few faces joining a hand to a thigh plate (or an arm to the body) would stretch: they go
+# the few faces joining a hand to a thigh plate (or an arm to the body) would stretch between the two: they are split
+# off and stay with the body (their own copies of the arm-side corners follow the body), so no hole is left behind
 import bmesh
 bm = bmesh.new(); bm.from_mesh(me)
-cut = [f for f in bm.faces if len(set(cls[v.index] for v in f.verts)) > 1]
-print('bridging faces cut', len(cut))
-bmesh.ops.delete(bm, geom=cut, context='FACES'); bm.to_mesh(me); bm.free(); me.update()
+dl = bm.verts.layers.deform.verify()
+bm.verts.ensure_lookup_table()
+bridge = [f for f in bm.faces if len(set(cls[v.index] for v in f.verts)) > 1]
+print('bridging faces kept with the body', len(bridge))
+bodyW = {}
+for f in bridge:
+    for v in f.verts:
+        if cls[v.index]:
+            # the body's weights for this spot: the nearest body-side corner of the same face
+            o = [u for u in f.verts if not cls[u.index]]
+            if o: bodyW[v.index] = dict(o[0][dl])
+res = bmesh.ops.split(bm, geom=bridge, use_only_faces=True)
+newf = [g for g in res['geom'] if isinstance(g, bmesh.types.BMFace)]
+for f in newf:
+    for v in f.verts:
+        near = min(bodyW.keys(), key=lambda k: (bm.verts[k].co - v.co).length_squared) if False else None
+for f in newf:
+    body_corner = None
+    for v in f.verts:
+        d = dict(v[dl]); armish = any(t.vertex_groups[g].name.startswith(('upperarm', 'lowerarm', 'hand')) for g in d)
+        if not armish: body_corner = d
+    if body_corner is None: continue
+    for v in f.verts:
+        d = dict(v[dl])
+        if any(t.vertex_groups[g].name.startswith(('upperarm', 'lowerarm', 'hand')) for g in d):
+            v[dl].clear()
+            for g, w in body_corner.items(): v[dl][g] = w
+bm.to_mesh(me); bm.free(); me.update()
 
 # smooth the weights a little, keep four per vertex
 bpy.ops.object.select_all(action='DESELECT'); t.select_set(True); bpy.context.view_layer.objects.active = t
