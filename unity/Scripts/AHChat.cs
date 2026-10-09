@@ -1,6 +1,6 @@
-// Ashen Hollow: the chat box. A small log on the left keeps what happened (what people said to you, loot, quests, the
-// story) and fades when nothing new comes in. Your party talks now and then (in a fight, or on the road). Tap the log to
-// open it: tabs for All, Party and System, and a Say button to type. What you say shows over your head for a few
+// Ashen Hollow: the chat. A slim bar under the joystick shows the newest line (what people said to you, loot, quests,
+// the story); its "–" tucks it into a small Chat tab that lights up when something new comes in. Your party talks now and then (in a fight, or on the road). Tap the bar to
+// slide the chat open from the left: tabs for All, Party and System, and a Say button to type. What you say shows over your head for a few
 // seconds, and someone you are standing next to may answer. Commands: /wave /bow /cheer /dance /sit /nod /no /point
 // (emotes), /story, /deep, /map, /where, /time, /help.
 using System;
@@ -98,40 +98,50 @@ public static class AHChat
 
 public partial class AHUI
 {
-    RectTransform chatBox, chatFull, sayBubble; Text chatText, chatFullText, sayText, chatTabT; CanvasGroup chatGroup;
+    RectTransform chatBox, chatFull, sayBubble, chatPill; Text chatText, chatFullText, sayText, chatTabT; CanvasGroup chatGroup; Image chatPillImg;
     string chatTab = "all"; float chatShowT, sayT; bool chatTyping; string chatDraft = ""; TouchScreenKeyboard chatKb;
+    bool chatMin, chatClosing; const float ChatW = 500f, ChatH = 600f;
 
     void BuildChat()
     {
-        // the small log, left of centre, above the stick
-        chatBox = Img("ChatBox", transform, white, new Vector2(0f, 0.5f), new Vector2(250, -40), new Vector2(460, 118), new Color(0.05f, 0.04f, 0.035f, 0.6f));
+        // the chat bar: one slim line under the joystick, the newest message in it. Tap it to slide the chat open;
+        // the little "–" tucks it away into a small Chat tab (tap that to bring the bar back)
+        chatBox = Img("ChatBox", transform, white, new Vector2(0f, 0f), new Vector2(190, 28), new Vector2(340, 34), new Color(0.05f, 0.04f, 0.035f, 0.78f));
         chatGroup = chatBox.gameObject.AddComponent<CanvasGroup>(); chatGroup.blocksRaycasts = false;
-        chatText = Label(chatBox, "T", "", 15, TextAnchor.LowerLeft, new Vector2(10, -6), new Vector2(440, 108), Color.white);
+        chatText = Label(chatBox, "T", "", 14, TextAnchor.MiddleLeft, new Vector2(10, -3), new Vector2(286, 28), Color.white);
         chatText.supportRichText = true; chatText.horizontalOverflow = HorizontalWrapMode.Wrap; chatText.verticalOverflow = VerticalWrapMode.Truncate;
         var ol = chatText.gameObject.AddComponent<Outline>(); ol.effectColor = new Color(0f, 0f, 0f, 0.85f); ol.effectDistance = new Vector2(1.2f, -1.2f);   // readable over bright grass
+        var hide = Img("Hide", chatBox, white, new Vector2(1f, 0.5f), new Vector2(-18, 0), new Vector2(30, 28), new Color(0.3f, 0.22f, 0.15f, 0.9f));
+        Center(Label(hide, "T", "–", 18, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(30, 28), Color.white));
+        taps.Add(new TapBtn { rt = hide, act = () => SetChatMin(true) });   // before the bar's own tap: the button sits on it
         taps.Add(new TapBtn { rt = chatBox, act = () => OpenChat(true) });
+        chatPill = Img("ChatPill", transform, white, new Vector2(0f, 0f), new Vector2(52, 28), new Vector2(84, 30), new Color(0.05f, 0.04f, 0.035f, 0.62f));
+        chatPillImg = chatPill.GetComponent<Image>();
+        Center(Label(chatPill, "T", "Chat +", 14, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(84, 28), Color.white));
+        taps.Add(new TapBtn { rt = chatPill, act = () => SetChatMin(false) });
+        try { chatMin = PlayerPrefs.GetInt("chatMin", 0) == 1; } catch { }
 
-        // the open chat
-        chatFull = Img("ChatFull", transform, white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(820, 520), new Color(0.07f, 0.055f, 0.045f, 1f));
-        Img("Back", chatFull, white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(820, 520), new Color(0.07f, 0.055f, 0.045f, 1f));   // solid, whatever the skin does to panels
-        Img("Edge", chatFull, white, new Vector2(0.5f, 1f), new Vector2(0, -3), new Vector2(820, 6), new Color(0.85f, 0.6f, 0.25f, 1f));
+        // the open chat: a tall panel that slides in from the left, to read back and to type
+        chatFull = Img("ChatFull", transform, white, new Vector2(0f, 0.5f), new Vector2(-ChatW * 0.5f, 0), new Vector2(ChatW, ChatH), new Color(0.07f, 0.055f, 0.045f, 0.97f));
+        Img("Back", chatFull, white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(ChatW, ChatH), new Color(0.07f, 0.055f, 0.045f, 0.97f));   // solid, whatever the skin does to panels
+        Img("Edge", chatFull, white, new Vector2(1f, 0.5f), new Vector2(-2, 0), new Vector2(4, ChatH), new Color(0.85f, 0.6f, 0.25f, 1f));
         var tl = Label(chatFull, "Title", "Chat", 26, TextAnchor.UpperLeft, new Vector2(20, -14), new Vector2(300, 34), new Color(0.95f, 0.65f, 0.3f)); tl.fontStyle = FontStyle.Bold;
-        chatFullText = Label(chatFull, "Log", "", 17, TextAnchor.LowerLeft, new Vector2(20, -100), new Vector2(780, 330), Color.white);
-        chatFullText.supportRichText = true; chatFullText.horizontalOverflow = HorizontalWrapMode.Wrap; chatFullText.verticalOverflow = VerticalWrapMode.Truncate;
+        var x = Img("Close", chatFull, white, new Vector2(1f, 1f), new Vector2(-36, -32), new Vector2(52, 44), new Color(0.45f, 0.22f, 0.17f, 1f));
+        Center(Label(x, "T", "‹", 30, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(52, 44), Color.white));
+        taps.Add(new TapBtn { rt = x, layer = 9, act = () => OpenChat(false) });
         string[] tabs = { "all", "party", "system" }; string[] names = { "All", "Party", "System" };
         for (int i = 0; i < tabs.Length; i++)
         {
             string k = tabs[i];
-            var b = Img("Tab_" + k, chatFull, white, new Vector2(0f, 1f), new Vector2(330 + i * 112, -32), new Vector2(104, 38), new Color(0.22f, 0.16f, 0.11f, 1f));
+            var b = Img("Tab_" + k, chatFull, white, new Vector2(0f, 1f), new Vector2(72 + i * 112, -80), new Vector2(104, 38), new Color(0.22f, 0.16f, 0.11f, 1f));
             Center(Label(b, "T", names[i], 17, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(104, 30), Color.white));
             taps.Add(new TapBtn { rt = b, layer = 9, act = () => { chatTab = k; RenderChat(); } });
         }
-        var say = Img("Say", chatFull, white, new Vector2(0f, 0f), new Vector2(110, 44), new Vector2(180, 54), new Color(0.22f, 0.5f, 0.26f, 1f));
-        chatTabT = Center(Label(say, "T", "Say…", 22, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(180, 40), Color.white));
+        chatFullText = Label(chatFull, "Log", "", 17, TextAnchor.LowerLeft, new Vector2(20, -110), new Vector2(ChatW - 40, ChatH - 200), Color.white);
+        chatFullText.supportRichText = true; chatFullText.horizontalOverflow = HorizontalWrapMode.Wrap; chatFullText.verticalOverflow = VerticalWrapMode.Truncate;
+        var say = Img("Say", chatFull, white, new Vector2(0.5f, 0f), new Vector2(0, 44), new Vector2(ChatW - 40, 54), new Color(0.22f, 0.5f, 0.26f, 1f));
+        chatTabT = Center(Label(say, "T", "Say…", 22, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(ChatW - 60, 40), Color.white));
         taps.Add(new TapBtn { rt = say, layer = 9, act = StartChatTyping });
-        var close = Img("Close", chatFull, white, new Vector2(1f, 0f), new Vector2(-90, 44), new Vector2(150, 54), new Color(0.45f, 0.22f, 0.17f, 1f));
-        Center(Label(close, "T", "Close", 22, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(150, 40), Color.white));
-        taps.Add(new TapBtn { rt = close, layer = 9, act = () => OpenChat(false) });
         chatFull.gameObject.SetActive(false);
 
         // what you say, over your head
@@ -142,13 +152,19 @@ public partial class AHUI
         AHChat.Changed += () => { chatShowT = 10f; if (ChatOpen) RenderChat(); };
     }
 
+    void SetChatMin(bool on) { chatMin = on; try { PlayerPrefs.SetInt("chatMin", on ? 1 : 0); } catch { } }
+
     public bool ChatOpen { get { return chatFull != null && chatFull.gameObject.activeSelf; } }
     public void OpenChat(bool on)
     {
         if (chatFull == null) return;
-        if (on) { ShowWork(false); chatTab = "all"; }
-        chatFull.gameObject.SetActive(on); chatFull.SetAsLastSibling();
-        if (!on) { chatTyping = false; if (chatKb != null) { chatKb.active = false; chatKb = null; } }
+        if (on)
+        {
+            ShowWork(false); chatTab = "all"; chatClosing = false;
+            if (!chatFull.gameObject.activeSelf) chatFull.anchoredPosition = new Vector2(-ChatW * 0.5f, 0f);   // slides in from the left edge
+            chatFull.gameObject.SetActive(true); chatFull.SetAsLastSibling();
+        }
+        else { chatClosing = true; chatTyping = false; if (chatKb != null) { chatKb.active = false; chatKb = null; } }
         ptrs.Clear(); RenderChat();
     }
 
@@ -166,7 +182,7 @@ public partial class AHUI
     {
         if (chatFullText == null) return;
         var sb = new System.Text.StringBuilder(); int n = 0;
-        for (int i = AHChat.Log.Count - 1; i >= 0 && n < 14; i--)
+        for (int i = AHChat.Log.Count - 1; i >= 0 && n < 18; i--)
         {
             var m = AHChat.Log[i];
             if (chatTab == "party" && m.ch != "party" && m.ch != "you" && m.ch != "say") continue;
@@ -209,18 +225,27 @@ public partial class AHUI
     void ChatTick(float dt)
     {
         if (chatBox == null) return;
-        if (ChatOpen) ChatKeys();
-        AHChat.Tick(g, dt);
-        // the small log: the last few lines, fading out when nothing new has come in for a while
-        bool show = !ChatOpen && Modal == 0 && !PhotoOn && AHChat.Log.Count > 0;
-        if (chatBox.gameObject.activeSelf != show) chatBox.gameObject.SetActive(show);
-        if (show)
+        // the open chat slides in and out
+        if (chatFull.gameObject.activeSelf)
         {
-            chatShowT -= dt;
-            chatGroup.alpha = Mathf.Lerp(chatGroup.alpha, chatShowT > 0f ? 1f : 0.6f, 1f - Mathf.Exp(-dt * 3f));
-            var sb = new System.Text.StringBuilder(); int n = 0;
-            for (int i = AHChat.Log.Count - 1; i >= 0 && n < 5; i--) { sb.Insert(0, Line(AHChat.Log[i]) + "\n"); n++; }
-            chatText.text = sb.ToString().TrimEnd('\n');
+            float to = chatClosing ? -ChatW * 0.5f : ChatW * 0.5f, x = chatFull.anchoredPosition.x;
+            x = Mathf.Lerp(x, to, 1f - Mathf.Exp(-Time.unscaledDeltaTime * 14f)); if (Mathf.Abs(x - to) < 2f) x = to;
+            chatFull.anchoredPosition = new Vector2(x, 0f);
+            if (chatClosing && x <= -ChatW * 0.5f + 1f) { chatFull.gameObject.SetActive(false); chatClosing = false; }
+        }
+        if (ChatOpen && !chatClosing) ChatKeys();
+        AHChat.Tick(g, dt);
+        // the chat bar (or, tucked away, the little Chat tab, which lights up when something new comes in)
+        bool free = !ChatOpen && Modal == 0 && !PhotoOn;
+        bool bar = free && !chatMin, pill = free && chatMin;
+        if (chatBox.gameObject.activeSelf != bar) chatBox.gameObject.SetActive(bar);
+        if (chatPill.gameObject.activeSelf != pill) chatPill.gameObject.SetActive(pill);
+        chatShowT -= dt;
+        if (pill) chatPillImg.color = Color.Lerp(chatPillImg.color, chatShowT > 0f ? new Color(0.62f, 0.38f, 0.14f, 0.9f) : new Color(0.05f, 0.04f, 0.035f, 0.62f), 1f - Mathf.Exp(-dt * 4f));
+        if (bar)
+        {
+            chatGroup.alpha = Mathf.Lerp(chatGroup.alpha, chatShowT > 0f ? 1f : 0.85f, 1f - Mathf.Exp(-dt * 3f));
+            chatText.text = AHChat.Log.Count > 0 ? Line(AHChat.Log[AHChat.Log.Count - 1]) : "<color=#a09888>Tap to chat</color>";
         }
         // the bubble over your head
         var p = g.player;
