@@ -75,8 +75,12 @@ public class AHSeason : MonoBehaviour
                 break;
             default:   // autumn leaves
                 a = new Color(0.95f, 0.45f, 0.12f, 1f); b = new Color(0.85f, 0.7f, 0.15f, 1f);
-                main.startLifetime = 9f; main.startSize = new ParticleSystem.MinMaxCurve(0.22f, 0.38f); main.startSpeed = 0f;
-                em.rateOverTime = 40f; vel.x = new ParticleSystem.MinMaxCurve(0.3f, 1f); vel.y = new ParticleSystem.MinMaxCurve(-1.1f, -0.6f); vel.z = new ParticleSystem.MinMaxCurve(-0.3f, 0.3f);
+                // a light drift, not a storm: fewer, smaller leaves that fall and are gone in a few seconds
+                main.startLifetime = new ParticleSystem.MinMaxCurve(3.5f, 5f); main.startSize = new ParticleSystem.MinMaxCurve(0.12f, 0.2f); main.startSpeed = 0f; main.maxParticles = 120;
+                em.rateOverTime = 12f; vel.x = new ParticleSystem.MinMaxCurve(0.3f, 0.9f); vel.y = new ParticleSystem.MinMaxCurve(-1.8f, -1.2f); vel.z = new ParticleSystem.MinMaxCurve(-0.3f, 0.3f);
+                var lcol = ps.colorOverLifetime; lcol.enabled = true; var lg = new Gradient();
+                lg.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) }, new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(1f, 0.8f), new GradientAlphaKey(0f, 1f) });
+                lcol.color = lg;
                 rot.enabled = true; rot.z = new ParticleSystem.MinMaxCurve(-3f, 3f); noise.enabled = true; noise.strength = 0.7f; noise.frequency = 0.3f;
                 break;
         }
@@ -94,6 +98,7 @@ public class AHSeason : MonoBehaviour
             r.sharedMaterial = m; mat = m;
         }
         r.renderMode = ParticleSystemRenderMode.Billboard;
+        r.maxParticleSize = 0.025f;   // one blowing past the camera stays a leaf, not a big blot across the screen
         ps.Play();
     }
 
