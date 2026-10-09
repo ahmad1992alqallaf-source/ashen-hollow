@@ -189,7 +189,68 @@ bpy.ops.object.vertex_group_smooth(group_select_mode='ALL', factor=0.5, repeat=2
 bpy.ops.object.vertex_group_limit_total(group_select_mode='ALL', limit=4)
 bpy.ops.object.vertex_group_normalize_all(lock_active=False)
 bpy.ops.object.mode_set(mode='OBJECT')
+# 3f) a core: the game's own knight body, posed the same and shrunk a little, sits inside the armour in the darkest
+# colour of the armour's texture, so any chink between Tripo's plates (the neck, under the pauldrons) shows dark armour
+bpy.ops.object.select_all(action='DESELECT'); src.select_set(True); bpy.context.view_layer.objects.active = src
+bpy.ops.object.duplicate(); core = bpy.context.view_layer.objects.active; core.name = 'Core'
+for _m in list(core.modifiers):
+    if _m.type == 'ARMATURE': bpy.ops.object.modifier_apply(modifier=_m.name)
+    else: core.modifiers.remove(_m)
+_dcc = core.modifiers.new('dc', 'DECIMATE'); _dcc.ratio = 0.12; bpy.ops.object.modifier_apply(modifier='dc')
+_dp = core.modifiers.new('dp', 'DISPLACE'); _dp.strength = -0.012; _dp.mid_level = 0.0; _dp.direction = 'NORMAL'
+bpy.ops.object.modifier_apply(modifier='dp')
+_tm2 = t.material_slots[0].material; _ti2 = None
+for _n in _tm2.node_tree.nodes:
+    if _n.type == 'TEX_IMAGE' and _n.outputs['Color'].links and any(l.to_socket.name == 'Base Color' for l in _n.outputs['Color'].links): _ti2 = _n.image
+_W2, _H2 = _ti2.size; _p2 = np.array(_ti2.pixels[:], dtype=np.float32).reshape(_H2, _W2, 4)[..., :3].sum(2)
+_y, _x = np.unravel_index(np.argmin(_p2[8:-8, 8:-8]), (_H2 - 16, _W2 - 16)); _du, _dv = (_x + 8 + 0.5) / _W2, (_y + 8 + 0.5) / _H2
+core.data.materials.clear(); core.data.materials.append(_tm2)
+for _poly in core.data.polygons: _poly.material_index = 0
+if not core.data.uv_layers: core.data.uv_layers.new()
+for _l in core.data.uv_layers.active.data: _l.uv = (_du, _dv)
+# only the main bones, as the armour
+for _v in core.data.vertices:
+    _keep = {}
+    for _g in _v.groups:
+        _mn = main(core.vertex_groups[_g.group].name)
+        if _mn: _keep[_mn] = _keep.get(_mn, 0) + _g.weight
+    for _g in list(_v.groups): core.vertex_groups[_g.group].remove([_v.index])
+    for _n, _w in _keep.items():
+        if _n not in core.vertex_groups: core.vertex_groups.new(name=_n)
+        core.vertex_groups[_n].add([_v.index], _w, 'REPLACE')
+# not the knight's helm or boots: they poke past the lava helm's visor and the toes
+import bmesh as _bm3
+_cb = _bm3.new(); _cb.from_mesh(core.data); _dl3 = _cb.verts.layers.deform.verify()
+_gi = {g.index: g.name for g in core.vertex_groups}
+_drop = [v for v in _cb.verts if v[_dl3] and _gi[max(v[_dl3].items(), key=lambda kv: kv[1])[0]] in ('Head', 'foot_l', 'foot_r')]
+_bm3.ops.delete(_cb, geom=_drop, context='VERTS'); _cb.to_mesh(core.data); _cb.free()
+print('core faces', len(core.data.polygons), 'dark uv', round(_du, 3), round(_dv, 3))
+bpy.ops.object.select_all(action='DESELECT'); core.select_set(True); t.select_set(True); bpy.context.view_layer.objects.active = t
+bpy.ops.object.join(); me = t.data
+# a dark gorget round the neck, under the helm's rim, so no daylight shows between the helm and the shoulders
+_nk = arm.data.bones['neck_01']; _nh = arm.matrix_world @ _nk.head_local; _nt = arm.matrix_world @ arm.data.bones['Head'].head_local
+bpy.ops.mesh.primitive_cylinder_add(vertices=14, radius=0.095, depth=(_nt - _nh).length + 0.1, location=((_nh + _nt) / 2))
+gor = bpy.context.view_layer.objects.active; gor.name = 'Gorget'
+gor.data.materials.append(_tm2)
+if not gor.data.uv_layers: gor.data.uv_layers.new()
+for _l in gor.data.uv_layers.active.data: _l.uv = (_du, _dv)
+_g1 = gor.vertex_groups.new(name='neck_01'); _g1.add([v.index for v in gor.data.vertices], 1.0, 'REPLACE')
+bpy.ops.object.select_all(action='DESELECT'); gor.select_set(True); t.select_set(True); bpy.context.view_layer.objects.active = t
+bpy.ops.object.join(); me = t.data
 for o in qmeshes + [src, src2]: bpy.data.objects.remove(o)
+
+# 3e) a lining: a lighter copy of the armour, a little smaller, just inside it, so the hair-thin cracks between
+# Tripo's plates (and the gaps the knees and elbows open) show armour behind them, never the world
+bpy.ops.object.select_all(action='DESELECT'); t.select_set(True); bpy.context.view_layer.objects.active = t
+bpy.ops.object.duplicate(); lin = bpy.context.view_layer.objects.active; lin.name = 'Lining'
+for _m in list(lin.modifiers): lin.modifiers.remove(_m)
+_dc = lin.modifiers.new('dc', 'DECIMATE'); _dc.ratio = 0.2
+bpy.ops.object.modifier_apply(modifier='dc')
+_dp = lin.modifiers.new('dp', 'DISPLACE'); _dp.strength = -0.022; _dp.mid_level = 0.0; _dp.direction = 'NORMAL'
+bpy.ops.object.modifier_apply(modifier='dp')
+print('lining faces', len(lin.data.polygons))
+bpy.ops.object.select_all(action='DESELECT'); lin.select_set(True); t.select_set(True); bpy.context.view_layer.objects.active = t
+bpy.ops.object.join(); me = t.data
 
 # 3c) the red cloth (tabard, back flap) is one thin sheet: seen from behind it would be see-through, so each cloth face
 # gets a back face of its own (the plates keep one side: their insides are never meant to be seen)

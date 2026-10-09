@@ -125,7 +125,10 @@ public class AHQOutfitHide : MonoBehaviour
                 // right at the surface, poking out along it, or just under it: hidden; past a sleeve's or a boot's edge (sideways from it) stays
                 float dist = Mathf.Sqrt(best), along = Vector3.Dot(p - pts[bi], nrm[bi]);
                 // under a closed suit only what pokes out through the plates goes; what is under them stays, dark
-                if (dist < Close || (along > 0.5f * dist && dist < Through) || (!closed && along < -0.5f * dist)) { hide[i] = true; nh++; }
+                // (under closed plate only what is actually outside the plate goes: the rest stays as dark padding behind
+                // every chink between the plates)
+                if (closed) { if (along > 0.004f && dist < Through) { hide[i] = true; nh++; } }
+                else if (dist < Close || (along > 0.5f * dist && dist < Through) || along < -0.5f * dist) { hide[i] = true; nh++; }
             }
             // which vertices hang mostly from a forearm, a hand or a finger
             var arm = new bool[v.Length]; var bw = mesh.boneWeights; var sb = s.bones;
