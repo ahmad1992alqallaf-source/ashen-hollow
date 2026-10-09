@@ -70,7 +70,7 @@ public class AHQOutfitHide : MonoBehaviour
     readonly List<SkinnedMeshRenderer> hiddenHair = new List<SkinnedMeshRenderer>();
     readonly List<Renderer> hiddenBits = new List<Renderer>();
     readonly List<SkinnedMeshRenderer> darkened = new List<SkinnedMeshRenderer>();
-    static readonly Color Under = new Color(0.3f, 0.23f, 0.2f, 1f);   // a dark padded under-suit, warm like the basalt plates
+    static readonly Color Under = new Color(0.17f, 0.13f, 0.12f, 1f);   // a dark padded under-suit, warm like the basalt plates
     const float Cell = 0.05f, Reach = 0.10f, Through = 0.07f, Close = 0.03f, Snug = 0.07f;
 
     public void Apply(Transform body, GameObject outfit, Transform head)

@@ -60,8 +60,8 @@ _b = _bm.new(); _b.from_mesh(me); _b.verts.ensure_lookup_table()
 _S = X
 def _inner(v):
     x, y, z = v.co.x / _S, (v.co.y - 0.03) / _S, None
-    return abs(x) < 0.06 and -0.085 < y < 0.075
-_qlo, _qhi = float(np.interp(0.08, tz, qz)), float(np.interp(0.45, tz, qz))
+    return abs(x) < 0.05 and -0.06 < y < 0.03
+_qlo, _qhi = float(np.interp(0.08, tz, qz)), float(np.interp(0.38, tz, qz))
 _cut = [f for f in _b.faces if all(_inner(v) and _qlo < v.co.z < _qhi for v in f.verts)]
 print('crotch faces cut', len(_cut))
 _bm.ops.delete(_b, geom=_cut, context='FACES_ONLY'); _b.to_mesh(me); _b.free(); me.update()
@@ -115,6 +115,16 @@ def clean(W):
         if m: d[m] = d.get(m, 0) + w
     return list(d.items())
 WA = [clean(W) for W in WA]; WB = [clean(W) for W in WB]
+_tm = t.material_slots[0].material; _ti = None
+for _n in _tm.node_tree.nodes:
+    if _n.type == 'TEX_IMAGE' and _n.outputs['Color'].links and any(l.to_socket.name == 'Base Color' for l in _n.outputs['Color'].links): _ti = _n.image
+_TW, _TH = _ti.size; _tp = np.array(_ti.pixels[:], dtype=np.float32).reshape(_TH, _TW, 4)
+_uvl = me.uv_layers.active.data; vcloth = [False] * len(me.vertices)
+for _poly in me.polygons:
+    for _li in _poly.loop_indices:
+        _vi = me.loops[_li].vertex_index; _u, _v = _uvl[_li].uv
+        _r, _g, _b = _tp[min(_TH - 1, max(0, int(_v * _TH))), min(_TW - 1, max(0, int(_u * _TW)))][:3]
+        if _r > 0.12 and _r > _g * 2.2 and _r > _b * 1.8 and _g < 0.2: vcloth[_vi] = True
 for i in range(len(me.vertices)):
     if cls[i]:
         W = [(n, w) for n, w in WA[i] if isarm(n) or n.startswith('clavicle')]
@@ -130,6 +140,7 @@ for i in range(len(me.vertices)):
             W2 = [(n, w) for n, w in W if not ((n.startswith('thigh') or n.startswith('calf') or n.startswith('foot')) and n.endswith(other))]
             if W2: W = W2
         elif z < 0.5: W = [('pelvis', 1.0)]   # the middle seam between the legs stays with the hips
+        if z < 0.5 and vcloth[i] and armv[i][2] > 0.2: W = [('pelvis', 1.0)]   # the red cloth hangs from the belt like a skirt: it never stretches after a leg
     for n, w in W: t.vertex_groups[n].add([i], w, 'REPLACE')
 # the few faces joining a hand to a thigh plate (or an arm to the body) would stretch between the two: they are split
 # off and stay with the body (their own copies of the arm-side corners follow the body), so no hole is left behind
@@ -172,6 +183,34 @@ bpy.ops.object.vertex_group_limit_total(group_select_mode='ALL', limit=4)
 bpy.ops.object.vertex_group_normalize_all(lock_active=False)
 bpy.ops.object.mode_set(mode='OBJECT')
 for o in qmeshes + [src, src2]: bpy.data.objects.remove(o)
+
+# 3c) the red cloth (tabard, back flap) is one thin sheet: seen from behind it would be see-through, so each cloth face
+# gets a back face of its own (the plates keep one side: their insides are never meant to be seen)
+import bmesh as _bm2, numpy as _np
+_mat = t.material_slots[0].material; _img = None
+for _n in _mat.node_tree.nodes:
+    if _n.type == 'TEX_IMAGE' and _n.outputs['Color'].links and any(l.to_socket.name == 'Base Color' for l in _n.outputs['Color'].links): _img = _n.image
+_W, _H = _img.size; _px = _np.array(_img.pixels[:], dtype=_np.float32).reshape(_H, _W, 4)
+_b2 = _bm2.new(); _b2.from_mesh(me); _uv = _b2.loops.layers.uv.active
+def _cloth(f):
+    u = sum(l[_uv].uv.x for l in f.loops) / len(f.loops); v = sum(l[_uv].uv.y for l in f.loops) / len(f.loops)
+    r, g, b = _px[min(_H - 1, max(0, int(v * _H))), min(_W - 1, max(0, int(u * _W)))][:3]
+    return r > 0.12 and r > g * 2.2 and r > b * 1.8 and g < 0.2
+def _pale(f):
+    u = sum(l[_uv].uv.x for l in f.loops) / len(f.loops); v = sum(l[_uv].uv.y for l in f.loops) / len(f.loops)
+    r, g, b = _px[min(_H - 1, max(0, int(v * _H))), min(_W - 1, max(0, int(u * _W)))][:3]
+    return min(r, g, b) > 0.35 and max(r, g, b) - min(r, g, b) < 0.12
+_pf = [f for f in _b2.faces if _pale(f)]
+print('pale untextured faces removed', len(_pf))
+_bm2.ops.delete(_b2, geom=_pf, context='FACES_ONLY')
+_cf = [f for f in _b2.faces if _cloth(f)]
+_d = _bm2.ops.duplicate(_b2, geom=_cf)
+_nf = [g for g in _d['geom'] if isinstance(g, _bm2.types.BMFace)]
+_bm2.ops.reverse_faces(_b2, faces=_nf)
+for _f in _nf:
+    for _v in _f.verts: _v.co -= _f.normal * 0.002   # a hair behind the front face, no flicker
+_b2.to_mesh(me); _b2.free(); me.update()
+print('cloth faces given a back', len(_cf))
 
 # 4) the stance becomes the rest (bind) pose, and the armour hangs from the skeleton
 bpy.context.view_layer.objects.active = arm; arm.select_set(True)
