@@ -129,6 +129,13 @@ for i in range(len(me.vertices)):
     if cls[i]:
         W = [(n, w) for n, w in WA[i] if isarm(n) or n.startswith('clavicle')]
         if not W: W = [('hand_l' if armv[i][1] > 0 else 'hand_r', 1.0)]
+        # the pauldron (the plates on top of the shoulder, inboard of the elbow): it rides the shoulder blade and only
+        # partly turns with the arm, so dropping the arm from the T-pose doesn't fold it into the chest and open a hole
+        _, x, z, y = armv[i]; sd = 'l' if x > 0 else 'r'
+        if abs(x) < 0.25 and z > 0.70:
+            k = min(1.0, max(0.0, (0.25 - abs(x)) / 0.12))     # all clavicle near the neck, more arm toward the elbow
+            ca = 0.5 * k + 0.2 * (1 - k)
+            W = [('clavicle_' + sd, ca), ('upperarm_' + sd, 1.0 - ca)]
     else:
         W = [(n, w) for n, w in WB[i] if not isarm(n)]
         _, x, z, y = armv[i]
@@ -211,6 +218,23 @@ for _f in _nf:
     for _v in _f.verts: _v.co -= _f.normal * 0.002   # a hair behind the front face, no flicker
 _b2.to_mesh(me); _b2.free(); me.update()
 print('cloth faces given a back', len(_cf))
+
+# 3d) bake the armour into an A-pose (arms 40 degrees down) before binding: the hero's arms hang down most of the
+# time, so binding halfway there halves how far the shoulders ever have to bend
+bpy.context.view_layer.update()
+_am = t.modifiers.new('bake', 'ARMATURE'); _am.object = arm
+for side, s_ in (('l', 1), ('r', -1)):
+    aim('upperarm_' + side, (s_ * 0.64, 0.0, -0.77))
+    aim('lowerarm_' + side, (s_ * 0.62, 0.0, -0.78))
+    aim('hand_' + side, (s_ * 0.6, 0.0, -0.8))
+bpy.context.view_layer.update()
+bpy.ops.object.select_all(action='DESELECT'); t.select_set(True); bpy.context.view_layer.objects.active = t
+bpy.ops.object.modifier_apply(modifier='bake')
+D = {}
+for pb in arm.pose.bones:
+    P = arm.matrix_world @ pb.matrix; Rm = arm.matrix_world @ pb.bone.matrix_local
+    D[pb.name] = [list(r) for r in (P @ Rm.inverted())]
+json.dump(D, open(out + '.delta.json', 'w'))
 
 # 4) the stance becomes the rest (bind) pose, and the armour hangs from the skeleton
 bpy.context.view_layer.objects.active = arm; arm.select_set(True)
