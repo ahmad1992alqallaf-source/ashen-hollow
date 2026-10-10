@@ -107,7 +107,7 @@ public static class AHMountains
         // some areas (the cities, the Fossil Lands, Emberreach, your homestead) drew their border peaks and rock columns as
         // one batch of seven-sided cones or columns (63 vertices each, coloured per piece): split it and reshape every one
         // underground the cave walls are the same kind of batch: the cones become rock crags, anything else stays as it was
-        int nb = 0; bool cave = AHDungeon.IsDungeon(AHGame.AreaId);
+        int nb = 0; bool cave = AHDungeon.IsDungeon(AHGame.AreaId) || AHGame.AreaId == "raid";   // the Ember Throne is underground too
             foreach (var r in world.GetComponentsInChildren<MeshRenderer>(true))
             {
                 if (!r.enabled || !r.name.StartsWith("AH_INST")) continue;
@@ -251,6 +251,7 @@ public static class AHMountains
             Color c2 = col * 1.35f; c2.a = 1f;
             // near-black peaks read as holes in the sky: weathered dark rock instead
             if ((c2.r + c2.g + c2.b) / 3f < 0.3f && AHGame.AreaId != "ember" && AHGame.AreaId != "ashfall") c2 = Color.Lerp(c2, new Color(0.44f, 0.42f, 0.38f), 0.5f);
+            if (AHDungeon.IsDungeon(AHGame.AreaId)) c2 *= 1.6f;   // cave walls stand in torchlight only: a lighter stone so they read as rock, not a black void
             if (col.r + col.g + col.b < 0.45f && AHGame.AreaId == "fossil") c2 = Color.Lerp(c2, new Color(0.46f, 0.38f, 0.3f), 0.6f);   // the Fossil Lands' near-black rock spires: weathered brown stone
             foreach (var pr in new[] { "baseColorFactor", "_BaseColor", "_Color" }) if (mat.HasProperty(pr)) mat.SetColor(pr, c2);
             mats[col] = mat;
