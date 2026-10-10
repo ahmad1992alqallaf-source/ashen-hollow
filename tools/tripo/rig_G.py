@@ -110,7 +110,7 @@ for v in me.vertices:
     # the suit's arms drawn in to the game arm's length, gloves on the hands (a band round the arm line only)
     _ax = abs(p.x)
     if _ax > _xs_t:
-        _dz = p.z - (_a0 + M['slope'] * _ax); _w = float(np.clip((0.15 - abs(_dz)) / 0.05, 0, 1))
+        _dz = p.z - (_a0 + M['slope'] * _ax); _bd = OPT.get("band", 0.15); _w = float(np.clip((_bd - abs(_dz)) / 0.05, 0, 1))
         if _w > 0:
             _nx = _xs_t + (_ax - _xs_t) * _kc; _nx = _ax + _w * (_nx - _ax)
             p = mathutils.Vector((math.copysign(_nx, p.x), p.y, p.z + M['slope'] * (_nx - _ax)))

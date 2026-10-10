@@ -700,7 +700,7 @@ public static class AHMenu
     }
 
     // a monster stood a few metres in front of you, alive (breathing, idling) but harmless; again for the next one
-    static readonly string[] showIds = { "bogtoad", "lurker", "bear", "croc", "ostrich", "ram", "m_flameguard", "emberwarden", "voidling", "grull", "pyraxis", "imp", "magmaimp", "troll", "f_hrimgar", "f_glacius", "lurker", "mirehulk", "bogmother", "w_bogking", "w_rotfang", "sandqueen", "thalassa", "voidmaw", "m_ignis" };
+    static readonly string[] showIds = { "t_anubek", "pirate", "bogtoad", "lurker", "bear", "croc", "ostrich", "ram", "m_flameguard", "emberwarden", "voidling", "grull", "pyraxis", "imp", "magmaimp", "troll", "f_hrimgar", "f_glacius", "lurker", "mirehulk", "bogmother", "w_bogking", "w_rotfang", "sandqueen", "thalassa", "voidmaw", "m_ignis" };
     static int showAt; static GameObject showGo;   // the list starts again after each script reload (new animals come first)
     [MenuItem("Ashen Hollow/Test: Display Monster Here")]
     static void ShowMonster()
@@ -775,6 +775,23 @@ public static class AHMenu
         foreach (var n in AHNpc.All) { if (objs.Count >= 20) break; objs.Add(n.gameObject); }
         Sheet(dir, "townsfolk", objs, false);
         Debug.Log("Townsfolk snapshots: " + objs.Count);
+    }
+    // one townsperson of each trade outfit, photographed where they stand after a moment of animation:
+    // HeroShots/npc_<outfit>.png
+    [MenuItem("Ashen Hollow/Test: Townsfolk Outfit Close-ups")]
+    static void TownsfolkSuits()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null) return;
+        var seen = new System.Collections.Generic.HashSet<string>(); int n = 0;
+        foreach (var npc in AHNpc.All)
+        {
+            if (npc == null) continue;
+            string suit = null;
+            foreach (Transform c in npc.transform) if (c.name.StartsWith("QOutfit_")) suit = c.name.Substring(8);
+            if (suit == null || !seen.Add(suit)) continue;
+            var sa = npc.gameObject.AddComponent<AHShowAnim>(); sa.shotName = "npc_" + suit; n++;
+        }
+        Debug.Log("Townsfolk outfit close-ups: " + n + " (" + string.Join(", ", seen) + ")");
     }
     // one of each herb, close up, into HeroShots/herbs.png
     [MenuItem("Ashen Hollow/Test: Herb Snapshots")]
