@@ -521,10 +521,10 @@ public static class AHScenery
         foreach (Transform grp in world)
         {
             if (!grp.name.StartsWith("obj")) continue;
-            var boxes = new List<Renderer>();
+            var boxes = new List<Renderer>(); int on = 0;
             foreach (var r in grp.GetComponentsInChildren<Renderer>(false))
             {
-                if (!r.enabled) continue; var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null) continue;
+                if (!r.enabled) continue; on++; var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null) continue;
                 long tri = 0; for (int k = 0; k < mf.sharedMesh.subMeshCount; k++) tri += mf.sharedMesh.GetIndexCount(k) / 3;
                 if (tri <= 12) boxes.Add(r);
             }
@@ -537,8 +537,15 @@ public static class AHScenery
                 go.transform.position = new Vector3(b.center.x, b.min.y, b.center.z); AHModel.SetShadows(go);
                 r.enabled = false; boxes.Remove(r); n++;
             }
+            // a stray flat green disc lying on dry ground (a lily pad with no pond): it goes
+            if (boxes.Count == 1 && on == 1)
+            {
+                Color c; var b1 = boxes[0].bounds;
+                if (Col(boxes[0], out c) && b1.size.y < 0.03f && Mathf.Max(b1.size.x, b1.size.z) < 1.5f && c.g > c.r && c.g > c.b) { boxes[0].enabled = false; n++; }
+                continue;
+            }
             // a box chest (a brown box, its lid and a gold band): the KayKit treasure chest, sized to it
-            if (boxes.Count == 3)
+            if (boxes.Count == 3 && on == 3)
             {
                 Bounds all = boxes[0].bounds; foreach (var r in boxes) all.Encapsulate(r.bounds);
                 int gold = 0; foreach (var r in boxes) { Color c; if (Col(r, out c) && c.r > 0.75f && c.g > 0.55f && c.b < 0.35f && r.bounds.size.y < 0.16f) gold++; }

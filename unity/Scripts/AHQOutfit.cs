@@ -426,6 +426,7 @@ public class AHQOutfitAuto : MonoBehaviour
         // the Warden's horned lava helm (Tripo) over the outfit's stone helm piece
         if (worn != null && spec.Contains("KnightClothStone:Head")) AHTripo.Helm(worn, transform, "warden_helmet");
         if (worn != null && spec.Contains("tqo_") && GetComponent<AHArmSpread>() == null) gameObject.AddComponent<AHArmSpread>();
+        if (worn != null && spec.Contains("tqo_")) AHInk.Add(worn);   // the anime ink line on the collection suit
         enabled = false;
     }
 

@@ -24,7 +24,7 @@ public static class AHTripo
         b = Bounds(m.transform, root);
         Vector3 at = shield ? new Vector3(b.center.x, b.center.y, b.min.z) : new Vector3(b.center.x, b.min.y + b.size.y * grip, b.center.z);
         m.transform.localPosition -= at;
-        Finish(m, hand.gameObject.layer);
+        Finish(m, hand.gameObject.layer); AHInk.Add(m);
         return root;
     }
 
@@ -104,7 +104,7 @@ public static class AHTripo
         m.transform.localPosition -= new Vector3(b.center.x, b.min.y, b.center.z);
         m.transform.localPosition += new Vector3(0f, HelmDrop * k, HelmFwd * k);
         root.SetParent(head, true);
-        Finish(m, rig.gameObject.layer);
+        Finish(m, rig.gameObject.layer); AHInk.Add(m);
         return root.gameObject;
     }
     // the helm's size and seat on the head, in metres for the male hero (the female is scaled by her head height)

@@ -14,7 +14,7 @@ public static class AHMenu
         {
             string matDir = Root() + "/Resources/AH/Materials";
             if (!AssetDatabase.IsValidFolder(matDir)) return;
-            foreach (var n in new[] { "Water", "Sky", "Fx", "Grass", "Ghost", "Ground", "Spark" })
+            foreach (var n in new[] { "Water", "Sky", "Fx", "Grass", "Ghost", "Ground", "Spark", "Outline" })
                 if (AssetDatabase.LoadAssetAtPath<Material>(matDir + "/" + n + ".mat") == null && Shader.Find("AshenHollow/" + n) != null) MakeMat("AshenHollow/" + n, matDir + "/" + n + ".mat");
             AssetDatabase.SaveAssets();
         };
