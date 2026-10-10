@@ -229,6 +229,28 @@ public static class AHBevel
         return n;
     }
 
+    // the cave and dungeon walls (one batch of flat painted pieces): the same colours with a rock grain over them
+    static Material caveMat;
+    public static int CaveWalls()
+    {
+        if (!AHDungeon.IsDungeon(AHGame.AreaId) && AHGame.AreaId != "forge") return 0;
+        int n = 0;
+        foreach (var r in Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None))
+        {
+            if (!r.enabled || !r.name.StartsWith("AH_INST")) continue;
+            var m = r.sharedMaterial; if (m == null || m.shader.name.StartsWith("AshenHollow/") || HasTex(m)) continue;
+            var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null || !mf.sharedMesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.Color)) continue;
+            if (caveMat == null)
+            {
+                caveMat = AHGame.LoadMat("AH/Materials/CaveStone", "AshenHollow/CaveStone"); if (caveMat == null) return 0;
+                caveMat.SetTexture("_BaseMap", StoneTex()); caveMat.enableInstancing = true; caveMat.name = "AHCaveStone";
+            }
+            var mats = r.sharedMaterials; for (int i = 0; i < mats.Length; i++) mats[i] = caveMat; r.sharedMaterials = mats; n++;
+        }
+        if (n > 0) Debug.Log("Ashen Hollow: cave walls given a rock grain (" + n + ")");
+        return n;
+    }
+
     // once the area is built, and again a little later for what is built as it runs (stalls, camps, furniture)
     public static void Schedule(MonoBehaviour host) { if (host != null) host.StartCoroutine(Later()); }
     static IEnumerator Later()
@@ -239,6 +261,7 @@ public static class AHBevel
             int n = SoftenScene(); if (n > 0) Debug.Log("Ashen Hollow: " + n + " plain cubes given chamfered edges");
             HideGiants();
             StoneSkin();
+            CaveWalls();
             // the props built here in code out in the lands (stalls, benches, looms, cauldrons, tents, carts)
             // (every still thing in the land: not the people, beasts, pets or the hero)
             foreach (var top in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())

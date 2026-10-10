@@ -15,6 +15,10 @@ public static class AHPropTour
 
     [MenuItem("Ashen Hollow/Test: Prop Tour, All Areas")]
     static void All() { Start(Areas); }
+    // a few areas being worked on (quicker than the whole tour)
+    static readonly string[] Few = { "city", "ember", "fossil" };
+    [MenuItem("Ashen Hollow/Test: Prop Tour, Few Areas")]
+    static void FewAreas() { Start(Few); }
     [MenuItem("Ashen Hollow/Test: Prop Tour, This Area")]
     static void Here() { if (Application.isPlaying) Shoot(AHGame.AreaId); }
 
@@ -85,17 +89,41 @@ public static class AHPropTour
             txt.AppendLine(k + "\t" + shots[k].Key + "\tat " + b.center.ToString("F0"));
         }
         // and anything big drawn as a plain untextured block (a wall of colour where a building or ground should be)
+        var bigs = new List<Renderer>();
         foreach (var r in Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None))
         {
             if (!r.enabled || !r.gameObject.activeInHierarchy) continue;
             var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null) continue;
             var b = r.bounds; if (Mathf.Max(b.size.x, b.size.y, b.size.z) < 8f || b.size.y < 2f) continue;
-            if (Tris(r) > 300) continue;
             var m = r.sharedMaterial; if (AHBevel.HasTex(m)) continue;
             Color c = m != null && m.HasProperty("_BaseColor") ? m.GetColor("_BaseColor") : m != null && m.HasProperty("baseColorFactor") ? m.GetColor("baseColorFactor") : Color.white;
-            txt.AppendLine("BIG PLAIN\t" + Path(r.transform) + "  [" + mf.sharedMesh.name + ", " + Tris(r) + " tris, #" + ColorUtility.ToHtmlStringRGB(c) + ", " + (m != null ? m.shader.name : "-") + "]\tsize " + b.size.ToString("F0") + " at " + b.center.ToString("F0"));
+            txt.AppendLine("BIG PLAIN\t" + Path(r.transform) + "  [" + mf.sharedMesh.name + ", " + Tris(r) + " tris, #" + ColorUtility.ToHtmlStringRGB(c) + ", " + (m != null ? m.shader.name + " " + m.name : "-") + (mf.sharedMesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.Color) ? ", vcol" : "") + ", " + mf.sharedMesh.vertexCount + "v]\tsize " + b.size.ToString("F0") + " at " + b.center.ToString("F0"));
+            if (!r.name.StartsWith("Range") && bigs.Count < 6) bigs.Add(r);
         }
         sheet.Apply();
+        // each big plain piece shown with it and without it, from three sides, so it is plain what it adds
+        if (bigs.Count > 0)
+        {
+            var two = new Texture2D(W * 6, H * bigs.Count, TextureFormat.RGB24, false);
+            for (int k = 0; k < bigs.Count; k++)
+            {
+                var r = bigs[k]; var b = r.bounds;
+                for (int v = 0; v < 3; v++)
+                {
+                    float ang = v * 2.1f; Vector3 vd = new Vector3(Mathf.Cos(ang), 0.45f, Mathf.Sin(ang)).normalized;
+                    cam.transform.position = b.center + vd * Mathf.Max(6f, b.extents.magnitude * 0.9f); cam.transform.LookAt(b.center);
+                    for (int on = 1; on >= 0; on--)
+                    {
+                        r.enabled = on == 1; cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, W, H), 0, 0); tex.Apply(); RenderTexture.active = null;
+                        two.SetPixels((v * 2 + (1 - on)) * W, (bigs.Count - 1 - k) * H, W, H, tex.GetPixels());
+                    }
+                    r.enabled = true;
+                }
+            }
+            two.Apply();
+            File.WriteAllBytes(System.IO.Path.Combine(System.IO.Path.Combine(Application.dataPath, "../HeroShots/props"), "big_" + area + ".png"), two.EncodeToJPG(80));
+            Object.Destroy(two);
+        }
         string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots/props"); Directory.CreateDirectory(dir);
         File.WriteAllBytes(System.IO.Path.Combine(dir, "props_" + area + ".png"), sheet.EncodeToJPG(80));
         File.WriteAllText(System.IO.Path.Combine(dir, "props_" + area + ".txt"), txt.ToString());

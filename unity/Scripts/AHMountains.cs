@@ -53,7 +53,7 @@ public static class AHMountains
             if (lite[i] != null) { var mf = lite[i].GetComponentInChildren<MeshFilter>(); liteW[i] = mf != null ? Mathf.Max(mf.sharedMesh.bounds.size.x, mf.sharedMesh.bounds.size.z) : 1.5f; }
         }
 
-        mats = new Dictionary<Color, Material>();
+        mats = new Dictionary<Color, Material>(); pineMat = null;
         root = null; int n = 0;
         // grey peaks a little steeper than the rest, wearing a separate white cap of snow: one crag, and a snow cap
         // made of the same crag shrunk over its top
@@ -129,7 +129,14 @@ public static class AHMountains
                     list.Add(new KeyValuePair<Bounds, Color>(bb, c));
                 }
                 if (!ok || list.Count == 0) { Debug.Log("Ashen Hollow: batch " + r.name + " is not all cones"); continue; }
-                foreach (var kv in list) Place(lite[0] != null ? lite : prefabs, lite[0] != null ? liteW : width, kv.Key, kv.Value);
+                foreach (var kv in list)
+                {
+                    var kb = kv.Key; var kc = kv.Value;
+                    // a tall thin green cone was a fir tree in the old drawing (your homestead's tree line): a real pine
+                    if (kb.size.y > 1.8f * Mathf.Min(kb.size.x, kb.size.z) && kc.g >= kc.r && kc.g >= kc.b && Pine(kb, kc)) continue;
+                    if (kb.size.y > 2f * Mathf.Max(kb.size.x, kb.size.z)) { float need = 0.5f * kb.size.y; kb.size = new Vector3(Mathf.Max(kb.size.x, need), kb.size.y, Mathf.Max(kb.size.z, need)); }
+                    Place(lite[0] != null ? lite : prefabs, lite[0] != null ? liteW : width, kb, kc);
+                }
                 r.enabled = false; nb += list.Count;
             }
         // white snow cones left standing on hills that were not grey (Whitepine's green and grey ridges): each becomes a
@@ -167,6 +174,34 @@ public static class AHMountains
         if (n + nb > 0) Debug.Log("Ashen Hollow: " + (n + nb) + " mountains reshaped" + (nb > 0 ? " (" + nb + " from the batch)" : ""));
     }
 
+    static GameObject[] pines; static Material pineMat;
+    static bool Pine(Bounds b, Color col)
+    {
+        if (pines == null) { pines = new GameObject[3]; for (int i = 0; i < 3; i++) pines[i] = Resources.Load<GameObject>("AH/Models/KK/kk_ah_pine_" + i); }
+        var rnd = new System.Random((int)(b.center.x * 7.3f + b.center.z * 13.1f));
+        var pf = pines[rnd.Next(3)]; if (pf == null) return false;
+        if (root == null) root = new GameObject("Mountains").transform;
+        var go = Object.Instantiate(pf, root, false).transform; go.name = "Pine";
+        foreach (var c in go.GetComponentsInChildren<Collider>(true)) Object.Destroy(c);
+        go.position = new Vector3(b.center.x, b.min.y, b.center.z);
+        go.rotation = Quaternion.Euler(0f, (float)rnd.NextDouble() * 360f, 0f);
+        float sy = b.size.y / 0.97f, sxz = Mathf.Clamp(Mathf.Min(b.size.x, b.size.z) / 0.68f, sy * 0.45f, sy * 0.8f);
+        go.localScale = new Vector3(sxz, sy, sxz);
+        foreach (var r in go.GetComponentsInChildren<Renderer>(true))
+            if (r.name.Contains("Crown"))
+            {
+                if (pineMat == null)
+                {
+                    pineMat = new Material(r.sharedMaterial); pineMat.enableInstancing = true;
+                    Color c2 = col * 1.5f; if (c2.g < 0.12f) c2 = new Color(0.09f, 0.16f, 0.08f); c2.a = 1f;
+                    foreach (var pr in new[] { "baseColorFactor", "_BaseColor", "_Color" }) if (pineMat.HasProperty(pr)) pineMat.SetColor(pr, c2.gamma);
+                }
+                r.sharedMaterial = pineMat;
+            }
+        AHModel.SetShadows(go.gameObject);
+        return true;
+    }
+
     static Transform Place(GameObject[] set, float[] widths, Bounds b, Color col)
     {
         if (root == null) root = new GameObject("Mountains").transform;
@@ -190,6 +225,8 @@ public static class AHMountains
             var src = go.GetComponentInChildren<Renderer>().sharedMaterial;
             mat = new Material(src); mat.enableInstancing = true;
             Color c2 = col * 1.35f; c2.a = 1f;
+            // near-black peaks read as holes in the sky: weathered dark rock instead
+            if ((c2.r + c2.g + c2.b) / 3f < 0.3f && AHGame.AreaId != "ember" && AHGame.AreaId != "ashfall") c2 = Color.Lerp(c2, new Color(0.44f, 0.42f, 0.38f), 0.5f);
             if (col.r + col.g + col.b < 0.45f && AHGame.AreaId == "fossil") c2 = Color.Lerp(c2, new Color(0.46f, 0.38f, 0.3f), 0.6f);   // the Fossil Lands' near-black rock spires: weathered brown stone
             foreach (var pr in new[] { "baseColorFactor", "_BaseColor", "_Color" }) if (mat.HasProperty(pr)) mat.SetColor(pr, c2);
             mats[col] = mat;
