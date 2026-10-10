@@ -11,7 +11,7 @@ using UnityEngine;
 
 public static class AHSuitShots
 {
-    static readonly string[] Colls = { "lava", "fossil", "draconic", "demonic" };
+    static readonly string[] Colls = { "draconic", "demonic", "lava", "fossil" };
     static readonly string[] Classes = { "warrior", "warden", "mage", "priest", "rogue", "ranger", "druid", "shaman" };
     static readonly string[] Slots = { "head", "shoulders", "chest", "hands", "legs", "feet", "cape", "weapon" };
     const int L = 29, W = 360, H = 520;

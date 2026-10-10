@@ -318,7 +318,7 @@ _tm2 = t.material_slots[0].material; _ti2 = None
 for _n in _tm2.node_tree.nodes:
     if _n.type == 'TEX_IMAGE' and _n.outputs['Color'].links and any(l.to_socket.name == 'Base Color' for l in _n.outputs['Color'].links): _ti2 = _n.image
 _W2, _H2 = _ti2.size; _p2 = np.array(_ti2.pixels[:], dtype=np.float32).reshape(_H2, _W2, 4)[..., :3].sum(2)
-_y, _x = np.unravel_index(np.argmin(_p2[8:-8, 8:-8]), (_H2 - 16, _W2 - 16)); _du, _dv = (_x + 8 + 0.5) / _W2, (_y + 8 + 0.5) / _H2
+_in = _p2[8:-8, 8:-8]; _q = np.percentile(_in, 15); _y, _x = np.unravel_index(np.argmin(np.abs(_in - _q)), (_H2 - 16, _W2 - 16)); _du, _dv = (_x + 8 + 0.5) / _W2, (_y + 8 + 0.5) / _H2
 core.data.materials.clear(); core.data.materials.append(_tm2)
 for _poly in core.data.polygons: _poly.material_index = 0
 if not core.data.uv_layers: core.data.uv_layers.new()
@@ -408,7 +408,7 @@ _pf = [f for f in _b2.faces if _hair(f)] if OPT.get('pale') else []
 print('pale untextured faces removed', len(_pf))
 _bm2.ops.delete(_b2, geom=_pf, context='FACES_ONLY')
 _DL = _b2.verts.layers.float.get('dist')
-_cf = [f for f in _b2.faces if all(_FAR.get(v.index, False) for v in f.verts)]
+_cf = [] if OPT.get('noback') else [f for f in _b2.faces if all(_FAR.get(v.index, False) for v in f.verts)]   # noback: a closed, thick mesh (Meshy remesh) needs no second side
 _d = _bm2.ops.duplicate(_b2, geom=_cf)
 _nf = [g for g in _d['geom'] if isinstance(g, _bm2.types.BMFace)]
 _bm2.ops.reverse_faces(_b2, faces=_nf)

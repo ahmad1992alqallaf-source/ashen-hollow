@@ -14,9 +14,11 @@ def measure(P):
     # the hands (the outermost tips) and the top of the upper arm set the slope: a bell sleeve hanging below the arm
     # would drag a plain middle line down near the body
     mh = (ax > 0.93 * R) & (P[:, 2] > 0.45 * H)
-    m1 = (ax > 0.43 * R) & (ax < 0.5 * R) & (P[:, 2] > 0.45 * H)
+    zh0 = float(np.median(P[mh, 2])) if mh.sum() > 20 else 0.72 * H
+    # (only near the arm's own height: antlers, horns or tall shoulder spikes above it must not lift the arm line)
+    m1 = (ax > 0.43 * R) & (ax < 0.5 * R) & (P[:, 2] > 0.45 * H) & (np.abs(P[:, 2] - zh0) < 0.12 * H)
     if mh.sum() > 20 and m1.sum() > 20:
-        zh = float(np.median(P[mh, 2])); z1 = float(np.percentile(P[m1, 2], 80)) - 0.022
+        zh = zh0; z1 = float(np.percentile(P[m1, 2], 80)) - 0.022
         b = (zh - z1) / (0.95 * R - 0.465 * R); a = z1 - b * 0.465 * R
     body_w = 0.0
     # body half width at chest: the narrowest |x| at 0.9*arm height excluding arms... take shoulder joint at 0.14*H

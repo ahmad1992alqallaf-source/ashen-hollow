@@ -1,0 +1,3 @@
+# name | multi or single | pose | pictures   /   name | img | out picture | references | prompt
+draconic_priest_armor_v2_T | multi | t-pose+remesh | Draconic_Priest_for_Tripo/Draconic_Priest/male_front.png;Draconic_Priest_for_Tripo/Draconic_Priest/male_back.png
+draconic_priest_armor_female_v2_T | multi | t-pose+remesh | Draconic_Priest_for_Tripo/Draconic_Priest/female_front.png;Draconic_Priest_for_Tripo/Draconic_Priest/female_back.png
