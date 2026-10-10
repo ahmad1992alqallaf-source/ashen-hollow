@@ -228,6 +228,60 @@ print('hanging cloth verts', sum(vcloth))
 _FAR = {i: DIST[i] > 0.03 for i in range(len(DIST))}
 # where each leg runs (knight space x of the knee), for the skirt blend
 _kx = abs((arm.matrix_world @ arm.pose.bones['calf_l'].head).x)
+# each leg as a chain in the fitted stance: hip, knee, ankle, ball of the foot and on to the toe tip
+LEG = {}
+for _sd in 'lr':
+    _pts = [arm.matrix_world @ arm.pose.bones[b + _sd].head for b in ('thigh_', 'calf_', 'foot_', 'ball_')]
+    _pts.append(_pts[3] + (_pts[3] - _pts[2]).normalized() * 0.09)
+    LEG[_sd] = _pts
+_RIN = (0.15, 0.13, 0.13, 0.13); _ROUT = 0.07
+_kxk = abs(LEG['l'][1].x); _hz = (LEG['l'][0].z + LEG['r'][0].z) / 2; _gz = min(LEG['l'][2].z, LEG['r'][2].z)
+ROBE = [0, 0]
+# where the legs stand apart: below the crotch, a part of the suit with nothing at the centre line beside it (no robe
+# or coat panel joining the legs at that height and depth) is a leg's own armour, however bulky
+_crz = min(LEG['l'][0].z, LEG['r'][0].z) - 0.06
+_CO = set()
+for _v in me.vertices:
+    if abs(_v.co.x) < 0.03 and _v.co.z < _crz + 0.04: _CO.add((int(math.floor(_v.co.z / 0.03)), int(math.floor(_v.co.y / 0.04))))
+# a robe or long coat: closed across the middle both in front of the legs and behind them, all the way from the knee
+# down (the game shortens the wearer's stride so the hem never fans out)
+_kz = (LEG['l'][1].z + LEG['r'][1].z) / 2; _az = (LEG['l'][2].z + LEG['r'][2].z) / 2 + 0.06
+_cy = (LEG['l'][0].y + LEG['r'][0].y) / 2; _yb0 = int(math.floor(_cy / 0.04))
+_zr = range(int(math.floor(_az / 0.03)), int(math.floor(_kz / 0.03)) + 1)
+ROBEC = sum(1 for zb in _zr if any((zb, yb) in _CO for yb in range(_yb0 - 12, _yb0 - 1)) and any((zb, yb) in _CO for yb in range(_yb0 + 2, _yb0 + 13))) / max(1, len(_zr))
+print('robe closure', round(ROBEC, 3))
+def _apart(p):
+    if p.z > _crz or abs(p.x) < 0.04: return False
+    zb, yb = int(math.floor(p.z / 0.03)), int(math.floor(p.y / 0.04))
+    return not any((zb + a, yb + b) in _CO for a in (-1, 0, 1) for b in (-1, 0, 1))
+def legcloth(p):
+    best = (9.0, 'l', 0, 0.0)
+    for sd in 'lr':
+        P = LEG[sd]
+        for j in range(4):
+            h, t_ = P[j], P[j + 1]; d = t_ - h; L = d.length_squared; u = 0.0 if L < 1e-9 else max(0.0, min(1.0, (p - h).dot(d) / L))
+            dd = (p - (h + d * u)).length
+            if dd < best[0]: best = (dd, sd, j, u)
+    d, sd, j, u = best
+    m = float(np.clip((_RIN[j] + _ROUT - d) / _ROUT, 0, 1)) * float(np.clip(abs(p.x) / 0.035, 0, 1))
+    if _apart(p): m = 1.0
+    sd = sd if not _apart(p) else ('l' if p.x > 0 else 'r')
+    if j == 0:
+        if u < 0.25: k = 0.5 * (0.25 - u) / 0.25; WL = [('pelvis', k), ('thigh_' + sd, 1 - k)]
+        elif u > 0.85: k = min(0.5, (u - 0.85) / 0.3); WL = [('thigh_' + sd, 1 - k), ('calf_' + sd, k)]
+        else: WL = [('thigh_' + sd, 1.0)]
+    elif j == 1:
+        if u < 0.15: k = min(0.5, (0.15 - u) / 0.3); WL = [('calf_' + sd, 1 - k), ('thigh_' + sd, k)]
+        else: WL = [('calf_' + sd, 1.0)]
+    else: WL = [('calf_' + sd, 1.0)]   # boots are rigid on the shin
+    a = 0.6 * float(np.clip((_hz - p.z) / max(0.1, (_hz - _gz) * 0.6), 0, 1))
+    s_ = float(np.clip(p.x / max(0.05, _kxk), -1, 1)); wl = 0.5 + 0.5 * s_
+    WC = [('pelvis', 1 - a), ('thigh_l', a * wl), ('thigh_r', a * (1 - wl))]
+    if p.z < (_hz + _gz) / 2: ROBE[1] += 1; ROBE[0] += (m < 0.3)
+    D = {}
+    for n, w in WL: D[n] = D.get(n, 0) + m * w
+    for n, w in WC: D[n] = D.get(n, 0) + (1 - m) * w
+    return [(n, w) for n, w in D.items() if w > 1e-3]
 for i in range(len(me.vertices)):
     if cls[i]:
         sd_, d_, j_, u_ = NEAR[i]; names = [n for n, _, _ in _SEG[sd_]]
@@ -246,24 +300,18 @@ for i in range(len(me.vertices)):
         W = [(n, w) for n, w in WB[i] if not isarm(n)]
         _, x, z, y = armv[i]
         HZ = HIPZ * 1.087
-        # hanging cloth (skirts, robes, tabards, capes): from the belt, leaning to the leg on its side, more so the
-        # nearer it is to that leg, so a stride swings the robe without stretching a sheet from leg to leg
-        if vcloth[i]:
-            sd = 'l' if x > 0 else 'r'; kx = abs(x) * X
-            a = float(np.clip(kx / max(0.05, _kx), 0, 1)) * 0.55 * float(np.clip((HIPZ - z) / (HIPZ * 0.25), 0.3, 1))
-            W = [('pelvis', 1.0 - a), ('thigh_' + sd, a)] if a > 0.02 else [('pelvis', 1.0)]
-        # a leg's plates follow that leg only (a weight from the other leg stretched glowing skirt between the legs)
-        elif z < HZ and abs(x) > 0.012:
-            other = '_r' if x > 0 else '_l'
-            W2 = [(n, w) for n, w in W if not ((n.startswith('thigh') or n.startswith('calf') or n.startswith('foot')) and n.endswith(other))]
-            if W2: W = W2
-        elif z < HZ: W = [('pelvis', 1.0)]   # the middle seam between the legs stays with the hips
+        if z < HZ:
+            # below the belt: a leg's armour and boots ride that leg's bones (by where the leg runs, not by the knight's
+            # nearest surface: bulky greaves stand well off the knight's thin legs), and hanging cloth (robes, skirts,
+            # tabards) hangs from the hips and leans to both legs by its side, so a stride never drags a sheet out
+            W = legcloth(me.vertices[i].co)
     # boots are rigid: they follow the shin, so a pointed toe never stretches into a wedge when the foot bends
     _W2 = {}
     for n, w in W:
         n = ('calf_' + n[-1]) if n.startswith('foot_') else n
         _W2[n] = _W2.get(n, 0) + w
     for n, w in _W2.items(): t.vertex_groups[n].add([i], w, 'REPLACE')
+ROBEF = ROBE[0] / max(1, ROBE[1]); print('below-knee cloth share', round(ROBEF, 3)); open(out + '.robe', 'w').write(str(round(ROBEC, 3)))
 # the few faces joining a hand to a thigh plate (or an arm to the body) would stretch between the two: they are split
 # off and stay with the body (their own copies of the arm-side corners follow the body), so no hole is left behind
 import bmesh

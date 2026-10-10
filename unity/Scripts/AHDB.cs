@@ -8,6 +8,9 @@ public static class AHDB
     public const float S = 0.04f;   // metres per web unit
 
     static readonly Dictionary<string, object> files = new Dictionary<string, object>();
+    // the editor can enter Play mode without reloading scripts: read the data afresh each time, so an edited file counts
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void Fresh() { files.Clear(); }
 
     // the whole parsed file (one object whose keys are the web game's table names)
     public static object File(string name)

@@ -9,7 +9,10 @@ public static class AHModel
     {
         anim = null;
         string path = "AH/Models/" + file;
-        GameObject prefab = Resources.Load<GameObject>(path);
+        GameObject prefab = null;
+        // an animal with a detailed body made for it (the same skeleton and clips, b_<name>_hd) wears that one
+        if (file.StartsWith("Beasts/") && !file.EndsWith("_hd")) { prefab = Resources.Load<GameObject>(path + "_hd"); if (prefab != null) path += "_hd"; }
+        if (prefab == null) prefab = Resources.Load<GameObject>(path);
         GameObject inst;
         if (prefab == null)
         {

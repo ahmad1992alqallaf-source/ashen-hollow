@@ -56,6 +56,9 @@ public static class AHQOutfit
             smr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
             int layer = rig.layer; smr.gameObject.layer = layer;
         }
+        // a robe or long coat (marked when it was rigged): the wearer's stride is shortened so the hem never fans out
+        bool robe = false; foreach (var t in go.GetComponentsInChildren<Transform>(true)) if (t.name.StartsWith("AH_Robe")) { robe = true; break; }
+        if (robe && rig.GetComponent<AHStrideDamp>() == null) rig.AddComponent<AHStrideDamp>();
         // the VRoid body's own skin and clothes that would poke through the outfit are cut away while it is worn
         if (link != null && link.Body != null) { Transform qh; ubc.TryGetValue("Head", out qh); go.AddComponent<AHQOutfitHide>().Apply(link.Body, go, qh != null ? link.Map(qh) : null); }
         return go;
@@ -523,5 +526,42 @@ public class AHArmSpread : MonoBehaviour
         // only an arm hanging down needs it: one raised to the side for a swing or a cast is already clear
         float hang = Vector3.Dot(d.normalized, -transform.up); if (hang <= 0.2f) return;
         up.rotation = Quaternion.AngleAxis(degrees * Mathf.Clamp01((hang - 0.2f) / 0.5f), axis.normalized) * up.rotation;
+    }
+}
+
+// a robe's wearer walks and runs with shorter steps: after the animation, each thigh is turned part of the way back
+// toward hanging straight down and each knee bends less, so the robe's hem (skinned to the hips and both thighs)
+// sways with the stride instead of being dragged out in front and behind
+[DefaultExecutionOrder(19985)]
+public class AHStrideDamp : MonoBehaviour
+{
+    public float thigh = 0.42f, knee = 0.35f;
+    Transform tl, tr, cl, cr;
+    void Start()
+    {
+        foreach (var t in GetComponentsInChildren<Transform>(true))
+        {
+            if (t.name == "thigh_l") tl = t; else if (t.name == "thigh_r") tr = t; else if (t.name == "calf_l") cl = t; else if (t.name == "calf_r") cr = t;
+        }
+    }
+    void LateUpdate() { Leg(tl, cl); Leg(tr, cr); }
+    void Leg(Transform th, Transform ca)
+    {
+        if (th == null || ca == null) return;
+        // a thigh raised past 70 degrees is sitting (on a mount, a bench) or kneeling: that pose is meant
+        float lift = Vector3.Angle(ca.position - th.position, -transform.up);
+        float k = Mathf.Clamp01((80f - lift) / 15f); if (k <= 0f) return;
+        Damp(th, ca, -transform.up, thigh * k);
+        Damp(ca, Foot(ca), (ca.position - th.position).normalized, knee * k);
+    }
+    static Transform Foot(Transform calf) { foreach (Transform c in calf) if (c.name.StartsWith("foot")) return c; return null; }
+    // turn bone b (aimed at its child) the fraction k of the way toward direction to, about the axis across both
+    static void Damp(Transform b, Transform child, Vector3 to, float k)
+    {
+        if (b == null || child == null) return;
+        Vector3 d = child.position - b.position; if (d.sqrMagnitude < 1e-6f) return;
+        float ang = Vector3.Angle(d, to); if (ang < 0.5f) return;
+        Vector3 axis = Vector3.Cross(d, to); if (axis.sqrMagnitude < 1e-8f) return;
+        b.rotation = Quaternion.AngleAxis(ang * k, axis.normalized) * b.rotation;
     }
 }

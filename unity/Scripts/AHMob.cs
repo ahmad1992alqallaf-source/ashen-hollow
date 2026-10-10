@@ -60,7 +60,7 @@ public class AHMob : MonoBehaviour
             var files = AHJson.A(beast, "files");
             if (files != null && files.Count > 0) beastPath = "Beasts/" + (string)files[Random.Range(0, files.Count)];
             else if (AHJson.Has(beast, "path")) beastPath = AHJson.S(beast, "path");   // one of the web game's own models
-            if (beastPath == null || Resources.Load<GameObject>("AH/Models/" + beastPath) == null) { beast = null; beastPath = null; }
+            if (beastPath == null || (Resources.Load<GameObject>("AH/Models/" + beastPath) == null && Resources.Load<GameObject>("AH/Models/" + beastPath + "_hd") == null)) { beast = null; beastPath = null; }
         }
         string skId = beast != null ? null : SkinBase(t.id);
         // the area file names the model the web game used (some links between beasts are only made as it runs)
