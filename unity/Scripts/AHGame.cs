@@ -1127,10 +1127,11 @@ public class AHGame : MonoBehaviour
             // underground: the same dim light all day, torches do the rest
             RenderSettings.fogColor = darkCol * 0.6f;
             RenderSettings.fogStartDistance = 10f; RenderSettings.fogEndDistance = 48f;
-            RenderSettings.ambientSkyColor = darkCol * 1.6f + new Color(0.13f, 0.12f, 0.12f);
-            RenderSettings.ambientEquatorColor = darkCol * 1.3f + new Color(0.1f, 0.09f, 0.09f);
-            RenderSettings.ambientGroundColor = darkCol * 0.8f + new Color(0.05f, 0.05f, 0.05f);
-            sun.intensity = 0.32f; sun.color = new Color(0.75f, 0.7f, 0.68f);
+            // (bright enough on a phone screen to see your hero, the floor and what is coming at you)
+            RenderSettings.ambientSkyColor = darkCol * 1.8f + new Color(0.22f, 0.21f, 0.21f);
+            RenderSettings.ambientEquatorColor = darkCol * 1.5f + new Color(0.17f, 0.16f, 0.16f);
+            RenderSettings.ambientGroundColor = darkCol * 1.0f + new Color(0.09f, 0.09f, 0.09f);
+            sun.intensity = 0.45f; sun.color = new Color(0.75f, 0.7f, 0.68f);
             DayLight = 0.5f;
         }
     }

@@ -86,7 +86,7 @@ public static class AHBevel
         {
             var m = mf.sharedMesh; if (m == null || !(IsCube(m) || m.name == "Bevelled box")) continue;
             var r = mf.GetComponent<MeshRenderer>(); if (r == null || !r.enabled) continue;
-            var mat = r.sharedMaterial; if (mat != null && mat.mainTexture != null) continue;
+            var mat = r.sharedMaterial; if (HasTex(mat)) continue;
             var b = r.bounds; if (Mathf.Min(b.size.x, b.size.z) < 15f || Mathf.Max(b.size.x, b.size.z) < 30f || b.size.y < 3f) continue;   // a block, not a long wall
             r.enabled = false; n++;
             Debug.Log("Ashen Hollow: giant plain block put away: " + mf.name + " (" + b.size.ToString("F0") + ")");
@@ -122,6 +122,13 @@ public static class AHBevel
         stoneTex.SetPixels32(px); stoneTex.Apply(true);
         return stoneTex;
     }
+    // a material that paints a picture (any of the usual texture slots), without asking for _MainTex where there is none
+    public static bool HasTex(Material m)
+    {
+        if (m == null) return false;
+        foreach (var p in new[] { "_BaseMap", "_MainTex", "baseColorTexture" }) if (m.HasProperty(p) && m.GetTexture(p) != null) return true;
+        return false;
+    }
     public static int StoneSkin()
     {
         string a = AHGame.AreaId ?? ""; bool inside = a.StartsWith("d_") || a == "forge";
@@ -129,13 +136,11 @@ public static class AHBevel
         foreach (var r in Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None))
         {
             if (!r.enabled) continue;
-            var m = r.sharedMaterial; if (m == null || m.name.StartsWith("AHStone") || m.mainTexture != null) continue;
-            if (m.HasProperty("baseColorTexture") && m.GetTexture("baseColorTexture") != null) continue;
+            var m = r.sharedMaterial; if (m == null || m.name.StartsWith("AHStone") || HasTex(m) || m.shader.name.StartsWith("AshenHollow/")) continue;
             if (m.HasProperty("_EmissionColor") && m.IsKeywordEnabled("_EMISSION")) continue;   // lava, glow
             var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null || mf.sharedMesh.vertexCount > 600) continue;
             bool web = false; for (var t = r.transform; t != null; t = t.parent) if (t.name.StartsWith("obj")) { web = true; break; }
             if (!web && !inside) continue;
-            if (!web && !(mf.sharedMesh.name == "Bevelled box" || mf.sharedMesh.name.StartsWith("Cube") || mf.sharedMesh.name.StartsWith("Cone") || mf.sharedMesh.name.StartsWith("Cylinder"))) continue;
             var b = r.bounds; float big = Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z)); if (big < 2.5f) continue;
             Color c = m.HasProperty("baseColorFactor") ? m.GetColor("baseColorFactor") : m.HasProperty("_BaseColor") ? m.GetColor("_BaseColor") : Color.grey;
             if (c.a < 0.95f) continue;   // glass, water, light shafts
@@ -146,8 +151,8 @@ public static class AHBevel
             if (!stoneMats.TryGetValue(key, out sm) || sm == null)
             {
                 sm = new Material(Shader.Find("Universal Render Pipeline/Lit")) { name = "AHStone " + key };
-                sm.SetTexture("_BaseMap", StoneTex()); sm.SetColor("_BaseColor", c * 1.1f); sm.SetFloat("_Smoothness", 0.12f);
-                sm.mainTextureScale = new Vector2(tile, tile); sm.enableInstancing = true;
+                sm.SetTexture("_BaseMap", StoneTex()); sm.SetColor("_BaseColor", Color.Lerp(c, new Color(0.5f, 0.49f, 0.47f), 0.3f) * 1.15f); sm.SetFloat("_Smoothness", 0.12f);
+                sm.SetTextureScale("_BaseMap", new Vector2(tile, tile)); sm.enableInstancing = true;
                 stoneMats[key] = sm;
             }
             var mats = r.sharedMaterials; for (int i = 0; i < mats.Length; i++) mats[i] = sm; r.sharedMaterials = mats; n++;

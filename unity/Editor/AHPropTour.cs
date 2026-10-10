@@ -91,7 +91,7 @@ public static class AHPropTour
             var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null) continue;
             var b = r.bounds; if (Mathf.Max(b.size.x, b.size.y, b.size.z) < 8f || b.size.y < 2f) continue;
             if (Tris(r) > 300) continue;
-            var m = r.sharedMaterial; if (m != null && m.mainTexture != null) continue;
+            var m = r.sharedMaterial; if (AHBevel.HasTex(m)) continue;
             Color c = m != null && m.HasProperty("_BaseColor") ? m.GetColor("_BaseColor") : m != null && m.HasProperty("baseColorFactor") ? m.GetColor("baseColorFactor") : Color.white;
             txt.AppendLine("BIG PLAIN\t" + Path(r.transform) + "  [" + mf.sharedMesh.name + ", " + Tris(r) + " tris, #" + ColorUtility.ToHtmlStringRGB(c) + ", " + (m != null ? m.shader.name : "-") + "]\tsize " + b.size.ToString("F0") + " at " + b.center.ToString("F0"));
         }

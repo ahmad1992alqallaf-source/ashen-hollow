@@ -124,14 +124,16 @@ public static class AHWays
         Vector3[] b = { new Vector3(-w, 0, -d), new Vector3(w, 0, -d), new Vector3(w, 0, d), new Vector3(-w, 0, d) };
         Vector3[] t = new Vector3[4]; for (int i = 0; i < 4; i++) t[i] = new Vector3(b[i].x * k, h, b[i].z * k);
         Vector3 apex = new Vector3(0, h + cap, 0);
-        var v = new List<Vector3>(); var tri = new List<int>();
+        var v = new List<Vector3>(); var tri = new List<int>(); var uv = new List<Vector2>();
         for (int i = 0; i < 4; i++)
         {
             int j = (i + 1) % 4, n = v.Count;
             v.AddRange(new[] { b[i], b[j], t[j], t[i] }); tri.AddRange(new[] { n, n + 2, n + 1, n, n + 3, n + 2 });
+            uv.AddRange(new[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(0.8f, 2.4f), new Vector2(0.2f, 2.4f) });   // the stone's grain runs up the face
             n = v.Count; v.AddRange(new[] { t[i], t[j], apex }); tri.AddRange(new[] { n, n + 2, n + 1 });
+            uv.AddRange(new[] { new Vector2(0.2f, 2.4f), new Vector2(0.8f, 2.4f), new Vector2(0.5f, 2.8f) });
         }
-        pillar = new Mesh { name = "Waystone pillar" }; pillar.SetVertices(v); pillar.SetTriangles(tri, 0); pillar.RecalculateNormals(); pillar.RecalculateBounds();
+        pillar = new Mesh { name = "Waystone pillar" }; pillar.SetVertices(v); pillar.SetUVs(0, uv); pillar.SetTriangles(tri, 0); pillar.RecalculateNormals(); pillar.RecalculateBounds();
         return pillar;
     }
     static Mesh Gem()

@@ -39,6 +39,8 @@ public static class AHRange
         if (mat == null) return;
         mat.SetFloat("_HazeNear", 110f); mat.SetFloat("_HazeFar", 650f); mat.SetFloat("_HazeMax", 0.5f);
         var b = ground.bounds; Color land = new Color(0.35f, 0.5f, 0.3f);
+        // a ground whose bounds are not real numbers yet (still being built) would make a mountain ring of NaNs
+        if (!Real(b.center) || !Real(b.extents) || b.extents.x < 1f || b.extents.z < 1f || b.extents.magnitude > 20000f) { Debug.Log("Ashen Hollow: no mountain ranges (ground bounds " + b + ")"); return; }
         var gm = ground.sharedMaterial; if (gm != null && gm.HasProperty("_Tint")) land = Color.Lerp(land, gm.GetColor("_Tint"), 0.3f);
         var look = LookOf(id, land);
         var root = new GameObject("Ranges"); root.layer = Layer;
@@ -50,6 +52,7 @@ public static class AHRange
         root.AddComponent<AHRangeHaze>().mat = mat;
     }
 
+    static bool Real(Vector3 v) { return !(float.IsNaN(v.x) || float.IsNaN(v.y) || float.IsNaN(v.z) || float.IsInfinity(v.x) || float.IsInfinity(v.y) || float.IsInfinity(v.z)); }
     static float Hash(float x) { return Mathf.Repeat(Mathf.Sin(x * 127.1f) * 43758.5453f, 1f); }
     // a ridge line along the ring: sharp peaks (folded noise), saddles between them
     static float Ridge(float u, float s)

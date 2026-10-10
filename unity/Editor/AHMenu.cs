@@ -793,6 +793,30 @@ public static class AHMenu
         }
         Debug.Log("Townsfolk outfit close-ups: " + n + " (" + string.Join(", ", seen) + ")");
     }
+    // the three sellswords standing by the hero, each photographed after a moment of animation (HeroShots/merc_<id>.png);
+    // the party is put back as it was a few seconds later
+    [MenuItem("Ashen Hollow/Test: Sellsword Close-ups")]
+    static void MercShots()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        var p = g.player; var was = new System.Collections.Generic.List<string>(p.party);
+        string[] ids = { "knight", "ranger", "cleric" }; int step = 0; double at = EditorApplication.timeSinceStartup;
+        EditorApplication.CallbackFunction cb = null;
+        cb = () =>
+        {
+            if (!Application.isPlaying) { EditorApplication.update -= cb; return; }
+            if (EditorApplication.timeSinceStartup < at) return;
+            if (step < ids.Length)
+            {
+                p.party.Clear(); p.party.Add(ids[step]); AHComp.SpawnAllies(g);
+                foreach (var a in AHComp.Allies) if (a != null) { var sa = a.gameObject.AddComponent<AHShowAnim>(); sa.shotName = "merc_" + ids[step]; }
+                step++; at = EditorApplication.timeSinceStartup + 2.5; return;
+            }
+            p.party.Clear(); p.party.AddRange(was); AHComp.SpawnAllies(g);
+            EditorApplication.update -= cb; Debug.Log("Sellsword close-ups done");
+        };
+        EditorApplication.update += cb;
+    }
     // one of each herb, close up, into HeroShots/herbs.png
     [MenuItem("Ashen Hollow/Test: Herb Snapshots")]
     static void Herbs()
