@@ -519,6 +519,19 @@ public class AHMob : MonoBehaviour
         }
         if (stunT > 0f || rootT > 0f) spd = 0f;
         if (slowT > 0f) spd *= 0.5f;
+        // a pack that rushes you keeps a little room between its members instead of standing inside one another
+        if (state == State.Chase && stunT <= 0f && rootT <= 0f)
+        {
+            Vector3 push = Vector3.zero;
+            foreach (var o in g.mobs)
+            {
+                if (o == null || o == this || o.dead) continue;
+                Vector3 d = pos - o.transform.position; d.y = 0f; float want = (type.radius + o.type.radius) * 0.85f, dd = d.magnitude;
+                if (dd >= want) continue;
+                push += (dd < 1e-3f ? new Vector3(Mathf.Sin(GetHashCode() % 628 * 0.01f), 0f, Mathf.Cos(GetHashCode() % 628 * 0.01f)) : d / dd) * (want - dd);
+            }
+            if (push.sqrMagnitude > 1e-6f) { transform.position = g.Resolve(pos + Vector3.ClampMagnitude(push, 1f) * Mathf.Min(1f, dt * 4f), type.radius * 0.8f); pos = transform.position; }
+        }
 
         bool moving = spd > 0f;
         // toads cover ground only while in the air: leap, land, a short pause, leap again

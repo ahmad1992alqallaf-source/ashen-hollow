@@ -66,6 +66,16 @@ public static class AHFossils
     }
     static GameObject Part(Transform parent, string name, Mesh mesh, Material m)
     {
+        // bone and wood wear a weathered grain (cracks and pitting) instead of a smooth plastic finish
+        if (m != null && (m.name == "fossil_bone" || m.name == "fossil_nestwood") && mesh != null)
+        {
+            var gm = AHBevel.GrainMat(m.name, m.GetColor("_BaseColor").gamma, m.name == "fossil_bone" ? 1.1f : 1.6f);
+            if (gm != null)
+            {
+                if (!mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.Color)) { var cs = new Color[mesh.vertexCount]; for (int i = 0; i < cs.Length; i++) cs[i] = Color.white; mesh.colors = cs; }
+                m = gm;
+            }
+        }
         var go = new GameObject(name); go.transform.SetParent(parent, false);
         go.AddComponent<MeshFilter>().sharedMesh = mesh; go.AddComponent<MeshRenderer>().sharedMaterial = m; return go;
     }

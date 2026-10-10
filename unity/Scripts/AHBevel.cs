@@ -229,6 +229,15 @@ public static class AHBevel
         return n;
     }
 
+    // a rock-grain material in one colour, for code-built things with no texture layout (needs vertex colours: white)
+    static readonly Dictionary<string, Material> grainMats = new Dictionary<string, Material>();
+    public static Material GrainMat(string key, Color tint, float scale)
+    {
+        Material m; if (grainMats.TryGetValue(key, out m) && m != null) return m;
+        m = AHGame.LoadMat("AH/Materials/CaveStone", "AshenHollow/CaveStone"); if (m == null) return null;
+        m.SetTexture("_BaseMap", StoneTex()); m.SetColor("_Tint", tint); m.SetFloat("_Scale", scale); m.enableInstancing = true; m.name = "AHGrain " + key;
+        grainMats[key] = m; return m;
+    }
     // the cave and dungeon walls (one batch of flat painted pieces): the same colours with a rock grain over them
     static Material caveMat;
     public static int CaveWalls()
