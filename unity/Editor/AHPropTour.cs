@@ -16,7 +16,7 @@ public static class AHPropTour
     [MenuItem("Ashen Hollow/Test: Prop Tour, All Areas")]
     static void All() { Start(Areas); }
     // a few areas being worked on (quicker than the whole tour)
-    static readonly string[] Few = { "city", "ember", "fossil" };
+    static readonly string[] Few = { "hc_city", "ss_city", "ch_city", "tide", "mill" };
     [MenuItem("Ashen Hollow/Test: Prop Tour, Few Areas")]
     static void FewAreas() { Start(Few); }
     [MenuItem("Ashen Hollow/Test: Prop Tour, This Area")]
@@ -66,27 +66,41 @@ public static class AHPropTour
         int rest = items.Count - pick.Count, step = Mathf.Max(1, rest / 20);
         for (int k = pick.Count; k < items.Count && pick.Count < 32; k += step) pick.Add(items[k]);
         foreach (var r in pick) shots.Add(new KeyValuePair<string, Bounds>(Path(r.transform) + "  [" + r.GetComponent<MeshFilter>().sharedMesh.name + ", " + Tris(r) + " tris]", r.bounds));
-        int nm = 0;
+        int nm = 0; var txt0 = new StringBuilder(); var mobParts = new Dictionary<int, List<Renderer>>();
         foreach (var m in g.mobs)
         {
             if (m == null || nm >= 4) continue;
-            var rs = m.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) continue;
+            var rs = new List<Renderer>(); foreach (var r in m.GetComponentsInChildren<Renderer>()) if ((r is MeshRenderer || r is SkinnedMeshRenderer) && r.enabled && r.gameObject.activeInHierarchy) rs.Add(r);
+            if (rs.Count == 0) { txt0.AppendLine("NO BODY\tmob " + m.name); continue; }
+            foreach (var r in rs) r.forceRenderingOff = false;   // far-off figures are switched off for speed (AHCull): wake them for the picture
             Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
-            shots.Add(new KeyValuePair<string, Bounds>("mob " + m.name, b)); nm++;
+            shots.Add(new KeyValuePair<string, Bounds>("mob " + m.name + " (" + rs.Count + " parts, size " + b.size.ToString("F1") + ")", b)); mobParts[shots.Count - 1] = rs; nm++;
         }
         const int W = 384, H = 288, C = 6; int rows = Mathf.Max(1, (shots.Count + C - 1) / C);
         var sheet = new Texture2D(W * C, H * rows, TextureFormat.RGB24, false);
         var cg = new GameObject("PropCam"); var cam = cg.AddComponent<Camera>(); cam.fieldOfView = 40f; cam.nearClipPlane = 0.05f; cam.farClipPlane = 200f;
         if (g.cam != null) { cam.clearFlags = g.cam.clearFlags; cam.backgroundColor = g.cam.backgroundColor; }
         var rt = new RenderTexture(W, H, 24); cam.targetTexture = rt; var tex = new Texture2D(W, H, TextureFormat.RGB24, false);
-        var txt = new StringBuilder();
+        var txt = new StringBuilder(); txt.Append(txt0);
         for (int k = 0; k < shots.Count; k++)
         {
             var b = shots[k].Value; float d = Mathf.Max(2.5f, b.size.magnitude * 1.4f);
             cam.transform.position = b.center + new Vector3(0.62f, 0.42f, -0.66f).normalized * d; cam.transform.LookAt(b.center);
             cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, W, H), 0, 0); tex.Apply(); RenderTexture.active = null;
-            sheet.SetPixels((k % C) * W, (rows - 1 - k / C) * H, W, H, tex.GetPixels());
+            var px = tex.GetPixels();
+            sheet.SetPixels((k % C) * W, (rows - 1 - k / C) * H, W, H, px);
             txt.AppendLine(k + "\t" + shots[k].Key + "\tat " + b.center.ToString("F0"));
+            List<Renderer> parts;
+            if (mobParts.TryGetValue(k, out parts))
+            {   // the same picture without the monster: if nothing changes, the monster is not being drawn
+                foreach (var r in parts) r.enabled = false;
+                cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, W, H), 0, 0); tex.Apply(); RenderTexture.active = null;
+                foreach (var r in parts) r.enabled = true;
+                var px2 = tex.GetPixels(); int diff = 0;
+                for (int q = 0; q < px.Length; q++) if (Mathf.Abs(px[q].r - px2[q].r) + Mathf.Abs(px[q].g - px2[q].g) + Mathf.Abs(px[q].b - px2[q].b) > 0.06f) diff++;
+                float share = diff / (float)px.Length;
+                if (share < 0.01f) { txt.AppendLine("INVISIBLE\t" + shots[k].Key + "\t(" + (share * 100f).ToString("F2") + "% of the picture)"); Debug.LogWarning("Ashen Hollow: prop tour " + area + ": " + shots[k].Key + " is not drawn"); }
+            }
         }
         // and anything big drawn as a plain untextured block (a wall of colour where a building or ground should be)
         var bigs = new List<Renderer>();

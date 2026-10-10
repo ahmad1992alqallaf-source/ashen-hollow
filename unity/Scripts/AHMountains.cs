@@ -134,7 +134,10 @@ public static class AHMountains
                     var kb = kv.Key; var kc = kv.Value;
                     // a tall thin green cone was a fir tree in the old drawing (your homestead's tree line): a real pine
                     if (kb.size.y > 1.8f * Mathf.Min(kb.size.x, kb.size.z) && kc.g >= kc.r && kc.g >= kc.b && Pine(kb, kc)) continue;
-                    if (kb.size.y > 2f * Mathf.Max(kb.size.x, kb.size.z)) { float need = 0.5f * kb.size.y; kb.size = new Vector3(Mathf.Max(kb.size.x, need), kb.size.y, Mathf.Max(kb.size.z, need)); }
+                    // the city borders (Highcairn, Sunspire) stood as rows of needles: each becomes a crag no taller than
+                    // about one and a half times its foot, standing on the same ground
+                    float foot = Mathf.Max(kb.size.x, kb.size.z), most = 1.5f * foot;
+                    if (kb.size.y > most) { float y0 = kb.min.y; kb.size = new Vector3(kb.size.x, most, kb.size.z); kb.center = new Vector3(kb.center.x, y0 + most * 0.5f, kb.center.z); }
                     Place(lite[0] != null ? lite : prefabs, lite[0] != null ? liteW : width, kb, kc);
                 }
                 r.enabled = false; nb += list.Count;

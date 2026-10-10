@@ -741,7 +741,8 @@ public class AHGame : MonoBehaviour
         // town stood in water: drop that sea just under the town's floor (the islands elsewhere are their own raised
         // pieces and keep the sea as it is)
         // Dragonscale Isle is the same: the island is the painted floor and the sea lay over all of it
-        if (AreaId == "co_city" || AreaId == "isle")
+        // and Tidewake Isles: the islands are painted on a flat floor too, and the sea covered them, so you waded everywhere
+        if (AreaId == "co_city" || AreaId == "isle" || AreaId == "tide")
         {
             var rs = world.GetComponentsInChildren<Renderer>(true); float floor = float.NaN;
             foreach (var gr in rs) if (gr.gameObject.name.StartsWith("AH_GROUND")) floor = gr.bounds.min.y;
