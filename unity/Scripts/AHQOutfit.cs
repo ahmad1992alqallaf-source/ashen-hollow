@@ -286,17 +286,26 @@ public static class AHQOutfitPlan
     // ("lava_warrior"): Resources/AH/Models/Outfits/tqo_<collection>_<class>. A class without its own model yet borrows
     // one made for a class in the same armour (the Warden wears the Warrior's plate); with none, the class's usual
     // outfit is worn in the collection's colours.
+    // A woman wears the suit's own female cut (tqo_<collection>_<class>_f) when there is one, a man the male cut; with
+    // only one cut made so far, either wears it.
     static readonly Dictionary<string, string> tqo = new Dictionary<string, string>();
-    public static string CollectionModel(string style)
+    static bool HasSuit(string m) { return Resources.Load<GameObject>("AH/Models/Outfits/" + m) != null; }
+    public static string CollectionModel(string style, bool fem = false)
     {
         if (string.IsNullOrEmpty(style) || style.IndexOf('_') < 0) return null;
-        string m; if (tqo.TryGetValue(style, out m)) return m;
+        string key = style + (fem ? "|f" : "|m");
+        string m; if (tqo.TryGetValue(key, out m)) return m;
         string coll = style.Substring(0, style.IndexOf('_')), cls = style.Substring(style.IndexOf('_') + 1);
         string arm = AHJson.S(AHJson.O(AHDB.Rules, "ARMOR_OF"), style, "");
         m = null;
         foreach (var c in new[] { cls, arm == "plate" ? (cls == "warden" ? "warrior" : "warden") : null })
-            if (c != null && m == null && Resources.Load<GameObject>("AH/Models/Outfits/tqo_" + coll + "_" + c) != null) m = "tqo_" + coll + "_" + c;
-        tqo[style] = m; return m;
+        {
+            if (c == null || m != null) continue;
+            string b = "tqo_" + coll + "_" + c;
+            foreach (var cand in fem ? new[] { b + "_f", b } : new[] { b, b + "_f" })
+                if (m == null && HasSuit(cand)) m = cand;
+        }
+        tqo[key] = m; return m;
     }
     static string RangerOf(string cls) { return cls == "rogue" ? "RangerShade" : cls == "shaman" ? "RangerTide" : "Ranger"; }
     static string Armor(ItemDef d) { return AHJson.S(AHJson.O(AHDB.Rules, "ARMOR_OF"), d.style ?? "", "leather"); }
@@ -359,7 +368,7 @@ public static class AHQOutfitPlan
         tint = Color.white; tintK = 0f;
         var ch = AHItems.Get(shown("chest") ?? ""); if (ch == null) return null;
         // the Warden's own lava armour (made with Tripo from our concept art), helm and pauldrons included, in its own colours
-        var cm = CollectionModel(ch.style);
+        var cm = CollectionModel(ch.style, fem);
         if (cm != null) { foreach (var sl in new[] { "chest", "hands", "legs", "feet", "head", "shoulders" }) covered.Add(sl); return cm; }   // the whole suit, helm and all
         string S = fem ? "qoFemale_" : "qoMale_";
         string spec = Shape(cls, S, fem, ch);

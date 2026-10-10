@@ -28,6 +28,56 @@ public static class AHTripo
         return root;
     }
 
+    // a collection's own weapon (made with Tripo or Meshy from our concept art) in place of the class weapon, when the
+    // hero holds one: Resources/AH/Models/Tripo/wpn_<collection>_<class> in the right hand and, for classes that carry
+    // something in the left (a shield, a book, a second dagger), wpn_<collection>_<class>_off. A weapon with no model
+    // yet keeps the class's usual weapon.
+    struct WGrip { public string main, off; public float len, grip, offLen, offGrip; public bool offShield, offMirror; }
+    static WGrip GripOf(string cls)
+    {
+        switch (cls)
+        {
+            case "warrior": return new WGrip { main = "1H_Sword", len = 1.0f, grip = 0.1f, off = "Round_Shield", offLen = 0.66f, offShield = true };
+            case "warden": return new WGrip { main = "1H_Hammer", len = 0.72f, grip = 0.18f, off = "Rectangle_Shield", offLen = 0.66f, offShield = true };
+            case "mage": case "druid": return new WGrip { main = "2H_Staff", len = 1.7f, grip = 0.42f };
+            case "priest": return new WGrip { main = "1H_Mace", len = 0.78f, grip = 0.14f, off = "Spellbook", offLen = 0.3f, offGrip = 0.5f };
+            case "rogue": return new WGrip { main = "Knife", len = 0.42f, grip = 0.2f, off = "Knife_Offhand", offLen = 0.42f, offGrip = 0.2f, offMirror = true };
+            case "ranger": return new WGrip { main = "2H_Staff", len = 1.3f, grip = 0.5f };
+            case "shaman": return new WGrip { main = "1H_Axe", len = 0.85f, grip = 0.14f };
+        }
+        return new WGrip { main = "1H_Sword", len = 0.9f, grip = 0.12f };
+    }
+    public static bool CollectionWeapon(GameObject rig, string heroCls, string weaponId)
+    {
+        var it = AHItems.Get(weaponId ?? ""); if (it == null || rig == null) return false;
+        if (string.IsNullOrEmpty(it.cls) && !string.IsNullOrEmpty(it.baseId)) it = AHItems.Get(it.baseId) ?? it;
+        if (string.IsNullOrEmpty(it.set) || string.IsNullOrEmpty(it.cls)) return false;
+        string res = "wpn_" + it.set + "_" + it.cls;
+        if (!Has(res)) return false;
+        Transform hr = null, hl = null;
+        foreach (var t in rig.GetComponentsInChildren<Transform>(true)) { if (t.name == "hand_r") hr = t; else if (t.name == "hand_l") hl = t; }
+        if (hr == null) return false;
+        var g = GripOf(it.cls);
+        bool hasOff = g.off != null && (Has(res + "_off") || g.offMirror);
+        // the class weapon goes (and the off-hand item too, when the collection brings its own)
+        foreach (var h in new[] { hr, hasOff ? hl : null })
+        {
+            if (h == null) continue;
+            for (int i = h.childCount - 1; i >= 0; i--) { var c = h.GetChild(i); if (c.name.StartsWith("Weapon_")) { c.gameObject.SetActive(false); Object.Destroy(c.gameObject); } }
+        }
+        Quaternion q; Vector3 p;
+        AHPeople.Grip(g.main, true, out q, out p);
+        Hold(hr, res, g.main, q, p, g.len, g.grip, false);
+        if (hasOff && hl != null)
+        {
+            AHPeople.Grip(g.off, false, out q, out p);
+            string offRes = Has(res + "_off") ? res + "_off" : res;
+            if (g.offShield) Hold(hl, offRes, g.off, q, new Vector3(0.085f, -0.07f, 0f), g.offLen, 0f, true);
+            else Hold(hl, offRes, g.off, q, p, g.offLen, g.offGrip, false);
+        }
+        return true;
+    }
+
     // the Warden's horned lava helm on the head stand of a worn outfit; the outfit's own helm piece is hidden
     // (it stays, so the hair under it stays hidden). Sized to the hero: the male head is the measure.
     public static GameObject Helm(GameObject worn, Transform rig, string res)

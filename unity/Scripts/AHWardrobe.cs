@@ -604,6 +604,8 @@ public static class AHWardrobe
                 var all = shown; shown = s => covered.Contains(s) ? null : all(s);
             }
         }
+        // a collection weapon in the hand (its own model), in place of the class weapon
+        if (heroCls != null) AHTripo.CollectionWeapon(rig, heroCls, shown("weapon"));
         if (lit == null) lit = Shader.Find("Universal Render Pipeline/Lit");
         if (cone == null) { cone = Frustum(0f, 0.5f, 1f); frustum = Frustum(0.55f, 1f, 1f); torus = Torus(0.5f, 0.06f); shell = Frustum(1f, 0.85f, 1f); }
         float ground = hold.position.y;
