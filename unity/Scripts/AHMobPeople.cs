@@ -44,6 +44,18 @@ public static class AHMobPeople
         return null;
     }
     public static bool Is(string id) { return Find(id) != null; }
+    // Outfits/tqo_mob_<id> for this person (or for the person its model comes from)
+    static string OwnSuit(string id)
+    {
+        int n = 0;
+        while (id != null && n++ < 6)
+        {
+            if (Resources.Load<GameObject>("AH/Models/Outfits/tqo_mob_" + id) != null) return "tqo_mob_" + id;
+            if (Looks.ContainsKey(id)) return null;
+            id = AHJson.S(AHJson.O(AHDB.Mobs, id), "model");
+        }
+        return null;
+    }
 
     public static GameObject Build(Transform holder, AHMobType t, AHGame g, out AHAnim anim)
     {
@@ -66,8 +78,22 @@ public static class AHMobPeople
             if (ch) r.materials = mats;
         }
         AHPeople.Arm(rig, L.wm, L.main, L.off, g);
-        var kit = L.kit;
-        AHWardrobe.DressWith(rig, holder, s => { int i = System.Array.IndexOf(Slots, s); return i >= 0 && kit[i] != null && AHItems.Get(kit[i]) != null ? kit[i] : null; }, () => false);
+        // their own full outfit (made for Ashen Hollow from concept art, rigged to this skeleton), head to toe: the body
+        // under it is put away, only the weapons stay
+        string own = OwnSuit(t.id);
+        if (own != null && AHQOutfit.Wear(rig, own) != null)
+        {
+            foreach (var r in rig.GetComponentsInChildren<Renderer>(true))
+            {
+                bool weapon = false; for (var p = r.transform; p != null && p != rig.transform; p = p.parent) if (p.name.StartsWith("Weapon_")) { weapon = true; break; }
+                if (!weapon) r.enabled = false;
+            }
+        }
+        else
+        {
+            var kit = L.kit;
+            AHWardrobe.DressWith(rig, holder, s => { int i = System.Array.IndexOf(Slots, s); return i >= 0 && kit[i] != null && AHItems.Get(kit[i]) != null ? kit[i] : null; }, () => false);
+        }
         float k = (float)AHJson.N(AHJson.O(AHDB.Mobs, t.id), "scale", 1);
         if (k != 1f) rig.transform.localScale *= k;
         return rig;

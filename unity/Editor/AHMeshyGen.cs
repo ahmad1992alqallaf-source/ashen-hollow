@@ -30,7 +30,7 @@ public static class AHMeshyGen
         public string name, mode, pose, outPic, prompt; public string[] pics = new string[0];
         public string id, state = "new", note = ""; public int progress, credits; public UnityWebRequest req; public double next;
         public bool Img { get { return mode == "img"; } }
-        public string Result { get { return Img ? Path.Combine(Concepts, outPic) : Path.Combine(Incoming, name + ".glb"); } }
+        public string Result { get { return Img ? Path.Combine(Concepts, outPic) : mode == "get" ? Path.Combine(Incoming, outPic) : Path.Combine(Incoming, name + ".glb"); } }
     }
     static readonly List<Job> jobs = new List<Job>();
     static bool running; static double lastStatus;
@@ -59,6 +59,8 @@ public static class AHMeshyGen
             var p = line.Split('|'); if (p.Length < 4) continue;
             var j = new Job { name = p[0].Trim(), mode = p[1].Trim() };
             if (j.Img) { if (p.Length < 5) continue; j.outPic = p[2].Trim(); j.pics = p[3].Split(';'); j.prompt = p[4].Trim(); }
+            else if (j.mode == "get") { j.outPic = p[2].Trim(); j.prompt = p[3].Trim(); }
+            else if (j.mode == "rig" || j.mode == "anim") { j.pose = p[2].Trim(); j.prompt = p[3].Trim(); }
             else { j.pose = p[2].Trim(); j.pics = p[3].Split(';'); }
             for (int i = 0; i < j.pics.Length; i++) j.pics[i] = j.pics[i].Trim();
             if (File.Exists(j.Result)) continue;
@@ -69,7 +71,15 @@ public static class AHMeshyGen
         if (jobs.Count > 0) { running = true; EditorApplication.update -= Tick; EditorApplication.update += Tick; }
     }
 
-    static string Endpoint(Job j) { return Api + (j.Img ? "image-to-image" : j.mode == "multi" ? "multi-image-to-3d" : "image-to-3d"); }
+    // get: any read of the API saved as text (e.g. the animation library); rig: a humanoid model (a GLB in Incoming) given
+    // a skeleton by Meshy, its task id kept in <name>.rigid; anim: one of Meshy's animations played by that rigged model
+    static string Endpoint(Job j)
+    {
+        if (j.mode == "get") return Api + j.prompt.TrimStart('/');
+        if (j.mode == "rig") return Api + "rigging";
+        if (j.mode == "anim") return Api + "animations";
+        return Api + (j.Img ? "image-to-image" : j.mode == "multi" ? "multi-image-to-3d" : "image-to-3d");
+    }
 
     static string DataUri(string rel)
     {
@@ -82,6 +92,18 @@ public static class AHMeshyGen
     static string Body(Job j)
     {
         var b = new StringBuilder("{");
+        if (j.mode == "rig")
+        {
+            string glb = Path.Combine(Incoming, j.prompt);
+            b.Append("\"model_url\":\"data:model/gltf-binary;base64,").Append(System.Convert.ToBase64String(File.ReadAllBytes(glb))).Append("\",\"height_meters\":").Append(j.pose).Append('}');
+            return b.ToString();
+        }
+        if (j.mode == "anim")
+        {
+            string rid = File.ReadAllText(Path.Combine(Incoming, j.pose + ".rigid")).Trim();
+            b.Append("\"rig_task_id\":\"").Append(rid).Append("\",\"action_id\":").Append(j.prompt).Append('}');
+            return b.ToString();
+        }
         if (j.Img)
         {
             b.Append("\"ai_model\":\"nano-banana-pro\",\"prompt\":\"").Append(Esc(j.prompt)).Append("\",\"reference_image_urls\":[");
@@ -129,7 +151,13 @@ public static class AHMeshyGen
         Directory.CreateDirectory(Path.GetDirectoryName(StatusPath)); File.WriteAllText(StatusPath, sb.ToString());
     }
 
-    static bool Ready(Job j) { foreach (var p in j.pics) if (!File.Exists(Path.Combine(Concepts, p))) return false; return true; }
+    static bool Ready(Job j)
+    {
+        if (j.mode == "get") return true;
+        if (j.mode == "rig") return File.Exists(Path.Combine(Incoming, j.prompt));
+        if (j.mode == "anim") return File.Exists(Path.Combine(Incoming, j.pose + ".rigid"));
+        foreach (var p in j.pics) if (!File.Exists(Path.Combine(Concepts, p))) return false; return true;
+    }
 
     static void Tick()
     {
@@ -145,6 +173,12 @@ public static class AHMeshyGen
                 if (!j.req.isDone) continue;
                 var r = j.req; j.req = null; changed = true;
                 string txt = r.downloadHandler is DownloadHandlerBuffer ? r.downloadHandler.text : "";
+                if (j.state == "creating" && j.mode == "get")
+                {
+                    creating--; Directory.CreateDirectory(Path.GetDirectoryName(j.Result));
+                    if (r.responseCode == 200) { File.WriteAllText(j.Result, txt); j.state = "done"; } else { j.state = "failed"; j.note = "HTTP " + r.responseCode + " " + Short(txt); }
+                    r.Dispose(); continue;
+                }
                 if (j.state == "creating")
                 {
                     creating--;
@@ -159,7 +193,11 @@ public static class AHMeshyGen
                     string st = Field(txt, "status"); int.TryParse(Num(txt, "progress"), out j.progress); int.TryParse(Num(txt, "consumed_credits"), out j.credits);
                     if (st == "SUCCEEDED")
                     {
-                        Match g = j.Img ? Regex.Match(txt, "\"image_urls\"\\s*:\\s*\\[\\s*\"([^\"]+)\"") : Regex.Match(txt, "\"model_urls\"\\s*:\\s*\\{[^}]*?\"glb\"\\s*:\\s*\"([^\"]+)\"");
+                        Match g = j.Img ? Regex.Match(txt, "\"image_urls\"\\s*:\\s*\\[\\s*\"([^\"]+)\"")
+                                : j.mode == "rig" ? Regex.Match(txt, "\"rigged_character_glb_url\"\\s*:\\s*\"([^\"]+)\"")
+                                : j.mode == "anim" ? Regex.Match(txt, "\"animation_glb_url\"\\s*:\\s*\"([^\"]+)\"")
+                                : Regex.Match(txt, "\"model_urls\"\\s*:\\s*\\{[^}]*?\"glb\"\\s*:\\s*\"([^\"]+)\"");
+                        if (j.mode == "rig") File.WriteAllText(Path.Combine(Incoming, j.name + ".rigid"), j.id);
                         if (!g.Success) { j.state = "failed"; j.note = "no result file"; }
                         else
                         {
@@ -184,7 +222,7 @@ public static class AHMeshyGen
             if (j.state == "new")
             {
                 if (creating >= 2 || !Ready(j)) continue;   // a couple at a time, and only once its pictures are there
-                try { j.req = Req("POST", Endpoint(j), key, Body(j)); j.state = "creating"; creating++; active = true; }
+                try { j.req = j.mode == "get" ? Req("GET", Endpoint(j), key, null) : Req("POST", Endpoint(j), key, Body(j)); j.state = "creating"; creating++; active = true; }
                 catch (System.Exception e) { j.state = "failed"; j.note = e.Message; }
                 changed = true;
             }
