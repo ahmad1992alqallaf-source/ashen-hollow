@@ -50,6 +50,7 @@ public static class AHStations
         readonly Dictionary<Material, List<CombineInstance>> by = new Dictionary<Material, List<CombineInstance>>();
         public void Add(Material m, Mesh mesh, Vector3 p, Quaternion r, Vector3 s)
         {
+            if (mesh == Cube) { mesh = AHBevel.Box(s); s = Vector3.one; }   // no bare boxes: chamfered edges
             List<CombineInstance> l; if (!by.TryGetValue(m, out l)) by[m] = l = new List<CombineInstance>();
             l.Add(new CombineInstance { mesh = mesh, transform = Matrix4x4.TRS(p, r, s) });
         }

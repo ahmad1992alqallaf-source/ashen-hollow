@@ -213,6 +213,7 @@ public class AHGame : MonoBehaviour
         AHKQ.Setup(this);
         AHComp.SpawnPet(this);
         AHComp.SpawnAllies(this);
+        AHBevel.Schedule(this);   // every plain cube left in the scene gets chamfered edges
         grass = AHGrass.Create(this);
         AHSettings.Apply(this);
         AHWeather.Setup(this);
