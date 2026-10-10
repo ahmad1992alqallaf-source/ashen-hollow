@@ -206,8 +206,21 @@ public class AHNpc : MonoBehaviour
         try
         {
             model = Assemble(go.transform, o, game, out n.anim);
+            // a whole outfit made for their trade (Resources/AH/Models/Outfits/tqo_npc_<role>), head to toe, in place of
+            // the body and the loose kit; only what they carry stays
+            string suit = model != null ? Suit(name, raw, o) : null;
+            bool suited = false;
+            if (suit != null && AHQOutfit.Wear(model, suit) != null)
+            {
+                suited = true;
+                foreach (var rr in model.GetComponentsInChildren<Renderer>(true))
+                {
+                    bool keep = false; for (var p = rr.transform; p != null && p != model.transform; p = p.parent) if (p.name.StartsWith("Weapon_")) { keep = true; break; }
+                    if (!keep) rr.enabled = false;
+                }
+            }
             // their clothes and gear, drawn the same way as the hero's (AHWardrobe) and the sellswords' weapons
-            if (model != null && o.kit != null)
+            if (model != null && o.kit != null && !suited)
             {
                 var kit = o.kit; string[] slots = AHWardrobe.Slots;
                 AHWardrobe.DressWith(model, go.transform, sl => { int i = System.Array.IndexOf(slots, sl); return i >= 0 && i < kit.Length && kit[i] != null && AHItems.Get(kit[i]) != null ? kit[i] : null; }, () => n.Walking);
@@ -219,6 +232,24 @@ public class AHNpc : MonoBehaviour
         AHModel.SetShadows(model);
         All.Add(n);
         return n;
+    }
+
+    // which trade's outfit a townsperson wears (null: their own look, kept for the named characters)
+    static string Suit(string name, object raw, Outfit o)
+    {
+        if (name == "Captain Mara" || Has(name, "Jarl", "Guildmaster", "Trial-master", "witch", "Skald", "Scout", "Ash-walker", "Guide", "Snake charmer", "vizier", "Little Tess")) return null;
+        bool woman = o.body != null && o.body.Contains("Female");
+        bool guard = raw != null && AHJson.B(raw, "guard");
+        string r;
+        if (guard || Has(name, "Guard", "Sergeant", "Gate warden", "Road warden", "Market Warden")) r = woman ? "guard_f" : "guard";
+        else if (woman) r = "villager_f";
+        else if (Has(name, "Merchant", "Auctioneer", "Land Agent", "Caravan")) r = "merchant";
+        else if (Has(name, "Farmer", "Peat cutter", "Woodcarver", "Digmaster", "Trapper", "Forge-master")) r = "farmer";
+        else if (Has(name, "Ferryman", "Bargeman", "Old salt", "Dockhand", "Fisher", "Pearl diver", "Castaway") || (Has(name, "Captain") && raw != null)) r = "sailor";
+        else if (Has(name, "Archivist", "Registrar", "Clerk", "Elder", "pilgrim", "Herald", "Bard", "Ash-seer", "Gravewarden", "Lantern", "Barber")) r = "scholar";
+        else r = "villager_m";
+        string path = "tqo_npc_" + r;
+        return Resources.Load<GameObject>("AH/Models/Outfits/" + path) != null ? path : null;
     }
 
     Vector3 WebDir(float a) { return g.W(Mathf.Cos(a), Mathf.Sin(a)) - g.W(0f, 0f); }

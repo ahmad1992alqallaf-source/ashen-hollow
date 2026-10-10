@@ -137,6 +137,64 @@ for it in range(OPT.get('smooth', 3)):
     for i in range(len(Q)):
         if adj[i]: W2[i] = 0.5 * W[i] + 0.5 * W[adj[i]].mean(0)
     W = W2
+# a long hanging tail (a horse's, a cow's) goes with the tail bones as one piece: the old body's tail is short and
+# stiff, so the new tail's lower hairs were nearest the thighs and stretched between leg and tail in a gallop
+TB = sorted([b for b in arm.data.bones if b.name.lower().startswith('tail')], key=lambda b: (len(b.parent_recursive), b.name))
+if TB and OPT.get("tail", False):
+    _L = float((hi - lo)[ax]); _H = float((hi - lo)[2]); _Wd = float((hi - lo)[lat])
+    _root = np.array(arm.matrix_world @ TB[0].head_local)
+    _seg = [(bi[b.name], np.array(arm.matrix_world @ b.head_local), np.array(arm.matrix_world @ b.tail_local)) for b in TB]
+    _lowleg = [i for i, n in enumerate(bones) if any(k in n for k in ('LowerLeg', 'FFB', 'FF.', 'IK', 'Shin', 'Foot'))]
+    _nt = 0
+    print('tail root', np.round(_root, 3), 'box', np.round(lo, 3), np.round(hi, 3), 'ax', ax, 'fw', fw, 'Q range', np.round(Q.min(0), 3), np.round(Q.max(0), 3), 'tail bones', [b.name for b in TB])
+    WT = {}
+    def _tailw(q):
+        best = (1e9, None)
+        for j, h, t_ in _seg:
+            d = t_ - h; L2 = float(d @ d); u = 0.0 if L2 < 1e-12 else float(np.clip((q - h) @ d / L2, 0, 1)); dd = float(np.linalg.norm(q - (h + d * u)))
+            if dd < best[0]: best = (dd, j)
+        return best[1]
+    # the tail: the parts the old body already gave to the tail, grown across the new mesh to the hairs joined to them
+    # that hang behind the hips (stopping at the legs, whose weights are mostly leg)
+    _legs = [i for i, n in enumerate(bones) if 'Leg' in n or 'Shoulder' in n or n.startswith(('FF', 'IK', 'Pole'))]
+    _tid = [j for j, _, _ in _seg]
+    _back = (Q[:, ax] - _root[ax]) * fw
+    _tw = W[:, _tid].sum(1); _lw = W[:, _legs].sum(1) if _legs else np.zeros(len(Q))
+    _ok = (_back < -0.01 * _L) & (Q[:, 2] > lo[2] + 0.12 * _H)
+    seeds = [i for i in range(len(Q)) if _ok[i] and _tw[i] >= 0.3]
+    # neighbours by distance, not by edges: hair strands and texture seams leave the mesh in many separate pieces
+    _cand = [i for i in range(len(Q)) if _ok[i]]
+    _kq = KDTree(len(_cand))
+    for i in _cand: _kq.insert(Q[i], i)
+    _kq.balance()
+    _r = OPT.get('tailr', 0.012) * _L
+    from collections import deque
+    _seen = set(seeds); dq = deque(seeds)
+    while dq:
+        i = dq.popleft()
+        for _co, j, _d in _kq.find_range(Q[i], _r):
+            if j not in _seen and _ok[j] and (_lw[j] < OPT.get("taillw", 0.9) or kd.find(Q[j])[2] > 0.02 * _L): _seen.add(j); dq.append(j)
+    for i in _seen: WT[i] = float(_back[i])
+    # down the hanging tail, root to tip, along the tail bones in order (the old tail hangs the same way at rest)
+    _zs = [Q[i][2] for i in WT]; _zl = min(_zs) if _zs else 0.0; _zr = float(_root[2])
+    _ids = [j for j, _, _ in _seg]
+    for i, back in WT.items():
+        wt = np.zeros(len(bones), np.float32)
+        tt = float(np.clip((_zr - Q[i][2]) / max(1e-6, _zr - _zl), 0, 1)) * (len(_ids) - 1)
+        a_ = int(np.floor(tt)); b_ = min(a_ + 1, len(_ids) - 1); f_ = tt - a_
+        wt[_ids[a_]] += 1 - f_; wt[_ids[b_]] += f_
+        # blended into the hips only where the tail meets the rump; below that it is all tail
+        k = max(float(np.clip((-back - 0.01 * _L) / (0.04 * _L), 0, 1)), float(np.clip((_zr - Q[i][2]) / (0.1 * _H), 0, 1)))
+        W[i] = (1 - k) * W[i] + k * wt; _nt += 1
+    # faces joining the lower tail to a leg (the remesh fused them where the hair touched the hock) would stretch
+    import bmesh as _bmt
+    _bt = _bmt.new(); _bt.from_mesh(t.data); _bt.verts.ensure_lookup_table()
+    _cut = [f for f in _bt.faces if len(set((v.index in WT) for v in f.verts)) > 1 and min(Q[v.index][2] for v in f.verts) < _zr - 0.1 * _H]
+    _bmt.ops.delete(_bt, geom=_cut, context='FACES_ONLY'); _bt.to_mesh(t.data); _bt.free(); t.data.update()
+    print('tail-leg faces cut', len(_cut))
+    _b = (Q[:, ax] - _root[ax]) * fw
+    print('hist', np.histogram(Q[:, ax], bins=8)[0].tolist(), np.round(np.histogram(Q[:, ax], bins=8)[1], 2).tolist())
+    print('tail verts', _nt, 'of', len(Q), 'behind', int((_b < -0.02 * _L).sum()), 'high', int(((_b < -0.02 * _L) & (Q[:, 2] > lo[2] + 0.2 * _H)).sum()), 'mid', int(((_b < -0.02 * _L) & (Q[:, 2] > lo[2] + 0.2 * _H) & (np.abs(Q[:, lat] - mid) < 0.14 * _Wd)).sum()))
 # keep four per vertex
 for i in range(len(Q)):
     r = W[i]; k4 = np.argsort(r)[-4:]; m = np.zeros_like(r); m[k4] = r[k4]; s = m.sum(); W[i] = m / s if s > 0 else m
