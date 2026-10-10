@@ -104,6 +104,8 @@ public static class AHScenery
         Palaces(world);
         Castles(world);
         Volcanoes(world);
+        // last, once every other rebuild has taken its pieces: whatever is still a bare box
+        var lr = new GameObject("Rebuilt boxes").transform; LooseBoxes(world, lr); if (lr.childCount == 0) Object.Destroy(lr.gameObject);
         if (nb + nr + nc + np + nk + nbo + nco + ngr + nob + nf > 0) Debug.Log("Ashen Hollow: rebuilt " + nb + " bridges, " + nr + " ruins, " + (nc + nob) + " crystal clusters, " + np + " palms, " + nk + " cacti, " + nbo + " bone spikes, " + nco + " corals, " + ngr + " graves, " + nf + " ferns");
     }
 
@@ -597,6 +599,308 @@ public static class AHScenery
             foreach (var r in boxes) r.enabled = false; n++;
         }
         return n;
+    }
+
+    // ---------- the last loose boxes ----------
+    // What was still drawn as a bare box after every rebuild: lava bridges (a black slab with two black bars), the
+    // homestead's signpost, the city statue's grey block, a few pieces left over from props already rebuilt, and the
+    // docks' planks and ropes. Each is rebuilt, hidden (leftovers), or at least given chamfered edges and a varied shade.
+    static int LooseBoxes(Transform world, Transform root)
+    {
+        int n = 0, soft = 0, gone = 0;
+        foreach (Transform grp in world)
+        {
+            if (!grp.name.StartsWith("obj")) continue;
+            var boxes = new List<Renderer>(); int on = 0, off = 0;
+            foreach (var r in grp.GetComponentsInChildren<Renderer>(true))
+            {
+                if (!r.enabled || !r.gameObject.activeInHierarchy) { off++; continue; }
+                on++; if (IsBox(r)) boxes.Add(r);
+            }
+            if (boxes.Count == 0) continue;
+            int seed = Mathf.Abs(Mathf.RoundToInt(boxes[0].bounds.center.x * 7 + boxes[0].bounds.center.z * 3));
+            // leftovers: the rest of this prop was rebuilt, only some bare boxes stayed behind
+            // (a statue's grey block first: the statue was rebuilt standing on it, so it gets a proper plinth, not hidden)
+            if (Plinth(root, boxes, seed)) { n++; continue; }
+            if (off > 0 && boxes.Count == on) { foreach (var r in boxes) r.enabled = false; gone += boxes.Count; continue; }
+            if (boxes.Count == on && on == 4 && LavaBridge(root, boxes, seed)) { n++; continue; }
+            if (boxes.Count == on && on == 3 && Signpost(root, boxes, seed)) { n++; continue; }
+            foreach (var r in boxes) { if (Soften(r)) soft++; }
+        }
+        if (n + soft + gone > 0) Debug.Log("Ashen Hollow: loose boxes: " + n + " rebuilt, " + soft + " given chamfered edges, " + gone + " leftovers hidden");
+        return n;
+    }
+
+    static bool IsBox(Renderer r)
+    {
+        var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null) return false;
+        long tri = 0; for (int k = 0; k < mf.sharedMesh.subMeshCount; k++) tri += mf.sharedMesh.GetIndexCount(k) / 3;
+        var m = r.sharedMaterial; return tri <= 12 && (m == null || m.mainTexture == null);
+    }
+    // the real size of a box (its own axes, not the world-aligned bounds)
+    static Vector3 TrueSize(Renderer r)
+    {
+        var mf = r.GetComponent<MeshFilter>(); var s = r.transform.lossyScale;
+        return Vector3.Scale(mf.sharedMesh.bounds.size, new Vector3(Mathf.Abs(s.x), Mathf.Abs(s.y), Mathf.Abs(s.z)));
+    }
+    // the world direction of a box's longest side
+    static Vector3 LongAxis(Renderer r)
+    {
+        var z = TrueSize(r); var t = r.transform;
+        Vector3 d = z.x >= z.y && z.x >= z.z ? t.right : z.z >= z.y ? t.forward : t.up; d.y = 0; return d.sqrMagnitude < 1e-4f ? Vector3.forward : d.normalized;
+    }
+
+    // a box with chamfered edges: c centre, h half size, b how much is cut off each edge (per axis)
+    static readonly Dictionary<string, Mesh> bevels = new Dictionary<string, Mesh>();
+    static Mesh BevelBox(Vector3 c, Vector3 h, Vector3 b)
+    {
+        string key = c.ToString("F3") + h.ToString("F3") + b.ToString("F4"); Mesh m;
+        if (bevels.TryGetValue(key, out m) && m != null) return m;
+        var v = new List<Vector3>(); var nr = new List<Vector3>(); var uv = new List<Vector2>(); var tr = new List<int>();
+        System.Action<Vector3[], Vector3> poly = (ps, n) =>
+        {
+            if (Vector3.Dot(Vector3.Cross(ps[1] - ps[0], ps[2] - ps[0]), n) < 0f) System.Array.Reverse(ps);
+            int o = v.Count; n = n.normalized;
+            foreach (var p in ps) { v.Add(c + p); nr.Add(n); uv.Add(Mathf.Abs(n.y) > 0.6f ? new Vector2(p.x, p.z) : Mathf.Abs(n.x) > 0.6f ? new Vector2(p.z, p.y) : new Vector2(p.x, p.y)); }
+            for (int i = 1; i + 1 < ps.Length; i++) { tr.Add(o); tr.Add(o + i); tr.Add(o + i + 1); }
+        };
+        System.Func<int, float, Vector3> E = (a, f) => { var e = Vector3.zero; e[a] = f; return e; };
+        for (int a = 0; a < 3; a++)
+        {
+            int u = (a + 1) % 3, w = (a + 2) % 3;
+            foreach (float s in new[] { -1f, 1f })
+            {
+                // the face
+                Vector3 f = E(a, s * h[a]); float hu = h[u] - b[u], hw = h[w] - b[w];
+                poly(new[] { f + E(u, -hu) + E(w, -hw), f + E(u, hu) + E(w, -hw), f + E(u, hu) + E(w, hw), f + E(u, -hu) + E(w, hw) }, E(a, s));
+                // the edges between this face and the next axis's faces
+                foreach (float t in new[] { -1f, 1f })
+                {
+                    Vector3 p1 = E(a, s * h[a]) + E(u, t * (h[u] - b[u])), p2 = E(a, s * (h[a] - b[a])) + E(u, t * h[u]); Vector3 dw = E(w, h[w] - b[w]);
+                    poly(new[] { p1 - dw, p1 + dw, p2 + dw, p2 - dw }, E(a, s) + E(u, t));
+                }
+            }
+        }
+        foreach (float sx in new[] { -1f, 1f }) foreach (float sy in new[] { -1f, 1f }) foreach (float sz in new[] { -1f, 1f })
+                    poly(new[] { new Vector3(sx * h.x, sy * (h.y - b.y), sz * (h.z - b.z)), new Vector3(sx * (h.x - b.x), sy * h.y, sz * (h.z - b.z)), new Vector3(sx * (h.x - b.x), sy * (h.y - b.y), sz * h.z) }, new Vector3(sx, sy, sz));
+        m = new Mesh { name = "Bevelled box" }; m.SetVertices(v); m.SetNormals(nr); m.SetUVs(0, uv); m.SetTriangles(tr, 0); m.RecalculateBounds(); m.RecalculateTangents();
+        bevels[key] = m; return m;
+    }
+    // a bevelled box of this size (in metres), centred, for Parts
+    static Mesh Bev(Vector3 size, float edge = 0.04f)
+    {
+        size = new Vector3(Mathf.Round(size.x * 50f) / 50f, Mathf.Round(size.y * 50f) / 50f, Mathf.Round(size.z * 50f) / 50f);
+        float e = Mathf.Min(edge, Mathf.Min(size.x, Mathf.Min(size.y, size.z)) * 0.3f);
+        return BevelBox(Vector3.zero, size * 0.5f, Vector3.one * e);
+    }
+
+    // gives one bare box chamfered edges (thin rods become eight-sided) and, for wood, a slightly varied shade
+    static readonly Dictionary<string, Material> shades = new Dictionary<string, Material>();
+    static bool Soften(Renderer r)
+    {
+        var mf = r.GetComponent<MeshFilter>(); var mb = mf.sharedMesh.bounds; var ls = r.transform.lossyScale;
+        Vector3 sc = new Vector3(Mathf.Max(1e-4f, Mathf.Abs(ls.x)), Mathf.Max(1e-4f, Mathf.Abs(ls.y)), Mathf.Max(1e-4f, Mathf.Abs(ls.z)));
+        Vector3 w = Vector3.Scale(mb.size, sc); float thin = Mathf.Min(w.x, Mathf.Min(w.y, w.z));
+        if (thin < 0.015f) return false;   // a flat decal, not a box
+        float mid = w.x + w.y + w.z - thin - Mathf.Max(w.x, Mathf.Max(w.y, w.z));
+        float e = mid < 0.18f ? thin * 0.29f : Mathf.Clamp(thin * 0.25f, 0.008f, 0.06f);
+        mf.sharedMesh = BevelBox(mb.center, mb.extents, new Vector3(e / sc.x, e / sc.y, e / sc.z));
+        Color c; var src = r.sharedMaterial;
+        if (src != null && Col(r, out c) && c.r > c.b * 1.3f && c.r < 0.7f && c.g < c.r)
+        {
+            int k = Mathf.Abs(Mathf.RoundToInt(r.bounds.center.x * 11f + r.bounds.center.z * 5f)) % 3; Material sm;
+            string key = src.name + "|" + ColorUtility.ToHtmlStringRGBA(c) + "_" + k;
+            if (!shades.TryGetValue(key, out sm) || sm == null)
+            {
+                sm = new Material(src) { name = src.name + "_shade" + k }; float f = k == 0 ? 0.88f : k == 1 ? 1f : 1.1f;
+                foreach (var pr in new[] { "baseColorFactor", "_BaseColor", "_Color" }) if (sm.HasProperty(pr)) { var cc = sm.GetColor(pr); sm.SetColor(pr, new Color(cc.r * f, cc.g * f, cc.b * f, cc.a)); }
+                shades[key] = sm;
+            }
+            r.sharedMaterial = sm;
+        }
+        return true;
+    }
+
+    // Emberreach's lava bridges (a black slab, two black bars and an orange line): an arched bridge of basalt slabs
+    // with lava glowing in the joints, parapets of rough blocks with capstones and a pier with a glowing ember bowl
+    // at each corner
+    static bool LavaBridge(Transform root, List<Renderer> rs, int seed)
+    {
+        Renderer deck = null, glow = null; var rails = new List<Renderer>();
+        foreach (var r in rs)
+        {
+            Color c; Col(r, out c); var z = TrueSize(r);
+            if (c.r > 0.8f && c.g < 0.6f && c.b < 0.3f) glow = r;
+            else if (z.y < 0.45f && Mathf.Min(z.x, z.z) > 2f) deck = r;
+            else if (z.y < 1f && Mathf.Min(z.x, z.z) < 0.9f && Mathf.Max(z.x, z.z) > 3f) rails.Add(r);
+        }
+        if (deck == null || glow == null || rails.Count != 2) return false;
+        Vector3 along = LongAxis(rails[0]); var rz = TrueSize(rails[0]); float L = Mathf.Max(rz.x, rz.z);
+        float W = Vector3.Distance(Vector3.ProjectOnPlane(rails[0].bounds.center - rails[1].bounds.center, along), Vector3.zero) + 0.7f;
+        W = Mathf.Clamp(W, 2.4f, 6f);
+        var go = LavaBridgeAt(root, L + 0.6f, W, seed);
+        Vector3 mid = (rails[0].bounds.center + rails[1].bounds.center) * 0.5f;
+        go.transform.position = new Vector3(mid.x, deck.bounds.min.y, mid.z); go.transform.rotation = Quaternion.LookRotation(along);
+        AHModel.SetShadows(go);
+        foreach (var r in rs) r.enabled = false;
+        return true;
+    }
+    public static GameObject LavaBridgeAt(Transform parent, float L, float W, int seed)
+    {
+        var root = new GameObject("Lava bridge"); root.transform.SetParent(parent, false);
+        var P = new Parts(); var rnd = new System.Random(seed);
+        Material[] slab = { Mat("lb_basalt0", C(0x2E2A2C), 0.2f), Mat("lb_basalt1", C(0x38322F), 0.2f), Mat("lb_basalt2", C(0x26232A), 0.25f) };
+        Material cap = Mat("lb_cap", C(0x4A4240), 0.15f), dark = Mat("lb_dark", C(0x1C1A1C), 0.1f);
+        var hot = Mat("lb_lava", C(0xFF6A1A), 0.5f); hot.EnableKeyword("_EMISSION"); hot.SetColor("_EmissionColor", C(0xFF5A10).linear * 2.6f);
+        float half = L * 0.5f, arch = Mathf.Min(0.5f, L * 0.04f), deckY = 0.32f;
+        System.Func<float, float> Y = z => deckY + arch * (1f - (z / half) * (z / half));
+        System.Func<float, float> Ang = z => Mathf.Atan(-2f * arch * z / (half * half)) * Mathf.Rad2Deg;
+        // the glowing bed under the joints
+        int seg = 10;
+        for (int i = 0; i < seg; i++)
+        {
+            float za = -half + L * i / seg, zb = -half + L * (i + 1) / seg, zm = (za + zb) * 0.5f;
+            P.Add(hot, Cube, new Vector3(0, Y(zm) - 0.1f, zm), Quaternion.Euler(-Ang(zm), 0, 0), new Vector3(W - 0.9f, 0.04f, L / seg + 0.02f));
+            // dark side walls of the span, under the parapets
+            foreach (float sx in new[] { -1f, 1f })
+                P.Add(dark, Bev(new Vector3(0.5f, 0.5f, L / seg + 0.02f), 0.05f), new Vector3(sx * (W * 0.5f - 0.25f), Y(zm) - 0.3f, zm), Quaternion.Euler(-Ang(zm), 0, 0), Vector3.one);
+        }
+        // slabs: rows across, two or three a row, with gaps where the lava shows
+        float z0 = -half + 0.5f;
+        while (z0 < half - 0.5f)
+        {
+            float len = R(rnd, 0.7f, 1.15f); if (z0 + len > half - 0.5f) len = half - 0.5f - z0; if (len < 0.25f) break;
+            float zc = z0 + len * 0.5f; int k = rnd.Next(2, 4); float x0 = -(W - 1.0f) * 0.5f, inner = W - 1.0f;
+            float[] cuts = new float[k + 1]; cuts[0] = 0; cuts[k] = 1; for (int j = 1; j < k; j++) cuts[j] = (float)j / k + R(rnd, -0.08f, 0.08f);
+            for (int j = 0; j < k; j++)
+            {
+                float a = x0 + cuts[j] * inner + 0.035f, b = x0 + cuts[j + 1] * inner - 0.035f;
+                P.Add(slab[rnd.Next(3)], Bev(new Vector3(b - a, 0.16f, len - 0.07f), 0.035f), new Vector3((a + b) * 0.5f, Y(zc) + R(rnd, -0.015f, 0.02f), zc),
+                      Quaternion.Euler(-Ang(zc) + R(rnd, -1.2f, 1.2f), R(rnd, -1.5f, 1.5f), R(rnd, -1.2f, 1.2f)), Vector3.one);
+            }
+            z0 += len;
+        }
+        // parapets: rough blocks with capstones, a pier at each end
+        foreach (float sx in new[] { -1f, 1f })
+        {
+            float x = sx * (W * 0.5f - 0.25f);
+            float z = -half + 0.75f;
+            while (z < half - 0.75f)
+            {
+                float bl = Mathf.Min(R(rnd, 0.6f, 0.95f), half - 0.75f - z); if (bl < 0.2f) break; float zc = z + bl * 0.5f;
+                float bh = R(rnd, 0.42f, 0.5f);
+                P.Add(slab[rnd.Next(3)], Bev(new Vector3(0.42f, bh, bl - 0.03f), 0.05f), new Vector3(x + R(rnd, -0.02f, 0.02f), Y(zc) + 0.08f + bh * 0.5f, zc), Quaternion.Euler(-Ang(zc), R(rnd, -2f, 2f), 0), Vector3.one);
+                P.Add(cap, Bev(new Vector3(0.5f, 0.1f, bl + 0.01f), 0.03f), new Vector3(x, Y(zc) + 0.08f + bh + 0.05f, zc), Quaternion.Euler(-Ang(zc), 0, 0), Vector3.one);
+                z += bl;
+            }
+            foreach (float e in new[] { -1f, 1f })
+            {
+                float zp = e * (half - 0.4f); float y0 = Y(zp) - 0.4f;
+                P.Add(dark, Bev(new Vector3(0.7f, 1.45f, 0.7f), 0.06f), new Vector3(x, y0 + 0.72f, zp), Quaternion.identity, Vector3.one);
+                P.Add(cap, Bev(new Vector3(0.85f, 0.14f, 0.85f), 0.04f), new Vector3(x, y0 + 1.5f, zp), Quaternion.identity, Vector3.one);
+                P.Add(dark, Cyl, new Vector3(x, y0 + 1.64f, zp), Quaternion.identity, new Vector3(0.5f, 0.07f, 0.5f));
+                P.Add(hot, Sph, new Vector3(x, y0 + 1.7f, zp), Quaternion.identity, new Vector3(0.38f, 0.16f, 0.38f));
+            }
+        }
+        P.Build(root.transform);
+        foreach (var r in root.GetComponentsInChildren<Renderer>()) if (r.sharedMaterial == hot) r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        return root;
+    }
+
+    // the homestead's signpost (a square stick and two flat boards): a round weathered post with a cap, two pointed
+    // arrow boards with darker edges, pointing different ways, and a few stones round its foot
+    static bool Signpost(Transform root, List<Renderer> rs, int seed)
+    {
+        Renderer post = null; var boards = new List<Renderer>();
+        foreach (var r in rs)
+        {
+            var z = TrueSize(r);
+            if (z.y > 1.6f && Mathf.Max(z.x, z.z) < 0.35f) post = r;
+            else if (z.y < 0.5f && Mathf.Max(z.x, z.z) > 0.8f && Mathf.Max(z.x, z.z) < 2.4f && Mathf.Min(z.x, z.z) < 0.15f) boards.Add(r);
+        }
+        if (post == null || boards.Count != 2) return false;
+        var pb = post.bounds; Color wc; Col(boards[0], out wc); Color pc; Col(post, out pc);
+        var go = new GameObject("Signpost"); go.transform.SetParent(root, false);
+        var P = new Parts(); var rnd = new System.Random(seed);
+        Material wood = Mat("sp_board", C(0x9A6A3C), 0.1f), edge = Mat("sp_edge", C(0x5E3E24), 0.1f),
+                 pole = Mat("sp_post", C(0x76543A), 0.1f), stone = Mat("sp_stone", C(0x8A8478), 0.1f), ink = Mat("sp_ink", C(0x2A1C12), 0.05f);
+        float h = pb.size.y;
+        P.Add(pole, Cyl, new Vector3(0, h * 0.5f, 0), Quaternion.Euler(0, 0, R(rnd, -1.5f, 1.5f)), new Vector3(0.15f, h * 0.5f, 0.15f));
+        P.Add(edge, Bev(new Vector3(0.2f, 0.1f, 0.2f), 0.03f), new Vector3(0, h + 0.04f, 0), Quaternion.Euler(0, 45, 0), Vector3.one);
+        float[] ys = { h - 0.32f, h - 0.75f }; float[] yaws = { R(rnd, -10f, 10f), 180f + R(rnd, -35f, 35f) };
+        for (int i = 0; i < 2; i++)
+        {
+            var q = Quaternion.Euler(0, yaws[i], R(rnd, -2.5f, 2.5f)); float bl = 1.25f, bh = 0.28f;
+            Vector3 c = new Vector3(0, ys[i], 0) + q * new Vector3(bl * 0.5f - 0.05f, 0, 0.1f);
+            P.Add(edge, Bev(new Vector3(bl + 0.04f, bh + 0.04f, 0.05f), 0.015f), c + q * new Vector3(0, 0, -0.005f), q, Vector3.one);
+            P.Add(wood, Bev(new Vector3(bl, bh, 0.065f), 0.02f), c, q, Vector3.one);
+            // the arrow's point
+            float d = bh / 1.414f;
+            P.Add(wood, Bev(new Vector3(d, d, 0.065f), 0.015f), c + q * new Vector3(bl * 0.5f, 0, 0), q * Quaternion.Euler(0, 0, 45), Vector3.one);
+            // painted lettering (a few dark strokes) on both faces
+            for (int k = 0; k < 4; k++)
+                foreach (float fz in new[] { -1f, 1f })
+                    P.Add(ink, Cube, c + q * new Vector3(-bl * 0.3f + k * 0.17f, R(rnd, -0.02f, 0.02f), fz * 0.034f), q, new Vector3(R(rnd, 0.08f, 0.13f), 0.08f, 0.005f));
+            // two nails
+            P.Add(ink, Sph, new Vector3(0, ys[i], 0) + q * new Vector3(0, 0, 0.14f), q, Vector3.one * 0.03f);
+        }
+        for (int k = 0; k < 5; k++)
+        {
+            float a = k * 72f + R(rnd, -20, 20), d = R(rnd, 0.16f, 0.3f);
+            P.Add(stone, Sph, new Vector3(Mathf.Cos(a * Mathf.Deg2Rad) * d, 0.03f, Mathf.Sin(a * Mathf.Deg2Rad) * d), Quaternion.Euler(0, a, 0), new Vector3(R(rnd, 0.13f, 0.22f), R(rnd, 0.08f, 0.12f), R(rnd, 0.12f, 0.18f)));
+        }
+        P.Build(go.transform);
+        Vector3 along = LongAxis(boards[0]);
+        go.transform.position = new Vector3(pb.center.x, pb.min.y, pb.center.z); go.transform.rotation = Quaternion.LookRotation(Vector3.Cross(along, Vector3.up));
+        AHModel.SetShadows(go);
+        foreach (var r in rs) r.enabled = false;
+        return true;
+    }
+
+    // a statue's square grey block and slab: a stepped stone plinth with a moulded cornice and a carved panel
+    static bool Plinth(Transform root, List<Renderer> rs, int seed)
+    {
+        Renderer body = null, top = null;
+        foreach (var r in rs)
+        {
+            var z = TrueSize(r); float f = Mathf.Max(z.x, z.z);
+            if (f > 1.6f && f < 3.6f && Mathf.Abs(z.x - z.z) < 0.4f && z.y > 0.7f && z.y < 1.8f) body = r;
+        }
+        if (body == null) return false;
+        Color bc; if (!Col(body, out bc) || Mathf.Abs(bc.r - bc.g) > 0.08f || Mathf.Abs(bc.g - bc.b) > 0.1f || bc.r + bc.g + bc.b < 0.6f) return false;   // grey stone only
+        var bb = body.bounds;
+        foreach (var r in rs)
+        {
+            if (r == body) continue; var z = TrueSize(r); var b = r.bounds;
+            if (z.y < 0.6f && Mathf.Max(z.x, z.z) < Mathf.Max(bb.size.x, bb.size.z) && b.min.y > bb.center.y && Mathf.Abs(b.center.x - bb.center.x) < 0.4f && Mathf.Abs(b.center.z - bb.center.z) < 0.4f) top = r;
+        }
+        Color sc; Col(body, out sc);
+        float F = Mathf.Max(TrueSize(body).x, TrueSize(body).z), ground = bb.min.y, H = (top != null ? top.bounds.max.y : bb.max.y) - ground;
+        float tf = top != null ? Mathf.Max(TrueSize(top).x, TrueSize(top).z) : F * 0.7f;
+        var go = new GameObject("Plinth"); go.transform.SetParent(root, false);
+        var P = new Parts();
+        Material st = Mat("pl_stone" + ColorUtility.ToHtmlStringRGB(sc), Color.Lerp(sc, C(0xA8A296), 0.35f), 0.2f), st2 = Mat("pl_stone2", C(0x8C877C), 0.2f), dk = Mat("pl_dark", C(0x5E5A52), 0.15f);
+        float y = 0f;
+        System.Action<Material, float, float> step = (m, f, h) => { P.Add(m, Bev(new Vector3(f, h, f), 0.04f), new Vector3(0, y + h * 0.5f, 0), Quaternion.identity, Vector3.one); y += h; };
+        step(st2, F + 0.35f, 0.16f);
+        step(st, F + 0.12f, 0.12f);
+        float die = Mathf.Max(0.3f, H - 0.16f - 0.12f - 0.1f - 0.14f - (top != null ? top.bounds.size.y : 0f));
+        float y0 = y; step(st, F - 0.15f, die);
+        // carved panels sunk into each face, with a darker border
+        for (int k = 0; k < 4; k++)
+        {
+            var q = Quaternion.Euler(0, k * 90f, 0);
+            P.Add(dk, Bev(new Vector3((F - 0.15f) * 0.66f, die * 0.62f, 0.03f), 0.01f), q * new Vector3(0, 0, (F - 0.15f) * 0.5f) + new Vector3(0, y0 + die * 0.5f, 0), q, Vector3.one);
+            P.Add(st2, Bev(new Vector3((F - 0.15f) * 0.56f, die * 0.5f, 0.04f), 0.01f), q * new Vector3(0, 0, (F - 0.15f) * 0.5f + 0.006f) + new Vector3(0, y0 + die * 0.5f, 0), q, Vector3.one);
+        }
+        step(st, F + 0.05f, 0.1f);
+        step(st2, F + 0.18f, 0.14f);
+        if (top != null) step(st, tf + 0.1f, Mathf.Max(0.12f, H - y));
+        P.Build(go.transform);
+        go.transform.position = new Vector3(bb.center.x, ground, bb.center.z); go.transform.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(body.transform.forward, Vector3.up).normalized + new Vector3(0, 0, 1e-4f));
+        AHModel.SetShadows(go);
+        body.enabled = false; if (top != null) top.enabled = false;
+        return true;
     }
 
     // a round straw bale lying on its side: a drum of straw with rough ends and two twine bands
