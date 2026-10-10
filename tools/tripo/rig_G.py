@@ -258,7 +258,12 @@ for i in range(len(me.vertices)):
             W2 = [(n, w) for n, w in W if not ((n.startswith('thigh') or n.startswith('calf') or n.startswith('foot')) and n.endswith(other))]
             if W2: W = W2
         elif z < HZ: W = [('pelvis', 1.0)]   # the middle seam between the legs stays with the hips
-    for n, w in W: t.vertex_groups[n].add([i], w, 'REPLACE')
+    # boots are rigid: they follow the shin, so a pointed toe never stretches into a wedge when the foot bends
+    _W2 = {}
+    for n, w in W:
+        n = ('calf_' + n[-1]) if n.startswith('foot_') else n
+        _W2[n] = _W2.get(n, 0) + w
+    for n, w in _W2.items(): t.vertex_groups[n].add([i], w, 'REPLACE')
 # the few faces joining a hand to a thigh plate (or an arm to the body) would stretch between the two: they are split
 # off and stay with the body (their own copies of the arm-side corners follow the body), so no hole is left behind
 import bmesh
@@ -335,6 +340,19 @@ _gi = {g.index: g.name for g in core.vertex_groups}
 _drop = [v for v in _cb.verts if v[_dl3] and _gi[max(v[_dl3].items(), key=lambda kv: kv[1])[0]] in ('Head', 'foot_l', 'foot_r')]
 _bm3.ops.delete(_cb, geom=_drop, context='VERTS'); _cb.to_mesh(core.data); _cb.free()
 print('core faces', len(core.data.polygons), 'dark uv', round(_du, 3), round(_dv, 3))
+# the core stays strictly inside the suit: any part of it outside the suit's surface (a slim leather suit round the
+# bulkier knight) is cut away, or it shows as black patches
+from mathutils.bvhtree import BVHTree as _BV
+_sb = _BV.FromPolygons([v.co for v in t.data.vertices], [tuple(p.vertices) for p in t.data.polygons])
+import bmesh as _bmc
+_cb2 = _bmc.new(); _cb2.from_mesh(core.data); _cb2.verts.ensure_lookup_table()
+def _outside(p):
+    hit = _sb.find_nearest(p)
+    if hit[0] is None: return True
+    return (p - hit[0]).dot(hit[1]) > -0.006 or hit[3] > 0.12
+_out = [v for v in _cb2.verts if _outside(core.matrix_world @ v.co)]
+print('core verts outside the suit cut', len(_out), 'of', len(_cb2.verts))
+_bmc.ops.delete(_cb2, geom=_out, context='VERTS'); _cb2.to_mesh(core.data); _cb2.free()
 bpy.ops.object.select_all(action='DESELECT'); core.select_set(True); t.select_set(True); bpy.context.view_layer.objects.active = t
 bpy.ops.object.join(); me = t.data
 # a dark gorget round the neck, under the helm's rim, so no daylight shows between the helm and the shoulders

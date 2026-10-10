@@ -34,6 +34,7 @@ public static class AHSuitShots
     static bool HasSuit(string coll, string cls)
     {
         foreach (var s in new[] { "", "_f" }) if (Resources.Load<GameObject>("AH/Models/Outfits/tqo_" + coll + "_" + cls + s) != null) return true;
+        if (cls == "warden") return HasSuit(coll, "warrior");   // the Warden wears the Warrior's plate with its own hammer
         return false;
     }
 
