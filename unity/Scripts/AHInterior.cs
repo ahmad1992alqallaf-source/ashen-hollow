@@ -101,6 +101,7 @@ public static partial class AHInterior
             top.SetActive(false); hidden.Add(top);
         }
         Build(g);
+        if (root != null) AHBevel.DressRoom(root);   // grain on the wood, weave on the cloth, stone on the hearth
         p.transform.position = c + new Vector3(0f, 0f, -D / 2 + 1.2f); p.transform.rotation = Quaternion.identity;
         g.camYaw = 0f;
         g.ui.Invoke("FadeOff", 0.5f);

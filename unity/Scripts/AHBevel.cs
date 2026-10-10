@@ -129,6 +129,74 @@ public static class AHBevel
         foreach (var p in new[] { "_BaseMap", "_MainTex", "baseColorTexture" }) if (m.HasProperty(p) && m.GetTexture(p) != null) return true;
         return false;
     }
+    // wood grain (long streaks with knots) and cloth weave, made here like the stone
+    static Texture2D woodTex, clothTex;
+    static Texture2D WoodTex()
+    {
+        if (woodTex != null) return woodTex;
+        const int N = 256; woodTex = new Texture2D(N, N, TextureFormat.RGBA32, true) { wrapMode = TextureWrapMode.Repeat, name = "AH wood" };
+        var px = new Color32[N * N];
+        for (int y = 0; y < N; y++)
+            for (int x = 0; x < N; x++)
+            {
+                float u = x / (float)N, v = y / (float)N;
+                float warp = Mathf.PerlinNoise(u * 3f, v * 0.6f) * 6f;
+                float ring = Mathf.Abs(Mathf.Sin((u * 22f + warp) * Mathf.PI));
+                float fine = Mathf.PerlinNoise(u * 90f, v * 4f);
+                float plank = Mathf.Repeat(u * 4f, 1f) < 0.02f ? 0.55f : 1f;   // the gaps between boards
+                float k = (0.7f + 0.22f * Mathf.Pow(ring, 3f) + 0.12f * fine) * plank;
+                byte b = (byte)Mathf.Clamp(255f * k, 0, 255); px[y * N + x] = new Color32(b, b, b, 255);
+            }
+        woodTex.SetPixels32(px); woodTex.Apply(true); return woodTex;
+    }
+    static Texture2D ClothTex()
+    {
+        if (clothTex != null) return clothTex;
+        const int N = 128; clothTex = new Texture2D(N, N, TextureFormat.RGBA32, true) { wrapMode = TextureWrapMode.Repeat, name = "AH cloth" };
+        var px = new Color32[N * N];
+        for (int y = 0; y < N; y++)
+            for (int x = 0; x < N; x++)
+            {
+                bool warp = ((x / 2) + (y / 2)) % 2 == 0; float n = Mathf.PerlinNoise(x * 0.11f, y * 0.11f);
+                float k = (warp ? 0.92f : 0.8f) + 0.12f * n;
+                byte b = (byte)Mathf.Clamp(255f * k, 0, 255); px[y * N + x] = new Color32(b, b, b, 255);
+            }
+        clothTex.SetPixels32(px); clothTex.Apply(true); return clothTex;
+    }
+    // a room built of plain coloured blocks (your house, the guild hall): each untextured piece gets the surface its
+    // colour says it is: browns are wood, greys are stone, anything brighter is cloth
+    public static int DressRoom(Transform room)
+    {
+        int n = 0;
+        foreach (var r in room.GetComponentsInChildren<MeshRenderer>(true))
+        {
+            var m = r.sharedMaterial; if (m == null || HasTex(m) || m.name.StartsWith("AH")) continue;
+            if (m.IsKeywordEnabled("_EMISSION")) continue;   // fire, candle flames, window light
+            string shn = m.shader != null ? m.shader.name : "";
+            if (!(shn.StartsWith("Universal Render Pipeline/Lit") || shn.Contains("glTF-pbr"))) continue;   // the ground, water, sky and effects keep their own shaders
+            if (r.GetComponentInParent<AHMob>() != null) continue;
+            var rmf = r.GetComponent<MeshFilter>();
+            if (rmf == null || rmf.sharedMesh == null || rmf.sharedMesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.Color)) continue;   // painted with vertex colours (cacti, coral): a texture would wash them out
+            Color c = m.HasProperty("_BaseColor") ? m.GetColor("_BaseColor") : m.HasProperty("baseColorFactor") ? m.GetColor("baseColorFactor") : Color.grey;
+            if (c.a < 0.95f) continue;
+            float h, sat, v; Color.RGBToHSV(c, out h, out sat, out v);
+            string kind = sat < 0.18f || v < 0.25f ? "stone" : (h > 0.02f && h < 0.15f && v < 0.8f) ? "wood" : "cloth";
+            var b = r.bounds; float big = Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z));
+            float tile = kind == "cloth" ? Mathf.Clamp(Mathf.Round(big * 3f), 2f, 24f) : Mathf.Clamp(Mathf.Round(big / (kind == "wood" ? 1.2f : 1.6f)), 1f, 10f);
+            string key = kind + ColorUtility.ToHtmlStringRGB(c) + "_" + tile; Material sm;
+            if (!stoneMats.TryGetValue(key, out sm) || sm == null)
+            {
+                sm = new Material(m) { name = "AH" + kind + " " + key };
+                if (!sm.HasProperty("_BaseMap")) { sm = new Material(Shader.Find("Universal Render Pipeline/Lit")) { name = "AH" + kind + " " + key }; sm.SetColor("_BaseColor", c); }
+                sm.SetTexture("_BaseMap", kind == "wood" ? WoodTex() : kind == "cloth" ? ClothTex() : StoneTex());
+                sm.SetTextureScale("_BaseMap", new Vector2(tile, tile));
+                if (kind == "stone") sm.SetColor("_BaseColor", c * 1.15f);
+                stoneMats[key] = sm;
+            }
+            var mats = r.sharedMaterials; for (int i = 0; i < mats.Length; i++) if (mats[i] == m) mats[i] = sm; r.sharedMaterials = mats; n++;
+        }
+        return n;
+    }
     public static int StoneSkin()
     {
         string a = AHGame.AreaId ?? ""; bool inside = a.StartsWith("d_") || a == "forge";
@@ -138,7 +206,7 @@ public static class AHBevel
             if (!r.enabled) continue;
             var m = r.sharedMaterial; if (m == null || m.name.StartsWith("AHStone") || HasTex(m) || m.shader.name.StartsWith("AshenHollow/")) continue;
             if (m.HasProperty("_EmissionColor") && m.IsKeywordEnabled("_EMISSION")) continue;   // lava, glow
-            var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null || mf.sharedMesh.vertexCount > 600) continue;
+            var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null || mf.sharedMesh.vertexCount > 600 || mf.sharedMesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.Color)) continue;
             bool web = false; for (var t = r.transform; t != null; t = t.parent) if (t.name.StartsWith("obj")) { web = true; break; }
             if (!web && !inside) continue;
             var b = r.bounds; float big = Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z)); if (big < 2.5f) continue;
@@ -171,6 +239,14 @@ public static class AHBevel
             int n = SoftenScene(); if (n > 0) Debug.Log("Ashen Hollow: " + n + " plain cubes given chamfered edges");
             HideGiants();
             StoneSkin();
+            // the props built here in code out in the lands (stalls, benches, looms, cauldrons, tents, carts)
+            // (every still thing in the land: not the people, beasts, pets or the hero)
+            foreach (var top in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+            {
+                if (top.GetComponent<AHMob>() != null || top.GetComponent<AHNpc>() != null || top.GetComponent<AHAlly>() != null || top.GetComponent<AHPetFollow>() != null) continue;
+                if (AHGame.I != null && (top == AHGame.I.gameObject || (AHGame.I.player != null && top == AHGame.I.player.transform.root.gameObject))) continue;
+                DressRoom(top.transform);
+            }
         }
     }
 }

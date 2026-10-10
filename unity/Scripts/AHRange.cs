@@ -55,10 +55,11 @@ public static class AHRange
     static bool Real(Vector3 v) { return !(float.IsNaN(v.x) || float.IsNaN(v.y) || float.IsNaN(v.z) || float.IsInfinity(v.x) || float.IsInfinity(v.y) || float.IsInfinity(v.z)); }
     static float Hash(float x) { return Mathf.Repeat(Mathf.Sin(x * 127.1f) * 43758.5453f, 1f); }
     // a ridge line along the ring: sharp peaks (folded noise), saddles between them
+    // (Perlin can stray just past 0..1, and a negative to the power 1.6 is NaN: clamped)
     static float Ridge(float u, float s)
     {
         float h = 0f, a = 1f, f = 1f, tot = 0f;
-        for (int o = 0; o < 4; o++) { float n = 1f - Mathf.Abs(Mathf.PerlinNoise(u * f + s, s * 0.37f + o * 3.1f) * 2f - 1f); h += Mathf.Pow(n, 1.6f) * a; tot += a; a *= 0.5f; f *= 2.2f; }
+        for (int o = 0; o < 4; o++) { float n = Mathf.Clamp01(1f - Mathf.Abs(Mathf.PerlinNoise(u * f + s, s * 0.37f + o * 3.1f) * 2f - 1f)); h += Mathf.Pow(n, 1.6f) * a; tot += a; a *= 0.5f; f *= 2.2f; }
         return h / tot;
     }
 
