@@ -77,6 +77,85 @@ public static class AHBevel
         return n;
     }
 
+    // a plain block the size of a whole town square (the web game's light volumes and plaza slabs, tens of metres
+    // across and metres tall) only ever shows as a wall of flat colour: put away
+    public static int HideGiants()
+    {
+        int n = 0;
+        foreach (var mf in Object.FindObjectsByType<MeshFilter>(FindObjectsSortMode.None))
+        {
+            var m = mf.sharedMesh; if (m == null || !(IsCube(m) || m.name == "Bevelled box")) continue;
+            var r = mf.GetComponent<MeshRenderer>(); if (r == null || !r.enabled) continue;
+            var mat = r.sharedMaterial; if (mat != null && mat.mainTexture != null) continue;
+            var b = r.bounds; if (Mathf.Min(b.size.x, b.size.z) < 15f || Mathf.Max(b.size.x, b.size.z) < 30f || b.size.y < 3f) continue;   // a block, not a long wall
+            r.enabled = false; n++;
+            Debug.Log("Ashen Hollow: giant plain block put away: " + mf.name + " (" + b.size.ToString("F0") + ")");
+        }
+        return n;
+    }
+
+    // the caves, dungeons and the Sunken Forge were built of plain flat-coloured blocks and wedges in the web game: they
+    // get a rough stone surface (a noise texture made here, tinted with each block's own colour, tiled by its size)
+    static Texture2D stoneTex; static readonly Dictionary<string, Material> stoneMats = new Dictionary<string, Material>();
+    static Texture2D StoneTex()
+    {
+        if (stoneTex != null) return stoneTex;
+        const int N = 256; stoneTex = new Texture2D(N, N, TextureFormat.RGBA32, true) { wrapMode = TextureWrapMode.Repeat, name = "AH stone" };
+        var px = new Color32[N * N]; var rnd = new System.Random(7);
+        float[] g = new float[17 * 17]; for (int i = 0; i < g.Length; i++) g[i] = (float)rnd.NextDouble();
+        float[] h = new float[33 * 33]; for (int i = 0; i < h.Length; i++) h[i] = (float)rnd.NextDouble();
+        System.Func<float[], int, float, float, float> Val = (a, n, x, y) =>
+        {
+            int x0 = (int)x % n, y0 = (int)y % n, x1 = (x0 + 1) % n, y1 = (y0 + 1) % n; float fx = x - Mathf.Floor(x), fy = y - Mathf.Floor(y);
+            fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy);
+            return Mathf.Lerp(Mathf.Lerp(a[y0 * (n + 1) + x0], a[y0 * (n + 1) + x1], fx), Mathf.Lerp(a[y1 * (n + 1) + x0], a[y1 * (n + 1) + x1], fx), fy);
+        };
+        for (int y = 0; y < N; y++)
+            for (int x = 0; x < N; x++)
+            {
+                float u = x / (float)N, v = y / (float)N;
+                float n = Val(g, 16, u * 16, v * 16) * 0.55f + Val(h, 32, u * 32, v * 32) * 0.3f + (float)rnd.NextDouble() * 0.15f;
+                float crack = Mathf.Abs(Val(g, 16, u * 16 + 3.7f, v * 16 + 1.3f) - 0.5f); float c = crack < 0.025f ? 0.55f : 1f;
+                byte b = (byte)Mathf.Clamp(255f * (0.62f + 0.45f * n) * c, 0, 255);
+                px[y * N + x] = new Color32(b, b, b, 255);
+            }
+        stoneTex.SetPixels32(px); stoneTex.Apply(true);
+        return stoneTex;
+    }
+    public static int StoneSkin()
+    {
+        string a = AHGame.AreaId ?? ""; bool inside = a.StartsWith("d_") || a == "forge";
+        int n = 0;
+        foreach (var r in Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None))
+        {
+            if (!r.enabled) continue;
+            var m = r.sharedMaterial; if (m == null || m.name.StartsWith("AHStone") || m.mainTexture != null) continue;
+            if (m.HasProperty("baseColorTexture") && m.GetTexture("baseColorTexture") != null) continue;
+            if (m.HasProperty("_EmissionColor") && m.IsKeywordEnabled("_EMISSION")) continue;   // lava, glow
+            var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null || mf.sharedMesh.vertexCount > 600) continue;
+            bool web = false; for (var t = r.transform; t != null; t = t.parent) if (t.name.StartsWith("obj")) { web = true; break; }
+            if (!web && !inside) continue;
+            if (!web && !(mf.sharedMesh.name == "Bevelled box" || mf.sharedMesh.name.StartsWith("Cube") || mf.sharedMesh.name.StartsWith("Cone") || mf.sharedMesh.name.StartsWith("Cylinder"))) continue;
+            var b = r.bounds; float big = Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z)); if (big < 2.5f) continue;
+            Color c = m.HasProperty("baseColorFactor") ? m.GetColor("baseColorFactor") : m.HasProperty("_BaseColor") ? m.GetColor("_BaseColor") : Color.grey;
+            if (c.a < 0.95f) continue;   // glass, water, light shafts
+            float ch, cs, cv; Color.RGBToHSV(c, out ch, out cs, out cv);
+            if (!inside && cs > 0.25f) continue;   // out in the lands only the grey stone pieces (not the painted wood)
+            float tile = Mathf.Clamp(Mathf.Round(big / 3f), 1f, 12f);
+            string key = ColorUtility.ToHtmlStringRGB(c) + "_" + tile; Material sm;
+            if (!stoneMats.TryGetValue(key, out sm) || sm == null)
+            {
+                sm = new Material(Shader.Find("Universal Render Pipeline/Lit")) { name = "AHStone " + key };
+                sm.SetTexture("_BaseMap", StoneTex()); sm.SetColor("_BaseColor", c * 1.1f); sm.SetFloat("_Smoothness", 0.12f);
+                sm.mainTextureScale = new Vector2(tile, tile); sm.enableInstancing = true;
+                stoneMats[key] = sm;
+            }
+            var mats = r.sharedMaterials; for (int i = 0; i < mats.Length; i++) mats[i] = sm; r.sharedMaterials = mats; n++;
+        }
+        if (n > 0) Debug.Log("Ashen Hollow: " + n + " plain blocks given a stone surface");
+        return n;
+    }
+
     // once the area is built, and again a little later for what is built as it runs (stalls, camps, furniture)
     public static void Schedule(MonoBehaviour host) { if (host != null) host.StartCoroutine(Later()); }
     static IEnumerator Later()
@@ -85,6 +164,8 @@ public static class AHBevel
         {
             yield return new WaitForSeconds(t);
             int n = SoftenScene(); if (n > 0) Debug.Log("Ashen Hollow: " + n + " plain cubes given chamfered edges");
+            HideGiants();
+            StoneSkin();
         }
     }
 }

@@ -209,7 +209,7 @@ public class AHPetFollow : MonoBehaviour
     {
         g = game; kind = k; fly = AHComp.Flies(k);
         AHAnim a;
-        if (k == "drake")
+        if (k == "drake" && Resources.Load<GameObject>("AH/Models/Comp/pet_drake_hd") == null)
         {
             // the baby dragon: the great wyrm's model, small and ember red
             model = AHModel.Spawn(transform, "Web/mDragonHQ", 1.25f, true, 0f, out a);
@@ -355,6 +355,18 @@ public class AHAlly : MonoBehaviour
             if (ch) r.materials = mats;
         }
         AHPeople.Arm(rig, wm, main, off, g);
+        // a hero-grade outfit, head to toe (the body under it is put away, the weapons stay)
+        string suit = k == "knight" ? "tqo_draconic_warrior" : k == "ranger" ? "tqo_lava_ranger_f" : "tqo_lava_priest_f";
+        if (Resources.Load<GameObject>("AH/Models/Outfits/" + suit) != null && AHQOutfit.Wear(rig, suit) != null)
+        {
+            foreach (var r in rig.GetComponentsInChildren<Renderer>(true))
+            {
+                bool weapon = false; for (var p = r.transform; p != null && p != rig.transform; p = p.parent) if (p.name.StartsWith("Weapon_")) { weapon = true; break; }
+                if (!weapon) r.enabled = false;
+            }
+            string set, cls; if (AHNpc.SuitSet(suit, out set, out cls)) AHTripo.SetWeapon(rig, set, cls);
+            return rig;
+        }
         string[] slots = { "head", "shoulders", "chest", "hands", "legs", "feet", "cape" };
         AHWardrobe.DressWith(rig, transform, s => { int i = System.Array.IndexOf(slots, s); return i >= 0 && AHItems.Get(kit[i] ?? "") != null ? kit[i] : null; }, () => walking);
         return rig;

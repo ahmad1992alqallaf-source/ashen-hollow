@@ -97,6 +97,14 @@ public static class AHWays
         var sh = Shader.Find("Universal Render Pipeline/Lit");
         rock = new Material(sh); rock.SetColor("_BaseColor", AHGame.Hex(0x7a7a84).linear);
         rockDark = new Material(sh); rockDark.SetColor("_BaseColor", AHGame.Hex(0x55555e).linear);
+        // carved stone: the Dreamscape rocks' own textured stone when the pack is there, instead of flat grey
+        var ds = AHDreamSet.Get(); GameObject rp = null; if (ds != null && ds.smallRocks != null) foreach (var sr in ds.smallRocks) if (sr != null && sr.name.Contains("StoneSmall")) { rp = sr; break; }
+        var rr = rp != null ? rp.GetComponentInChildren<Renderer>() : null;
+        if (rr != null && rr.sharedMaterial != null)
+        {
+            rock = new Material(rr.sharedMaterial); rock.SetColor("_BaseColor", new Color(0.92f, 0.92f, 0.95f));
+            rockDark = new Material(rr.sharedMaterial); rockDark.SetColor("_BaseColor", new Color(0.62f, 0.62f, 0.68f));
+        }
         rune = new Material(sh); rune.SetColor("_BaseColor", AHGame.Hex(0x7fd4ff).linear); rune.EnableKeyword("_EMISSION"); rune.SetColor("_EmissionColor", AHGame.Hex(0x7fd4ff).linear * 2.5f);
         wood = new Material(sh); wood.SetColor("_BaseColor", AHGame.Hex(0x5a3a22).linear);
         gold = new Material(sh); gold.SetColor("_BaseColor", AHGame.Hex(0xe0b040).linear); gold.SetFloat("_Metallic", 0.8f);
@@ -158,7 +166,24 @@ public static class AHWays
         {
             float a = i * Mathf.PI * 2 / 6 + 0.3f, h = 0.7f + (float)rnd.NextDouble() * 0.5f;
             Vector3 p = new Vector3(Mathf.Cos(a) * 1.2f, h / 2f, Mathf.Sin(a) * 1.2f);
-            Part(root, PrimitiveType.Cube, p, new Vector3(0.28f, h, 0.2f), i % 2 == 0 ? rock : rockDark, new Vector3((float)rnd.NextDouble() * 10 - 5, -a * Mathf.Rad2Deg + 90f, (float)rnd.NextDouble() * 12 - 6));
+            Vector3 rot = new Vector3((float)rnd.NextDouble() * 10 - 5, -a * Mathf.Rad2Deg + 90f, (float)rnd.NextDouble() * 12 - 6);
+            // a rough standing stone (a Dreamscape rock stood on end); a plain block only without the pack
+            var sp = AHScenery.RockPrefab(i + (int)(at.x + at.z));
+            if (sp != null && AHDreamSet.Get() != null)
+            {
+                var st = UnityEngine.Object.Instantiate(sp, root, false); foreach (var cl in st.GetComponentsInChildren<Collider>(true)) UnityEngine.Object.Destroy(cl);
+                var rs = st.GetComponentsInChildren<Renderer>(); if (rs.Length > 0)
+                {
+                    st.transform.localRotation = Quaternion.identity; st.transform.localScale = Vector3.one;
+                    Bounds sb = rs[0].bounds; foreach (var r in rs) sb.Encapsulate(r.bounds);
+                    st.transform.localScale = new Vector3(0.38f / Mathf.Max(0.05f, sb.size.x), h / Mathf.Max(0.05f, sb.size.y), 0.3f / Mathf.Max(0.05f, sb.size.z));
+                    st.transform.localPosition = new Vector3(p.x, 0f, p.z) - (sb.min.y - root.position.y) * st.transform.localScale.y * Vector3.up;
+                    st.transform.localRotation = Quaternion.Euler(rot);
+                    continue;
+                }
+                UnityEngine.Object.Destroy(st);
+            }
+            Part(root, PrimitiveType.Cube, p, new Vector3(0.28f, h, 0.2f), i % 2 == 0 ? rock : rockDark, rot);
         }
         MeshPart(root, Pillar(), new Vector3(0, 0.29f, 0), new Vector3(1f, 2.5f, 1f), rock, new Vector3(0, 0, 2));
         // runes down the front and back faces, a little proud of the stone

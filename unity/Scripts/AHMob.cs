@@ -53,6 +53,8 @@ public class AHMob : MonoBehaviour
         if (t.id == AHRaid.Boss) AHRaid.EnsureDef();
         // the new animal models (Quaternius CC0, reshaped and recoloured for Ashen Hollow): monsters.json BEASTS
         var beast = AHJson.O(AHDB.Table("monsters", "BEASTS"), t.id);
+        // a beast built on another (the arena's foes, the treasure goblin): the model of the one it comes from
+        { string bid = t.id; int bn = 0; while (beast == null && bn++ < 6) { bid = AHJson.S(AHJson.O(AHDB.Mobs, bid), "model"); if (bid == null || bid.Contains("/")) break; beast = AHJson.O(AHDB.Table("monsters", "BEASTS"), bid); } }
         string beastPath = null;
         string proc = beast != null ? AHJson.S(beast, "proc") : null;   // built in code (the sea serpent)
         if (beast != null && proc == null)

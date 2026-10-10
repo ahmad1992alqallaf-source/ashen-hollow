@@ -80,20 +80,20 @@ public static class AHKQ
     }
 
     // web kqMobDefs: arena monsters sized for the hero's level
-    static readonly string[][] Foes = { new[] { "wolf", "Arena wolf", "Web/mdlWolf" }, new[] { "bandit", "Arena brawler", "Mobs/bandit" }, new[] { "scorpion", "Arena scorpion", "Mobs/scorpion" }, new[] { "raptor", "Arena raptor", "Web/mRaptorHQ" }, new[] { "cinderhound", "Arena hound", "Web/mCerberus" }, new[] { "icewolf", "Arena frostfang", "Web/mdlWolf" } };
+    static readonly string[][] Foes = { new[] { "wolf", "Arena wolf", "Web/mdlWolf" }, new[] { "bandit", "Arena brawler", "bandit" }, new[] { "scorpion", "Arena scorpion", "scorpion" }, new[] { "raptor", "Arena raptor", "Web/mRaptorHQ" }, new[] { "cinderhound", "Arena hound", "Web/mCerberus" }, new[] { "icewolf", "Arena frostfang", "Web/mdlWolf" } };
     static readonly Dictionary<string, AHMobType> types = new Dictionary<string, AHMobType>();
     static AHMobType Make(string id, string b, string name, string model, int L, int hp, int dmg, int xp, int gold, bool elite)
     {
         var d = AHJson.O(AHDB.Mobs, b);
-        var all = AHDB.Mobs; if (all != null && !all.ContainsKey(id)) { var c = new Dictionary<string, object>(); var bd = d as Dictionary<string, object>; if (bd != null) foreach (var kv in bd) c[kv.Key] = kv.Value; c["name"] = name; c["drops"] = new List<object>(); c["noSkin"] = true; c["slam"] = id == "kq_champ"; all[id] = c; }
+        var all = AHDB.Mobs; if (all != null && !all.ContainsKey(id)) { var c = new Dictionary<string, object>(); var bd = d as Dictionary<string, object>; if (bd != null) foreach (var kv in bd) c[kv.Key] = kv.Value; c["name"] = name; c["model"] = b; c["drops"] = new List<object>(); c["noSkin"] = true; c["slam"] = id == "kq_champ"; all[id] = c; }
         return new AHMobType { id = id, name = name, model = model, lvl = L, hp = hp, dmg = dmg, xp = xp, gold = gold, elite = elite, speed = (float)AHJson.N(d, "speed", 90) * AHDB.S, radius = (float)AHJson.N(d, "r", 18) * AHDB.S, aggro = 900 * AHDB.S, atkCd = (float)AHJson.N(d, "atkCd", 1.3), respawn = 1e9f, noSkin = true };
     }
     static void MakeTypes(int L)
     {
         int hp = Mathf.RoundToInt(120 + 4 * L), dmg = Mathf.RoundToInt(L * 0.35f + 2), xp = Mathf.RoundToInt(10 * L + 0.06f * L * L);
         for (int i = 0; i < Foes.Length; i++) types["kq_" + i] = Make("kq_" + i, Foes[i][0], Foes[i][1], Foes[i][2], L, hp, dmg, xp, Mathf.RoundToInt(L / 2f), false);
-        types["kq_champ"] = Make("kq_champ", "troll", "Arena champion", "Mobs/troll", L, hp * 4, Mathf.RoundToInt(dmg * 1.5f), xp * 6, L * 4, true);
-        types["kq_gold"] = Make("kq_gold", "imp", "Gold imp", "Mobs/imp", L, Mathf.RoundToInt(hp * 0.35f), Mathf.RoundToInt(dmg * 0.5f), Mathf.RoundToInt(xp * 0.5f), L, false);
+        types["kq_champ"] = Make("kq_champ", "troll", "Arena champion", "troll", L, hp * 4, Mathf.RoundToInt(dmg * 1.5f), xp * 6, L * 4, true);
+        types["kq_gold"] = Make("kq_gold", "imp", "Gold imp", "Web/mHellImp", L, Mathf.RoundToInt(hp * 0.35f), Mathf.RoundToInt(dmg * 0.5f), Mathf.RoundToInt(xp * 0.5f), L, false);
         types["kq_gold"].speed = 120 * AHDB.S;
     }
     static void Spawn(AHGame g, string type, int n)

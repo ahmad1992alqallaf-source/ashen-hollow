@@ -19,10 +19,10 @@ public static class AHGoblin
             var c = new System.Collections.Generic.Dictionary<string, object>();
             var bd = AHJson.O(AHDB.Mobs, "imp") as System.Collections.Generic.Dictionary<string, object>;
             if (bd != null) foreach (var kv in bd) c[kv.Key] = kv.Value;
-            c["name"] = "Treasure goblin"; c["drops"] = new System.Collections.Generic.List<object>(); c["noSkin"] = true;
+            c["name"] = "Treasure goblin"; c["model"] = "imp"; c["drops"] = new System.Collections.Generic.List<object>(); c["noSkin"] = true;
             all[TypeId] = c;
         }
-        if (type == null) type = new AHMobType { id = TypeId, name = "Treasure goblin", model = "Mobs/imp", noSkin = true, respawn = 1e9f, atkCd = 99f, flee = true };
+        if (type == null) type = new AHMobType { id = TypeId, name = "Treasure goblin", model = "Web/mHellImp", noSkin = true, respawn = 1e9f, atkCd = 99f, flee = true };
         type.lvl = L; type.hp = 60 + L * 14; type.dmg = 0; type.xp = 20 + L * 8; type.gold = 0;
         type.speed = 105 * AHDB.S; type.radius = 16 * AHDB.S; type.aggro = 0f;
         return type;

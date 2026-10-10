@@ -66,6 +66,7 @@ public static class AHStations
     }
 
     // live flames: tongues that stretch, sway and flicker
+    static Material sparkMat;
     public static void Flames(Transform parent, Vector3 at, float size, int n, System.Random rnd)
     {
         var outer = Mat("flame_outer", C(0xff6a1a), 0f, 0f, 2.2f, true); var inner = Mat("flame_inner", C(0xffd25a), 0f, 0f, 2.6f, true);
@@ -83,6 +84,22 @@ public static class AHStations
                 r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
                 var fl = t.AddComponent<AHFlameLick>(); fl.baseScale = t.transform.localScale; fl.phase = (float)rnd.NextDouble() * 10f;
             }
+        }
+        // a fire big enough to sit by also throws soft glowing flame-licks and sparks up into the air
+        if (size >= 0.5f)
+        {
+            var sp = new GameObject("Sparks"); sp.transform.SetParent(f.transform, false); sp.transform.localPosition = Vector3.up * size * 0.25f;
+            var ps = sp.AddComponent<ParticleSystem>(); ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            var main = ps.main; main.startLifetime = new ParticleSystem.MinMaxCurve(0.8f, 1.6f); main.startSpeed = new ParticleSystem.MinMaxCurve(0.5f * size, 1.4f * size);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.03f, 0.07f); main.maxParticles = 24; main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.startColor = new ParticleSystem.MinMaxGradient(new Color(1f, 0.55f, 0.15f), new Color(1f, 0.85f, 0.35f));
+            var em = ps.emission; em.rateOverTime = 6f;
+            var sh = ps.shape; sh.shapeType = ParticleSystemShapeType.Cone; sh.angle = 12f; sh.radius = size * 0.2f; sh.rotation = new Vector3(-90f, 0f, 0f);
+            var col = ps.colorOverLifetime; col.enabled = true; var grad = new Gradient();
+            grad.SetKeys(new[] { new GradientColorKey(new Color(1f, 0.8f, 0.3f), 0f), new GradientColorKey(new Color(1f, 0.3f, 0.05f), 1f) }, new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) });
+            col.color = grad;
+            if (sparkMat == null) sparkMat = AHGame.LoadMat("AH/Materials/Spark", "AshenHollow/Spark");
+            var pr = sp.GetComponent<ParticleSystemRenderer>(); pr.sharedMaterial = sparkMat != null ? sparkMat : AHFx.Mat; ps.Play();
         }
         var lg = new GameObject("Firelight"); lg.transform.SetParent(f.transform, false); lg.transform.localPosition = Vector3.up * size * 0.8f;
         var li = lg.AddComponent<Light>(); li.type = LightType.Point; li.color = new Color(1f, 0.6f, 0.28f); li.range = 7f * Mathf.Max(0.6f, size); li.intensity = 2f; li.shadows = LightShadows.None;

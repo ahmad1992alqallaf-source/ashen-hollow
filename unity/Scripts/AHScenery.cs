@@ -983,7 +983,7 @@ public static class AHScenery
             }
             else if (cubes >= 3 && balls == 0)
             {
-                var pf = Resources.Load<GameObject>("AH/Models/KK/kk_rock_single_" + "BCDE"[seed % 4]); if (pf == null) continue;
+                var pf = RockPrefab(seed); if (pf == null) continue;
                 var go = Strip(Object.Instantiate(pf, root, false)); var mb = Measure(go);
                 go.transform.localScale = new Vector3(bb.size.x * 1.15f / Mathf.Max(0.1f, mb.size.x), bb.size.y * 1.15f / Mathf.Max(0.1f, mb.size.y), bb.size.z * 1.15f / Mathf.Max(0.1f, mb.size.z));
                 go.transform.position = at - Vector3.up * 0.1f; go.transform.rotation = Quaternion.Euler(0, seed % 360, 0); AHModel.SetShadows(go);
@@ -1030,7 +1030,7 @@ public static class AHScenery
         foreach (var sp in Spots(g, "boulder"))
             if (Take(world, sp, 1.2f, 2.3f, 1.8f, out b, out face))
             {
-                var pf = Resources.Load<GameObject>("AH/Models/KK/kk_rock_single_" + "BCDE"[Mathf.Abs(Mathf.RoundToInt(sp.x + sp.z)) % 4]); if (pf == null) continue;
+                var pf = RockPrefab(Mathf.RoundToInt(sp.x + sp.z)); if (pf == null) continue;
                 var go = Strip(Object.Instantiate(pf, root, false)); var mb = Measure(go);
                 go.transform.localScale = new Vector3(b.size.x * 1.25f / Mathf.Max(0.1f, mb.size.x), b.size.y * 1.2f / Mathf.Max(0.1f, mb.size.y), b.size.z * 1.25f / Mathf.Max(0.1f, mb.size.z));
                 go.transform.position = new Vector3(b.center.x, b.min.y - 0.1f, b.center.z); go.transform.rotation = Quaternion.Euler(0, sp.x * 37 % 360, 0); AHModel.SetShadows(go); n++;
@@ -1094,7 +1094,7 @@ public static class AHScenery
         var vents = AHJson.A(worldData, "VENTS");
         if (vents != null && g.data != null)
         {
-            var hot = Mat("vent_lava", C(0xFF6A1A), 0.5f); hot.EnableKeyword("_EMISSION"); hot.SetColor("_EmissionColor", C(0xFF5A10).linear * 2.4f);
+            var hot = Mat("vent_lava", C(0xB8320E), 0.6f); hot.EnableKeyword("_EMISSION"); hot.SetColor("_EmissionColor", C(0xFF3C08).linear * 1.1f);   // deep orange-red molten rock (brighter washed out to flat yellow)
             var bb = g.data.bounds;
             foreach (var v in vents)
             {
@@ -1643,6 +1643,22 @@ public static class AHScenery
         P.Build(root);
     }
 
+    // a boulder: one of the Dreamscape pack's textured round rocks when the set is there (the KayKit block rocks only
+    // as a fallback), picked by seed
+    public static GameObject RockPrefab(int seed)
+    {
+        seed = Mathf.Abs(seed);
+        var ds = AHDreamSet.Get();
+        if (ds != null)
+        {
+            var pool = new List<GameObject>();
+            // the small stones (the round boulders' moss-and-snow shader turns white outside the meadow)
+            // (the textured StoneSmall ones: the SmallRock ones are a few pale shards)
+            if (ds.smallRocks != null) foreach (var r in ds.smallRocks) if (r != null && r.name.Contains("StoneSmall")) pool.Add(r);
+            if (pool.Count > 0) return pool[seed % pool.Count];
+        }
+        return Resources.Load<GameObject>("AH/Models/KK/kk_rock_single_" + "BCDE"[seed % 4]);
+    }
     static GameObject Strip(GameObject go) { foreach (var c in go.GetComponentsInChildren<Collider>(true)) Object.Destroy(c); return go; }
     static Bounds Measure(GameObject go) { var rs = go.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) return new Bounds(go.transform.position, Vector3.one); var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); return b; }
     // hides the old pieces round a spot; gives their bounds and which way the small pieces (door, sails) sit from the big one

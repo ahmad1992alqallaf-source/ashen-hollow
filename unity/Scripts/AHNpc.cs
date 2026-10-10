@@ -225,7 +225,12 @@ public class AHNpc : MonoBehaviour
                 var kit = o.kit; string[] slots = AHWardrobe.Slots;
                 AHWardrobe.DressWith(model, go.transform, sl => { int i = System.Array.IndexOf(slots, sl); return i >= 0 && i < kit.Length && kit[i] != null && AHItems.Get(kit[i]) != null ? kit[i] : null; }, () => n.Walking);
             }
-            if (model != null && o.wm != null) AHPeople.Arm(model, o.wm, o.main, o.off, game);
+            if (model != null && o.wm != null)
+            {
+                AHPeople.Arm(model, o.wm, o.main, o.off, game);
+                // in a collection outfit they carry that collection's weapon too (the guards: the blue draconic sword and shield)
+                if (suited) { string set, cls; if (SuitSet(suit, out set, out cls)) AHTripo.SetWeapon(model, set, cls); }
+            }
         }
         catch (System.Exception e) { Debug.LogWarning("Ashen Hollow: could not dress " + name + " (" + e.Message + ")"); }
         if (model == null) model = AHModel.Spawn(go.transform, "Rogue_t", o.h, false, game.heroYawFix, out n.anim);
@@ -234,11 +239,39 @@ public class AHNpc : MonoBehaviour
         return n;
     }
 
+    // the collection and class of an outfit ("tqo_lava_warrior_f" -> lava, warrior; the guards' -> draconic, warrior)
+    public static bool SuitSet(string suit, out string set, out string cls)
+    {
+        set = cls = null; if (suit == null || !suit.StartsWith("tqo_")) return false;
+        var w = suit.Substring(4).Split('_');
+        if (w[0] == "npc") { if (w.Length > 1 && w[1] == "guard") { set = "draconic"; cls = "warrior"; return true; } return false; }
+        if (w[0] == "mob" || w.Length < 2) return false;
+        set = w[0]; cls = w[1]; return true;
+    }
+
     // which trade's outfit a townsperson wears (null: their own look, kept for the named characters)
     static string Suit(string name, object raw, Outfit o)
     {
-        if (name == "Captain Mara" || Has(name, "Jarl", "Guildmaster", "Trial-master", "witch", "Skald", "Scout", "Ash-walker", "Guide", "Snake charmer", "vizier", "Little Tess")) return null;
         bool woman = o.body != null && o.body.Contains("Female");
+        // the named characters: a hero-grade outfit of their own (the women in its female cut when there is one)
+        string named = null;
+        if (name == "Captain Mara") named = "tqo_draconic_warrior";
+        else if (Has(name, "Jarl")) named = "tqo_draconic_shaman";
+        else if (Has(name, "Skald")) named = "tqo_draconic_shaman";
+        else if (Has(name, "Guildmaster")) named = "tqo_lava_warrior";
+        else if (Has(name, "Trial-master")) named = "tqo_fossil_warrior";
+        else if (Has(name, "witch")) named = "tqo_draconic_druid";
+        else if (Has(name, "Scout")) named = "tqo_fossil_ranger";
+        else if (Has(name, "Ash-walker")) named = "tqo_fossil_rogue";
+        else if (Has(name, "Guide")) named = "tqo_draconic_ranger";
+        else if (Has(name, "Snake charmer")) named = "tqo_fossil_shaman";
+        else if (Has(name, "vizier")) named = "tqo_draconic_priest";
+        else if (Has(name, "Little Tess")) named = "tqo_npc_villager_f";
+        if (named != null)
+        {
+            if (woman && !named.EndsWith("_f") && Resources.Load<GameObject>("AH/Models/Outfits/" + named + "_f") != null) return named + "_f";
+            return Resources.Load<GameObject>("AH/Models/Outfits/" + named) != null ? named : null;
+        }
         bool guard = raw != null && AHJson.B(raw, "guard");
         string r;
         if (guard || Has(name, "Guard", "Sergeant", "Gate warden", "Road warden", "Market Warden")) r = woman ? "guard_f" : "guard";

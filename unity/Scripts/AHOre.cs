@@ -39,7 +39,7 @@ public static class AHOre
 
     public static void Setup(AHGame g)
     {
-        for (int i = 0; i < 4; i++) if (rocks[i] == null) rocks[i] = Resources.Load<GameObject>("AH/Models/KK/kk_rock_single_" + "BCDE"[i]);
+        for (int i = 0; i < 4; i++) if (rocks[i] == null) rocks[i] = AHScenery.RockPrefab(i);
         if (rocks[0] == null) return;
         var root = new GameObject("Ore rocks").transform; int n = 0;
         foreach (var s in AHGather.Spots)

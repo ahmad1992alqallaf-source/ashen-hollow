@@ -52,12 +52,20 @@ public static class AHTripo
         var it = AHItems.Get(weaponId ?? ""); if (it == null || rig == null) return false;
         if (string.IsNullOrEmpty(it.cls) && !string.IsNullOrEmpty(it.baseId)) it = AHItems.Get(it.baseId) ?? it;
         if (string.IsNullOrEmpty(it.set) || string.IsNullOrEmpty(it.cls)) return false;
-        string res = "wpn_" + it.set + "_" + it.cls;
+        return SetWeapon(rig, it.set, it.cls);
+    }
+
+    // a collection's weapon (wpn_<set>_<cls>, and its off-hand piece) in the hands of any rig: the hero's, a sellsword's,
+    // a townsperson's in a collection outfit. False when there is no such model (the rig keeps what it holds).
+    public static bool SetWeapon(GameObject rig, string set, string cls)
+    {
+        if (rig == null || string.IsNullOrEmpty(set) || string.IsNullOrEmpty(cls)) return false;
+        string res = "wpn_" + set + "_" + cls;
         if (!Has(res)) return false;
         Transform hr = null, hl = null;
         foreach (var t in rig.GetComponentsInChildren<Transform>(true)) { if (t.name == "hand_r") hr = t; else if (t.name == "hand_l") hl = t; }
         if (hr == null) return false;
-        var g = GripOf(it.cls);
+        var g = GripOf(cls);
         bool hasOff = g.off != null && (Has(res + "_off") || g.offMirror);
         // the class weapon goes (and the off-hand item too, when the collection brings its own)
         foreach (var h in new[] { hr, hasOff ? hl : null })
