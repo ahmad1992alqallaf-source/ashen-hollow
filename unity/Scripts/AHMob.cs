@@ -526,7 +526,7 @@ public class AHMob : MonoBehaviour
             foreach (var o in g.mobs)
             {
                 if (o == null || o == this || o.dead) continue;
-                Vector3 d = pos - o.transform.position; d.y = 0f; float want = (type.radius + o.type.radius) * 0.85f, dd = d.magnitude;
+                Vector3 d = pos - o.transform.position; d.y = 0f; float want = Mathf.Max((type.radius + o.type.radius) * 0.85f, 1.1f), dd = d.magnitude;
                 if (dd >= want) continue;
                 push += (dd < 1e-3f ? new Vector3(Mathf.Sin(GetHashCode() % 628 * 0.01f), 0f, Mathf.Cos(GetHashCode() % 628 * 0.01f)) : d / dd) * (want - dd);
             }

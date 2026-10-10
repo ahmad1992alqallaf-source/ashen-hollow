@@ -16,7 +16,7 @@ public static class AHPropTour
     [MenuItem("Ashen Hollow/Test: Prop Tour, All Areas")]
     static void All() { Start(Areas); }
     // a few areas being worked on (quicker than the whole tour)
-    static readonly string[] Few = { "hc_city", "ss_city", "ch_city", "tide", "mill" };
+    static readonly string[] Few = { "d_tomb", "d_hollow", "d_frost", "d_molten", "d_warrens", "forge" };
     [MenuItem("Ashen Hollow/Test: Prop Tour, Few Areas")]
     static void FewAreas() { Start(Few); }
     [MenuItem("Ashen Hollow/Test: Prop Tour, This Area")]

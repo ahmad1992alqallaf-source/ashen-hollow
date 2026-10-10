@@ -106,8 +106,8 @@ public static class AHMountains
         }
         // some areas (the cities, the Fossil Lands, Emberreach, your homestead) drew their border peaks and rock columns as
         // one batch of seven-sided cones or columns (63 vertices each, coloured per piece): split it and reshape every one
-        int nb = 0;
-        if (!AHDungeon.IsDungeon(AHGame.AreaId))
+        // underground the cave walls are the same kind of batch: the cones become rock crags, anything else stays as it was
+        int nb = 0; bool cave = AHDungeon.IsDungeon(AHGame.AreaId);
             foreach (var r in world.GetComponentsInChildren<MeshRenderer>(true))
             {
                 if (!r.enabled || !r.name.StartsWith("AH_INST")) continue;
@@ -116,14 +116,21 @@ public static class AHMountains
                 if (!m.isReadable || m.vertexCount < 63 || m.vertexCount % 63 != 0) continue;
                 var v = m.vertices; var cols = m.colors; if (cols == null || cols.Length != v.Length) continue;
                 var tf = r.transform; int count = v.Length / 63; var list = new List<KeyValuePair<Bounds, Color>>();
-                bool ok = true;
+                bool ok = true; var keep = new HashSet<int>();
                 for (int k = 0; k < count && ok; k++)
                 {
                     Vector3 lo = Vector3.positiveInfinity, hi = Vector3.negativeInfinity; Color c = Color.clear; int top = 0;
                     for (int q = 0; q < 63; q++) { var w = tf.TransformPoint(v[k * 63 + q]); lo = Vector3.Min(lo, w); hi = Vector3.Max(hi, w); c += cols[k * 63 + q]; }
                     for (int q = 0; q < 63; q++) { float y = tf.TransformPoint(v[k * 63 + q]).y; if (y > hi.y - 0.01f) top++; }
-                    if (!(top >= 5 && top <= 9) && top != 21) ok = false;   // a seven-sided cone (one summit) or column (flat top)
-                    if (hi.y - lo.y < 1.5f || Mathf.Max(hi.x - lo.x, hi.z - lo.z) > 40f) ok = false;
+                    if (cave)
+                    {   // in a cave only the cones change; columns, floors and the rest stay
+                        if (!((top >= 5 && top <= 9) || top == 21) || hi.y - lo.y < 1.5f || Mathf.Max(hi.x - lo.x, hi.z - lo.z) > 40f) { keep.Add(k); continue; }
+                    }
+                    else
+                    {
+                        if (!(top >= 5 && top <= 9) && top != 21) ok = false;   // a seven-sided cone (one summit) or column (flat top)
+                        if (hi.y - lo.y < 1.5f || Mathf.Max(hi.x - lo.x, hi.z - lo.z) > 40f) ok = false;
+                    }
                     var bb = new Bounds((lo + hi) * 0.5f, hi - lo); c /= 63f; c.a = 1f;
                     c = new Color(Mathf.Round(c.r * 20f) / 20f, Mathf.Round(c.g * 20f) / 20f, Mathf.Round(c.b * 20f) / 20f, 1f);
                     list.Add(new KeyValuePair<Bounds, Color>(bb, c));
@@ -133,14 +140,28 @@ public static class AHMountains
                 {
                     var kb = kv.Key; var kc = kv.Value;
                     // a tall thin green cone was a fir tree in the old drawing (your homestead's tree line): a real pine
-                    if (kb.size.y > 1.8f * Mathf.Min(kb.size.x, kb.size.z) && kc.g >= kc.r && kc.g >= kc.b && Pine(kb, kc)) continue;
+                    if (!cave && kb.size.y > 1.8f * Mathf.Min(kb.size.x, kb.size.z) && kc.g >= kc.r && kc.g >= kc.b && Pine(kb, kc)) continue;
                     // the city borders (Highcairn, Sunspire) stood as rows of needles: each becomes a crag no taller than
                     // about one and a half times its foot, standing on the same ground
                     float foot = Mathf.Max(kb.size.x, kb.size.z), most = 1.5f * foot;
-                    if (kb.size.y > most) { float y0 = kb.min.y; kb.size = new Vector3(kb.size.x, most, kb.size.z); kb.center = new Vector3(kb.center.x, y0 + most * 0.5f, kb.center.z); }
-                    Place(lite[0] != null ? lite : prefabs, lite[0] != null ? liteW : width, kb, kc);
+                    if (!cave && kb.size.y > most) { float y0 = kb.min.y; kb.size = new Vector3(kb.size.x, most, kb.size.z); kb.center = new Vector3(kb.center.x, y0 + most * 0.5f, kb.center.z); }
+                    if (cave) { kb.size = new Vector3(kb.size.x * 1.25f, kb.size.y, kb.size.z * 1.25f); Place(lite[0] != null ? lite : prefabs, lite[0] != null ? liteW : width, kb, kc); }   // a little wider so the cave wall stays closed (the light crags: there are hundreds)
+                    else Place(lite[0] != null ? lite : prefabs, lite[0] != null ? liteW : width, kb, kc);
                 }
-                r.enabled = false; nb += list.Count;
+                if (keep.Count == 0) r.enabled = false;
+                else
+                {   // the same batch without the pieces that were replaced
+                    var mm = Object.Instantiate(m); mm.name = m.name + " (kept)";
+                    for (int sm = 0; sm < mm.subMeshCount; sm++)
+                    {
+                        var tri = mm.GetTriangles(sm); var kt = new List<int>(tri.Length);
+                        for (int q = 0; q + 2 < tri.Length; q += 3) if (keep.Contains(tri[q] / 63)) { kt.Add(tri[q]); kt.Add(tri[q + 1]); kt.Add(tri[q + 2]); }
+                        mm.SetTriangles(kt, sm);
+                    }
+                    mf.sharedMesh = mm;
+                }
+                nb += list.Count;
+                if (cave) Debug.Log("Ashen Hollow: cave walls: " + list.Count + " cones made rock crags, " + keep.Count + " pieces kept");
             }
         // white snow cones left standing on hills that were not grey (Whitepine's green and grey ridges): each becomes a
         // snow cap on the crag that replaced its hill, or a snowy crag of its own
