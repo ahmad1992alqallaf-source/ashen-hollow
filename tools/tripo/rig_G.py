@@ -346,11 +346,15 @@ from mathutils.bvhtree import BVHTree as _BV
 _sb = _BV.FromPolygons([v.co for v in t.data.vertices], [tuple(p.vertices) for p in t.data.polygons])
 import bmesh as _bmc
 _cb2 = _bmc.new(); _cb2.from_mesh(core.data); _cb2.verts.ensure_lookup_table()
-def _outside(p):
+def _outside(p, nrm=None):
     hit = _sb.find_nearest(p)
     if hit[0] is None: return True
-    return (p - hit[0]).dot(hit[1]) > -0.006 or hit[3] > 0.12
-_out = [v for v in _cb2.verts if _outside(core.matrix_world @ v.co)]
+    if (p - hit[0]).dot(hit[1]) > -0.006 or hit[3] > 0.12: return True
+    # covered? a ray out along the body's own normal must meet the suit
+    if nrm is not None and _sb.ray_cast(p + nrm * 0.002, nrm, 0.25)[0] is None: return True
+    return False
+_cb2.normal_update()
+_out = [v for v in _cb2.verts if _outside(core.matrix_world @ v.co, (core.matrix_world.to_3x3() @ v.normal).normalized())]
 print('core verts outside the suit cut', len(_out), 'of', len(_cb2.verts))
 _bmc.ops.delete(_cb2, geom=_out, context='VERTS'); _cb2.to_mesh(core.data); _cb2.free()
 bpy.ops.object.select_all(action='DESELECT'); core.select_set(True); t.select_set(True); bpy.context.view_layer.objects.active = t

@@ -513,6 +513,107 @@ public static class AHScenery
     static object worldData;
     // the neighbours' herbs and ore rocks that show past the area's edges (a green blob with coloured balls, a grey
     // lump with orange cubes): the herbs become plants like the area's own, the rocks real rocks
+    // the last plain-box props of the web game: a stick-and-plank stall, a grey box arch round a portal, and straw
+    // bales drawn as yellow cubes
+    static int PlainBlocks(Transform world, Transform root)
+    {
+        int n = 0;
+        foreach (Transform grp in world)
+        {
+            if (!grp.name.StartsWith("obj")) continue;
+            var boxes = new List<Renderer>();
+            foreach (var r in grp.GetComponentsInChildren<Renderer>(false))
+            {
+                if (!r.enabled) continue; var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null) continue;
+                long tri = 0; for (int k = 0; k < mf.sharedMesh.subMeshCount; k++) tri += mf.sharedMesh.GetIndexCount(k) / 3;
+                if (tri <= 12) boxes.Add(r);
+            }
+            // straw bales: a round bale with two twine bands
+            foreach (var r in boxes.ToArray())
+            {
+                Color c; if (!Col(r, out c)) continue; var b = r.bounds;
+                if (!(c.r > 0.75f && c.g > 0.55f && c.b < 0.45f && b.size.y > 0.45f && b.size.y < 1.3f && Mathf.Max(b.size.x, b.size.z) < 1.7f)) continue;
+                var go = HayBale(root, Mathf.Max(b.size.x, b.size.z), b.size.y, Mathf.Abs(Mathf.RoundToInt(b.center.x * 7 + b.center.z)));
+                go.transform.position = new Vector3(b.center.x, b.min.y, b.center.z); AHModel.SetShadows(go);
+                r.enabled = false; boxes.Remove(r); n++;
+            }
+            // a box chest (a brown box, its lid and a gold band): the KayKit treasure chest, sized to it
+            if (boxes.Count == 3)
+            {
+                Bounds all = boxes[0].bounds; foreach (var r in boxes) all.Encapsulate(r.bounds);
+                int gold = 0; foreach (var r in boxes) { Color c; if (Col(r, out c) && c.r > 0.75f && c.g > 0.55f && c.b < 0.35f && r.bounds.size.y < 0.16f) gold++; }
+                if (gold == 1 && all.size.y < 1.1f && Mathf.Max(all.size.x, all.size.z) < 1.3f)
+                {
+                    var pf = Resources.Load<GameObject>("AH/Models/KK/kk_dg_chest"); if (pf == null) continue;
+                    var go = Strip(Object.Instantiate(pf, root, false)); go.name = "Old chest"; var mb = Measure(go);
+                    bool turn = all.size.z > all.size.x;   // the chest's long side along the old box's
+                    float w = Mathf.Max(all.size.x, all.size.z), d = Mathf.Min(all.size.x, all.size.z);
+                    float k = Mathf.Min(w / Mathf.Max(0.05f, Mathf.Max(mb.size.x, mb.size.z)), all.size.y / Mathf.Max(0.05f, mb.size.y)) * 1.05f;
+                    go.transform.localScale = Vector3.one * k;
+                    int sd = Mathf.Abs(Mathf.RoundToInt(all.center.x * 7 + all.center.z * 3));
+                    go.transform.rotation = Quaternion.Euler(0, (turn ? 90f : 0f) + (sd % 2 == 0 ? 0f : 180f), 0);
+                    go.transform.position = new Vector3(all.center.x, all.min.y, all.center.z); AHModel.SetShadows(go);
+                    foreach (var r in boxes) r.enabled = false; n++;
+                }
+                continue;
+            }
+            if (boxes.Count != 4) continue;
+            boxes.Sort((x, y) => y.bounds.size.y.CompareTo(x.bounds.size.y));
+            Bounds p0 = boxes[0].bounds, p1 = boxes[1].bounds;
+            float f0 = Mathf.Max(p0.size.x, p0.size.z), f1 = Mathf.Max(p1.size.x, p1.size.z);
+            int seed = Mathf.Abs(Mathf.RoundToInt(p0.center.x * 5 + p0.center.z * 3));
+            Vector3 across = p1.center - p0.center; across.y = 0f; float span = across.magnitude;
+            if (span < 0.5f) continue;
+            if (p0.size.y > 1.8f && p0.size.y < 3.2f && f0 < 0.3f && f1 < 0.3f)
+            {
+                // the stick stall: a proper market stall with its awning, over the old counter
+                Bounds counter = boxes[2].bounds.size.y > boxes[3].bounds.size.y ? boxes[2].bounds : boxes[3].bounds;
+                if (boxes[3].bounds.size.y > 0.35f && boxes[2].bounds.size.y > 0.35f) continue;
+                var go = AHStations.Stall(root, Mathf.Max(2.0f, span + 0.4f), Mathf.Max(1.3f, Mathf.Min(counter.size.x, counter.size.z) + 0.3f), seed);
+                go.transform.position = new Vector3(counter.center.x, counter.min.y, counter.center.z);
+                go.transform.rotation = Quaternion.LookRotation(Vector3.Cross(across.normalized, Vector3.up));
+                AHModel.SetShadows(go);
+            }
+            else if (p0.size.y > 3.5f && p1.size.y > 3.5f && f0 > 0.8f && f0 < 1.8f)
+            {
+                // the box arch round a portal: carved stone posts and an arch with its keystone
+                foreach (var pb in new[] { p0, p1 })
+                {
+                    var gp = GatePost(root, 4.75f, seed++); gp.transform.position = new Vector3(pb.center.x, Mathf.Min(p0.min.y, p1.min.y), pb.center.z);
+                    gp.transform.localScale = new Vector3(0.9f, 1f, 0.9f); AHModel.SetShadows(gp);
+                }
+                var arch = GateArch(root, span, seed, false); arch.name = "Portal arch"; Vector3 mid = (p0.center + p1.center) * 0.5f;
+                arch.transform.position = new Vector3(mid.x, Mathf.Min(p0.min.y, p1.min.y), mid.z);
+                arch.transform.rotation = Quaternion.LookRotation(Vector3.Cross(across.normalized, Vector3.up)); AHModel.SetShadows(arch);
+            }
+            else continue;
+            foreach (var r in boxes) r.enabled = false; n++;
+        }
+        return n;
+    }
+
+    // a round straw bale lying on its side: a drum of straw with rough ends and two twine bands
+    static GameObject HayBale(Transform parent, float w, float h, int seed)
+    {
+        var root = new GameObject("Hay bale"); root.transform.SetParent(parent, false);
+        var P = new Parts(); var rnd = new System.Random(seed);
+        Material straw = Mat("hay_straw", C(0xD9B45A), 0.05f), end = Mat("hay_end", C(0xC29A44), 0.05f), twine = Mat("hay_twine", C(0x7A5A30), 0.1f);
+        float rad = Mathf.Max(h, w * 0.85f) * 0.5f, len = Mathf.Min(w, rad * 1.9f);
+        var lay = Quaternion.Euler(0, 0, 90) * Quaternion.identity;
+        P.Add(straw, Cyl, new Vector3(0, rad, 0), lay, new Vector3(rad * 2f, len * 0.5f, rad * 2f));
+        foreach (float sx in new[] { -1f, 1f })
+        {
+            P.Add(end, Cyl, new Vector3(sx * len * 0.5f, rad, 0), lay, new Vector3(rad * 1.9f, 0.02f, rad * 1.9f));
+            P.Add(twine, Cyl, new Vector3(sx * len * 0.22f, rad, 0), lay, new Vector3(rad * 2.04f, 0.025f, rad * 2.04f));
+        }
+        // a few loose wisps on top
+        for (int k = 0; k < 5; k++)
+            P.Add(straw, Cube, new Vector3(((float)rnd.NextDouble() - 0.5f) * len * 0.8f, rad * 2f - 0.02f, ((float)rnd.NextDouble() - 0.5f) * rad * 0.6f),
+                Quaternion.Euler(0, (float)rnd.NextDouble() * 180f, ((float)rnd.NextDouble() - 0.5f) * 30f), new Vector3(0.28f, 0.015f, 0.025f));
+        P.Build(root.transform);
+        return root;
+    }
+
     static int EdgeOdds(Transform world, Transform root)
     {
         int n = 0;
@@ -697,12 +798,13 @@ public static class AHScenery
             }
         }
         n += EdgeOdds(world, root);
+        n += PlainBlocks(world, root);
         if (n > 0) Debug.Log("Ashen Hollow: " + n + " plain old props rebuilt (basalt, stalls, cauldrons, looms, benches, pillars, stones, vents)"); else Object.Destroy(root.gameObject);
     }
 
     // the arch between two gate posts: dressed stones in a shallow curve springing from the posts, a carved keystone,
     // an iron rod with a cloth banner in the land's colour (gold-trimmed, with a sun disc), and a lantern at each end
-    static GameObject GateArch(Transform parent, float span, int seed)
+    static GameObject GateArch(Transform parent, float span, int seed, bool banner = true)
     {
         var root = new GameObject("Gate arch"); root.transform.SetParent(parent, false);
         var P = new Parts(); var rnd = new System.Random(seed);
@@ -722,14 +824,16 @@ public static class AHScenery
                 new Vector3(len * 1.04f, key ? 0.95f : 0.62f, key ? 1.2f : 1.0f));
         }
         P.Add(gold, Sph, new Vector3(0, spring + rise + 0.25f, 0.62f), Quaternion.identity, new Vector3(0.32f, 0.32f, 0.08f));   // the keystone's boss
-        // the banner on its rod
+        // the banner on its rod (not over a portal)
         float ry = spring + rise - 0.45f;
+        if (banner) {
         P.Add(iron, Cube, new Vector3(0, ry, 0.25f), Quaternion.identity, new Vector3(2.0f, 0.06f, 0.06f));
         P.Add(cloth, Cube, new Vector3(0, ry - 0.95f, 0.25f), Quaternion.identity, new Vector3(1.5f, 1.8f, 0.04f));
         P.Add(gold, Cube, new Vector3(0, ry - 1.88f, 0.25f), Quaternion.identity, new Vector3(1.54f, 0.12f, 0.05f));
         foreach (float sx in new[] { -1f, 1f }) P.Add(gold, Cube, new Vector3(sx * 0.73f, ry - 0.95f, 0.25f), Quaternion.identity, new Vector3(0.06f, 1.8f, 0.05f));
         P.Add(gold, Sph, new Vector3(0, ry - 0.85f, 0.28f), Quaternion.identity, new Vector3(0.62f, 0.62f, 0.06f));
         P.Add(cloth, Sph, new Vector3(0, ry - 0.85f, 0.3f), Quaternion.identity, new Vector3(0.4f, 0.4f, 0.06f));
+        }
         // a small lantern under each end of the arch
         foreach (float sx in new[] { -1f, 1f })
         {
