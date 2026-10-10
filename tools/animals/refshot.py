@@ -10,6 +10,8 @@ for ob in bpy.context.scene.objects:
     if ob.type == 'ARMATURE':
         for pb in ob.pose.bones: pb.matrix_basis = mathutils.Matrix.Identity(4)
 bpy.context.view_layer.update()
+for _o in list(bpy.context.scene.objects):
+    if _o.type == 'MESH' and _o.name.startswith('Icosphere'): bpy.data.objects.remove(_o)
 ms = [o for o in bpy.context.scene.objects if o.type == 'MESH']
 dg = bpy.context.evaluated_depsgraph_get(); P = []
 for o in ms:
@@ -24,7 +26,7 @@ sc.render.resolution_x = 1024; sc.render.resolution_y = 1024
 w = bpy.data.worlds.new('w'); sc.world = w; w.color = (0.86, 0.86, 0.87)
 sc.view_settings.view_transform = 'Standard'
 cam = bpy.data.objects.new('cam', bpy.data.cameras.new('cam')); sc.collection.objects.link(cam); sc.camera = cam
-cam.data.type = 'ORTHO'; cam.data.ortho_scale = ext * 1.0
+cam.data.type = 'ORTHO'; cam.data.ortho_scale = ext * 1.0; cam.data.clip_end = ext * 20
 # which way does it face? toward its head bone
 hb = None
 for ob in bpy.context.scene.objects:

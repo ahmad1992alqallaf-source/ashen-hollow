@@ -9,6 +9,8 @@ for f in (a_glb, b_glb):
     if arm.animation_data is None: arm.animation_data_create()
     for tr in list(arm.animation_data.nla_tracks): arm.animation_data.nla_tracks.remove(tr)
     sc = bpy.context.scene; sc.render.engine = 'BLENDER_WORKBENCH'; sc.display.shading.light = 'STUDIO'
+    for _o in list(sc.objects):
+        if _o.type == 'MESH' and _o.name.startswith('Icosphere'): bpy.data.objects.remove(_o)
     ms = [o for o in sc.objects if o.type == 'MESH']
     tex = any(n.type == 'TEX_IMAGE' for o in ms for m in o.data.materials if m and m.node_tree for n in m.node_tree.nodes)
     sc.display.shading.color_type = 'TEXTURE' if tex else 'VERTEX'
@@ -19,7 +21,7 @@ for f in (a_glb, b_glb):
         e = o.evaluated_get(dg); P += [e.matrix_world @ v.co for v in e.data.vertices]
     lo = mathutils.Vector([min(p[i] for p in P) for i in range(3)]); hi = mathutils.Vector([max(p[i] for p in P) for i in range(3)]); c = (lo + hi) / 2; ext = max(hi - lo)
     cam = bpy.data.objects.new('cam', bpy.data.cameras.new('cam')); sc.collection.objects.link(cam); sc.camera = cam
-    cam.data.type = 'ORTHO'; cam.data.ortho_scale = ext * 1.6
+    cam.data.type = 'ORTHO'; cam.data.ortho_scale = ext * 1.6; cam.data.clip_end = ext * 20
     ax = 0 if (hi - lo).x > (hi - lo).y else 1; side = mathutils.Vector((1, 0, 0)) if ax == 1 else mathutils.Vector((0, 1, 0))
     ims = []
     for cl in clips:

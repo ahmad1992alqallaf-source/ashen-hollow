@@ -13,6 +13,8 @@ acts = list(bpy.data.actions)
 if arm.animation_data: arm.animation_data.action = None
 for pb in arm.pose.bones: pb.matrix_basis = mathutils.Matrix.Identity(4)
 bpy.context.view_layer.update()
+for _o in list(bpy.context.scene.objects):
+    if _o.type == 'MESH' and _o.name.startswith('Icosphere'): bpy.data.objects.remove(_o)
 bmeshes = [o for o in bpy.context.scene.objects if o.type == 'MESH']
 # the old body's points (rest pose) and weights by bone
 bones = [b.name for b in arm.data.bones]; bi = {n: i for i, n in enumerate(bones)}
@@ -164,7 +166,7 @@ sc = bpy.context.scene; sc.render.engine = 'BLENDER_WORKBENCH'; sc.display.shadi
 wd = bpy.data.worlds.new('w'); sc.world = wd; wd.color = (0.75, 0.76, 0.8)
 sc.render.resolution_x = 360; sc.render.resolution_y = 300
 cam = bpy.data.objects.new('cam', bpy.data.cameras.new('cam')); sc.collection.objects.link(cam); sc.camera = cam
-ext = float(max(hi - lo)); cam.data.type = 'ORTHO'; cam.data.ortho_scale = ext * 1.5
+ext = float(max(hi - lo)); cam.data.type = 'ORTHO'; cam.data.ortho_scale = ext * 1.5; cam.data.clip_end = ext * 20
 fwv = mathutils.Vector((0, 0, 0)); fwv[ax] = fw; sdv = mathutils.Vector((-fwv.y, fwv.x, 0)); C = mathutils.Vector(ctr)
 ims = []
 for tr in arm.animation_data.nla_tracks: tr.mute = True
