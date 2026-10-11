@@ -72,6 +72,8 @@ for perm in itertools.permutations(range(3)):
         if np.linalg.det(R) > 0: ROTS.append(R)
 def fit(P, R):
     Q = P @ R.T; ql, qh = Q.min(0), Q.max(0)
+    # a long tail the old animal does not have: the body alone is fitted to the old body, the tail reaches out behind
+    if OPT.get('tailcut'): qh = qh.copy(); qh[1] = ql[1] + (qh[1] - ql[1]) * (1 - OPT['tailcut'])
     return lo + (Q - ql) / np.maximum(qh - ql, 1e-6) * (hi - lo)
 kd = KDTree(len(PB))
 for i, p in enumerate(PB): kd.insert(p, i)
@@ -89,6 +91,7 @@ def cost(Q, both=True):
 # the new body's own proportions must roughly match the old one's (long, wide, tall): only turns that keep them are tried
 _ext = hi - lo
 cands = []
+if OPT.get('rot') == 'I': ROTS = [np.eye(3)]
 for R in ROTS:
     e = np.abs(R @ (P.max(0) - P.min(0)))
     r = (e / e.max()) / (_ext / _ext.max())

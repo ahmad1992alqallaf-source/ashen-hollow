@@ -44,6 +44,13 @@ types = [
 violet, glow = 0x4a3a78, 0xb68cff
 mons_path = root + "/Resources/AH/Data/monsters.json"
 M = json.load(open(mons_path, encoding="utf-8"))
+# monsters whose own model is made (the model files stay on the PC): their own look in BEASTS, not tinted; the
+# four-legged ones wear an existing animal's skeleton and clips
+own = {
+    "dm_hound":    ("dm_hellhound", dict(M["BEASTS"]["shadowwolf"], files=["b_dm_hellhound"], size=2.0, noTint=True)),
+    "dm_behemoth": ("dm_behemoth",  dict(M["BEASTS"]["wb_tusk"], files=["b_dm_behemoth"], noTint=True)),
+}
+for tid, (key, beast) in own.items(): M["BEASTS"][key] = beast
 for (tid, name, lvl, hp, dmg, spd, r, aggro, xp, look, ex) in types:
     e = {"name": name, "lvl": lvl, "hp": hp, "dmg": dmg, "speed": spd, "r": r, "aggro": aggro, "xp": xp, "noSkin": True, "skinReq": 99,
          "model": look, "tint": violet, "tintK": 0.55, "glow": glow, "gold": ex.get("gold", int(lvl * 2.2)), "respawn": ex.get("respawn", 30),
@@ -52,6 +59,9 @@ for (tid, name, lvl, hp, dmg, spd, r, aggro, xp, look, ex) in types:
         if k in ex: e[k] = ex[k]
     if ex.get("boss"): e["elite"] = True; e["scale"] = 2.0
     if tid == "dm_behemoth": e["scale"] = 1.6
+    if tid in own:
+        e["model"] = own[tid][0]
+        for k in ("tint", "tintK", "glow"): e.pop(k, None)
     M["MOBS"][tid] = e
 json.dump(M, open(mons_path, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
 
