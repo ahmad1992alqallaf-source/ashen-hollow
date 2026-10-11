@@ -15,15 +15,20 @@ public static class AHCloseup
         string dir = Path.Combine(Application.dataPath, "../HeroShots"); Directory.CreateDirectory(dir);
         string idf = Path.Combine(dir, "show_id.txt");
         string ids = File.Exists(idf) ? File.ReadAllText(idf).Trim() : "dm_knight"; if (ids.Length == 0) ids = "dm_knight";
-        foreach (var id in ids.Split(new[] { ',', '\n', ' ' }, System.StringSplitOptions.RemoveEmptyEntries)) Shoot(g, id.Trim(), dir);
+        AHWingBeat.Gain = 1f; int k = 0;
+        foreach (var id in ids.Split(new[] { ',', '\n', ' ' }, System.StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (id.StartsWith("wings=")) { float.TryParse(id.Substring(6), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out AHWingBeat.Gain); continue; }
+            Shoot(g, id.Trim(), dir, k++);
+        }
     }
 
     // one clip a few frames: hold the pose, let the animation graph show it, then photograph
-    static void Shoot(AHGame g, string id, string dir)
+    static void Shoot(AHGame g, string id, string dir, int k)
     {
         if (AHJson.O(AHDB.Mobs, id) == null) { Debug.Log("Ashen Hollow: close-up: no monster " + id); return; }
         var t = new AHMobType { id = id, name = AHJson.S(AHJson.O(AHDB.Mobs, id), "name", id), hp = 10, lvl = 1, radius = 0.5f };
-        Vector3 at = g.player.transform.position + Vector3.up * 400f;
+        Vector3 at = g.player.transform.position + Vector3.up * 400f + Vector3.right * 60f * k;   // each on its own
         var m = AHMob.Create(g, t, at); m.enabled = false;
         m.transform.position = at; m.transform.rotation = Quaternion.identity;
         string[] clips = { "Idle", "Walk", "Attack", "Attack2" }; float[] at01 = { 0.3f, 0.3f, 0.45f, 0.5f };
