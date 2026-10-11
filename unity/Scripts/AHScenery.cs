@@ -1966,12 +1966,34 @@ public class AHStatueFreeze : MonoBehaviour
     // once posed: stand it in the middle of the plinth's top, no wider than the top (a little margin all round)
     void Fit()
     {
-        var rs = GetComponentsInChildren<Renderer>(); if (rs.Length == 0) return;
-        Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
-        float top = Mathf.Min(plinth.size.x, plinth.size.z) * 0.86f, foot = Mathf.Max(b.size.x, b.size.z);
-        if (foot > top && foot > 0.01f) { float k = top / foot; transform.localScale *= k; b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); }
+        var all = GetComponentsInChildren<Renderer>(); if (all.Length == 0) return;
+        // the figure itself (sword and shield may reach past the edge, as on any statue)
+        var rs = new List<Renderer>(); foreach (var r in all) { bool wpn = false; for (var t = r.transform; t != null && t != transform; t = t.parent) if (t.name.StartsWith("Weapon_")) { wpn = true; break; } if (!wpn) rs.Add(r); }
+        if (rs.Count == 0) rs.AddRange(all);
+        Bounds b = Real(rs);
+        // a little over life size, in proportion with the stand: a bit taller than the plinth is wide, and the figure's
+        // feet and robe well inside its top (a 3m giant on a 1.8m slab looked top-heavy)
+        float side = Mathf.Min(plinth.size.x, plinth.size.z), top = side * 0.8f, foot = Mathf.Max(b.size.x, b.size.z);
+        float want = Mathf.Clamp(side * 1.3f, 2.0f, 3.2f), k = want / Mathf.Max(0.1f, b.size.y);
+        if (foot * k > top && foot > 0.01f) k = top / foot;
+        transform.localScale *= k; b = Real(rs);
+        Debug.Log("Ashen Hollow: statue fitted: plinth " + plinth.size.ToString("F1") + ", statue " + b.size.ToString("F1"));
         Vector3 shift = new Vector3(plinth.center.x - b.center.x, plinth.max.y - b.min.y, plinth.center.z - b.center.z);
         transform.position += shift;
+    }
+    // the posed figure's true extent (a skinned mesh's own bounds are loose: they allow for every pose it might take)
+    static Bounds Real(List<Renderer> rs)
+    {
+        bool any = false; Bounds b = new Bounds(); var tmp = new Mesh();
+        foreach (var r in rs)
+        {
+            var sk = r as SkinnedMeshRenderer;
+            if (sk == null || sk.sharedMesh == null) { if (!any) { b = r.bounds; any = true; } else b.Encapsulate(r.bounds); continue; }
+            sk.BakeMesh(tmp, true); var v = tmp.vertices; var m = Matrix4x4.TRS(sk.transform.position, sk.transform.rotation, Vector3.one);
+            for (int i = 0; i < v.Length; i += 3) { var w = m.MultiplyPoint3x4(v[i]); if (!any) { b = new Bounds(w, Vector3.zero); any = true; } else b.Encapsulate(w); }
+        }
+        Object.Destroy(tmp);
+        return b;
     }
     void Coat()
     {

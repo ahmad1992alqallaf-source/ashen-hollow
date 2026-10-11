@@ -1114,6 +1114,22 @@ public static class AHMenu
         g.player.transform.rotation = Quaternion.LookRotation(to); g.camYaw = g.player.transform.eulerAngles.y;
         var rs = st.GetComponentsInChildren<Renderer>(); Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
         Debug.Log("Ashen Hollow: statue at " + st.transform.position + " bounds " + b.center + " size " + b.size);
+        // a picture of it from the front and from a corner (HeroShots/statue.png)
+        const int W = 640, H = 480; var sheet = new Texture2D(W * 3, H, TextureFormat.RGB24, false);
+        var cg = new GameObject("StatueCam"); var cam = cg.AddComponent<Camera>(); cam.fieldOfView = 40f; cam.nearClipPlane = 4f;   // clips away the garden trees between the camera and the statue
+        if (g.cam != null) { cam.clearFlags = g.cam.clearFlags; cam.backgroundColor = g.cam.backgroundColor; }
+        var rt = new RenderTexture(W, H, 24); cam.targetTexture = rt; var tex = new Texture2D(W, H, TextureFormat.RGB24, false);
+        Vector3 aim = st.transform.position + Vector3.up * 1.2f;
+        for (int i = 0; i < 3; i++)
+        {
+            Vector3 d = i == 0 ? f : i == 1 ? (f + side).normalized : (f - side).normalized;
+            cg.transform.position = aim + d * 7f + Vector3.up * 1.5f; cg.transform.LookAt(aim);
+            cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, W, H), 0, 0); tex.Apply(); RenderTexture.active = null;
+            sheet.SetPixels(i * W, 0, W, H, tex.GetPixels());
+        }
+        sheet.Apply(); string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
+        System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, "statue.png"), sheet.EncodeToPNG());
+        cam.targetTexture = null; Object.DestroyImmediate(cg); Object.DestroyImmediate(rt);
     }
     [MenuItem("Ashen Hollow/Test: Townsfolk Speak Now")]
     static void SpeakNow() { if (Application.isPlaying) AHLife.TestGreet(); }
