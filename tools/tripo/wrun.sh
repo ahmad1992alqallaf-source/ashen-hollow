@@ -7,4 +7,4 @@ while read s n flip glow; do
   /tmp/bv/bin/python wpn.py $f tmp/$n.glb 9000 $flip > tmp/$n.log 2>&1
   /tmp/bv/bin/python /tmp/claude-0/rigg/finish.py tmp/$n.glb out/$n.glb $glow >> tmp/$n.log 2>&1
   grep WPN tmp/$n.log
-done < wjobs.txt
+done < ${1:-wjobs.txt}
