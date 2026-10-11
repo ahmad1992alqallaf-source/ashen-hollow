@@ -11,7 +11,7 @@ using UnityEngine;
 
 public static class AHSuitShots
 {
-    static readonly string[] Colls = { "draconic", "demonic", "lava", "fossil" };
+    static readonly string[] Colls = { "draconic", "demonic", "lava", "fossil", "starfallen" };
     static readonly string[] Classes = { "warrior", "warden", "mage", "priest", "rogue", "ranger", "druid", "shaman" };
     static readonly string[] Slots = { "head", "shoulders", "chest", "hands", "legs", "feet", "cape", "weapon" };
     const int L = 29, W = 360, H = 520;
@@ -22,7 +22,11 @@ public static class AHSuitShots
 
     public static string Only;   // one collection only (null: all)
 
+    [MenuItem("Ashen Hollow/Test: Starfallen Suit Shots")]
+    static void RunStarfallen() { Only = "starfallen"; Run(); }
+
     [MenuItem("Ashen Hollow/Test: Collection Suit Shots %&p")]
+    static void RunAll() { Only = null; Run(); }
     static void Run()
     {
         if (!Application.isPlaying || AHGame.I == null) { Debug.Log("Ashen Hollow: Suit Shots needs Play mode"); return; }

@@ -1,6 +1,7 @@
 # materials for a rigged suit: double-sided as the lava suit; lava suits also get their glow map
 import bpy, sys, numpy as np
-src, out, glow = sys.argv[-3], sys.argv[-2], sys.argv[-1] == '1'
+src, out, glowArg = sys.argv[-3], sys.argv[-2], sys.argv[-1]
+glow = glowArg in ('1', '2')   # 1: lava (orange) glows, 2: star cracks (blue-white) glow
 exec(open('/tmp/claude-0/tripo/glow.py').read().split('for mat in bpy.data.materials:')[0].replace("src, out = sys.argv[-2], sys.argv[-1]", ""))
 for mat in bpy.data.materials:
     mat.use_backface_culling = False
@@ -14,5 +15,9 @@ for mat in bpy.data.materials:
 if glow:
     code = open('/tmp/claude-0/tripo/glow.py').read()
     code = code[code.index('for mat in bpy.data.materials:'):code.index('bpy.ops.export_scene')]
+    if glowArg == '2':
+        # Starfallen: the bright, clearly blue parts (star cracks, crystals) glow, not the grey steel
+        code = code.replace("mask = np.clip((r - 0.25) * 2.5, 0, 1) * np.clip((r - g * 1.25) * 6, 0, 1) * np.clip((0.3 - b) * 5, 0, 1)",
+                            "mask = np.clip((b - 0.3) * 2.5, 0, 1) * np.clip((b - r * 1.6) * 4, 0, 1)")
     exec(code)
 bpy.ops.export_scene.gltf(filepath=out, export_format='GLB', export_jpeg_quality=88)

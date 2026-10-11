@@ -71,6 +71,8 @@ for (tid, name, lvl, hp, dmg, spd, r, aggro, xp, look, ex) in types:
     if tid in own:
         e["model"] = own[tid][0]
         for k in ("tint", "tintK", "glow"): e.pop(k, None)
+    old = M["MOBS"].get(tid, {})
+    if "classSet" in old: e["classSet"] = old["classSet"]   # the armour collection it drops (gen_sets.py)
     M["MOBS"][tid] = e
 json.dump(M, open(mons_path, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
 

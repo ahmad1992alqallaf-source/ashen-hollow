@@ -383,7 +383,7 @@ public static class AHMenu
     static void WearCollection()
     {
         var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return; var p = g.player;
-        string[] colls = { "lava", "draconic", "demonic", "fossil" };
+        string[] colls = { "lava", "draconic", "demonic", "fossil", "starfallen" };
         // off with the last one
         foreach (var sl in AHItems.GearSlots) { var w = p.bag.Worn(sl); if (w != null && AHItems.Get(w) != null && AHItems.Get(w).cls != null) { p.bag.Unequip(sl); p.bag.Take(w); } }
         collI++; if (collI >= colls.Length) { collI = -1; p.bag.Touch(); Debug.Log("Ashen Hollow: collection set taken off"); return; }
@@ -1135,6 +1135,35 @@ public static class AHMenu
     static void SpeakNow() { if (Application.isPlaying) AHLife.TestGreet(); }
     [MenuItem("Ashen Hollow/Test: Switch Language")]
     static void SwitchLang() { AHLoc.Lang = AHLoc.Arabic ? "en" : "ar"; Debug.Log("Ashen Hollow: language " + AHLoc.Lang); }
+    // six views of this dungeon's stone walls, from a few strides into the room (HeroShots/dungeon_<area>.png)
+    [MenuItem("Ashen Hollow/Test: Dungeon Look")]
+    static void DungeonLook()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        var walls = new System.Collections.Generic.List<Transform>();
+        var root = GameObject.Find("Dungeon dressing");
+        if (root == null) { Debug.Log("Ashen Hollow: no dungeon here"); return; }
+        foreach (Transform t in root.transform) if (t.name.StartsWith("qd_wall_modular")) walls.Add(t);
+        if (walls.Count == 0) { Debug.Log("Ashen Hollow: no stone walls here"); return; }
+        const int W = 640, H = 400; var sheet = new Texture2D(W * 3, H * 2, TextureFormat.RGB24, false);
+        var cg = new GameObject("DungeonCam"); var cam = cg.AddComponent<Camera>(); cam.fieldOfView = 60f; cam.nearClipPlane = 0.2f;
+        if (g.cam != null) { cam.clearFlags = g.cam.clearFlags; cam.backgroundColor = g.cam.backgroundColor; }
+        var rt = new RenderTexture(W, H, 24); cam.targetTexture = rt; var tex = new Texture2D(W, H, TextureFormat.RGB24, false);
+        for (int i = 0; i < 6; i++)
+        {
+            var w = walls[(i * walls.Count) / 6 + walls.Count / 12];
+            Vector3 inw = w.forward; inw.y = 0; inw.Normalize();
+            Vector3 foot = w.position; foot.y = g.W(0, 0).y;
+            cg.transform.position = foot + inw * 7f + Vector3.up * 2.6f + Vector3.Cross(Vector3.up, inw) * 2f;
+            cg.transform.LookAt(foot + Vector3.up * 1.4f);
+            cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, W, H), 0, 0); tex.Apply(); RenderTexture.active = null;
+            sheet.SetPixels((i % 3) * W, (1 - i / 3) * H, W, H, tex.GetPixels());
+        }
+        sheet.Apply(); string dir = System.IO.Path.Combine(Application.dataPath, "../HeroShots"); System.IO.Directory.CreateDirectory(dir);
+        System.IO.File.WriteAllBytes(System.IO.Path.Combine(dir, "dungeon_" + AHGame.AreaId + ".png"), sheet.EncodeToPNG());
+        cam.targetTexture = null; Object.DestroyImmediate(cg); Object.DestroyImmediate(rt);
+        Debug.Log("Ashen Hollow: dungeon look saved, " + walls.Count + " wall pieces");
+    }
     [MenuItem("Ashen Hollow/Travel (test)/Abyssal Realm")] static void TAbyss() { TravelTo(AHAbyss.Area); }
     [MenuItem("Ashen Hollow/Travel (test)/Hollow Meadow")] static void T0() { TravelTo("meadow"); }
     [MenuItem("Ashen Hollow/Travel (test)/Old Mill Road")] static void T1() { TravelTo("mill"); }

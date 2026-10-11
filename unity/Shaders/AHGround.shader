@@ -17,6 +17,7 @@ Shader "AshenHollow/Ground"
         _PaveAmt ("Paving", Range(0, 1)) = 0
         _PaveRect ("Paved area (x0, z0, x1, z1)", Vector) = (0, 0, 0, 0)
         _PaveGrass ("Pave over grass too", Range(0, 1)) = 0
+        _PaveWater ("Pave over blue (icy) ground too", Range(0, 1)) = 0
     }
     SubShader
     {
@@ -56,6 +57,7 @@ Shader "AshenHollow/Ground"
                 half _PaveAmt;
                 float4 _PaveRect;
                 half _PaveGrass;
+                half _PaveWater;
             CBUFFER_END
             half _AHSnow, _AHLeaves;   // globals, 0..1
 
@@ -96,7 +98,7 @@ Shader "AshenHollow/Ground"
                 float3 a0 = albedo;
                 float inRect = step(_PaveRect.x, p.x) * step(p.x, _PaveRect.z) * step(_PaveRect.y, p.y) * step(p.y, _PaveRect.w);
                 float green = saturate((a0.g - max(a0.r, a0.b)) * 14.0), blue = saturate((a0.b - a0.r - 0.06) * 8.0);
-                float pm = _PaveAmt * inRect * lerp(1.0 - green, 1.0, _PaveGrass) * (1.0 - blue);
+                float pm = _PaveAmt * inRect * lerp(1.0 - green, 1.0, _PaveGrass) * (1.0 - blue * (1.0 - _PaveWater));   // _PaveWater 1 (the dungeons): icy blue floors paved too
                 float2 g = 0;
                 if (pm > 0.001)
                 {
@@ -185,6 +187,7 @@ Shader "AshenHollow/Ground"
                 half _PaveAmt;
                 float4 _PaveRect;
                 half _PaveGrass;
+                half _PaveWater;
             CBUFFER_END
             struct Attributes { float4 positionOS : POSITION; };
             struct Varyings { float4 positionCS : SV_POSITION; };
@@ -210,6 +213,7 @@ Shader "AshenHollow/Ground"
                 half _PaveAmt;
                 float4 _PaveRect;
                 half _PaveGrass;
+                half _PaveWater;
             CBUFFER_END
             struct Attributes { float4 positionOS : POSITION; float3 normalOS : NORMAL; };
             struct Varyings { float4 positionCS : SV_POSITION; float3 normalWS : TEXCOORD0; };

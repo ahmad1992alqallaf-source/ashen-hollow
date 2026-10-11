@@ -1,4 +1,5 @@
-# Ashen Hollow: the four armour collections made from our own concept art (Draconic, Lava, Demonic, Fossil), a set
+# Ashen Hollow: the armour collections made from our own concept art (Draconic, Lava, Demonic, Fossil, and Starfallen
+# for the Abyssal Realm), a set
 # for every class in each, dropped by the collection's world boss (and the matching dungeon). Writes items.json,
 # rules.json, monsters.json and events.json in place (run again safely: it replaces what it made before).
 import json, sys, os
@@ -11,12 +12,14 @@ COLL = {   # key: (display word, boss, boss level, dungeon, set name, colours ma
  'lava':     ('Magmaforged', 'pyraxis',   50, 'd_molten', "Molten King's",         (0x2a1a14, 0xff6a1c, 0xd08a3a, 0x100a08, 0xff8a2c), '#ff6a1c'),
  'demonic':  ('Demonbound',  'voidmaw',   55, 'd_hollow', 'Demonbound',            (0x1a1214, 0xb0202a, 0xc89a4a, 0x0a0606, 0xff3030), '#b0202a'),
  'fossil':   ('Fossilbone',  'tricebone', 60, None,       'Ancient Fossil',        (0xd8cdb0, 0x8a7a5a, 0xc89a3a, 0x3a3226, 0xffb040), '#c8b890'),
+ 'starfallen': ('Starfallen', 'dm_malgareth', 75, None,   'Starfallen',            (0x1b1e2a, 0x5a8cff, 0xc8ccd6, 0x0a0c14, 0x9cc8ff), '#7aa8ff'),
 }
 BONUS = {
  'draconic': [[2, '+60 max HP', {'hp': 60}], [4, '+15% damage', {'dmg': 0.15}], [6, 'All cooldowns 15% shorter', {'cdr': 0.15}]],
  'lava':     [[2, '+12% damage', {'dmg': 0.12}], [4, 'Hits set enemies ablaze', {'ignite': True}], [6, '+90 max HP and cooldowns 10% shorter', {'hp': 90, 'cdr': 0.1}]],
  'demonic':  [[2, '+10% critical chance', {'crit': 0.1}], [4, '+20% damage', {'dmg': 0.2}], [6, '+120 max HP', {'hp': 120}]],
  'fossil':   [[2, '+150 max HP', {'hp': 150}], [4, '+15% damage and healing', {'dmg': 0.15, 'heal': 0.15}], [6, 'All cooldowns 20% shorter', {'cdr': 0.2}]],
+ 'starfallen': [[2, '+200 max HP', {'hp': 200}], [4, '+20% damage and 10% critical chance', {'dmg': 0.2, 'crit': 0.1}], [6, 'All cooldowns 20% shorter and +15% healing', {'cdr': 0.2, 'heal': 0.15}]],
 }
 ARMOR = {'warrior': 'plate', 'warden': 'plate', 'rogue': 'leather', 'ranger': 'leather', 'shaman': 'leather', 'mage': 'cloth', 'priest': 'cloth', 'druid': 'cloth'}
 FORMS = {   # head, shoulders, chest, hands, legs, feet, weapon
