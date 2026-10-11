@@ -25,6 +25,8 @@ _P = []
 for _o in _new:
     if _o.type == 'MESH': _P += [tuple(_o.matrix_world @ v.co) for v in _o.data.vertices]
 _P = np.array(_P); M = measure(_P)
+for _k in ('shoulder', 'slope'):   # a suit whose arms hang low can fool the shoulder finder: set it by hand
+    if _k in OPT: M[_k] = OPT[_k]
 for _o in _new: bpy.data.objects.remove(_o)
 SH = 0.973 * M['shoulder']; HT = M['H']
 tz = [0.0, 0.083 * SH, 0.389 * SH, 0.639 * SH, SH, 1.111 * SH, HT]
