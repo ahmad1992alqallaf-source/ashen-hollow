@@ -4,6 +4,7 @@ import json, struct, sys, io
 from PIL import Image
 import numpy as np
 src, out = sys.argv[1], sys.argv[2]
+MS = int(sys.argv[3]) if len(sys.argv) > 3 else 110   # least saturation that counts as glow (raise it to spare tan skin)
 N = 1 << 30
 b = open(src, 'rb').read(); n = struct.unpack('<I', b[12:16])[0]; J = json.loads(b[20:20 + n])
 o = 20 + n; bl = struct.unpack('<I', b[o:o + 4])[0]; B = b[o + 8:o + 8 + bl]
@@ -22,8 +23,8 @@ for i, bv in enumerate(J['bufferViews']):
                 hsv = np.array(pic.convert('RGB').convert('HSV')).astype(np.float32)
                 h, s_, v = hsv[..., 0], hsv[..., 1], hsv[..., 2]
                 # warm hues (red through yellow), clearly coloured: these are the cracks and the glow
-                warm = ((h < 40) | (h > 245)) & (s_ > 110) & (v > 70)
-                k = np.clip((s_ - 110) / 60, 0, 1) * np.clip((v - 70) / 50, 0, 1) * warm
+                warm = ((h < 40) | (h > 245)) & (s_ > MS) & (v > 70)
+                k = np.clip((s_ - MS) / 60, 0, 1) * np.clip((v - 70) / 50, 0, 1) * warm
                 h2 = 196.0  # violet on PIL's 0-255 hue wheel
                 hsv[..., 0] = np.where(k > 0.5, h2, h)
                 hsv[..., 2] = np.where(k > 0.5, np.minimum(255, v * 1.1), v)

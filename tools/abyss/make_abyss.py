@@ -52,6 +52,9 @@ own = {
     "dm_imp":       ("dm_imp",       biped("b_dm_gnashing_imp", 1.4)),
     "dm_veilwitch": ("dm_veilwitch", biped("b_dm_veilwitch", 1.9)),
     "dm_gloomwing": ("dm_gloomwing", biped("b_dm_gloomwing_fiend", 2.2)),
+    "dm_thrall":    ("dm_thrall",    biped("b_dm_ashbound_thrall", 1.9)),
+    "dm_brute":     ("dm_brute",     biped("b_dm_brimstone_brute", 2.8)),
+    "dm_malgareth": ("dm_malgareth", dict(biped("b_dm_malgareth", 2.1), attack=["Attack", "Attack2", "Slam"], roar="Roar")),
     "dm_hound":    ("dm_hellhound", dict(M["BEASTS"]["shadowwolf"], files=["b_dm_hellhound"], size=2.0, noTint=True)),
     "dm_behemoth": ("dm_behemoth",  dict(M["BEASTS"]["wb_tusk"], files=["b_dm_behemoth"], noTint=True)),
 }
