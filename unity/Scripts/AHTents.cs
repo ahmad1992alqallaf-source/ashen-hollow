@@ -186,9 +186,16 @@ public static class AHTents
         foreach (var s in spots)
         {
             // two tent spots on top of each other (the old map's pyramids overlapped): one tent
-            bool close = false; foreach (var q in placed) { Vector3 dq = q - s; dq.y = 0f; if (dq.magnitude < 5f) { close = true; break; } }
+            bool close = false; Vector3 shift = Vector3.zero;
+            foreach (var q in placed)
+            {
+                Vector3 dq = s - q; dq.y = 0f; float dm = dq.magnitude;
+                if (dm < 2.5f) { close = true; break; }
+                // near enough that the two canvases would cut into each other: this one steps away from it
+                if (dm < 6.5f) shift += dq / dm * (6.5f - dm);
+            }
             if (close) { foreach (var r in rs) { Vector3 c = r.bounds.center - s; c.y = 0; if (c.magnitude <= 1.5f) r.enabled = false; } continue; }
-            placed.Add(s);
+            placed.Add(s + shift);
             float ground = float.PositiveInfinity; Vector3 c0 = s; bool any = false;
             foreach (var r in rs)
             {
@@ -197,6 +204,12 @@ public static class AHTents
                 r.enabled = false;
             }
             Vector3 at = new Vector3(any ? c0.x : s.x, float.IsInfinity(ground) ? g.Resolve(s, 0.1f).y : ground, any ? c0.z : s.z);
+            if (shift.sqrMagnitude > 0.01f)
+            {
+                // the old hut's blocker stays behind on its spot otherwise: an invisible wall by the camp
+                var old = new Rect(at.x - 1.6f, at.z - 1.6f, 3.2f, 3.2f); g.RemoveBlockersIn(old); g.RemoveBoxesIn(old);
+                var moved = g.Resolve(at + shift, 2.5f); at = new Vector3(moved.x, at.y, moved.z);
+            }
             int seed = Mathf.RoundToInt(s.x * 13f + s.z * 7f);
             var t = (seed & 1) == 0 ? Pavilion(root, seed) : Ridge(root, seed);
             t.transform.position = at;

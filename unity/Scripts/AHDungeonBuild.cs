@@ -153,14 +153,20 @@ public static class AHDungeonBuild
         if (wb.Count > 0)
             foreach (var r in Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None))
             {
-                if (!r.enabled || !r.name.StartsWith("obj") || r.transform.IsChildOf(root)) continue;
+                if (!r.enabled || r.transform.IsChildOf(root)) continue;
+                if (!r.name.StartsWith("obj") && (r.transform.parent == null || !r.transform.parent.name.StartsWith("obj"))) continue;
                 var b = r.bounds; float fx = b.size.x, fz = b.size.z; if (Mathf.Max(fx, fz) > 3.5f || b.size.y > 6f) continue;
-                float own = Mathf.Max(0.01f, fx * fz), over = 0f;
+                float own = Mathf.Max(0.01f, fx * fz), over = 0f; bool swallow = false;
                 foreach (var w in wb)
                 {
                     float ox = Mathf.Min(b.max.x, w.max.x) - Mathf.Max(b.min.x, w.min.x), oz = Mathf.Min(b.max.z, w.max.z) - Mathf.Max(b.min.z, w.min.z);
-                    if (ox > 0f && oz > 0f && b.max.y > w.min.y && b.min.y < w.max.y) over += ox * oz;
+                    if (ox > 0f && oz > 0f && b.max.y > w.min.y && b.min.y < w.max.y)
+                    {
+                        over += ox * oz;
+                        if (ox * oz > 0.5f * w.size.x * w.size.z) swallow = true;   // the block swallows half a wall piece
+                    }
                 }
+                if (swallow) over = own;
                 // a thin strand (a cobweb line) counts by length: any real cross with a wall
                 bool thin = Mathf.Min(fx, fz) < 0.25f;
                 if ((thin && over > 0.02f) || over > own * 0.3f) { r.enabled = false; inWall++; }

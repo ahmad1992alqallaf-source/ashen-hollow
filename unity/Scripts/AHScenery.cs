@@ -117,7 +117,7 @@ public static class AHScenery
     // through the townhouse roofs): taken away
     static void OutOfBuildings()
     {
-        var boxes = new List<Bounds>();
+        var boxes = new List<Bounds>(); var wallish = new List<bool>();
         foreach (var rn in new[] { "City buildings", "Stalls and wells", "Village", "Tents" })
         {
             var r0 = GameObject.Find(rn); if (r0 == null) continue;
@@ -127,18 +127,24 @@ public static class AHScenery
                 var rs = t.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) continue;
                 Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
                 if (Mathf.Max(b.size.x, b.size.z) < 2f || Mathf.Max(b.size.x, b.size.z) > 40f) continue;
-                b.Expand(new Vector3(-0.6f, 0f, -0.6f)); boxes.Add(b);
+                b.Expand(new Vector3(-0.6f, 0f, -0.6f)); boxes.Add(b); wallish.Add(t.name.Contains("Wall") || t.name.Contains("Gate") || t.name.Contains("ower"));
             }
         }
         if (boxes.Count == 0) return;
         int n = 0;
-        foreach (var rn in new[] { "Palms", "Cacti", "Crystals", "Ferns", "Mushrooms", "Bones", "Coral" })
+        foreach (var rn in new[] { "Palms", "Cacti", "Crystals", "Ferns", "Mushrooms", "Bones", "Coral", "Bog pools", "Frozen pond" })
         {
             var r0 = GameObject.Find(rn); if (r0 == null) continue;
             foreach (Transform t in r0.transform)
             {
+                if (t.name == "Ice" || t.name == "Bog water") continue;   // the pond itself stays; its rim stones and reeds leave the houses
                 Vector3 p = t.position;
-                foreach (var b in boxes) if (p.x > b.min.x && p.x < b.max.x && p.z > b.min.z && p.z < b.max.z) { t.gameObject.SetActive(false); n++; break; }
+                bool pond = rn == "Bog pools" || rn == "Frozen pond";
+                for (int bi = 0; bi < boxes.Count; bi++)
+                {
+                    var b = boxes[bi]; if (pond && wallish[bi]) continue;   // a wall's box is mostly open ground beside it
+                    if (p.x > b.min.x && p.x < b.max.x && p.z > b.min.z && p.z < b.max.z) { t.gameObject.SetActive(false); n++; break; }
+                }
             }
         }
         if (n > 0) Debug.Log("Ashen Hollow: " + n + " plants and crystals taken out of houses and stalls");
@@ -1197,7 +1203,16 @@ public static class AHScenery
             {
                 // the camp tents (AHTents) already put a tent on this spot: the hut's last pieces just go, no second tent
                 bool had = false;
-                if (tentsRoot != null) foreach (Transform t in tentsRoot.transform) { Vector3 d = t.position - b.center; d.y = 0f; if (d.magnitude < 3.5f) { had = true; break; } }
+                // (or stands so near that the two canvases would cut into each other: a pavilion's skirt poked out
+                // through the ridge tent behind it)
+                if (tentsRoot != null)
+                    foreach (Transform t in tentsRoot.transform)
+                    {
+                        if (!t.gameObject.activeInHierarchy) continue;
+                        float tr = 2.5f; var trs = t.GetComponentsInChildren<Renderer>();
+                        if (trs.Length > 0) { Bounds tb = trs[0].bounds; foreach (var r in trs) tb.Encapsulate(r.bounds); tr = Mathf.Max(tb.extents.x, tb.extents.z); }
+                        Vector3 d = t.position - b.center; d.y = 0f; if (d.magnitude < tr + 3.2f) { had = true; break; }
+                    }
                 if (had) continue;
                 AHForest.ClearAround(g, b.center, 4f);
                 var go = AHTents.Ridge(root, Mathf.RoundToInt(sp.x * 5 + sp.z)); go.transform.localScale = Vector3.one * Mathf.Clamp(Mathf.Max(b.size.x, b.size.z) / 3f, 1.1f, 1.7f); go.transform.position = new Vector3(b.center.x, b.min.y, b.center.z); go.transform.rotation = Face(go.transform.position, face); AHModel.SetShadows(go); n++;

@@ -90,6 +90,21 @@ public static class AHSolidify
                 n++;
             }
         }
+        // a crag with no blocker at its heart (two in Vale Keep you could walk straight into): its solid core blocks
+        foreach (var go in Object.FindObjectsByType<Transform>(FindObjectsSortMode.None))
+        {
+            if (go.name != "Mountains" || !go.gameObject.activeInHierarchy) continue;
+            foreach (Transform m in go)
+            {
+                if (!m.gameObject.activeInHierarchy || m.name != "Mountain") continue;
+                bool any = false; Bounds b = new Bounds();
+                foreach (var r in m.GetComponentsInChildren<Renderer>()) { if (!r.enabled) continue; if (!any) { b = r.bounds; any = true; } else b.Encapsulate(r.bounds); }
+                if (!any || b.size.y < 2f || b.min.y > gy + 0.5f) continue;
+                Vector3 c = new Vector3(b.center.x, gy, b.center.z);
+                if (!g.InArea(c) || g.Blocked(c, 0.05f)) continue;
+                g.AddBlocker(c, Mathf.Min(b.size.x, b.size.z) * 0.3f); n++;
+            }
+        }
         Last = n;
         if (n > 0) Debug.Log("Ashen Hollow: " + n + " solid things given blockers (you could walk through them)");
     }
