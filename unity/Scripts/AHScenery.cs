@@ -109,7 +109,39 @@ public static class AHScenery
         // last, once every other rebuild has taken its pieces: whatever is still a bare box
         var lr = new GameObject("Rebuilt boxes").transform; LooseBoxes(world, lr); if (lr.childCount == 0) Object.Destroy(lr.gameObject);
         ClearBridges(g);
+        OutOfBuildings();
         if (nb + nr + nc + np + nk + nbo + nco + ngr + nob + nf > 0) Debug.Log("Ashen Hollow: rebuilt " + nb + " bridges, " + nr + " ruins, " + (nc + nob) + " crystal clusters, " + np + " palms, " + nk + " cacti, " + nbo + " bone spikes, " + nco + " corals, " + ngr + " graves, " + nf + " ferns");
+    }
+
+    // palms, cacti, crystals, ferns and mushrooms the old map left standing in a house or a stall (Sunscar's palms
+    // through the townhouse roofs): taken away
+    static void OutOfBuildings()
+    {
+        var boxes = new List<Bounds>();
+        foreach (var rn in new[] { "City buildings", "Stalls and wells", "Village", "Tents" })
+        {
+            var r0 = GameObject.Find(rn); if (r0 == null) continue;
+            foreach (Transform t in r0.transform)
+            {
+                if (t.name.StartsWith("Prop_") || t.name.Contains("Lamp")) continue;
+                var rs = t.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) continue;
+                Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+                if (Mathf.Max(b.size.x, b.size.z) < 2f || Mathf.Max(b.size.x, b.size.z) > 40f) continue;
+                b.Expand(new Vector3(-0.6f, 0f, -0.6f)); boxes.Add(b);
+            }
+        }
+        if (boxes.Count == 0) return;
+        int n = 0;
+        foreach (var rn in new[] { "Palms", "Cacti", "Crystals", "Ferns", "Mushrooms", "Bones", "Coral" })
+        {
+            var r0 = GameObject.Find(rn); if (r0 == null) continue;
+            foreach (Transform t in r0.transform)
+            {
+                Vector3 p = t.position;
+                foreach (var b in boxes) if (p.x > b.min.x && p.x < b.max.x && p.z > b.min.z && p.z < b.max.z) { t.gameObject.SetActive(false); n++; break; }
+            }
+        }
+        if (n > 0) Debug.Log("Ashen Hollow: " + n + " plants and crystals taken out of houses and stalls");
     }
 
     // ---------- bridges ----------
@@ -496,6 +528,10 @@ public static class AHScenery
         foreach (var s in Spots(g, "tower"))
         {
             Vector3 face; Bounds b; if (!Take(world, s, 2.4f, 7f, 16f, out b, out face)) continue;
+            // a city's own gate or wall tower already stands here: no second tower inside it
+            bool city = false; var cb = GameObject.Find("City buildings");
+            if (cb != null) foreach (Transform t in cb) { if (!t.name.Contains("tower") && !t.name.Contains("Tower")) continue; Vector3 d = t.position - b.center; d.y = 0f; if (d.magnitude < 6f) { city = true; break; } }
+            if (city) continue;
             var pf = Resources.Load<GameObject>("AH/Models/KK/kk_building_tower_A_" + col); if (pf == null) continue;
             var go = Strip(Object.Instantiate(pf)); go.name = "Watchtower";
             var mb = Measure(go); float k = Mathf.Max(6f, b.size.y) / Mathf.Max(0.1f, mb.size.y);
@@ -1131,9 +1167,17 @@ public static class AHScenery
             if (Take(world, sp, 1.9f, 3.8f, 2.6f, out b, out face))
             { var go = AHStations.Brazier(root, 1.2f, Mathf.RoundToInt(sp.x)); go.transform.localScale = Vector3.one * 1.7f; go.transform.position = new Vector3(b.center.x, b.min.y, b.center.z); n++; }
         // camp huts that were plain boxes with a door: a canvas ridge tent
+        var tentsRoot = GameObject.Find("Tents");
         foreach (var sp in Spots(g, "tent"))
             if (Take(world, sp, 2.4f, 4.8f, 2.8f, out b, out face))
-            { var go = AHTents.Ridge(root, Mathf.RoundToInt(sp.x * 5 + sp.z)); go.transform.localScale = Vector3.one * Mathf.Clamp(Mathf.Max(b.size.x, b.size.z) / 3f, 1.1f, 1.7f); go.transform.position = new Vector3(b.center.x, b.min.y, b.center.z); go.transform.rotation = Face(go.transform.position, face); AHModel.SetShadows(go); n++; }
+            {
+                // the camp tents (AHTents) already put a tent on this spot: the hut's last pieces just go, no second tent
+                bool had = false;
+                if (tentsRoot != null) foreach (Transform t in tentsRoot.transform) { Vector3 d = t.position - b.center; d.y = 0f; if (d.magnitude < 3.5f) { had = true; break; } }
+                if (had) continue;
+                AHForest.ClearAround(g, b.center, 4f);
+                var go = AHTents.Ridge(root, Mathf.RoundToInt(sp.x * 5 + sp.z)); go.transform.localScale = Vector3.one * Mathf.Clamp(Mathf.Max(b.size.x, b.size.z) / 3f, 1.1f, 1.7f); go.transform.position = new Vector3(b.center.x, b.min.y, b.center.z); go.transform.rotation = Face(go.transform.position, face); AHModel.SetShadows(go); n++;
+            }
         // the posts either side of the roads between regions (a plain grey block): stone gate posts with a lantern
         var posts = new List<Renderer>();
         foreach (var r in world.GetComponentsInChildren<Renderer>(true))

@@ -149,6 +149,11 @@ public class AHDungeon : MonoBehaviour
         }
         var root = new GameObject("Portal");
         root.transform.position = at;
+        foreach (var rn in new[] { "Rebuilt props", "Ruins" })   // a broken column rebuilt where the door now stands
+        {
+            var rp = GameObject.Find(rn); if (rp == null) continue;
+            foreach (Transform t in rp.transform) { Vector3 d = t.position - at; d.y = 0f; if (d.magnitude < 2.6f && (t.name.Contains("Ruin") || t.name.Contains("Column") || t.name.Contains("ruin"))) t.gameObject.SetActive(false); }
+        }
         // the web's local x axis, after its turn, in Unity
         Vector3 right = g.W(Mathf.Cos(webYaw), -Mathf.Sin(webYaw)) - g.W(0f, 0f); right.y = 0; right.Normalize();
         root.transform.rotation = Quaternion.LookRotation(new Vector3(-right.z, 0f, right.x), Vector3.up);

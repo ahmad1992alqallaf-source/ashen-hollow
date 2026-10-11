@@ -102,7 +102,7 @@ public class AHPlayer : MonoBehaviour
         builtSig = LookSig();
     }
     public void CheckOutfit() { if (model != null && LookSig() != builtSig) ApplyLook(); }
-    string LookSig() { var L = look ?? new AHLook(); return cls.id + L.sex + L.hair + L.beard + L.brow + L.skin + "," + L.hairCol + "," + L.cloth + g.lookHero + AHWardrobe.Sig(this); }
+    string LookSig() { var L = look ?? new AHLook(); return cls.id + L.sex + L.hair + L.beard + L.brow + L.skin + "," + L.hairCol + "," + L.cloth + g.lookHero + AHWardrobe.Sig(this) + (AHWardrobe.BareHead ? "|bare" : ""); }
 
     void LateUpdate()
     {

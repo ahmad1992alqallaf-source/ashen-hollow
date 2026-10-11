@@ -42,6 +42,7 @@ public class AHHeroHall : MonoBehaviour
         if (I == null || cls == null) return; look = look ?? new AHLook();
         string sig = cls.id + "|" + JsonUtility.ToJson(look); foreach (var sl in AHItems.GearSlots) sig += "|" + (shown(sl) ?? "");
         if (p != null) sig += "|" + AHCostumes.Worn(p);
+        if (AHWardrobe.BareHead) sig += "|bare";
         if (I.hero != null && I.heroSig == sig) return;
         if (I.hero != null) Destroy(I.hero);
         var holder = new GameObject("Hero").transform; holder.SetParent(I.heroHold, false);

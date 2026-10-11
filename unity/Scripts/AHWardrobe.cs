@@ -586,9 +586,12 @@ public static class AHWardrobe
     // heroes (sex given: "m" or "f") wear real outfits for their chest, hands, legs and feet (and helms, hoods and pauldrons that
     // match one); the wardrobe draws only what the outfit doesn't
     public static bool RealOutfits = true;
+    public static bool BareHead;   // set while the look editor shows the hair or face page
     public static void DressWith(GameObject rig, Transform hold, Func<string, string> shown, Func<bool> moving, string heroSex = null, string heroCls = null)
     {
         if (rig == null) return;
+        // the look editor's hair and face pages: the hero is shown bareheaded, so the hair being picked can be seen
+        bool bare = BareHead; if (bare) { var withHead = shown; shown = s => s == "head" ? null : withHead(s); }
         Transform head = Bone(rig, "Head"), chest = Bone(rig, "spine_03"), pelvis = Bone(rig, "pelvis");
         if (head == null || chest == null) return;   // the KayKit class hero has no such rig: nothing to dress
         var old = rig.GetComponent<AHQOutfitAuto>(); if (old != null) UnityEngine.Object.Destroy(old);
@@ -600,7 +603,7 @@ public static class AHWardrobe
             string spec = AHQOutfitPlan.Spec(fem, heroCls, shown, covered, out tint, out tk);
             if (spec != null)
             {
-                var auto = rig.AddComponent<AHQOutfitAuto>(); auto.spec = spec; auto.tint = tint; auto.tintK = tk; outfitOn = true; auto.crest = AHQOutfitPlan.CrestOf(heroCls, out auto.crestSize);
+                var auto = rig.AddComponent<AHQOutfitAuto>(); auto.spec = spec; auto.tint = tint; auto.tintK = tk; outfitOn = true; auto.crest = AHQOutfitPlan.CrestOf(heroCls, out auto.crestSize); auto.bare = bare;
                 var all = shown; shown = s => covered.Contains(s) ? null : all(s);
             }
         }

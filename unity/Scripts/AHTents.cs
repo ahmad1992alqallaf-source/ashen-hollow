@@ -182,8 +182,13 @@ public static class AHTents
             if (Mathf.Max(bb.size.x, bb.size.z) > 3.6f || bb.size.y > 3.6f) continue; rs.Add(r);
         }
         var root = new GameObject("Tents").transform; int n = 0;
+        var placed = new List<Vector3>();
         foreach (var s in spots)
         {
+            // two tent spots on top of each other (the old map's pyramids overlapped): one tent
+            bool close = false; foreach (var q in placed) { Vector3 dq = q - s; dq.y = 0f; if (dq.magnitude < 5f) { close = true; break; } }
+            if (close) { foreach (var r in rs) { Vector3 c = r.bounds.center - s; c.y = 0; if (c.magnitude <= 1.5f) r.enabled = false; } continue; }
+            placed.Add(s);
             float ground = float.PositiveInfinity; Vector3 c0 = s; bool any = false;
             foreach (var r in rs)
             {
@@ -195,6 +200,7 @@ public static class AHTents
             int seed = Mathf.RoundToInt(s.x * 13f + s.z * 7f);
             var t = (seed & 1) == 0 ? Pavilion(root, seed) : Ridge(root, seed);
             t.transform.position = at;
+            AHForest.ClearAround(g, at, 3.6f);   // no tree growing up through the tent
             // the door looks at the nearest campfire (or the middle of the camp)
             Vector3 look = at + Vector3.forward; float best = 30f;
             foreach (var f in fires) { float d = (f - at).magnitude; if (d < best) { best = d; look = f; } }

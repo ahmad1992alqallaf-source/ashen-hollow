@@ -16,6 +16,23 @@ public static class AHForest
 {
     public class Tree { public Transform go, crown, trunk; public Vector3 pos; public float phase, sway; public GameObject stump; public float girth; }
     public static readonly List<Tree> Trees = new List<Tree>();
+
+    // trees standing where something was built later (a tent, a stall): taken away, with their trunk blockers and the
+    // chop spots on them, so no pine grows up through a tent
+    public static int ClearAround(AHGame g, Vector3 p, float r)
+    {
+        int n = 0;
+        for (int i = 0; i < Trees.Count; i++)
+        {
+            var t = Trees[i]; if (t == null || t.go == null || !t.go.gameObject.activeSelf) continue;
+            Vector3 d = t.pos - p; d.y = 0f; if (d.magnitude > r) continue;
+            t.go.gameObject.SetActive(false); if (t.stump != null) t.stump.SetActive(false);
+            g.RemoveBlockersIn(new Rect(t.pos.x - 0.2f, t.pos.z - 0.2f, 0.4f, 0.4f));
+            AHGather.Spots.RemoveAll(s => s.kind == "chop" && s.forest == i);
+            n++;
+        }
+        return n;
+    }
     static object data;
     static readonly GameObject[] prefabs = new GameObject[6];
 

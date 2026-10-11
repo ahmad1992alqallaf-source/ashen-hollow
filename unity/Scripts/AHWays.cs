@@ -208,6 +208,8 @@ public static class AHWays
     {
         Mats();
         AHScenery.HideNear(g.World, at, 0.9f, 1.3f, 1.3f);   // and its box chest
+        var rp = GameObject.Find("Rebuilt props");   // and the chest already rebuilt from that box (two chests in one)
+        if (rp != null) foreach (Transform t in rp.transform) { Vector3 d = t.position - at; d.y = 0f; if (t.name == "Old chest" && d.magnitude < 1.6f) t.gameObject.SetActive(false); }
         var root = new GameObject("Treasure").transform; root.position = g.Resolve(at, 0.5f);
         root.rotation = Quaternion.Euler(0, UnityEngine.Random.Range(0f, 360f), 0);
         // a KayKit treasure chest, iron-banded, its lid hinged at the back (KayKit Dungeon Remastered, CC0)

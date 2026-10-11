@@ -218,6 +218,7 @@ public class AHGame : MonoBehaviour
         grass = AHGrass.Create(this);
         AHSettings.Apply(this);
         AHWeather.Setup(this);
+        StartCoroutine(AHSolidify.Later(this));   // whatever you could still walk through gets a blocker
         if (saved == "") ui.OpenCreator();
         else if (SelectAtStart) ui.OpenSelect();
         else Welcome();
@@ -329,6 +330,12 @@ public class AHGame : MonoBehaviour
     }
 
     public void AddBlocker(Vector3 p, float r) { cPos.Add(new Vector3(p.x, 0f, p.z)); cRad.Add(r); }
+    // takes away the box blockers whose middle stands inside r (a house that was taken away leaves no wall behind)
+    public int RemoveBoxesIn(Rect r)
+    {
+        int n = rects.RemoveAll(b => r.Contains(b.center));
+        return n;
+    }
     // takes away the round blockers standing inside r (things that were in the way on a bridge, now cleared off it)
     public int RemoveBlockersIn(Rect r)
     {

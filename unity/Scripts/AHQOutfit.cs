@@ -13,7 +13,7 @@ public static class AHQOutfit
     // put an outfit on a hero; returns the worn object (destroy it to take it off).
     // The spec is one outfit model, or several joined with '+', each optionally narrowed to its pieces whose names
     // contain a word ("qoMale_Ranger:Arms") or leave it out ("qoMale_Peasant:-Arms").
-    public static GameObject Wear(GameObject rig, string spec)
+    public static GameObject Wear(GameObject rig, string spec, bool bareHead = false)
     {
         if (rig == null || string.IsNullOrEmpty(spec)) return null;
         var ubc = new Dictionary<string, Transform>();
@@ -36,6 +36,7 @@ public static class AHQOutfit
             {
                 // the noble's crown is left off (crowns are for kings, and it sits too high on the VRoid heads)
                 string n = smr.name; bool want = !n.Contains("Crown") && (inc.Count == 0 || inc.Exists(w => n.Contains(w))) && !exc.Exists(w => n.Contains(w));
+                if (bareHead && !model.StartsWith("tqo_") && IsHeadPiece(n)) want = false;   // the look editor: no hood or hat over the hair
                 if (!want) smr.gameObject.SetActive(false); else smrs.Add(smr);
             }
             // the outfit's own armature is no longer used
@@ -62,6 +63,41 @@ public static class AHQOutfit
         // the VRoid body's own skin and clothes that would poke through the outfit are cut away while it is worn
         if (link != null && link.Body != null) { Transform qh; ubc.TryGetValue("Head", out qh); go.AddComponent<AHQOutfitHide>().Apply(link.Body, go, qh != null ? link.Map(qh) : null); }
         return go;
+    }
+
+    public static bool IsHeadPiece(string n) { return n.Contains("Head") || n.Contains("Hood") || n.Contains("Hat"); }
+
+    // a hood or hat is a single skin of cloth: looked at from the front, its inside is not drawn and the world shows
+    // through round the face (an empty gap where the hair was). Each head piece gets a lining: the same cloth turned
+    // inside out, in a deep shade of its own colour, so the inside of the hood is shadowed cloth, never empty.
+    public static void Line(GameObject worn)
+    {
+        if (worn == null) return;
+        var lit = Shader.Find("Universal Render Pipeline/Lit"); if (lit == null) return;
+        foreach (var smr in worn.GetComponentsInChildren<SkinnedMeshRenderer>(false))
+        {
+            if (!IsHeadPiece(smr.name) || smr.name.EndsWith("_lining") || smr.sharedMesh == null || !smr.sharedMesh.isReadable) continue;
+            var src = smr.sharedMesh;
+            var m = Object.Instantiate(src); m.name = src.name + " (lining)";
+            for (int sm = 0; sm < m.subMeshCount; sm++)
+            {
+                var t = m.GetTriangles(sm);
+                for (int i = 0; i + 2 < t.Length; i += 3) { int a = t[i + 1]; t[i + 1] = t[i + 2]; t[i + 2] = a; }
+                m.SetTriangles(t, sm);
+            }
+            var nr = m.normals; for (int i = 0; i < nr.Length; i++) nr[i] = -nr[i]; m.normals = nr;
+            Color c = new Color(0.25f, 0.22f, 0.2f);
+            var om = smr.sharedMaterial;
+            if (om != null) foreach (var prop in new[] { "baseColorFactor", "_BaseColor", "_Color" }) if (om.HasProperty(prop)) { c = om.GetColor(prop); break; }
+            var mat = new Material(lit); mat.SetColor("_BaseColor", new Color(c.r * 0.35f, c.g * 0.35f, c.b * 0.35f, 1f));
+            if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.05f);
+            var go = new GameObject(smr.name + "_lining"); go.transform.SetParent(smr.transform.parent, false);
+            go.transform.localPosition = smr.transform.localPosition; go.transform.localRotation = smr.transform.localRotation; go.transform.localScale = smr.transform.localScale;
+            go.layer = smr.gameObject.layer;
+            var l = go.AddComponent<SkinnedMeshRenderer>(); l.sharedMesh = m; l.bones = smr.bones; l.rootBone = smr.rootBone;
+            var mats = new Material[m.subMeshCount]; for (int i = 0; i < mats.Length; i++) mats[i] = mat; l.sharedMaterials = mats;
+            l.updateWhenOffscreen = true; l.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        }
     }
 }
 
@@ -413,7 +449,7 @@ public static class AHQOutfitPlan
 public class AHQOutfitAuto : MonoBehaviour
 {
     public string spec; public Color tint = Color.white; public float tintK;
-    public string crest; public float crestSize;
+    public string crest; public float crestSize; public bool bare;
     GameObject worn; int frames;
 
     void Update()
@@ -423,11 +459,12 @@ public class AHQOutfitAuto : MonoBehaviour
         var link = GetComponent<AHVRoidLink>();
         bool ready = link != null && link.Body != null && frames >= 3;
         if (!ready && frames < 30) return;
-        worn = AHQOutfit.Wear(gameObject, spec);
+        worn = AHQOutfit.Wear(gameObject, spec, bare);
         if (worn != null && tintK > 0f) Tint(worn, tint, tintK);
+        if (worn != null) AHQOutfit.Line(worn);
         if (worn != null && crest != null && !spec.Contains("tqo_")) Badge(worn, crest, crestSize);   // a collection suit has its own emblem
         // the Warden's horned lava helm (Tripo) over the outfit's stone helm piece
-        if (worn != null && spec.Contains("KnightClothStone:Head")) AHTripo.Helm(worn, transform, "warden_helmet");
+        if (worn != null && !bare && spec.Contains("KnightClothStone:Head")) AHTripo.Helm(worn, transform, "warden_helmet");
         if (worn != null && spec.Contains("tqo_") && GetComponent<AHArmSpread>() == null) gameObject.AddComponent<AHArmSpread>();
         if (worn != null && spec.Contains("tqo_")) AHInk.Add(worn);   // the anime ink line on the collection suit
         enabled = false;

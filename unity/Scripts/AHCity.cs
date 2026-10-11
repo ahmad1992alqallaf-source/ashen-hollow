@@ -101,6 +101,36 @@ public static class AHCity
         CutLots(g, world, list);
         Debug.Log("Ashen Hollow: " + Swapped + " of " + list.Count + " city buildings rebuilt");
         Walls(g, world, col, root);
+        ClearBooths(g, root);
+    }
+
+    // a house lot drawn over a shop booth (the two old maps disagree): the booth is where the trader stands, so the
+    // house standing in it goes (a stall half inside a townhouse, the trader in its wall)
+    static void ClearBooths(AHGame g, Transform houses)
+    {
+        var st = GameObject.Find("Stalls and wells"); if (st == null || houses == null) return;
+        int n = 0;
+        foreach (Transform h in houses)
+        {
+            if (!h.name.StartsWith("Townhouse") && !h.name.StartsWith("Building_") && !h.name.StartsWith("House")) continue;
+            var hb = Measure(h.gameObject);
+            foreach (Transform b in st.transform)
+            {
+                if (b.name != "Market stall") continue;
+                var bb = Measure(b.gameObject);
+                float ox = Mathf.Min(hb.max.x, bb.max.x) - Mathf.Max(hb.min.x, bb.min.x), oz = Mathf.Min(hb.max.z, bb.max.z) - Mathf.Max(hb.min.z, bb.min.z);
+                if (ox <= 0f || oz <= 0f) continue;
+                float small = Mathf.Min(hb.size.x * hb.size.z, bb.size.x * bb.size.z);
+                if (ox * oz > small * 0.3f)
+                {
+                    h.gameObject.SetActive(false); n++;
+                    g.RemoveBoxesIn(Rect.MinMaxRect(hb.min.x, hb.min.z, hb.max.x, hb.max.z));   // its wall goes with it
+                    g.AddBlockBox(bb, 0.35f);                                                 // the stall stays solid
+                    break;
+                }
+            }
+        }
+        if (n > 0) Debug.Log("Ashen Hollow: " + n + " houses that stood on shop booths taken away");
     }
 
     // the web city's big merged mesh (walls and all) still held the old houses' awnings and porches inside the lots:

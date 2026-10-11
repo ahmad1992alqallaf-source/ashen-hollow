@@ -117,6 +117,7 @@ public partial class AHUI
 
     void CancelCreator()
     {
+        if (AHWardrobe.BareHead) { AHWardrobe.BareHead = false; if (crMode != "new") g.player.ApplyLook(); }   // the hood goes back on
         if (crMode == "new")
         {
             // a new hero not made after all: back to the hero select screen
@@ -155,6 +156,7 @@ public partial class AHUI
         Time.timeScale = 1f;
         ptrs.Clear();
         AHHeroHall.Close();
+        if (AHWardrobe.BareHead) { AHWardrobe.BareHead = false; p.ApplyLook(); }
         g.FinishCreation();
     }
 
@@ -325,6 +327,9 @@ public partial class AHUI
             crHint.text = "Drag your hero to turn them. Pinch or scroll to zoom.";
         }
         CrScrollBy(0f);
+        // on the hair and face pages the hood, hat or helm comes off, so the hair being chosen shows
+        bool bare = crTab == "hair" || crTab == "face";
+        if (bare != AHWardrobe.BareHead) { AHWardrobe.BareHead = bare; p.ApplyLook(); }
         if (crMode == "new" && AHHeroHall.Showing) AHHeroHall.Show(p.cls, p.look, s => AHWardrobe.Shown(p, s), p);   // the hero by the fire, as made so far
     }
 

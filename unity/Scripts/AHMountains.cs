@@ -196,6 +196,32 @@ public static class AHMountains
             }
         if (ns > 0) Debug.Log("Ashen Hollow: " + ns + " snow cones made snow caps");
         if (n + nb > 0) Debug.Log("Ashen Hollow: " + (n + nb) + " mountains reshaped" + (nb > 0 ? " (" + nb + " from the batch)" : ""));
+        OffTheWalls();
+    }
+
+    // crags and pines standing in a city's wall (Highcairn's spires came up through its walls and gate towers):
+    // the wall is the edge there, so they go; their blockers stay, the wall stands on the same line
+    static void OffTheWalls()
+    {
+        var city = GameObject.Find("City buildings"); if (city == null || root == null) return;
+        var walls = new List<Bounds>();
+        foreach (Transform t in city.transform)
+        {
+            string nm = t.name; if (!(nm.Contains("Wall") || nm.Contains("Gate") || nm.Contains("tower") || nm.Contains("Tower") || nm.StartsWith("Townhouse") || nm.StartsWith("Building_"))) continue;
+            var rs = t.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) continue;
+            Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); walls.Add(b);
+        }
+        int off = 0;
+        foreach (Transform m in root)
+        {
+            if (!m.gameObject.activeSelf) continue;
+            var rs = m.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) continue;
+            Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+            // the crag's solid core: its lower middle (a cone's sides are mostly air)
+            var core = new Bounds(new Vector3(b.center.x, b.min.y + b.size.y * 0.25f, b.center.z), new Vector3(b.size.x * 0.45f, b.size.y * 0.5f, b.size.z * 0.45f));
+            foreach (var w in walls) if (core.Intersects(w)) { m.gameObject.SetActive(false); off++; break; }
+        }
+        if (off > 0) Debug.Log("Ashen Hollow: " + off + " crags and pines taken out of the city walls");
     }
 
     static GameObject[] pines; static Material pineMat;
