@@ -161,6 +161,7 @@ public static class AHWays
         Mats();
         AHScenery.HideNear(g.World, at, 1.7f, 2.8f, 4.2f);   // the web game's plain slab stood on the same spot
         var root = new GameObject("Waystone").transform; root.position = g.Resolve(at, 0.6f);
+        AHMountains.ClearAround(root.position, 2.5f);   // no crag standing over the waystone (the Mire's stood inside one)
         var rnd = new System.Random((int)(at.x * 13 + at.z * 7));
         Part(root, PrimitiveType.Cylinder, new Vector3(0, 0.08f, 0), new Vector3(2.6f, 0.08f, 2.6f), rockDark);
         Part(root, PrimitiveType.Cylinder, new Vector3(0, 0.22f, 0), new Vector3(1.8f, 0.07f, 1.8f), rock);

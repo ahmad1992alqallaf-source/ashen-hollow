@@ -88,7 +88,7 @@ public static class AHDungeonBuild
             if (line.Count >= 4) lines.Add(line);
         }
 
-        var mats = new Dictionary<Material, Material>();
+        var mats = new Dictionary<Material, Material>(); var built = new List<GameObject>();
         var wallPf = Q("qd_wall_modular"); var colPf = Q("qd_column");
         const float H = 3.4f;
         foreach (var line in lines)
@@ -112,7 +112,7 @@ public static class AHDungeonBuild
                     w.transform.position = c - inward * 0.35f + Vector3.up * (H * 0.5f);
                     w.transform.rotation = Quaternion.LookRotation(inward);
                     w.transform.localScale = new Vector3(l / 2f + 0.04f, H / 2f, 1f);
-                    segs.Add(new Seg { a = c - d * l * 0.5f, b = c + d * l * 0.5f, inward = inward }); Walls++;
+                    segs.Add(new Seg { a = c - d * l * 0.5f, b = c + d * l * 0.5f, inward = inward }); Walls++; built.Add(w);
                 }
                 // a column where the wall turns
                 if (k > 0 && colPf != null)
@@ -122,7 +122,7 @@ public static class AHDungeonBuild
                     {
                         var col = Object.Instantiate(colPf, root, false); Strip(col); Tint(col, stone * 0.92f, mats);
                         col.transform.position = a - inward * 0.3f; col.transform.rotation = Quaternion.LookRotation(inward);
-                        col.transform.localScale = Vector3.one * 0.82f;
+                        col.transform.localScale = Vector3.one * 0.82f; built.Add(col);
                     }
                 }
             }
@@ -145,6 +145,27 @@ public static class AHDungeonBuild
                     }
                 if (all > 0 && open > all * 0.25f) { r.enabled = false; rocks++; }
             }
+        // the old web-game blocks and cobweb strands the new walls now stand in (the Sunken Forge's pillars showed
+        // half in and half out of the dressed stone, a plain dark box against the bricks): hidden behind the wall
+        var wb = new List<Bounds>();
+        foreach (var w in built) { var rs = w.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) continue; Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); wb.Add(b); }
+        int inWall = 0;
+        if (wb.Count > 0)
+            foreach (var r in Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None))
+            {
+                if (!r.enabled || !r.name.StartsWith("obj") || r.transform.IsChildOf(root)) continue;
+                var b = r.bounds; float fx = b.size.x, fz = b.size.z; if (Mathf.Max(fx, fz) > 3.5f || b.size.y > 6f) continue;
+                float own = Mathf.Max(0.01f, fx * fz), over = 0f;
+                foreach (var w in wb)
+                {
+                    float ox = Mathf.Min(b.max.x, w.max.x) - Mathf.Max(b.min.x, w.min.x), oz = Mathf.Min(b.max.z, w.max.z) - Mathf.Max(b.min.z, w.min.z);
+                    if (ox > 0f && oz > 0f && b.max.y > w.min.y && b.min.y < w.max.y) over += ox * oz;
+                }
+                // a thin strand (a cobweb line) counts by length: any real cross with a wall
+                bool thin = Mathf.Min(fx, fz) < 0.25f;
+                if ((thin && over > 0.02f) || over > own * 0.3f) { r.enabled = false; inWall++; }
+            }
+        if (inWall > 0) Debug.Log("Ashen Hollow: " + inWall + " old blocks hidden inside the new dungeon walls");
         // the floor laid with flagstones (the ground's own colour, a stone pattern over it)
         var tex = Resources.Load<Texture2D>("AH/Textures/dungeon_floor");
         if (tex != null)

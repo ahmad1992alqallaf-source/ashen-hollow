@@ -224,6 +224,23 @@ public static class AHMountains
         if (off > 0) Debug.Log("Ashen Hollow: " + off + " crags and pines taken out of the city walls");
     }
 
+    // a crag or pine whose solid core stands within r of a spot that must stay clear (a waystone): it goes
+    public static int ClearAround(Vector3 at, float r)
+    {
+        var mr = root != null ? root : (GameObject.Find("Mountains") != null ? GameObject.Find("Mountains").transform : null); if (mr == null) return 0;
+        int off = 0;
+        foreach (Transform m in mr)
+        {
+            if (!m.gameObject.activeSelf) continue;
+            var rs = m.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) continue;
+            Bounds b = rs[0].bounds; foreach (var rr in rs) b.Encapsulate(rr.bounds);
+            float core = Mathf.Max(b.size.x, b.size.z) * 0.25f;
+            Vector3 d = b.center - at; d.y = 0f;
+            if (d.magnitude < core + r) { m.gameObject.SetActive(false); off++; }
+        }
+        return off;
+    }
+
     static GameObject[] pines; static Material pineMat;
     static bool Pine(Bounds b, Color col)
     {

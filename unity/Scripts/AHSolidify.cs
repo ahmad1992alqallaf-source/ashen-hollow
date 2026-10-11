@@ -9,8 +9,10 @@ using UnityEngine;
 
 public static class AHSolidify
 {
-    static readonly string[] Roots = { "Rebuilt props", "Rebuilt boxes", "Stations", "Stalls and wells", "Ruins", "Graves", "Tents", "Crystals", "Palms", "Cacti", "Bones", "Coral", "Mushrooms", "Treasure", "Bank vault", "Village", "Statue garden", "Training yard", "Fossils", "Ships", "Ore rocks", "Ore", "City buildings", "Castle", "Palace", "Great skull", "Dragon nest", "Arena", "BountyBoard", "Kingsbane statue", "Statue", "Waystone", "Inn sign", "Homestead" };
-    static readonly string[] Open = { "Bridge", "bridge", "Rug", "Carpet", "Arch", "arch", "Awning", "Gate", "Portal", "Door", "Path", "Road", "Plank", "Dock", "Pier", "Stairs", "Step", "Banner", "Flag", "Lamp", "Lantern", "Sign", "Fence", "Rope" };
+    static readonly string[] Roots = { "Rebuilt props", "Rebuilt boxes", "Stations", "Stalls and wells", "Ruins", "Graves", "Tents", "Crystals", "Palms", "Cacti", "Bones", "Coral", "Mushrooms", "Treasure", "Bank vault", "Village", "Statue garden", "Training yard", "Fossils", "Ships", "Ore rocks", "Ore", "City buildings", "Castle", "Palace", "Great skull", "Dragon nest", "Arena", "BountyBoard", "Kingsbane statue", "Statue", "Waystone", "Inn sign", "Homestead",
+        // the dungeons: their standing pillars and the barrels, racks and statues along the walls
+        "Dungeon dressing", "The Sunken Forge", "The Hollow Below", "Frostpeak Caverns", "The Molten Depths", "Tomb of the Sand King", "The Mire Warrens" };
+    static readonly string[] Open = { "Bridge", "bridge", "Rug", "Carpet", "Arch", "arch", "Awning", "Gate", "Portal", "Door", "Path", "Road", "Plank", "Dock", "Pier", "Stairs", "Step", "Banner", "Flag", "Lamp", "Lantern", "Sign", "Fence", "Rope", "qd_wall", "qd_column", "qd_banner", "torch", "Torch", "web", "Web" };
     public static int Last;
 
     public static IEnumerator Later(AHGame g) { yield return null; yield return null; Run(g); }
@@ -20,15 +22,39 @@ public static class AHSolidify
         if (g == null || AHGame.AreaId == "abyss") { Last = 0; return; }
         float gy = g.W(0f, 0f).y;
         foreach (var r in Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None)) if (r.name.StartsWith("AH_GROUND")) { gy = r.bounds.max.y; break; }
+        // plants and crystals standing on the bare ground that ended up hanging in the air (a Sunscar cactus floated
+        // knee-high over the sand, its shadow on the ground beside it): set back down
+        int sat = 0;
+        foreach (var pn in new[] { "Cacti", "Palms", "Crystals", "Ferns", "Mushrooms", "Bones", "Coral" })
+        {
+            var pr = GameObject.Find(pn); if (pr == null) continue;
+            foreach (Transform t in pr.transform)
+            {
+                var rs = t.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) continue;
+                float lo = float.MaxValue; foreach (var r in rs) lo = Mathf.Min(lo, r.bounds.min.y);
+                float up = lo - gy; if (up > 0.15f && up < 1.2f) { t.position -= Vector3.up * up; sat++; }
+            }
+        }
+        if (sat > 0) Debug.Log("Ashen Hollow: " + sat + " plants and crystals set down on the ground");
         var keep = new List<Vector3>();
-        foreach (var s in AHGather.Spots) if (s.kind == "gate" || s.kind == "door" || s.kind == "use" || s.kind == "exit") keep.Add(s.pos);
+        foreach (var s in AHGather.Spots) if (s.kind == "gate" || s.kind == "door" || s.kind == "exit" || (s.kind == "use" && (s.name ?? "").Contains("House"))) keep.Add(s.pos);   // ways in and out (a waystone, a furnace or a chest is walked up to, not through)
         if (g.data != null && g.data.exits != null) foreach (var e in g.data.exits) keep.Add(e.r > 0f ? g.W(e.x, e.z) : g.W((e.x0 + e.x1) / 2f, (e.z0 + e.z1) / 2f));
         int n = 0;
-        foreach (var rn in Roots)
+        var roots = new List<GameObject>();
+        foreach (var go in Object.FindObjectsByType<Transform>(FindObjectsSortMode.None))
         {
-            var root = GameObject.Find(rn); if (root == null) continue;
+            if (!go.gameObject.activeInHierarchy || System.Array.IndexOf(Roots, go.name) < 0) continue;
+            bool inner = false; for (var a = go.parent; a != null; a = a.parent) if (System.Array.IndexOf(Roots, a.name) >= 0) { inner = true; break; }
+            if (!inner) roots.Add(go.gameObject);
+        }
+        foreach (var root in roots)
+        {
             var units = new List<Transform>();
-            if (root.GetComponentsInChildren<Renderer>().Length < 40 && root.transform.childCount < 8) units.Add(root.transform);   // one thing made of parts
+            // one thing made of parts (a waystone, a statue) when it all stands in one small place; otherwise a
+            // collection (the stations, the tents, the props of a land), each child its own thing
+            var all = root.GetComponentsInChildren<Renderer>(); bool one = all.Length > 0 && all.Length < 40;
+            if (one) { Bounds rb = all[0].bounds; foreach (var r in all) rb.Encapsulate(r.bounds); one = Mathf.Max(rb.size.x, rb.size.z) <= 8f; }
+            if (one) units.Add(root.transform);
             else foreach (Transform c in root.transform) units.Add(c);
             foreach (var u in units)
             {
@@ -47,6 +73,9 @@ public static class AHSolidify
                 Vector3 c = new Vector3(b.center.x, gy, b.center.z), pv = new Vector3(u.position.x, gy, u.position.z);
                 if (g.Blocked(c, 0.05f) || g.Blocked(pv, 0.05f) || !g.InArea(c)) continue;
                 bool atWay = false; foreach (var k in keep) { Vector3 d = k - c; d.y = 0f; if (d.magnitude < foot * 0.5f + 2.5f) { atWay = true; break; } }
+                // a gate post stands beside the way through it: solid, but only its own thin footprint
+                bool post = u.name.Contains("post") || u.name.Contains("Post");
+                if (atWay && post && foot < 2.5f) { g.AddBlocker(c, thin * 0.4f); n++; continue; }
                 if (atWay) continue;
                 // something you use stands in it (an oven, a furnace, a stall's trader): stay well inside its reach
                 float reach = float.MaxValue;

@@ -109,7 +109,7 @@ public static class AHScenery
         // last, once every other rebuild has taken its pieces: whatever is still a bare box
         var lr = new GameObject("Rebuilt boxes").transform; LooseBoxes(world, lr); if (lr.childCount == 0) Object.Destroy(lr.gameObject);
         ClearBridges(g);
-        OutOfBuildings();
+        OutOfBuildings(); OffThePonds(g);
         if (nb + nr + nc + np + nk + nbo + nco + ngr + nob + nf > 0) Debug.Log("Ashen Hollow: rebuilt " + nb + " bridges, " + nr + " ruins, " + (nc + nob) + " crystal clusters, " + np + " palms, " + nk + " cacti, " + nbo + " bone spikes, " + nco + " corals, " + ngr + " graves, " + nf + " ferns");
     }
 
@@ -123,7 +123,7 @@ public static class AHScenery
             var r0 = GameObject.Find(rn); if (r0 == null) continue;
             foreach (Transform t in r0.transform)
             {
-                if (t.name.StartsWith("Prop_") || t.name.Contains("Lamp")) continue;
+                if (t.name.Contains("Lamp")) continue;
                 var rs = t.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) continue;
                 Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
                 if (Mathf.Max(b.size.x, b.size.z) < 2f || Mathf.Max(b.size.x, b.size.z) > 40f) continue;
@@ -142,6 +142,30 @@ public static class AHScenery
             }
         }
         if (n > 0) Debug.Log("Ashen Hollow: " + n + " plants and crystals taken out of houses and stalls");
+    }
+
+    // the ice of a frozen pond and the water of the bog pools: no pine, crystal or crag growing up out of them
+    static void OffThePonds(AHGame g)
+    {
+        int n = 0;
+        foreach (var pn in new[] { "Frozen pond", "Bog pools" })
+        {
+            var pr = GameObject.Find(pn); if (pr == null) continue;
+            foreach (Transform s in pr.transform)
+            {
+                if (s.name != "Ice" && s.name != "Bog water") continue;
+                var b = s.GetComponent<Renderer>(); if (b == null) continue;
+                Vector3 c = b.bounds.center; float ax = b.bounds.extents.x + 0.4f, az = b.bounds.extents.z + 0.4f;
+                System.Func<Vector3, bool> on = p => { float dx = (p.x - c.x) / ax, dz = (p.z - c.z) / az; return dx * dx + dz * dz < 1f; };
+                foreach (var t in AHForest.Trees) if (t != null && t.go != null && t.go.gameObject.activeSelf && on(t.pos)) n += AHForest.ClearAround(g, t.pos, 0.3f);
+                foreach (var rn in new[] { "Crystals", "Mountains", "Forest", "Ferns", "Mushrooms" })
+                {
+                    var r0 = GameObject.Find(rn); if (r0 == null) continue;
+                    foreach (Transform t in r0.transform) if (t.gameObject.activeSelf && on(t.position)) { t.gameObject.SetActive(false); n++; }
+                }
+            }
+        }
+        if (n > 0) Debug.Log("Ashen Hollow: " + n + " trees, crystals and crags taken off the ponds");
     }
 
     // ---------- bridges ----------
