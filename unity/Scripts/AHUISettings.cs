@@ -88,6 +88,11 @@ public partial class AHUI
         rows.Add(s => Row(s, "Effects  " + Mathf.RoundToInt(AHSound.SfxVol * 100) + "%", cS, "Swings, spells, footsteps and the world around you.", "",
             Opt("−", false, () => { AHSound.SfxVol = Mathf.Max(0f, Mathf.Round(AHSound.SfxVol * 10f - 1f) / 10f); AHSound.Play("swing"); }),
             Opt("+", false, () => { AHSound.SfxVol = Mathf.Min(1f, Mathf.Round(AHSound.SfxVol * 10f + 1f) / 10f); AHSound.Play("swing"); })));
+        // language: English is the game's main language; Arabic changes the townsfolk's words and voices (and, as it is
+        // translated, the rest of the game)
+        rows.Add(s => Row(s, "Language", cS, AHLoc.Arabic ? AHLoc.Shape("العربية: الكلام والأصوات بالعربية") : "English", "",
+            new WkBtn { label = "English", on = true, col = !AHLoc.Arabic ? Go : Plain, act = () => { AHLoc.Lang = "en"; RenderWork(); } },
+            new WkBtn { label = AHLoc.Shape("العربية"), on = true, col = AHLoc.Arabic ? Go : Plain, act = () => { AHLoc.Lang = "ar"; RenderWork(); } }));
         // graphics
         int q = AHSettings.Quality;
         rows.Add(s => Row(s, "Graphics", cG, q == 3 ? "Custom (your own mix below)" : "Low runs best on older phones; High looks best.", "",

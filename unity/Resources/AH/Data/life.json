@@ -1,0 +1,532 @@
+{
+ "greet": {
+  "any": [
+   {
+    "id": "any_01",
+    "en": "Well met, traveller.",
+    "ar": "أهلًا بك يا مسافر."
+   },
+   {
+    "id": "any_02",
+    "en": "Hello there!",
+    "ar": "مرحبًا!"
+   },
+   {
+    "id": "any_03",
+    "en": "How are you keeping?",
+    "ar": "كيف حالك؟"
+   },
+   {
+    "id": "any_04",
+    "en": "Good to see a friendly face.",
+    "ar": "يسعدني أن أرى وجهًا ودودًا."
+   },
+   {
+    "id": "any_05",
+    "en": "Safe roads to you.",
+    "ar": "طرقك آمنة إن شاء الله."
+   },
+   {
+    "id": "any_06",
+    "en": "Stay a while, the town is quiet today.",
+    "ar": "ابقَ قليلًا، البلدة هادئة اليوم."
+   },
+   {
+    "id": "any_07",
+    "en": "Mind your step, the cobbles are loose.",
+    "ar": "انتبه لخطواتك، الحجارة مرتخية هنا."
+   },
+   {
+    "id": "any_08",
+    "en": "Ah, a new face. Welcome!",
+    "ar": "وجه جديد! أهلًا وسهلًا."
+   },
+   {
+    "id": "any_09",
+    "en": "Back again? You're always welcome.",
+    "ar": "عدت مجددًا؟ مرحبًا بك دائمًا."
+   },
+   {
+    "id": "any_10",
+    "en": "May the ember light your way.",
+    "ar": "لتُنِر الجمرة طريقك."
+   }
+  ],
+  "morning": [
+   {
+    "id": "morning_01",
+    "en": "Good morning!",
+    "ar": "صباح الخير!"
+   },
+   {
+    "id": "morning_02",
+    "en": "Up early, are we?",
+    "ar": "استيقظت باكرًا اليوم!"
+   },
+   {
+    "id": "morning_03",
+    "en": "Fresh bread at the baker's, if you hurry.",
+    "ar": "الخبز طازج عند الخبّاز، أسرع قبل أن ينفد."
+   }
+  ],
+  "evening": [
+   {
+    "id": "evening_01",
+    "en": "Good evening.",
+    "ar": "مساء الخير."
+   },
+   {
+    "id": "evening_02",
+    "en": "The day's nearly done. Rest soon.",
+    "ar": "النهار يكاد ينتهي، استرح قريبًا."
+   },
+   {
+    "id": "evening_03",
+    "en": "Tavern's filling up. Join us later?",
+    "ar": "الحانة تمتلئ بالناس، هل تنضم إلينا لاحقًا؟"
+   }
+  ],
+  "night": [
+   {
+    "id": "night_01",
+    "en": "Out this late? Careful in the dark.",
+    "ar": "في الخارج في هذا الوقت؟ احذر من الظلام."
+   },
+   {
+    "id": "night_02",
+    "en": "Can't sleep either, eh?",
+    "ar": "لا تستطيع النوم أنت أيضًا؟"
+   },
+   {
+    "id": "night_03",
+    "en": "Strange sounds beyond the walls tonight.",
+    "ar": "أصوات غريبة خلف الأسوار الليلة."
+   }
+  ],
+  "rain": [
+   {
+    "id": "rain_01",
+    "en": "Rain again! My roof leaks like a sieve.",
+    "ar": "مطر مرة أخرى! سقفي يقطر كالغربال."
+   },
+   {
+    "id": "rain_02",
+    "en": "Get under cover, you'll catch a chill.",
+    "ar": "احتمِ من المطر، ستصاب بالبرد."
+   }
+  ],
+  "snow": [
+   {
+    "id": "snow_01",
+    "en": "Cold enough to freeze your breath.",
+    "ar": "برد يجمّد الأنفاس."
+   },
+   {
+    "id": "snow_02",
+    "en": "Stay by a fire tonight, friend.",
+    "ar": "ابقَ قرب النار الليلة يا صديقي."
+   }
+  ],
+  "fog": [
+   {
+    "id": "fog_01",
+    "en": "Can barely see my own hands in this fog.",
+    "ar": "لا أكاد أرى يديّ في هذا الضباب."
+   }
+  ],
+  "warrior": [
+   {
+    "id": "warrior_01",
+    "en": "Fine steel you carry, warrior.",
+    "ar": "سيف رائع تحمله أيها المحارب."
+   },
+   {
+    "id": "warrior_02",
+    "en": "With a shield like that, I'd sleep easy.",
+    "ar": "مع درع كهذا، أنام مطمئنًا."
+   }
+  ],
+  "priest": [
+   {
+    "id": "priest_01",
+    "en": "Bless you, healer.",
+    "ar": "باركك الله أيها المعالج."
+   },
+   {
+    "id": "priest_02",
+    "en": "Your light gives us hope.",
+    "ar": "نورك يمنحنا الأمل."
+   }
+  ],
+  "mage": [
+   {
+    "id": "mage_01",
+    "en": "Please don't set my stall on fire.",
+    "ar": "أرجوك لا تحرق بسطتي."
+   },
+   {
+    "id": "mage_02",
+    "en": "Magic folk... always muttering to themselves.",
+    "ar": "أهل السحر... يتمتمون لأنفسهم دائمًا."
+   }
+  ],
+  "druid": [
+   {
+    "id": "druid_01",
+    "en": "You smell of pine and rain, druid.",
+    "ar": "رائحتك صنوبر ومطر أيها الدرويد."
+   }
+  ],
+  "ranger": [
+   {
+    "id": "ranger_01",
+    "en": "Sharp eyes, ranger. Seen anything out there?",
+    "ar": "عينان حادتان أيها الرامي، هل رأيت شيئًا هناك؟"
+   }
+  ],
+  "shaman": [
+   {
+    "id": "shaman_01",
+    "en": "The spirits walk with you, shaman.",
+    "ar": "الأرواح تسير معك أيها الشامان."
+   }
+  ],
+  "rogue": [
+   {
+    "id": "rogue_01",
+    "en": "I'll keep a hand on my purse, thank you.",
+    "ar": "سأمسك محفظتي جيدًا، شكرًا لك."
+   },
+   {
+    "id": "rogue_02",
+    "en": "Quiet steps, that one.",
+    "ar": "خطوات هادئة... هذا واحد يُحذر منه."
+   }
+  ],
+  "warden": [
+   {
+    "id": "warden_01",
+    "en": "A Warden! We sleep easier with you near.",
+    "ar": "حارس! ننام مطمئنين وأنت قريب."
+   },
+   {
+    "id": "warden_02",
+    "en": "Stone and ember... the old stories are true.",
+    "ar": "حجر وجمرة... الحكايات القديمة صحيحة إذن."
+   }
+  ],
+  "strong": [
+   {
+    "id": "strong_01",
+    "en": "They say you've bested beasts no one else dared face.",
+    "ar": "يقولون إنك هزمت وحوشًا لم يجرؤ أحد على مواجهتها."
+   },
+   {
+    "id": "strong_02",
+    "en": "The bards are already singing about you.",
+    "ar": "الشعراء بدأوا يغنّون عنك."
+   }
+  ],
+  "guard": [
+   {
+    "id": "guard_01",
+    "en": "Move along, citizen. All's well.",
+    "ar": "تابع طريقك، كل شيء على ما يرام."
+   },
+   {
+    "id": "guard_02",
+    "en": "Keep your blade sheathed in town.",
+    "ar": "أبقِ سلاحك في غمده داخل البلدة."
+   },
+   {
+    "id": "guard_03",
+    "en": "Report anything strange to the captain.",
+    "ar": "أبلغ القائدة بأي شيء غريب."
+   }
+  ],
+  "merchant": [
+   {
+    "id": "merchant_01",
+    "en": "Best prices in town, I swear it!",
+    "ar": "أفضل الأسعار في البلدة، أقسم لك!"
+   },
+   {
+    "id": "merchant_02",
+    "en": "Come, come! Have a look!",
+    "ar": "تعال، تعال! ألقِ نظرة!"
+   },
+   {
+    "id": "merchant_03",
+    "en": "Fresh goods, just off the cart!",
+    "ar": "بضاعة طازجة وصلت للتو!"
+   }
+  ],
+  "child": [
+   {
+    "id": "child_01",
+    "en": "Are you a real hero?",
+    "ar": "هل أنت بطل حقيقي؟"
+   },
+   {
+    "id": "child_02",
+    "en": "Can I hold your sword? Please?",
+    "ar": "هل أستطيع أن أحمل سيفك؟ أرجوك!"
+   },
+   {
+    "id": "child_03",
+    "en": "Mama says not to talk to strangers!",
+    "ar": "أمي تقول لا تتحدث مع الغرباء!"
+   }
+  ]
+ },
+ "call": {
+  "merchant": [
+   {
+    "id": "c_merchant_01",
+    "en": "Apples! Sweet apples!",
+    "ar": "تفاح! تفاح حلو!"
+   },
+   {
+    "id": "c_merchant_02",
+    "en": "Cloth from the coast, finest weave!",
+    "ar": "قماش من الساحل، أجود نسج!"
+   },
+   {
+    "id": "c_merchant_03",
+    "en": "Two for one, today only!",
+    "ar": "اثنان بسعر واحد، اليوم فقط!"
+   }
+  ],
+  "guard": [
+   {
+    "id": "c_guard_01",
+    "en": "Eyes open, lads.",
+    "ar": "افتحوا أعينكم يا رجال."
+   },
+   {
+    "id": "c_guard_02",
+    "en": "Quiet watch tonight. I hope.",
+    "ar": "حراسة هادئة الليلة... أتمنى."
+   }
+  ],
+  "child": [
+   {
+    "id": "c_child_01",
+    "en": "You can't catch me!",
+    "ar": "لن تمسكني!"
+   },
+   {
+    "id": "c_child_02",
+    "en": "Tag! You're it!",
+    "ar": "لمستك! دورك الآن!"
+   }
+  ]
+ },
+ "talk": [
+  {
+   "id": "t01",
+   "who": "any",
+   "lines": [
+    {
+     "id": "t01_1",
+     "en": "Did you hear? Wolves near the old mill again.",
+     "ar": "هل سمعت؟ الذئاب قرب الطاحونة القديمة مرة أخرى."
+    },
+    {
+     "id": "t01_2",
+     "en": "Third time this month. Someone should do something.",
+     "ar": "المرة الثالثة هذا الشهر. على أحدهم أن يفعل شيئًا."
+    },
+    {
+     "id": "t01_3",
+     "en": "Maybe one of those adventurers will.",
+     "ar": "ربما يفعلها أحد هؤلاء المغامرين."
+    }
+   ]
+  },
+  {
+   "id": "t02",
+   "who": "any",
+   "lines": [
+    {
+     "id": "t02_1",
+     "en": "How's your mother keeping?",
+     "ar": "كيف حال والدتك؟"
+    },
+    {
+     "id": "t02_2",
+     "en": "Better, thank the stars. The healer's tea worked.",
+     "ar": "أفضل والحمد لله، شاي المعالج نفع."
+    },
+    {
+     "id": "t02_3",
+     "en": "Good. Tell her I asked.",
+     "ar": "جيد، بلّغها سلامي."
+    }
+   ]
+  },
+  {
+   "id": "t03",
+   "who": "merchant",
+   "lines": [
+    {
+     "id": "t03_1",
+     "en": "You call this a fair price?",
+     "ar": "وتسمي هذا سعرًا عادلًا؟"
+    },
+    {
+     "id": "t03_2",
+     "en": "For silk from the coast? It's a gift!",
+     "ar": "لحرير من الساحل؟ إنه هدية!"
+    },
+    {
+     "id": "t03_3",
+     "en": "A gift would be free.",
+     "ar": "الهدية تكون مجانية."
+    },
+    {
+     "id": "t03_4",
+     "en": "Fine, fine. Ten off. Don't tell anyone.",
+     "ar": "حسنًا حسنًا، أنقص عشرة. لا تخبر أحدًا."
+    }
+   ]
+  },
+  {
+   "id": "t04",
+   "who": "guard",
+   "lines": [
+    {
+     "id": "t04_1",
+     "en": "Another night shift. My feet are killing me.",
+     "ar": "مناوبة ليلية أخرى. قدماي تؤلمانني."
+    },
+    {
+     "id": "t04_2",
+     "en": "Stop complaining. At least it's not raining.",
+     "ar": "توقف عن التذمر، على الأقل لا تمطر."
+    },
+    {
+     "id": "t04_3",
+     "en": "...You had to say it.",
+     "ar": "...كان لا بد أن تقولها."
+    }
+   ]
+  },
+  {
+   "id": "t05",
+   "who": "any",
+   "lines": [
+    {
+     "id": "t05_1",
+     "en": "The ash has been falling thicker in the east.",
+     "ar": "الرماد يتساقط بكثافة أكبر في الشرق."
+    },
+    {
+     "id": "t05_2",
+     "en": "My grandfather said that means the old fire is waking.",
+     "ar": "جدي كان يقول إن ذلك يعني أن النار القديمة تستيقظ."
+    },
+    {
+     "id": "t05_3",
+     "en": "Let's hope your grandfather was wrong.",
+     "ar": "لنأمل أن جدك كان مخطئًا."
+    }
+   ]
+  },
+  {
+   "id": "t06",
+   "who": "any",
+   "lines": [
+    {
+     "id": "t06_1",
+     "en": "Smell that? The baker's making honey cakes.",
+     "ar": "هل تشم هذا؟ الخبّاز يصنع كعك العسل."
+    },
+    {
+     "id": "t06_2",
+     "en": "Don't tempt me. I promised my wife.",
+     "ar": "لا تغرني، لقد وعدت زوجتي."
+    },
+    {
+     "id": "t06_3",
+     "en": "One cake never hurt anyone.",
+     "ar": "كعكة واحدة لم تؤذِ أحدًا قط."
+    }
+   ]
+  },
+  {
+   "id": "t07",
+   "who": "any",
+   "lines": [
+    {
+     "id": "t07_1",
+     "en": "Saw a ship come in from Coralport this morning.",
+     "ar": "رأيت سفينة قادمة من مرفأ المرجان هذا الصباح."
+    },
+    {
+     "id": "t07_2",
+     "en": "Spices again?",
+     "ar": "توابل مرة أخرى؟"
+    },
+    {
+     "id": "t07_3",
+     "en": "And rumours. Always rumours.",
+     "ar": "وشائعات. دائمًا شائعات."
+    }
+   ]
+  },
+  {
+   "id": "t08",
+   "who": "child",
+   "lines": [
+    {
+     "id": "t08_1",
+     "en": "I'm going to be a Warden when I grow up!",
+     "ar": "سأصبح حارسًا عندما أكبر!"
+    },
+    {
+     "id": "t08_2",
+     "en": "You can't even lift a bucket.",
+     "ar": "أنت لا تستطيع حتى رفع دلو."
+    },
+    {
+     "id": "t08_3",
+     "en": "Can too!",
+     "ar": "بل أستطيع!"
+    }
+   ]
+  },
+  {
+   "id": "t09",
+   "who": "any",
+   "lines": [
+    {
+     "id": "t09_1",
+     "en": "They say the Demon Realm is stirring.",
+     "ar": "يقولون إن عالم الشياطين بدأ يتحرك."
+    },
+    {
+     "id": "t09_2",
+     "en": "Hush. Don't speak of it after dark.",
+     "ar": "اصمت، لا تتحدث عنه بعد الغروب."
+    }
+   ]
+  },
+  {
+   "id": "t10",
+   "who": "any",
+   "lines": [
+    {
+     "id": "t10_1",
+     "en": "Lovely weather, isn't it?",
+     "ar": "الجو جميل، أليس كذلك؟"
+    },
+    {
+     "id": "t10_2",
+     "en": "Enjoy it while it lasts.",
+     "ar": "استمتع به ما دام باقيًا."
+    }
+   ]
+  }
+ ]
+}

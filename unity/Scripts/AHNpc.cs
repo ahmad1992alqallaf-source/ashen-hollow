@@ -49,6 +49,10 @@ public class AHNpc : MonoBehaviour
     // ---------- everyone else: dressed for their work and their town ----------
     // kit order: head, shoulders, chest, hands, legs, feet, cape (item ids from items.json, drawn by AHWardrobe)
     static readonly string[] Women = { "Tamsin", "Ilsa", "Olga", "Nia", "Hilde", "Kessa", "Nami", "Isolde", "Ulla", "Sefa", "Inga", "Elara", "Hilda", "Mina", "Elowen", "Maudie", "Bess", "Tess", "Lyra", "Wren", "Lira", "Mara", "Maren", "witch" };
+    public static bool IsWoman(string n) { if (n == null) return false; foreach (var w in Women) if (n.Contains(w)) return true; return false; }
+    // talking with another of the townsfolk (AHLife): face them and talk with your hands for a while
+    [System.NonSerialized] AHNpc chat; float chatT;
+    public void ChatWith(AHNpc other, float time) { chat = other; chatT = Time.time + time; }
     static bool Has(string n, params string[] w) { if (n == null) return false; foreach (var x in w) if (n.IndexOf(x, System.StringComparison.OrdinalIgnoreCase) >= 0) return true; return false; }
     static readonly uint[] HairCols = { 0x1e1612, 0x3a2416, 0x5a3a20, 0x6a4a2a, 0x8a4a22, 0xc89a50, 0x9a9088, 0xd8d0c4, 0x2a2a2a };
     static string[] Armour(string town)
@@ -401,7 +405,9 @@ public class AHNpc : MonoBehaviour
         bool near = talkT > Time.time || pd < 90f * AHDB.S;
         bool moving = false;
         Vector3 want = WebDir(face);
-        if (near) want = pp - transform.position;
+        bool chatting = chat != null && chatT > Time.time && talkT <= Time.time;
+        if (chatting) { want = chat.transform.position - transform.position; near = true; }
+        else if (near) want = pp - transform.position;
         else if (wander)
         {
             // web: a new spot within 150 units of home every 3–7 s, walked at 55 units a second
