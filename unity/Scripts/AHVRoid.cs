@@ -488,6 +488,7 @@ public class AHVRoidLink : MonoBehaviour
         foreach (var t in srcRoot.GetComponentsInChildren<Transform>(true)) if (bones.Contains(t.name)) skeleton.Add(t);
         // pair the bones the wardrobe hangs things on
         var dstAnim = dstRoot.GetComponent<Animator>();
+        vHandR = dstAnim.GetBoneTransform(HumanBodyBones.RightHand); vHandL = dstAnim.GetBoneTransform(HumanBodyBones.LeftHand);
         foreach (HumanBodyBones hb in System.Enum.GetValues(typeof(HumanBodyBones)))
         {
             if (hb == HumanBodyBones.LastBone) continue;
@@ -508,7 +509,39 @@ public class AHVRoidLink : MonoBehaviour
         // turns the whole body into NaN pixels that bloom into a white flash, so such frames are skipped
         if (!Ok(pose.bodyPosition) || float.IsNaN(pose.bodyRotation.x) || float.IsNaN(pose.bodyRotation.w)) return;
         if (pose.muscles != null) for (int i = 0; i < pose.muscles.Length; i++) if (float.IsNaN(pose.muscles[i]) || float.IsInfinity(pose.muscles[i])) return;
+        // a hand holding something closes round it (the old rig's clips leave the fingers open, and a sword then
+        // floats in front of a flat palm)
+        if (pose.muscles != null) { if (Holding(vHandR)) Fist(pose.muscles, "Right"); if (Holding(vHandL)) Fist(pose.muscles, "Left"); }
         hd.SetHumanPose(ref pose);
+    }
+
+    Transform vHandR, vHandL;
+    static bool Holding(Transform hand)
+    {
+        if (hand == null) return false;
+        foreach (Transform c in hand) if (c.name.StartsWith("Weapon_") && c.gameObject.activeSelf) return true;
+        return false;
+    }
+    // how far the fingers curl round a grip (muscle values; the thumb wraps less and lies across the fingers)
+    public static float FistCurl = -0.9f, ThumbCurl = -0.4f;
+    static Dictionary<string, int[]> fistIdx;
+    static void Fist(float[] m, string side)
+    {
+        if (fistIdx == null)
+        {
+            fistIdx = new Dictionary<string, int[]>();
+            foreach (var sd in new[] { "Right", "Left" })
+            {
+                var l = new List<int>();
+                for (int i = 0; i < HumanTrait.MuscleCount; i++)
+                {
+                    string n = HumanTrait.MuscleName[i];
+                    if (n.StartsWith(sd + " ") && n.EndsWith("Stretched") && (n.Contains("Index") || n.Contains("Middle") || n.Contains("Ring") || n.Contains("Little") || n.Contains("Thumb"))) l.Add(i);
+                }
+                fistIdx[sd] = l.ToArray();
+            }
+        }
+        foreach (int i in fistIdx[side]) if (i < m.Length) m[i] = HumanTrait.MuscleName[i].Contains("Thumb") ? ThumbCurl : FistCurl;
     }
 
     Vector3 lastPos;

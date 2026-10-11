@@ -184,13 +184,14 @@ public static class AHPeople
     // a staff stands up from the fist, leaning a little forward; a crossbow is held by its grip like a pistol;
     // a shield is strapped to the back of the forearm with its face outward. KayKit weapons have their grip at the
     // origin and the blade or haft along +y (a crossbow points along +z, a shield faces +z).
+    public static float StaffTilt = 60f;   // a staff (or a bow) stands up from the fist, not out in front
     public static void Grip(string name, bool right, out Quaternion q, out Vector3 p)
     {
         float palm = right ? 0.035f : -0.035f;
         q = new Quaternion(0.5f, 0.5f, 0.5f, 0.5f); p = new Vector3(palm, 0.085f, 0f);   // through the fist, out of the thumb side
         if (name.Contains("Shield")) { q = new Quaternion(0.7071068f, 0f, 0.7071068f, 0f); p = new Vector3(right ? -0.13f : 0.13f, 0.05f, 0f); return; }
         if (name.Contains("Crossbow")) { q = new Quaternion(0f, -0.7071068f, -0.7071068f, 0f); return; }
-        if (name.Contains("Staff")) { q = Quaternion.AngleAxis(-12f, Vector3.right) * q; return; }   // upright from the fist, tipped a little forward
+        if (name.Contains("Staff")) { q = Quaternion.AngleAxis(StaffTilt, Vector3.right) * q; return; }   // upright from the fist
         if (name.Contains("Spellbook")) { p = new Vector3(right ? 0.07f : -0.07f, 0.09f, 0f); return; }   // held at its edge against the palm
     }
 
