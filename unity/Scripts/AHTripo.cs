@@ -100,6 +100,7 @@ public static class AHTripo
     {
         if (rig == null || string.IsNullOrEmpty(set) || string.IsNullOrEmpty(cls)) return false;
         string res = "wpn_" + set + "_" + cls;
+        if (!Has(res) && cls == "druid" && Has("wpn_" + set + "_mage")) res = "wpn_" + set + "_mage";   // a staff either way (no druid staff made yet)
         if (!Has(res)) return false;
         Transform hr = null, hl = null;
         foreach (var t in rig.GetComponentsInChildren<Transform>(true)) { if (t.name == "hand_r") hr = t; else if (t.name == "hand_l") hl = t; }

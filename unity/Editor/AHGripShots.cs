@@ -18,7 +18,7 @@ public static class AHGripShots
     static readonly List<GameObject> stands = new List<GameObject>();
     static readonly List<AHAnim> anims = new List<AHAnim>();
     static readonly List<string> clsOf = new List<string>();
-    static Texture2D sheet; static string only;
+    static Texture2D sheet; static string only, sex = "m";
 
     [MenuItem("Ashen Hollow/Test: Weapon Grip Shots #&g")]
     static void Run()
@@ -26,11 +26,12 @@ public static class AHGripShots
         if (!Application.isPlaying || AHGame.I == null) { Debug.Log("Ashen Hollow: Grip Shots needs Play mode"); return; }
         dir = Path.Combine(Application.dataPath, "../HeroShots/grips"); Directory.CreateDirectory(dir);
         // trial settings (HeroShots/grips/tune.txt, lines like "staff=60", "fist=-0.9", "only=lava")
-        only = null; string tf = Path.Combine(dir, "tune.txt");
+        only = null; sex = "m"; string tf = Path.Combine(dir, "tune.txt");
         if (File.Exists(tf)) foreach (var line in File.ReadAllLines(tf))
         {
             var kv = line.Split('='); if (kv.Length != 2) continue; string k = kv[0].Trim(), v = kv[1].Trim(); float f;
             if (k == "only") only = v.Length > 0 ? v : null;
+            else if (k == "sex") sex = v == "f" ? "f" : "m";
             else if (float.TryParse(v, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out f))
             { if (k == "staff") AHPeople.StaffTilt = f; else if (k == "fist") AHVRoidLink.FistCurl = f; else if (k == "thumb") AHVRoidLink.ThumbCurl = f; }
         }
@@ -54,14 +55,14 @@ public static class AHGripShots
         foreach (var cls in Classes)
         {
             var holder = new GameObject("GripStand_" + n).transform; holder.position = new Vector3(6000f + n * 8f, -900f, 0f); n++;
-            var look = new AHLook { sex = "m", hair = "short", hairCol = 2, cloth = 0 };
+            var look = new AHLook { sex = sex, hair = sex == "m" ? "short" : "pony", hairCol = 2, cloth = 0 };
             AHAnim a = null; GameObject rig = null;
             try { rig = AHPeople.BuildHero(holder, AHClasses.Get(cls), look, AHGame.I, out a); } catch (System.Exception e) { Debug.LogWarning("grip shots: " + e.Message); }
             if (rig == null) { Object.Destroy(holder.gameObject); stands.Add(null); anims.Add(null); clsOf.Add(cls); continue; }
             if (coll != "base")
             {
                 string wid = coll + "_" + cls + "_weapon";
-                if (AHItems.Get(wid) != null) AHWardrobe.DressWith(rig, holder, slot => slot == "weapon" ? wid : null, () => false, "m", cls);
+                if (AHItems.Get(wid) != null) AHWardrobe.DressWith(rig, holder, slot => slot == "weapon" ? wid : null, () => false, sex, cls);
             }
             stands.Add(holder.gameObject); anims.Add(a); clsOf.Add(cls);
         }
@@ -92,7 +93,7 @@ public static class AHGripShots
         frame = Time.frameCount;
         if (pose <= 3) return;
         EditorApplication.update -= Step;
-        sheet.Apply(); File.WriteAllBytes(Path.Combine(dir, "grip_" + Colls[ci] + ".png"), sheet.EncodeToPNG()); Object.Destroy(sheet);
+        sheet.Apply(); File.WriteAllBytes(Path.Combine(dir, "grip_" + Colls[ci] + (sex == "f" ? "_f" : "") + ".png"), sheet.EncodeToPNG()); Object.Destroy(sheet);
         Next();
     }
 
