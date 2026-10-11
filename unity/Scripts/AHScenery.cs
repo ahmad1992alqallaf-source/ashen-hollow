@@ -80,6 +80,7 @@ public static class AHScenery
 
     public static void Setup(AHGame g, Transform world)
     {
+        BridgeBoxes.Clear();
         if (world == null) return;
         int nb = Bridges(world), nr = Ruins(g, world);
         int nc = Replace(g, world, new[] { "spire" }, "crys_ice_", 3, "Crystals", 1.4f, 2.5f, 0f, 1.1f)
@@ -107,10 +108,75 @@ public static class AHScenery
         Volcanoes(world);
         // last, once every other rebuild has taken its pieces: whatever is still a bare box
         var lr = new GameObject("Rebuilt boxes").transform; LooseBoxes(world, lr); if (lr.childCount == 0) Object.Destroy(lr.gameObject);
+        ClearBridges(g);
         if (nb + nr + nc + np + nk + nbo + nco + ngr + nob + nf > 0) Debug.Log("Ashen Hollow: rebuilt " + nb + " bridges, " + nr + " ruins, " + (nc + nob) + " crystal clusters, " + np + " palms, " + nk + " cacti, " + nbo + " bone spikes, " + nco + " corals, " + ngr + " graves, " + nf + " ferns");
     }
 
     // ---------- bridges ----------
+    // Last of all: no two bridges in one place (Emberreach had two lava bridges drawn on top of each other, the longer
+    // one stays), and nothing standing on a bridge's deck (Cinderhold's east moat bridge had broken columns and their
+    // blockers on it, right in the way to the gate): those are hidden and their blockers taken away.
+    public static readonly List<Bounds> BridgeBoxes = new List<Bounds>();
+    // a spot that would stand on a bridge (a dungeon door the old map put at a bridge's end) moved off it, past its
+    // nearer end, so the way over stays open
+    public static Vector3 OffBridge(Vector3 p, float clear)
+    {
+        foreach (var B in BridgeBoxes)
+        {
+            if (p.x < B.min.x - 0.5f || p.x > B.max.x + 0.5f || p.z < B.min.z - 0.5f || p.z > B.max.z + 0.5f) continue;
+            bool alongX = B.size.x > B.size.z;
+            if (alongX) p.x = p.x < B.center.x ? B.min.x - clear : B.max.x + clear;
+            else p.z = p.z < B.center.z ? B.min.z - clear : B.max.z + clear;
+        }
+        return p;
+    }
+
+    static void ClearBridges(AHGame g)
+    {
+        BridgeBoxes.Clear();
+        var all = new List<Transform>();
+        foreach (var t in Object.FindObjectsByType<Transform>(FindObjectsSortMode.None))
+            if ((t.name == "Bridge" || t.name == "Lava bridge") && t.parent != null && (t.parent.name == "Bridges" || t.parent.name == "Rebuilt boxes")) all.Add(t);
+        if (all.Count == 0) return;
+        var box = new Dictionary<Transform, Bounds>();
+        foreach (var t in all)
+        {
+            var rs = t.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) continue;
+            Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); box[t] = b;
+        }
+        all.RemoveAll(t => !box.ContainsKey(t));
+        all.Sort((a, b) => Mathf.Max(box[b].size.x, box[b].size.z).CompareTo(Mathf.Max(box[a].size.x, box[a].size.z)));
+        var kept = new List<Transform>(); int twins = 0, hid = 0, freed = 0;
+        foreach (var t in all)
+        {
+            bool twin = false;
+            foreach (var k in kept) { Vector3 d = box[k].center - box[t].center; d.y = 0f; if (d.magnitude < 4f) { twin = true; break; } }
+            if (twin) { Object.Destroy(t.gameObject); twins++; } else kept.Add(t);
+        }
+        var others = Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None);
+        foreach (var t in kept)
+        {
+            var B = box[t]; BridgeBoxes.Add(B);
+            // the deck, and a step of clear ground beyond each end where you come on and off it
+            bool alongX = B.size.x > B.size.z; float ex = alongX ? -1.2f : 0.4f, ez = alongX ? 0.4f : -1.2f;
+            var deck = Rect.MinMaxRect(B.min.x + ex, B.min.z + ez, B.max.x - ex, B.max.z - ez);
+            foreach (var r in others)
+            {
+                if (r == null || !r.enabled || r is ParticleSystemRenderer || r is SkinnedMeshRenderer || r.name.StartsWith("AH_")) continue;
+                bool ours = false; foreach (var k in kept) if (r.transform.IsChildOf(k)) { ours = true; break; }
+                if (ours) continue;
+                var rb = r.bounds; if (Mathf.Max(rb.size.x, rb.size.z) > 6f || rb.size.y < 0.15f) continue;
+                if (rb.max.y < B.min.y + 0.4f || rb.min.y > B.max.y + 1.5f) continue;
+                // on the deck: its middle, or most of its footprint, over it
+                float ox = Mathf.Max(0f, Mathf.Min(rb.max.x, deck.xMax) - Mathf.Max(rb.min.x, deck.xMin)), oz = Mathf.Max(0f, Mathf.Min(rb.max.z, deck.yMax) - Mathf.Max(rb.min.z, deck.yMin));
+                if (!deck.Contains(new Vector2(rb.center.x, rb.center.z)) && ox * oz < 0.25f * Mathf.Max(0.01f, rb.size.x * rb.size.z)) continue;
+                r.enabled = false; hid++;
+            }
+            freed += g.RemoveBlockersIn(deck);
+        }
+        if (twins + hid + freed > 0) Debug.Log("Ashen Hollow: bridges cleared: " + twins + " doubled bridges taken away, " + hid + " pieces and " + freed + " blockers off the decks");
+    }
+
     static int Bridges(Transform world)
     {
         int n = 0; Transform root = null;

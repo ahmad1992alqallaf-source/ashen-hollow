@@ -129,6 +129,8 @@ public class AHAbyss : MonoBehaviour
     Rect U(object box) { return g.MapRect((float)AHJson.N(box, "x"), (float)AHJson.N(box, "z"), (float)AHJson.N(box, "w"), (float)AHJson.N(box, "h")); }
     System.Random rnd;
     static GameObject[] crags;
+    readonly List<Rect> landings = new List<Rect>(), mouths = new List<Rect>();
+    bool OnWay(Vector3 p, float pad) { foreach (var l in landings) if (p.x > l.xMin - pad && p.x < l.xMax + pad && p.z > l.yMin - pad && p.z < l.yMax + pad) return true; return false; }
 
     void Build()
     {
@@ -137,8 +139,18 @@ public class AHAbyss : MonoBehaviour
         var cam = g.cam; if (cam != null) { cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(0.07f, 0.04f, 0.13f); }
 
         var isl = AHJson.O(data, "islands"); var rects = new List<Rect>();
+        var br = AHJson.A(data, "bridges");
+        // where each bridge comes ashore: kept clear of columns, banners and rubble, so nothing stands in the way off it
+        landings.Clear(); mouths.Clear();
+        if (br != null) foreach (var b in br)
+        {
+            var r = U(b); bool alongZ = r.height >= r.width;
+            landings.Add(alongZ ? new Rect(r.xMin - 2f, r.yMin - 9f, r.width + 4f, r.height + 18f) : new Rect(r.xMin - 9f, r.yMin - 2f, r.width + 18f, r.height + 4f));
+            // the gap the bridge spans, out to where the islands' rims would reach, a little wider than its deck
+            mouths.Add(alongZ ? new Rect(r.xMin - 1.6f, r.yMin - 4.5f, r.width + 3.2f, r.height + 9f) : new Rect(r.xMin - 4.5f, r.yMin - 1.6f, r.width + 9f, r.height + 3.2f));
+        }
         if (isl != null) foreach (var kv in isl) { var r = U(kv.Value); rects.Add(r); Island(kv.Key, r); }
-        var br = AHJson.A(data, "bridges"); if (br != null) foreach (var b in br) Bridge(U(b));
+        if (br != null) foreach (var b in br) Bridge(U(b));
 
         // the void below: a faint violet glow far down, rocks drifting up out of it, motes of light rising past you
         var floorV = GameObject.CreatePrimitive(PrimitiveType.Quad); Destroy(floorV.GetComponent<Collider>()); floorV.name = "Void";
@@ -151,7 +163,7 @@ public class AHAbyss : MonoBehaviour
         {
             var p = new Vector3(Mathf.Lerp(area.xMin, area.xMax, (float)rnd.NextDouble()), 0f, Mathf.Lerp(area.yMin, area.yMax, (float)rnd.NextDouble()));
             bool clear = true; foreach (var r in rects) if (p.x > r.xMin - 10f && p.x < r.xMax + 10f && p.z > r.yMin - 10f && p.z < r.yMax + 10f) { clear = false; break; }
-            if (!clear) continue;
+            if (!clear || OnWay(p, 12f)) continue;   // and never up through a bridge
             float s = 1.5f + (float)rnd.NextDouble() * 6f; p.y = -30f + (float)rnd.NextDouble() * 34f;
             var c = Crag(p, new Vector3(s, s * (0.7f + (float)rnd.NextDouble() * 0.8f), s), rock, (float)rnd.NextDouble() * 360f, (float)rnd.NextDouble() < 0.5f);
             drift.Add(c); driftBase.Add(p); driftPhase.Add((float)rnd.NextDouble() * 6.28f); i++;
@@ -181,7 +193,7 @@ public class AHAbyss : MonoBehaviour
         var root = new GameObject("Island " + name).transform; root.SetParent(transform, false);
         const float margin = 2.6f;
         Rect o = new Rect(r.xMin - margin, r.yMin - margin, r.width + margin * 2f, r.height + margin * 2f);
-        Vector2 c = o.center; int n = 64;
+        Vector2 c = o.center; int n = 128;
         var rim = new List<Vector3>();
         for (int i = 0; i < n; i++)
         {
@@ -190,7 +202,12 @@ public class AHAbyss : MonoBehaviour
             // a rounded rectangle (corner radius a fifth of the short side), its edge broken a little
             float hx = o.width * 0.5f, hz = o.height * 0.5f, rr = Mathf.Min(hx, hz) * 0.4f;
             float t = RayRoundRect(d, hx, hz, rr) + ((float)rnd.NextDouble() - 0.5f) * 2.2f;
-            rim.Add(new Vector3(c.x + d.x * t, 0f, c.y + d.y * t));
+            // where a bridge comes ashore the edge is clean and straight, at the island's own line (no rim beyond it),
+            // so the bridge meets the edge instead of running in under a jagged lip
+            var at = new Vector3(c.x + d.x * t, 0f, c.y + d.y * t);
+            foreach (var l in mouths) if (l.Contains(new Vector2(at.x, at.z)) || l.Contains(new Vector2(c.x + d.x * (t - 2.5f), c.y + d.y * (t - 2.5f))))
+            { t = RayRoundRect(d, r.width * 0.5f, r.height * 0.5f, 0.5f); at = new Vector3(c.x + d.x * t, 0f, c.y + d.y * t); break; }
+            rim.Add(at);
         }
         var v = new List<Vector3>(); var uv = new List<Vector2>(); var tris = new List<int>();
         // top: a fan from the middle
@@ -235,6 +252,7 @@ public class AHAbyss : MonoBehaviour
         {
             float u = (float)rnd.NextDouble(), w2 = (float)rnd.NextDouble(); if (rnd.NextDouble() < 0.6) { if (rnd.NextDouble() < 0.5) u = u < 0.5f ? u * 0.25f : 1f - (1f - u) * 0.25f; else w2 = w2 < 0.5f ? w2 * 0.25f : 1f - (1f - w2) * 0.25f; }
             var p = new Vector3(Mathf.Lerp(r.xMin, r.xMax, u), 0f, Mathf.Lerp(r.yMin, r.yMax, w2));
+            if (OnWay(p, 0.5f)) continue;
             float sz = 0.35f + (float)rnd.NextDouble() * (rnd.NextDouble() < 0.15 ? 1.6f : 0.6f);
             Crag(p - Vector3.up * sz * 0.25f, new Vector3(sz * 1.3f, sz, sz), (rnd.NextDouble() < 0.7 ? marble : rock), (float)rnd.NextDouble() * 360f, false).SetParent(root, true);
         }
@@ -262,7 +280,7 @@ public class AHAbyss : MonoBehaviour
         Vector3 c = new Vector3(r.center.x, 0f, r.center.y), fwd = alongZ ? Vector3.forward : Vector3.right, side = alongZ ? Vector3.right : Vector3.forward;
         // the deck runs a little into the islands at both ends
         var deck = new List<Vector3>(); var uv = new List<Vector2>(); var tris = new List<int>();
-        float L = len * 0.5f + 3f, W = wid * 0.5f + 0.6f;
+        float L = len * 0.5f + 0.9f, W = wid * 0.5f + 0.6f;   // the deck tucks under the islands' edges by a little
         Vector3[] corners = { c - fwd * L - side * W, c + fwd * L - side * W, c + fwd * L + side * W, c - fwd * L + side * W };
         foreach (var p in corners) { deck.Add(p + Vector3.up * 0.02f); uv.Add(new Vector2(p.x, p.z) / 7f); }
         foreach (var p in corners) { deck.Add(p - Vector3.up * 1.4f); uv.Add(new Vector2(p.x, p.z) / 7f); }
@@ -280,15 +298,17 @@ public class AHAbyss : MonoBehaviour
         // columns and a gold rail along both edges
         for (int s = -1; s <= 1; s += 2)
         {
-            for (float t = -L + 1.5f; t <= L - 1.5f + 0.01f; t += 3f)
+            int nc = Mathf.Max(2, Mathf.RoundToInt(len / 3f) + 1);
+            for (int k = 0; k < nc; k++)
             {
+                float t = -len * 0.5f + len * k / (nc - 1f);   // a column at each end, right on the edge, and evenly between
                 var p = c + fwd * t + side * (s * (W - 0.3f));
                 Column(root, p, 0.28f, 1.15f + (rnd.NextDouble() < 0.18 ? -0.6f : 0f), false);
             }
             var rail = GameObject.CreatePrimitive(PrimitiveType.Cylinder); Destroy(rail.GetComponent<Collider>()); rail.name = "Rail";
             rail.transform.SetParent(root, false); rail.transform.position = c + side * (s * (W - 0.3f)) + Vector3.up * 1.2f;
             rail.transform.rotation = Quaternion.FromToRotation(Vector3.up, fwd);
-            rail.transform.localScale = new Vector3(0.14f, L - 1f, 0.14f); rail.GetComponent<Renderer>().sharedMaterial = trim;
+            rail.transform.localScale = new Vector3(0.14f, len * 0.5f, 0.14f); rail.GetComponent<Renderer>().sharedMaterial = trim;
         }
         var seam = GameObject.CreatePrimitive(PrimitiveType.Quad); Destroy(seam.GetComponent<Collider>()); seam.name = "Seam";
         seam.transform.SetParent(root, false); seam.transform.position = c + Vector3.up * 0.04f; seam.transform.rotation = Quaternion.LookRotation(Vector3.down, fwd);
@@ -400,6 +420,7 @@ public class AHAbyss : MonoBehaviour
             bool edgeX = rnd.NextDouble() < 0.5; float u = (float)rnd.NextDouble(), e = rnd.NextDouble() < 0.5 ? 0.06f : 0.94f;
             var p = new Vector3(Mathf.Lerp(r.xMin, r.xMax, edgeX ? e : u), 0f, Mathf.Lerp(r.yMin, r.yMax, edgeX ? u : e));
             float h = rnd.NextDouble() < 0.35 ? 2f + (float)rnd.NextDouble() * 2f : 5f + (float)rnd.NextDouble() * 4f;
+            if (OnWay(p, 1.5f)) continue;
             Column(root, p, 0.6f + (float)rnd.NextDouble() * 0.2f, h, true);
             g.AddBlocker(p, 0.8f);
             if (h < 4.5f && rnd.NextDouble() < 0.6)
@@ -413,8 +434,12 @@ public class AHAbyss : MonoBehaviour
         for (int i = 0; i < pairs; i++)
         {
             float u = (i + 1f) / (pairs + 1f);
-            Banner(root, new Vector3(Mathf.Lerp(r.xMin, r.xMax, u), 0f, r.yMin + 1.2f));
-            Banner(root, new Vector3(Mathf.Lerp(r.xMin, r.xMax, u), 0f, r.yMax - 1.2f));
+            foreach (float z in new[] { r.yMin + 1.2f, r.yMax - 1.2f })
+            {   // a banner where a bridge lands moves aside, out of the way
+                var p = new Vector3(Mathf.Lerp(r.xMin, r.xMax, u), 0f, z);
+                for (int k = 1; k < 8 && OnWay(p, 1f); k++) p.x = Mathf.Lerp(r.xMin, r.xMax, u) + (k % 2 == 1 ? 1f : -1f) * ((k + 1) / 2) * 3f;
+                if (!OnWay(p, 1f)) Banner(root, p);
+            }
         }
         // violet rift light (no shadows) so the dark reads as void, not black
         var l = new GameObject("RiftLight").AddComponent<Light>(); l.transform.SetParent(root, false);

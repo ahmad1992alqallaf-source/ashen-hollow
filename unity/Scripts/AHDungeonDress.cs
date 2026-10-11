@@ -35,15 +35,27 @@ public static class AHDungeonDress
         // banners, hung swords and cobwebs
         var torches = new List<Vector3>(); var props = new List<Vector3>();
         var segs = AHDungeonBuild.Build(g, root, flame);
-        foreach (var sg in segs)
+        // torches from the way in outwards, so the start is never the dark end when the torches run out
+        Vector3 start = g.W(g.data.spawn.x, g.data.spawn.z);
+        var lit = new List<AHDungeonBuild.Seg>(segs); lit.Sort((u, v) => ((u.a + u.b) * 0.5f - start).sqrMagnitude.CompareTo(((v.a + v.b) * 0.5f - start).sqrMagnitude));
+        foreach (var sg in lit)
         {
             Vector3 c = (sg.a + sg.b) * 0.5f, inw = sg.inward;
             bool farT = true; foreach (var t in torches) if ((t - c).sqrMagnitude < 64f) { farT = false; break; }
-            if (farT && torches.Count < 48) { WallTorch(root, c + inw * 0.05f, inw, flame); torches.Add(c); continue; }
+            if (farT && torches.Count < 56) { WallTorch(root, c + inw * 0.05f, inw, flame); torches.Add(c); continue; }
             double r = rnd.NextDouble();
             if (r < 0.12) AHDungeonBuild.Mount(AHDungeonBuild.Q("qd_banner_wall"), root, c + inw * 0.05f + Vector3.up * 3.2f, inw, 0.9f);
             else if (r < 0.18) AHDungeonBuild.Mount(AHDungeonBuild.Q("qd_sword_wallmount"), root, c + inw * 0.05f + Vector3.up * 1.9f, inw, 1f);
             else if (r < 0.26) AHDungeonBuild.Mount(AHDungeonBuild.Q(rnd.Next(2) == 0 ? "qd_cobweb" : "qd_cobweb2"), root, sg.a + inw * 0.05f + Vector3.up * 2.6f, inw, 1.1f);
+        }
+        // and a pair of standing torches where you come in, whatever the walls got
+        int pair = 0;
+        foreach (var d in new[] { Vector3.right, Vector3.left, Vector3.forward, Vector3.back })
+        {
+            if (pair >= 2) break;
+            var at = start + d * 2.6f;
+            if (g.Blocked(at, 0.6f)) continue;
+            Torch(root, at, d, flame); torches.Add(at); pair++;
         }
         var area = g.AreaRect;
         // spots along the walls: walkable, with rock 1 to 3 m away on one side

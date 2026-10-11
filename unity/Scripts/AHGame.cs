@@ -329,6 +329,13 @@ public class AHGame : MonoBehaviour
     }
 
     public void AddBlocker(Vector3 p, float r) { cPos.Add(new Vector3(p.x, 0f, p.z)); cRad.Add(r); }
+    // takes away the round blockers standing inside r (things that were in the way on a bridge, now cleared off it)
+    public int RemoveBlockersIn(Rect r)
+    {
+        int n = 0;
+        for (int i = cPos.Count - 1; i >= 0; i--) if (r.Contains(new Vector2(cPos[i].x, cPos[i].z))) { cPos.RemoveAt(i); cRad.RemoveAt(i); n++; }
+        return n;
+    }
     public void AddFloor(Rect r) { floors.Add(r); }   // a floor built in code (the Ashen Deep): only floors are walkable once there is one
     // a solid box on the ground (a market stall, a booth), from its world bounds, shrunk a little so you can still reach the counter
     public void AddBlockBox(Bounds b, float shrink = 0.25f)

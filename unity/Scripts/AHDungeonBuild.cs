@@ -127,6 +127,24 @@ public static class AHDungeonBuild
                 }
             }
         }
+        // the old cave rocks that stood out in the open floor, in front of the new walls: hidden (the walls are the cave's
+        // edge now; rocks mostly behind them stay, their tops showing over the wall as the cave roof going up)
+        int rocks = 0;
+        var mt = GameObject.Find("Mountains");
+        if (mt != null)
+            foreach (var r in mt.GetComponentsInChildren<MeshRenderer>())
+            {
+                if (!r.enabled) continue;
+                var b = r.bounds; int all = 0, open = 0;
+                for (float x = b.min.x; x <= b.max.x; x += res)
+                    for (float z = b.min.z; z <= b.max.z; z += res)
+                    {
+                        int i = Mathf.RoundToInt((x - area.xMin) / res), j = Mathf.RoundToInt((z - area.yMin) / res);
+                        if (i < 0 || j < 0 || i >= nx || j >= nz) continue;
+                        all++; if (walk[i, j]) open++;
+                    }
+                if (all > 0 && open > all * 0.25f) { r.enabled = false; rocks++; }
+            }
         // the floor laid with flagstones (the ground's own colour, a stone pattern over it)
         var tex = Resources.Load<Texture2D>("AH/Textures/dungeon_floor");
         if (tex != null)
@@ -136,7 +154,7 @@ public static class AHDungeonBuild
                     var m = r.sharedMaterial; m.SetTexture("_PaveMap", tex); m.SetFloat("_PaveScale", 0.42f); m.SetFloat("_PaveAmt", 1f); m.SetFloat("_PaveGrass", 1f); m.SetFloat("_PaveWater", 1f);
                     m.SetVector("_PaveRect", new Vector4(-1e6f, -1e6f, 1e6f, 1e6f));
                 }
-        Debug.Log("Ashen Hollow: dungeon built of stone: " + lines.Count + " wall lines, " + Walls + " wall pieces");
+        Debug.Log("Ashen Hollow: dungeon built of stone: " + lines.Count + " wall lines, " + Walls + " wall pieces, " + rocks + " rocks off the floor");
         return segs;
     }
 

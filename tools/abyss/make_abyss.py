@@ -24,8 +24,8 @@ bridges = [
     (121, 90, 8, 20),   # plains - rift
     (121, 150, 8, 23),  # rift - span
     (121, 195, 8, 10),  # span - citadel
-    (70, 150, 30, 7),   # shrine - rift
-    (150, 150, 20, 7),  # rift - forge
+    (70, 131.5, 30, 7), # shrine - rift (across the middle of where the two islands face each other, not at the rift's corner)
+    (150, 131.5, 20, 7), # rift - forge
 ]
 walk = [{"x": X0 + x, "z": Z0 + z, "w": w, "h": h} for (x, z, w, h) in list(islands.values()) + bridges]
 
@@ -54,7 +54,7 @@ own = {
     "dm_gloomwing": ("dm_gloomwing", biped("b_dm_gloomwing_fiend", 2.2)),
     "dm_thrall":    ("dm_thrall",    biped("b_dm_ashbound_thrall", 1.9)),
     "dm_brute":     ("dm_brute",     biped("b_dm_brimstone_brute", 2.8)),
-    "dm_knight":    ("dm_knight",    biped("b_dm_hellforged_knight", 2.3)),
+    "dm_knight":    ("dm_knight",    dict(biped("b_dm_hellforged_knight", 2.3), weapon={"file": "wpn_demonic_warrior", "len": 0.5, "grip": 0.1})),
     "dm_malgareth": ("dm_malgareth", dict(biped("b_dm_malgareth", 2.1), attack=["Attack", "Attack2", "Slam"], roar="Roar")),
     "dm_hound":    ("dm_hellhound", dict(M["BEASTS"]["shadowwolf"], files=["b_dm_hellhound"], size=2.0, noTint=True)),
     "dm_behemoth": ("dm_behemoth",  dict(M["BEASTS"]["wb_tusk"], files=["b_dm_behemoth"], noTint=True)),

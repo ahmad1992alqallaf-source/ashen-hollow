@@ -85,6 +85,8 @@ public class AHMob : MonoBehaviour
         {
             if (AHJson.Has(sk, "tex")) SkinTex(m.model, sk);   // models that arrive without their textures (FBX): put them on
             Tint(m.model, t.id, sk);
+            var wpn = AHJson.O(sk, "weapon");   // a monster's weapon in its fist (Meshy rigs): file, len (x its height), grip
+            if (wpn != null) AHTripo.MobHold(m.model, go.transform.forward, AHJson.S(wpn, "file"), (float)AHJson.N(wpn, "len", 0.5) * size, (float)AHJson.N(wpn, "grip", 0.1), AHJson.S(wpn, "hand") ?? "RightHand");
             if (AHJson.B(sk, "golem")) GolemSkin(m.model, t.id);
             if (AHJson.S(sk, "rig") == "serpent") m.model.AddComponent<AHSerpentRig>();   // bones moved in code
             // the game asks for Idle / Walk / Gallop / Attack / HitReact / Death; this model's own names (web MOB_SKINS)

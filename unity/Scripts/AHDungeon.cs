@@ -107,6 +107,7 @@ public class AHDungeon : MonoBehaviour
                 if (ent == null || z == null) continue;
                 Vector3 p = g.W((float)AHJson.N(ent, "x") * S, (float)AHJson.N(ent, "y") * S);
                 if (!g.InArea(p)) continue;
+                p = AHScenery.OffBridge(p, 3f);   // not standing on a bridge (the Molten Depths' door was on Cinderhold's moat bridge)
                 string id = AHJson.S(d, "id");
                 var gt = new AHGate { x = (float)AHJson.N(ent, "x") * S, z = (float)AHJson.N(ent, "y") * S, r = 110 * S, to = id, tx = ((float)AHJson.N(z, "x") + 500) * S, tz = ((float)AHJson.N(z, "y") + 700) * S, f = 0f, label = "Enter " + AHJson.S(d, "name"), name = AHJson.S(d, "name"), dung = id };
                 AHGather.Spots.Add(new AHSpot { kind = "gate", type = id, name = gt.label, pos = p, r = 0.5f, reach = gt.r, gate = gt });
@@ -117,7 +118,7 @@ public class AHDungeon : MonoBehaviour
         if (ps != null && ps.Count > 1)
         {
             var q = ps[0]; var to = AHJson.O(q, "to");
-            Vector3 p = g.W((float)AHJson.N(q, "x") * S, (float)AHJson.N(q, "y") * S);
+            Vector3 p = AHScenery.OffBridge(g.W((float)AHJson.N(q, "x") * S, (float)AHJson.N(q, "y") * S), 3f);
             if (g.InArea(p))
             {
                 var gt = new AHGate { x = (float)AHJson.N(q, "x") * S, z = (float)AHJson.N(q, "y") * S, r = 80 * S, to = "forge", tx = (float)AHJson.N(to, "x") * S, tz = (float)AHJson.N(to, "y") * S, f = 0f, label = "Enter the Sunken Forge", name = "Sunken Forge", dung = "forge" };

@@ -10,6 +10,45 @@ public static class AHTripo
 
     public static bool Has(string name) { return Resources.Load<GameObject>(Dir + name) != null; }
 
+    // a monster's weapon (Meshy rigs: RightHand / RightForeArm, no fingers). Worked out in the rig's bind pose (the
+    // T-pose it was rigged in), so it does not matter what the animation has done yet: the weapon sits in the fist just
+    // past the wrist, its blade (the model's +y) pointing the way the monster faces, square to the forearm, the way a
+    // sword is held in a fist with the arm out. 'len' metres long, held 'grip' of the way up from its bottom end.
+    public static Transform MobHold(GameObject model, Vector3 facing, string res, float len, float grip, string hand)
+    {
+        if (model == null || string.IsNullOrEmpty(res)) return null;
+        var pf = Resources.Load<GameObject>(Dir + res) ?? Resources.Load<GameObject>("AH/Models/" + res); if (pf == null) return null;
+        string fore = hand.Replace("Hand", "ForeArm");
+        foreach (var smr in model.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+        {
+            var bones = smr.bones; var bind = smr.sharedMesh != null ? smr.sharedMesh.bindposes : null; if (bones == null || bind == null) continue;
+            int hi = -1, fi = -1;
+            for (int i = 0; i < bones.Length && i < bind.Length; i++) { if (bones[i] == null) continue; if (bones[i].name == hand) hi = i; else if (bones[i].name == fore) fi = i; }
+            if (hi < 0 || fi < 0) continue;
+            Matrix4x4 toW = smr.transform.localToWorldMatrix, hW = toW * bind[hi].inverse, fW = toW * bind[fi].inverse;
+            Vector3 hp = hW.MultiplyPoint3x4(Vector3.zero), fp = fW.MultiplyPoint3x4(Vector3.zero), arm = (hp - fp).normalized;
+            float forearm = (hp - fp).magnitude;
+            Vector3 up = Vector3.ProjectOnPlane(facing, arm); if (up.sqrMagnitude < 1e-6f) up = Vector3.ProjectOnPlane(Vector3.up, arm);
+            up.Normalize();
+            Quaternion wRot = Quaternion.LookRotation(Vector3.Cross(arm, up), up);    // +y along the blade, +z across the fist
+            Vector3 wPos = hp + arm * forearm * 0.28f;                                 // the middle of the fist
+            Quaternion hRot = hW.rotation;
+            var hb = bones[hi];
+            var root = new GameObject("Weapon_" + res).transform; root.SetParent(hb, false);
+            root.localPosition = hW.inverse.MultiplyPoint3x4(wPos);
+            root.localRotation = Quaternion.Inverse(hRot) * wRot;
+            Vector3 hs = hb.lossyScale; root.localScale = new Vector3(1f / Mathf.Max(1e-5f, hs.x), 1f / Mathf.Max(1e-5f, hs.y), 1f / Mathf.Max(1e-5f, hs.z));
+            var m = Object.Instantiate(pf, root, false); m.name = "Model"; m.transform.localPosition = Vector3.zero; m.transform.localRotation = Quaternion.identity;
+            var b = Bounds(m.transform, root); float big = Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z));
+            if (big > 1e-5f) m.transform.localScale *= len / big;
+            b = Bounds(m.transform, root);
+            m.transform.localPosition -= new Vector3(b.center.x, b.min.y + b.size.y * grip, b.center.z);
+            Finish(m, model.layer);
+            return root;
+        }
+        return null;
+    }
+
     // a prop in the hand: long axis +y, held 'grip' of the way up from its bottom end; a shield (shield=true) is held
     // by the middle of its back. 'len' is its longest side in metres.
     public static Transform Hold(Transform hand, string res, string name, Quaternion q, Vector3 p, float len, float grip, bool shield)
