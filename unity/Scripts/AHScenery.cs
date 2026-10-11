@@ -530,7 +530,7 @@ public static class AHScenery
             Vector3 face; Bounds b; if (!Take(world, s, 2.4f, 7f, 16f, out b, out face)) continue;
             // a city's own gate or wall tower already stands here: no second tower inside it
             bool city = false; var cb = GameObject.Find("City buildings");
-            if (cb != null) foreach (Transform t in cb) { if (!t.name.Contains("tower") && !t.name.Contains("Tower")) continue; Vector3 d = t.position - b.center; d.y = 0f; if (d.magnitude < 6f) { city = true; break; } }
+            if (cb != null) foreach (Transform t in cb.transform) { if (!t.name.Contains("tower") && !t.name.Contains("Tower")) continue; Vector3 d = t.position - b.center; d.y = 0f; if (d.magnitude < 6f) { city = true; break; } }
             if (city) continue;
             var pf = Resources.Load<GameObject>("AH/Models/KK/kk_building_tower_A_" + col); if (pf == null) continue;
             var go = Strip(Object.Instantiate(pf)); go.name = "Watchtower";

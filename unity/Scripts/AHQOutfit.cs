@@ -109,21 +109,23 @@ public class AHQOutfitHide : MonoBehaviour
     readonly List<SkinnedMeshRenderer> hiddenHair = new List<SkinnedMeshRenderer>();
     readonly List<Renderer> hiddenBits = new List<Renderer>();
     readonly List<SkinnedMeshRenderer> darkened = new List<SkinnedMeshRenderer>();
+    readonly List<KeyValuePair<SkinnedMeshRenderer, Material[]>> swapped = new List<KeyValuePair<SkinnedMeshRenderer, Material[]>>();
+    static Material underMat;
     static readonly Color Under = new Color(0.17f, 0.13f, 0.12f, 1f);   // a dark padded under-suit, warm like the basalt plates
     const float Cell = 0.05f, Reach = 0.10f, Through = 0.07f, Close = 0.03f, Snug = 0.07f;
 
     public void Apply(Transform body, GameObject outfit, Transform head)
     {
         // the outfit's surface, in world space, in a grid
-        var grid = new Dictionary<Vector3Int, List<int>>(); var pts = new List<Vector3>(); var nrm = new List<Vector3>();
+        var grid = new Dictionary<Vector3Int, List<int>>(); var pts = new List<Vector3>(); var nrm = new List<Vector3>(); var headPt = new List<bool>();
         var baked = new Mesh();
         foreach (var o in outfit.GetComponentsInChildren<SkinnedMeshRenderer>(false))
         {
             o.BakeMesh(baked, true); var m = Matrix4x4.TRS(o.transform.position, o.transform.rotation, Vector3.one);
-            var v = baked.vertices; var n = baked.normals;
+            var v = baked.vertices; var n = baked.normals; bool hp = AHQOutfit.IsHeadPiece(o.name);
             for (int i = 0; i < v.Length; i++)
             {
-                var p = m.MultiplyPoint3x4(v[i]); pts.Add(p); nrm.Add(n.Length > i ? m.MultiplyVector(n[i]).normalized : Vector3.up);
+                var p = m.MultiplyPoint3x4(v[i]); pts.Add(p); headPt.Add(hp); nrm.Add(n.Length > i ? m.MultiplyVector(n[i]).normalized : Vector3.up);
                 var k = Key(p); List<int> l; if (!grid.TryGetValue(k, out l)) grid[k] = l = new List<int>(); l.Add(pts.Count - 1);
             }
         }
@@ -138,23 +140,55 @@ public class AHQOutfitHide : MonoBehaviour
                 Transform a = an.GetBoneTransform(side[0]), h = an.GetBoneTransform(side[1]), f = an.GetBoneTransform(side[2]);
                 if (a == null || h == null) continue; segs.Add(a.position); segs.Add(f != null ? f.position : h.position);
             }
-        int cutTris = 0; bool closed = outfit.name.Contains("tqo_");
+        int cutTris = 0; string on = outfit.name; bool closed = on.Contains("tqo_");
+        // a cloth hood: the hair stays inside it (only what pokes out through the cloth goes), so the hood is full
+        // round the face instead of showing a bald brow or an empty space where the hair was
+        bool hood = helmet && !closed && (on.Contains("Ranger:Head") || on.Contains("RangerShade:Head") || on.Contains("RangerTide:Head"));
+        // a closed knight's helm: the bigger VRoid face would poke out at the cheeks, so it is shaded dark (behind the visor)
+        bool visor = helmet && !closed && on.Contains("Knight") && on.Contains(":Head");
         foreach (var s in body.GetComponentsInChildren<SkinnedMeshRenderer>(true))
         {
             var mesh = s.sharedMesh; if (mesh == null) continue;
             string nm = s.name.ToLower();
-            if (helmet && nm.Contains("hair")) { if (s.enabled) { s.enabled = false; hiddenHair.Add(s); } continue; }
+            if (helmet && !hood && nm.Contains("hair")) { if (s.enabled) { s.enabled = false; hiddenHair.Add(s); } continue; }
             // a closed great helm (the Warden's lava armour) hides the face too: it would show through the visor
             if (helmet && closed && nm.Contains("face")) { if (s.enabled) { s.enabled = false; hiddenHair.Add(s); } continue; }
+            if (visor && nm.Contains("face"))
+            {
+                // every part of the face (skin, eye whites, the bright eye highlights) in one dark unlit shade
+                if (underMat == null) { var sh = Shader.Find("Universal Render Pipeline/Unlit"); if (sh != null) { underMat = new Material(sh); underMat.SetColor("_BaseColor", Under * 0.6f); } }
+                if (underMat != null) { var old = s.sharedMaterials; var dm = new Material[old.Length]; for (int i = 0; i < dm.Length; i++) dm[i] = underMat; swapped.Add(new KeyValuePair<SkinnedMeshRenderer, Material[]>(s, old)); s.sharedMaterials = dm; }
+                continue;
+            }
             if (!mesh.isReadable || nm.Contains("face")) continue;   // the face stays (a helmet hides it or not)
             s.BakeMesh(baked, true); var m = Matrix4x4.TRS(s.transform.position, s.transform.rotation, Vector3.one);
             var v = baked.vertices; var hide = new bool[v.Length]; int nh = 0;
+            // the neck, the head and the hair are only cut where they poke out through the outfit: cut under a collar
+            // too, they left a hole at the nape through which the inside of the face showed
+            // the hair lies over the clothes and is never cut, except where it pokes out through a hood
+            var soft = new bool[v.Length]; var hairV = new bool[v.Length]; var bw0 = mesh.boneWeights; var sb0 = s.bones; bool hairMesh = nm.Contains("hair");
+            for (int i = 0; i < v.Length; i++)
+            {
+                if (hairMesh) { hairV[i] = true; continue; }
+                if (bw0.Length != v.Length) continue;
+                int b0 = bw0[i].boneIndex0; var bt0 = b0 >= 0 && b0 < sb0.Length ? sb0[b0] : null; if (bt0 == null) continue;
+                string bn = bt0.name; hairV[i] = bn.Contains("Hair");
+                if (hairV[i]) continue;
+                // under a helm the scalp all goes (it showed pale through the helm's ear holes and over its crown)
+                if (helmet && bn.Contains("Head") && !closed) { hide[i] = true; nh++; continue; }
+                soft[i] = bn.Contains("Neck") || (!helmet && bn.Contains("Head"));
+            }
             // under a closed suit of plate the body stays inside, darkened to a black under-suit, so no chink between
             // the plates shows the world behind (only the hair, and whatever pokes out through the plates, goes)
             if (closed) { var pb = new MaterialPropertyBlock(); s.GetPropertyBlock(pb); pb.SetColor("_Color", Under); pb.SetColor("_BaseColor", Under); pb.SetColor("_ShadeColor", Under); s.SetPropertyBlock(pb); darkened.Add(s); }
+            Vector3 hf = body.forward; hf.y = 0f; hf.Normalize();
             for (int i = 0; i < v.Length; i++)
             {
-                var p = m.MultiplyPoint3x4(v[i]); var k = Key(p); float best = Reach * Reach; int bi = -1;
+                var p = m.MultiplyPoint3x4(v[i]);
+                // under a hood only the fringe in front of the face stays; the rest of the hair is inside the hood anyway
+                // and only poked through it in patches
+                if (hood && hairV[i] && head != null && Vector3.Dot(p - head.position, hf) < 0.03f) { hide[i] = true; nh++; continue; }
+                var k = Key(p); float best = Reach * Reach; int bi = -1;
                 for (int x = -1; x <= 1; x++) for (int y = -1; y <= 1; y++) for (int z = -1; z <= 1; z++)
                 {
                     List<int> l; if (!grid.TryGetValue(new Vector3Int(k.x + x, k.y + y, k.z + z), out l)) continue;
@@ -166,7 +200,8 @@ public class AHQOutfitHide : MonoBehaviour
                 // under a closed suit only what pokes out through the plates goes; what is under them stays, dark
                 // (under closed plate only what is actually outside the plate goes: the rest stays as dark padding behind
                 // every chink between the plates)
-                if (closed) { if (along > 0.004f && dist < Through) { hide[i] = true; nh++; } }
+                if (hairV[i]) continue;   // the hair over the clothes, and the fringe framing the face in a hood, stay whole
+                else if (closed || soft[i]) { if (along > 0.004f && dist < Through) { hide[i] = true; nh++; } }
                 else if (dist < Close || (along > 0.5f * dist && dist < Through) || along < -0.5f * dist) { hide[i] = true; nh++; }
             }
             // which vertices hang mostly from a forearm, a hand or a finger
@@ -195,7 +230,7 @@ public class AHQOutfitHide : MonoBehaviour
                 var t = mesh.GetTriangles(sm); var keep = new List<int>(t.Length);
                 // the VRoid clothes (a long coat, skirts, shoes) go altogether: the outfit replaces them; so does hair under a helmet
                 string mn = sm < smats.Length && smats[sm] != null ? smats[sm].name.ToUpper() : "";
-                if (helmet && mn.Contains("HAIR")) { cutTris += t.Length / 3; cut.SetTriangles(keep, sm); continue; }
+                if (helmet && !hood && mn.Contains("HAIR")) { cutTris += t.Length / 3; cut.SetTriangles(keep, sm); continue; }
                 bool cloth = mn.Contains("CLOTH");   // loose VRoid clothes swing out past the plates when walking: they always go
                 for (int i = 0; i < t.Length; i += 3)
                 {
@@ -203,7 +238,7 @@ public class AHQOutfitHide : MonoBehaviour
                     // there they show under a short outfit sleeve, like an undershirt, and are trimmed like the skin
                     if (cloth && !(arm[t[i]] && arm[t[i + 1]] && arm[t[i + 2]])) { cutTris++; continue; }
                     int h = (hide[t[i]] ? 1 : 0) + (hide[t[i + 1]] ? 1 : 0) + (hide[t[i + 2]] ? 1 : 0);
-                    if (h >= 1) { cutTris++; continue; }
+                    if (h >= (hood && hairV[t[i]] ? 2 : 1)) { cutTris++; continue; }
                     keep.Add(t[i]); keep.Add(t[i + 1]); keep.Add(t[i + 2]);
                 }
                 cut.SetTriangles(keep, sm);
@@ -227,6 +262,7 @@ public class AHQOutfitHide : MonoBehaviour
         foreach (var h in hiddenHair) if (h != null) h.enabled = true;
         foreach (var b in hiddenBits) if (b != null) b.enabled = true;
         foreach (var d in darkened) if (d != null) d.SetPropertyBlock(null);
+        foreach (var kv in swapped) if (kv.Key != null) kv.Key.sharedMaterials = kv.Value;
         for (int i = 0; i < smrs.Count; i++) { if (smrs[i] != null && smrs[i].sharedMesh == cuts[i]) smrs[i].sharedMesh = originals[i]; if (cuts[i] != null) Destroy(cuts[i]); }
     }
 }

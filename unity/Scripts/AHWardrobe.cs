@@ -654,9 +654,10 @@ public static class AHWardrobe
             }
             else if (f == "crown" || f == "circlet")
             {
-                K.Mesh(torus, new Vector3(0, 0.085f, -0.03f), new Vector3(0.222f, 0.32f, 0.238f), Vector3.zero);
-                if (f == "crown") for (int i = 0; i < 7; i++) { float a = i * Mathf.PI * 2 / 7; K.Mesh(cone, new Vector3(Mathf.Cos(a) * 0.115f, 0.095f, Mathf.Sin(a) * 0.12f - 0.03f), new Vector3(0.05f, 0.08f, 0.05f), Vector3.zero); }
-                else K.Prim(PrimitiveType.Sphere, new Vector3(0, 0.085f, 0.09f), Vector3.one * 0.03f, Vector3.zero, K.Gold);
+                // snug on the brow (it stood well off the VRoid hair as a floating ring)
+                K.Mesh(torus, new Vector3(0, 0.08f, -0.03f), new Vector3(0.19f, 0.26f, 0.205f), Vector3.zero);
+                if (f == "crown") for (int i = 0; i < 7; i++) { float a = i * Mathf.PI * 2 / 7; K.Mesh(cone, new Vector3(Mathf.Cos(a) * 0.098f, 0.09f, Mathf.Sin(a) * 0.103f - 0.03f), new Vector3(0.045f, 0.075f, 0.045f), Vector3.zero); }
+                else K.Prim(PrimitiveType.Sphere, new Vector3(0, 0.08f, 0.075f), Vector3.one * 0.028f, Vector3.zero, K.Gold);
             }
             else if (f == "halo") K.Mesh(torus, new Vector3(0, 0.22f, -0.04f), new Vector3(0.24f, 0.6f, 0.24f), Vector3.zero);
             else if (f == "horns" || f == "antlers")

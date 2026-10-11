@@ -29,7 +29,7 @@ public static class AHCreatorShots
 
     static void Clear()
     {
-        foreach (var a in anims) if (a != null) a.Dispose();
+        // the pose component disposes each hero's animation with it
         foreach (var s in stands) if (s != null) Object.Destroy(s);
         stands.Clear(); anims.Clear();
     }
@@ -50,8 +50,9 @@ public static class AHCreatorShots
                 if (rig != null)
                 {
                     // as a new hero: the class's own starting outfit, no gear
-                    try { AHWardrobe.DressWith(rig, holder, s => null, () => false, sex, cls); } catch (System.Exception e) { Debug.LogWarning("creator shots dress: " + e.Message); }
-                    if (a != null) a.Play("Idle", true);
+                    var kit = AHPlayer.Starter(cls); string ks;
+                    try { AHWardrobe.DressWith(rig, holder, s => kit.TryGetValue(s, out ks) ? ks : null, () => false, sex, cls); } catch (System.Exception e) { Debug.LogWarning("creator shots dress: " + e.Message); }
+                    if (a != null) { a.Play("Idle", true); holder.gameObject.AddComponent<AHStudioPose>().anim = a; }
                 }
                 stands.Add(holder.gameObject); anims.Add(a);
             }
