@@ -1089,6 +1089,17 @@ public static class AHMenu
         if (to.sqrMagnitude > 0.01f) { g.player.transform.rotation = Quaternion.LookRotation(to); g.camYaw = g.player.transform.eulerAngles.y; }
         Debug.Log("Ashen Hollow: standing by " + best.npcName);
     }
+    // stand by one named person (change the name to look somewhere else)
+    static string lookFor = "Bard Lira";
+    [MenuItem("Ashen Hollow/Test: Stand By Named Townsfolk")]
+    static void StandByNamed()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        var n = AHNpc.Find(lookFor); if (n == null) { Debug.Log("Ashen Hollow: " + lookFor + " is not here"); return; }
+        g.player.transform.position = g.Resolve(n.transform.position + new Vector3(5f, 0f, -5f), 0.5f);
+        Vector3 to = n.transform.position - g.player.transform.position; to.y = 0f;
+        if (to.sqrMagnitude > 0.01f) { g.player.transform.rotation = Quaternion.LookRotation(to); g.camYaw = g.player.transform.eulerAngles.y; }
+    }
     [MenuItem("Ashen Hollow/Test: Townsfolk Speak Now")]
     static void SpeakNow() { if (Application.isPlaying) AHLife.TestGreet(); }
     [MenuItem("Ashen Hollow/Test: Switch Language")]

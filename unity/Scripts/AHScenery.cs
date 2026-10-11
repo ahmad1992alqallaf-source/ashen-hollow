@@ -472,7 +472,7 @@ public static class AHScenery
         // a garden round each city statue: a stepped plinth, flowerbeds in a ring, benches facing it and shade trees
         if (AHGame.AreaId == "city" || AHGame.AreaId.EndsWith("_city"))
             foreach (var go in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
-                if (go.name == "Statue") Garden(g, go.transform.position, go.transform.rotation);
+                if (go.name == "Statue") { var at = go.transform.position; at.y = 0f; Garden(g, at, go.transform.rotation); }   // on the ground, not up on the statue's pedestal
         // the desert obelisks (a black post with a gold cube): a tall tapering sandstone obelisk on a stepped base, carved
         // bands of glyphs, a gilded pyramid tip and a few fallen blocks in the sand
         foreach (var s in Spots(g, "obelisk"))
