@@ -91,14 +91,15 @@ public class AHAbyss : MonoBehaviour
                 // veins: the classic marble ripple, bent by noise
                 float warp = V(a, 32, u * 8f, v * 8f) * 2.4f + V(b, 16, u * 4f, v * 4f) * 1.6f;
                 float vein = Mathf.Abs(Mathf.Sin((u * 3f + v * 1.6f) * 6.283f + warp * 3.2f));
-                float shade = 0.84f + 0.1f * V(a, 32, u * 16f + 5f, v * 16f) - 0.22f * Mathf.Pow(1f - vein, 6f);
-                // tiles: faint seams every quarter (worn slabs)
-                float sx = Mathf.Abs((u * 4f) % 1f - 0.5f), sy = Mathf.Abs((v * 4f) % 1f - 0.5f); if (sx > 0.488f || sy > 0.488f) shade *= 0.8f;
+                float shade = 0.9f + 0.06f * V(a, 32, u * 16f + 5f, v * 16f) - 0.1f * Mathf.Pow(1f - vein, 10f);
+                // slabs: faint seams every half (big worn flagstones)
+                float sx = Mathf.Abs((u * 2f) % 1f - 0.5f), sy = Mathf.Abs((v * 2f) % 1f - 0.5f); if (sx > 0.494f || sy > 0.494f) shade *= 0.86f;
                 byte c = (byte)Mathf.Clamp(255f * shade, 0, 255), cb = (byte)Mathf.Clamp(255f * shade * 1.03f, 0, 255);
                 px[y * N + x] = new Color32(c, c, cb, 255);
                 // cracks: a few long jagged lines that glow violet
                 float cr = Mathf.Abs(V(b, 16, u * 5f + 2.7f, v * 5f + 9.1f) - 0.5f);
-                float k = cr < 0.012f ? 1f : cr < 0.022f ? 0.35f : 0f;
+                float k = cr < 0.005f ? 1f : cr < 0.009f ? 0.3f : 0f;
+                if (V(a, 32, u * 3f + 11f, v * 3f + 4f) < 0.5f) k = 0f;   // the cracks only in places, not everywhere
                 if (k > 0f) px[y * N + x] = new Color32((byte)(c * 0.35f), (byte)(c * 0.3f), (byte)(cb * 0.45f), 255);
                 ex[y * N + x] = new Color32((byte)(150 * k), (byte)(90 * k), (byte)(255 * k), 255);
             }
@@ -109,7 +110,7 @@ public class AHAbyss : MonoBehaviour
         if (marble != null) return;
         MakeMarble();
         marble = Lit(Color.white, 0.32f); marble.SetTexture("_BaseMap", marbleTex); marble.SetTextureScale("_BaseMap", Vector2.one);
-        marble.EnableKeyword("_EMISSION"); marble.SetTexture("_EmissionMap", marbleEmit); marble.SetColor("_EmissionColor", new Color(1.4f, 1.2f, 2f));
+        marble.EnableKeyword("_EMISSION"); marble.SetTexture("_EmissionMap", marbleEmit); marble.SetColor("_EmissionColor", new Color(0.9f, 0.7f, 1.5f));
         rock = Lit(new Color(0.24f, 0.22f, 0.3f), 0.1f); rock.SetFloat("_Cull", 0f); rock.SetTexture("_BaseMap", marbleTex); rock.SetTextureScale("_BaseMap", new Vector2(0.5f, 2f));
         trim = Lit(new Color(0.78f, 0.62f, 0.3f), 0.55f); trim.SetFloat("_Metallic", 0.7f);   // old gold
         cloth = Lit(new Color(0.12f, 0.08f, 0.26f), 0.05f); cloth.SetFloat("_Cull", 0f);     // deep indigo, both faces
@@ -120,8 +121,8 @@ public class AHAbyss : MonoBehaviour
             crestMat.SetTexture("_BaseMap", ct); crestMat.SetFloat("_AlphaClip", 1f); crestMat.SetFloat("_Cutoff", 0.45f); crestMat.EnableKeyword("_ALPHATEST_ON");
             crestMat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
         }
-        voidMat = Glow(new Color(0.09f, 0.04f, 0.18f), 1.6f);
-        glowLine = Glow(new Color(0.6f, 0.38f, 1f), 3f);
+        voidMat = Glow(new Color(0.05f, 0.02f, 0.1f), 1f);
+        glowLine = Glow(new Color(0.5f, 0.3f, 0.95f), 1.1f);
     }
 
     // ---------- building ----------
@@ -227,6 +228,17 @@ public class AHAbyss : MonoBehaviour
             Crag(p, new Vector3(s, s * (1.3f + (float)rnd.NextDouble()), s), rock, (float)rnd.NextDouble() * 360f, true).SetParent(root, true);
         }
         Ruins(name, r, root);
+        Fissures(r, root);
+        // rubble: broken stone strewn over the floor, more of it near the edges
+        int bits = Mathf.Clamp((int)(r.width * r.height / 70f), 6, 70);
+        for (int i = 0; i < bits; i++)
+        {
+            float u = (float)rnd.NextDouble(), w2 = (float)rnd.NextDouble(); if (rnd.NextDouble() < 0.6) { if (rnd.NextDouble() < 0.5) u = u < 0.5f ? u * 0.25f : 1f - (1f - u) * 0.25f; else w2 = w2 < 0.5f ? w2 * 0.25f : 1f - (1f - w2) * 0.25f; }
+            var p = new Vector3(Mathf.Lerp(r.xMin, r.xMax, u), 0f, Mathf.Lerp(r.yMin, r.yMax, w2));
+            float sz = 0.35f + (float)rnd.NextDouble() * (rnd.NextDouble() < 0.15 ? 1.6f : 0.6f);
+            Crag(p - Vector3.up * sz * 0.25f, new Vector3(sz * 1.3f, sz, sz), (rnd.NextDouble() < 0.7 ? marble : rock), (float)rnd.NextDouble() * 360f, false).SetParent(root, true);
+        }
+        Landmark(name, r, root);
     }
     // distance from the centre of a rounded rectangle to its edge along d
     static float RayRoundRect(Vector2 d, float hx, float hz, float rr)
@@ -281,6 +293,101 @@ public class AHAbyss : MonoBehaviour
         var seam = GameObject.CreatePrimitive(PrimitiveType.Quad); Destroy(seam.GetComponent<Collider>()); seam.name = "Seam";
         seam.transform.SetParent(root, false); seam.transform.position = c + Vector3.up * 0.04f; seam.transform.rotation = Quaternion.LookRotation(Vector3.down, fwd);
         seam.transform.localScale = new Vector3(0.12f, L * 2f - 2f, 1f); seam.GetComponent<Renderer>().sharedMaterial = glowLine;
+    }
+
+    // ---------- glowing rifts across the floor: jagged violet lines where the island is coming apart ----------
+    void Fissures(Rect r, Transform root)
+    {
+        int n = Mathf.Clamp((int)(r.width * r.height / 900f), 1, 5);
+        for (int f = 0; f < n; f++)
+        {
+            var v = new List<Vector3>(); var uv = new List<Vector2>(); var t = new List<int>();
+            // from one edge inward, wandering, narrowing to nothing
+            bool fromX = rnd.NextDouble() < 0.5; float u0 = 0.2f + (float)rnd.NextDouble() * 0.6f;
+            Vector3 p = fromX ? new Vector3(rnd.NextDouble() < 0.5 ? r.xMin : r.xMax, 0.03f, Mathf.Lerp(r.yMin, r.yMax, u0)) : new Vector3(Mathf.Lerp(r.xMin, r.xMax, u0), 0.03f, rnd.NextDouble() < 0.5 ? r.yMin : r.yMax);
+            Vector3 dir = (new Vector3(r.center.x, 0.03f, r.center.y) - p).normalized;
+            int steps = 9 + rnd.Next(8); float len = Mathf.Min(r.width, r.height) * (0.35f + (float)rnd.NextDouble() * 0.3f) / steps;
+            for (int i = 0; i <= steps; i++)
+            {
+                float wdt = 0.55f * (1f - i / (float)steps) + 0.05f;
+                Vector3 side = Vector3.Cross(dir, Vector3.up).normalized * wdt;
+                v.Add(p - side); v.Add(p + side); uv.Add(new Vector2(0, i)); uv.Add(new Vector2(1, i));
+                if (i > 0) { int b = v.Count - 4; t.AddRange(new[] { b, b + 2, b + 1, b + 1, b + 2, b + 3 }); }
+                dir = Quaternion.Euler(0f, ((float)rnd.NextDouble() - 0.5f) * 70f, 0f) * dir; p += dir * len;
+            }
+            var go = new GameObject("Rift"); go.transform.SetParent(root, false);
+            go.AddComponent<MeshFilter>().sharedMesh = Up(MeshOf(v, uv, t, "rift")); go.AddComponent<MeshRenderer>().sharedMaterial = glowLine;
+        }
+    }
+
+    // ---------- each island's heart: the gate's arch of columns, the shrine's crest altar, the forge's anvils of stone,
+    // the riven island's floating shard, the throne on its dais ----------
+    void Landmark(string name, Rect r, Transform root)
+    {
+        Vector3 c = new Vector3(r.center.x, 0f, r.center.y);
+        switch (name)
+        {
+            case "gate":
+                for (int s = -1; s <= 1; s += 2) { Column(root, c + new Vector3(s * 5f, 0f, -6f), 1f, 11f, true); g.AddBlocker(c + new Vector3(s * 5f, 0f, -6f), 1.2f); }
+                CrestDisc(root, c + new Vector3(0f, 9.5f, -6f), 4.2f, Vector3.forward);
+                break;
+            case "shrine":
+                Dais(root, c, 9f, 2);
+                for (int i = 0; i < 8; i++) { float a = i * Mathf.PI / 4f; var p = c + new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * 12f; Column(root, p, 0.8f, i % 3 == 0 ? 3f : 8f, true); g.AddBlocker(p, 1f); }
+                CrestDisc(root, c + Vector3.up * 5.5f, 4.5f, Vector3.forward); g.AddBlocker(c, 2f);
+                break;
+            case "rift":
+                {   // a great shard of the old kingdom turning slowly above a hole torn in the floor
+                    var hole = GameObject.CreatePrimitive(PrimitiveType.Cylinder); Destroy(hole.GetComponent<Collider>()); hole.name = "Tear";
+                    hole.transform.SetParent(root, false); hole.transform.position = c + Vector3.up * 0.02f; hole.transform.localScale = new Vector3(7f, 0.02f, 7f);
+                    hole.GetComponent<Renderer>().sharedMaterial = voidMat; g.AddBlocker(c, 3.6f);
+                    var shard = Crag(c + Vector3.up * 7f, new Vector3(4f, 7f, 4f), marble, 0f, false); shard.SetParent(root, true);
+                    shard.gameObject.AddComponent<AHAbyssSpin>().speed = 9f; drift.Add(shard); driftBase.Add(shard.position); driftPhase.Add(1f);
+                    var l = new GameObject("TearLight").AddComponent<Light>(); l.transform.SetParent(root, false); l.transform.position = c + Vector3.up * 2f;
+                    l.type = LightType.Point; l.color = new Color(0.55f, 0.35f, 1f); l.range = 16f; l.intensity = 3f; l.shadows = LightShadows.None;
+                }
+                break;
+            case "forge":
+                for (int i = 0; i < 4; i++) { var p = c + new Vector3((i % 2 == 0 ? -1 : 1) * 10f, 0f, (i < 2 ? -1 : 1) * 8f); Dais(root, p, 3f, 1); Column(root, p, 1.2f, 2.2f, true); g.AddBlocker(p, 1.6f); }
+                break;
+            case "citadel":
+                {   // the empty throne of the fallen king on a three-step dais, the crest towering behind it
+                    var t = c + new Vector3(0f, 0f, r.height * 0.28f);
+                    Dais(root, t, 12f, 3);
+                    var seat = Crag(t + Vector3.up * 1.5f, new Vector3(3.4f, 6f, 2.6f), marble, 0f, false); seat.SetParent(root, true);
+                    CrestDisc(root, t + new Vector3(0f, 10f, 3f), 8f, Vector3.forward); g.AddBlocker(t, 3f);
+                    for (int s = -1; s <= 1; s += 2) for (int k = 0; k < 3; k++) { var p = t + new Vector3(s * (8f + k * 7f), 0f, -2f - k * 4f); Column(root, p, 1f, 9f + k * 2f, true); g.AddBlocker(p, 1.2f); }
+                }
+                break;
+        }
+    }
+    // a round stepped platform of marble (tiers going up), gold edge on the top step
+    void Dais(Transform root, Vector3 at, float radius, int tiers)
+    {
+        for (int i = 0; i < tiers; i++)
+        {
+            var d = GameObject.CreatePrimitive(PrimitiveType.Cylinder); Destroy(d.GetComponent<Collider>()); d.name = "Dais";
+            d.transform.SetParent(root, false); float rr = radius * (1f - i * 0.22f);
+            d.transform.position = at + Vector3.up * (0.18f + i * 0.36f); d.transform.localScale = new Vector3(rr * 2f, 0.18f, rr * 2f);
+            d.GetComponent<Renderer>().sharedMaterial = marble;
+        }
+    }
+    // the Ashen crest as a great disc of stone and gold, standing upright
+    void CrestDisc(Transform root, Vector3 at, float size, Vector3 facing)
+    {
+        var back = GameObject.CreatePrimitive(PrimitiveType.Cylinder); Destroy(back.GetComponent<Collider>()); back.name = "CrestStone";
+        back.transform.SetParent(root, false); back.transform.position = at; back.transform.rotation = Quaternion.LookRotation(Vector3.up, -facing) * Quaternion.Euler(0f, 0f, 0f);
+        back.transform.rotation = Quaternion.FromToRotation(Vector3.up, -facing); back.transform.localScale = new Vector3(size * 1.08f, 0.25f, size * 1.08f);
+        back.GetComponent<Renderer>().sharedMaterial = rock;
+        foreach (float side in new[] { -1f, 1f })
+        {
+            var q = GameObject.CreatePrimitive(PrimitiveType.Quad); Destroy(q.GetComponent<Collider>()); q.name = "Crest";
+            q.transform.SetParent(root, false); q.transform.position = at + facing * (0.27f * side);
+            q.transform.rotation = Quaternion.LookRotation(facing * side); q.transform.localScale = new Vector3(size, size, 1f);
+            q.GetComponent<Renderer>().sharedMaterial = crestMat;
+        }
+        var l = new GameObject("CrestLight").AddComponent<Light>(); l.transform.SetParent(root, false); l.transform.position = at - facing * 3f;
+        l.type = LightType.Point; l.color = new Color(1f, 0.85f, 0.6f); l.range = size * 2.2f; l.intensity = 1.4f; l.shadows = LightShadows.None;
     }
 
     // ---------- ruins: broken columns, fallen drums, banners with the crest, rift lights ----------
@@ -447,10 +554,10 @@ public class AHAbyss : MonoBehaviour
     {
         if (AHGame.AreaId != Area) return false;
         RenderSettings.fogColor = new Color(0.16f, 0.1f, 0.26f);
-        RenderSettings.ambientSkyColor = new Color(0.42f, 0.36f, 0.6f);
-        RenderSettings.ambientEquatorColor = new Color(0.3f, 0.25f, 0.42f);
+        RenderSettings.ambientSkyColor = new Color(0.38f, 0.36f, 0.48f);
+        RenderSettings.ambientEquatorColor = new Color(0.27f, 0.25f, 0.34f);
         RenderSettings.ambientGroundColor = new Color(0.14f, 0.1f, 0.22f);
-        if (sun != null) { sun.intensity = 0.75f; sun.color = new Color(0.78f, 0.74f, 1f); }
+        if (sun != null) { sun.intensity = 0.7f; sun.color = new Color(0.86f, 0.84f, 0.98f); }
         return true;
     }
 }
