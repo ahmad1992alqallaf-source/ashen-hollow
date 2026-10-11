@@ -1070,6 +1070,29 @@ public static class AHMenu
         if (best != null) g.player.transform.position = g.Resolve(best.transform.position + (g.player.transform.position - best.transform.position).normalized * 6f, 0.35f);
     }
     [MenuItem("Ashen Hollow/Travel (test)/Your Homestead")] static void THome() { var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return; if (g.player.home == null) { Debug.Log("Ashen Hollow: buy the deed first (Test: Open Land Agent)"); return; } AHHome.TravelHome(g); }
+    // the living town: stand near two townsfolk who are together (they greet you and talk), or switch the language
+    [MenuItem("Ashen Hollow/Test: Stand By Townsfolk")]
+    static void StandBy()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        AHNpc best = null; float bd = float.MaxValue; Vector3 pp = g.player.transform.position;
+        foreach (var a in AHNpc.All) foreach (var b in AHNpc.All)
+        {
+            if (a == null || b == null || a == b || a.isCaptain) continue;
+            float d = a.DistTo(b.transform.position); if (d > 4.5f || d < 0.5f) continue;
+            float s = a.DistTo(pp); if (s < bd) { bd = s; best = a; }
+        }
+        if (best == null && AHNpc.All.Count > 0) best = AHNpc.All[0];
+        if (best == null) { Debug.Log("Ashen Hollow: no townsfolk here"); return; }
+        g.player.transform.position = g.Resolve(best.transform.position + new Vector3(4f, 0f, -3f), 0.5f);
+        Vector3 to = best.transform.position - g.player.transform.position; to.y = 0f;
+        if (to.sqrMagnitude > 0.01f) { g.player.transform.rotation = Quaternion.LookRotation(to); g.camYaw = g.player.transform.eulerAngles.y; }
+        Debug.Log("Ashen Hollow: standing by " + best.npcName);
+    }
+    [MenuItem("Ashen Hollow/Test: Townsfolk Speak Now")]
+    static void SpeakNow() { if (Application.isPlaying) AHLife.TestGreet(); }
+    [MenuItem("Ashen Hollow/Test: Switch Language")]
+    static void SwitchLang() { AHLoc.Lang = AHLoc.Arabic ? "en" : "ar"; Debug.Log("Ashen Hollow: language " + AHLoc.Lang); }
     [MenuItem("Ashen Hollow/Travel (test)/Abyssal Realm")] static void TAbyss() { TravelTo(AHAbyss.Area); }
     [MenuItem("Ashen Hollow/Travel (test)/Hollow Meadow")] static void T0() { TravelTo("meadow"); }
     [MenuItem("Ashen Hollow/Travel (test)/Old Mill Road")] static void T1() { TravelTo("mill"); }

@@ -56,9 +56,9 @@ public class AHLife : MonoBehaviour
                 float d = n.DistTo(pp); if (d > 5.5f || d < 0.6f) continue;
                 float last; if (greeted.TryGetValue(n, out last) && now - last < 120f) continue;
                 greeted[n] = now;
-                if (Random.value > 0.75f) continue;   // not everyone speaks up every time
+                if (Random.value > 0.9f) continue;   // now and then someone is too busy to look up
                 var line = PickGreeting(g, n); if (line == null) continue;
-                Say(n, line, 3.6f); nextGreet = now + 4f;
+                Say(n, line, 4.2f); nextGreet = now + 4f;
                 break;
             }
 
@@ -91,6 +91,14 @@ public class AHLife : MonoBehaviour
         }
     }
 
+    // test tools: the nearest of the townsfolk greets you now; the nearest two talk now
+    public static void TestGreet()
+    {
+        var g = AHGame.I; if (inst == null || g == null || g.player == null || inst.data == null) return;
+        AHNpc best = null; float bd = float.MaxValue; foreach (var n in AHNpc.All) { if (n == null) continue; float d = n.DistTo(g.player.transform.position); if (d < bd) { bd = d; best = n; } }
+        if (best == null) return; var line = inst.PickGreeting(g, best); if (line != null) inst.Say(best, line, 5f);
+        inst.nextTalk = 0f;
+    }
     bool Busy(AHNpc n) { float t; return busy.TryGetValue(n, out t) && t > Time.time; }
     object Get(string k) { return AHJson.O(data, k); }
     List<object> CallList(AHNpc n) { var l = AHJson.A(Get("call"), Role(n)); return l != null && l.Count > 0 ? l : null; }
@@ -174,7 +182,7 @@ public class AHLife : MonoBehaviour
         {
             b = new B(); var go = new GameObject("Bubble", typeof(RectTransform)); go.transform.SetParent(canvas.transform, false);
             b.rt = (RectTransform)go.transform; b.rt.pivot = new Vector2(0.5f, 0f);
-            b.bg = go.AddComponent<Image>(); b.bg.color = new Color(0.08f, 0.07f, 0.06f, 0.78f); b.bg.raycastTarget = false;
+            b.bg = go.AddComponent<Image>(); b.bg.sprite = Round(); b.bg.type = Image.Type.Sliced; b.bg.color = new Color(0.08f, 0.07f, 0.06f, 0.82f); b.bg.raycastTarget = false;
             var tg = new GameObject("Text", typeof(RectTransform)); tg.transform.SetParent(go.transform, false);
             b.txt = tg.AddComponent<Text>(); b.txt.font = font; b.txt.fontSize = 15; b.txt.color = new Color(1f, 0.95f, 0.85f); b.txt.alignment = TextAnchor.MiddleCenter; b.txt.raycastTarget = false;
             var trt = (RectTransform)tg.transform; trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one; trt.offsetMin = new Vector2(9, 5); trt.offsetMax = new Vector2(-9, -5);
@@ -188,6 +196,22 @@ public class AHLife : MonoBehaviour
         b.rt.gameObject.SetActive(true);
     }
 
+    // a soft rounded box for the bubbles (white, tinted by the image colour; nine-sliced so it keeps its corners)
+    static Sprite round;
+    static Sprite Round()
+    {
+        if (round != null) return round;
+        const int N = 32, R = 10; var t = new Texture2D(N, N, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+        for (int y = 0; y < N; y++) for (int x = 0; x < N; x++)
+        {
+            float dx = Mathf.Max(0f, Mathf.Max(R - x - 0.5f, x + 0.5f - (N - R))), dy = Mathf.Max(0f, Mathf.Max(R - y - 0.5f, y + 0.5f - (N - R)));
+            float d = Mathf.Sqrt(dx * dx + dy * dy); t.SetPixel(x, y, new Color(1f, 1f, 1f, Mathf.Clamp01(R - d)));
+        }
+        t.Apply();
+        round = Sprite.Create(t, new Rect(0, 0, N, N), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect, new Vector4(R, R, R, R));
+        return round;
+    }
+
     void LateUpdate()
     {
         var g = AHGame.I; if (g == null || g.cam == null || canvas == null) return;
@@ -195,7 +219,7 @@ public class AHLife : MonoBehaviour
         foreach (var b in bubbles)
         {
             if (b.who == null || b.until < Time.time) { if (b.rt.gameObject.activeSelf) b.rt.gameObject.SetActive(false); continue; }
-            Vector3 w = b.who.transform.position + Vector3.up * (b.who.height + 0.45f);
+            Vector3 w = b.who.transform.position + Vector3.up * (b.who.height + 1.05f);   // above their name
             Vector3 s = g.cam.WorldToScreenPoint(w);
             float dist = Vector3.Distance(g.cam.transform.position, w);
             bool show = s.z > 0f && dist < 30f;
