@@ -394,7 +394,7 @@ public class AHHomeView : MonoBehaviour
         {
             string pid = id; object ppl = pl;
             s = new AHSpot { kind = "use", type = "plot", name = Label(pl), pos = P(cx, cy), r = 0.5f, reach = Mathf.Max(W, D) * 0.5f + 1.2f, use = () => g.ui.OpenFarmPlot(pid) };
-            if (kind == "house" && H != null) s.reach = (H.tier == 1 ? 3.5f : H.tier == 2 ? 7f : 11f);
+            if (kind == "house" && H != null) s.reach = (H.tier == 1 ? 4.5f : H.tier == 2 ? 7f : 11f);   // the tent's own 6 m walls left only a hand's width to stand in at 3.5 m
         }
         spots[id] = s; AHGather.Spots.Add(s);
     }
