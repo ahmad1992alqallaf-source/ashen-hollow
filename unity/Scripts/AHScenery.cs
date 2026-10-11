@@ -455,7 +455,16 @@ public static class AHScenery
         foreach (var s in Spots(g, "statue"))
         {
             Vector3 face; Bounds b; if (!Take(world, s, 0.9f, 1.2f, 3.5f, out b, out face)) continue;
-            var holder = new GameObject("Statue").transform; holder.position = new Vector3(b.center.x, b.min.y, b.center.z);
+            // the old plinth it stood on (left in place): the highest block under it
+            Bounds ped = new Bounds(); bool hasPed = false;
+            foreach (var r in world.GetComponentsInChildren<Renderer>(true))
+            {
+                if (!r.enabled || r.name.StartsWith("AH_")) continue; var pb = r.bounds;
+                if (Mathf.Abs(pb.center.x - b.center.x) > pb.extents.x || Mathf.Abs(pb.center.z - b.center.z) > pb.extents.z) continue;
+                if (pb.max.y > b.min.y + 0.4f || Mathf.Max(pb.size.x, pb.size.z) > 8f || pb.size.y < 0.2f) continue;
+                if (!hasPed || pb.max.y > ped.max.y) { ped = pb; hasPed = true; }
+            }
+            var holder = new GameObject("Statue").transform; holder.position = hasPed ? new Vector3(ped.center.x, ped.max.y, ped.center.z) : new Vector3(b.center.x, b.min.y, b.center.z);
             AHAnim an; GameObject hero = null;
             try { hero = AHPeople.BuildHero(holder, AHClasses.Get("warrior"), new AHLook { hair = "short", beard = "full" }, g, out an); } catch { an = null; }
             if (hero == null) { Object.Destroy(holder.gameObject); continue; }
@@ -466,7 +475,9 @@ public static class AHScenery
             holder.localScale = Vector3.one * k;
             Vector3 to = (g.data != null && g.data.spawn != null ? g.W(g.data.spawn.x, g.data.spawn.z) : holder.position + Vector3.back) - holder.position; to.y = 0;
             if (to.sqrMagnitude > 0.01f) holder.rotation = Quaternion.LookRotation(to.normalized);
-            if (an != null) { an.Play(an.Has("Sword_Idle") ? "Sword_Idle" : "Idle", true); an.Hold(an.Has("Sword_Idle") ? "Sword_Idle" : "Idle", 0.25f); holder.gameObject.AddComponent<AHStatueFreeze>().anim = an; }
+            var fz = holder.gameObject.AddComponent<AHStatueFreeze>();
+            if (an != null) { an.Play(an.Has("Sword_Idle") ? "Sword_Idle" : "Idle", true); an.Hold(an.Has("Sword_Idle") ? "Sword_Idle" : "Idle", 0.25f); fz.anim = an; }
+            if (hasPed) { fz.plinth = ped; fz.fit = true; }
             AHModel.SetShadows(holder.gameObject);
         }
         // a garden round each city statue: a stepped plinth, flowerbeds in a ring, benches facing it and shade trees
@@ -1943,13 +1954,24 @@ public class AHStatueFreeze : MonoBehaviour
     // holds the pose a moment, then keeps the whole figure in carved stone: the hero's clothes, hair and face are dressed
     // a little after it is built (and again as the outfit loads), so the stone is laid on more than once
     [System.NonSerialized] public AHAnim anim; float t; int coats;
+    [System.NonSerialized] public Bounds plinth; [System.NonSerialized] public bool fit;
     static Material stone;
     void Update()
     {
         t += Time.deltaTime; if (anim != null && t < 0.6f) anim.Tick(Time.deltaTime);
         float[] at = { 0.6f, 2f, 5f, 10f };
-        if (coats < at.Length && t > at[coats]) { Coat(); coats++; }
+        if (coats < at.Length && t > at[coats]) { Coat(); if (coats == 0 && fit) Fit(); coats++; }
         if (coats >= at.Length) Destroy(this);
+    }
+    // once posed: stand it in the middle of the plinth's top, no wider than the top (a little margin all round)
+    void Fit()
+    {
+        var rs = GetComponentsInChildren<Renderer>(); if (rs.Length == 0) return;
+        Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+        float top = Mathf.Min(plinth.size.x, plinth.size.z) * 0.86f, foot = Mathf.Max(b.size.x, b.size.z);
+        if (foot > top && foot > 0.01f) { float k = top / foot; transform.localScale *= k; b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); }
+        Vector3 shift = new Vector3(plinth.center.x - b.center.x, plinth.max.y - b.min.y, plinth.center.z - b.center.z);
+        transform.position += shift;
     }
     void Coat()
     {

@@ -1100,6 +1100,21 @@ public static class AHMenu
         Vector3 to = n.transform.position - g.player.transform.position; to.y = 0f;
         if (to.sqrMagnitude > 0.01f) { g.player.transform.rotation = Quaternion.LookRotation(to); g.camYaw = g.player.transform.eulerAngles.y; }
     }
+    // stand in front of the nearest city statue, looking at it
+    [MenuItem("Ashen Hollow/Test: Look At Statue")]
+    static void LookStatue()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
+        GameObject st = null; foreach (var go in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects()) if (go.name == "Statue") st = go;
+        if (st == null) { Debug.Log("Ashen Hollow: no statue here"); return; }
+        Vector3 f = st.transform.forward; f.y = 0f; f.Normalize();
+        Vector3 side = Vector3.Cross(Vector3.up, f);
+        g.player.transform.position = g.Resolve(st.transform.position + f * 6f + side * 3f, 0.5f);
+        Vector3 to = st.transform.position - g.player.transform.position; to.y = 0f;
+        g.player.transform.rotation = Quaternion.LookRotation(to); g.camYaw = g.player.transform.eulerAngles.y;
+        var rs = st.GetComponentsInChildren<Renderer>(); Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+        Debug.Log("Ashen Hollow: statue at " + st.transform.position + " bounds " + b.center + " size " + b.size);
+    }
     [MenuItem("Ashen Hollow/Test: Townsfolk Speak Now")]
     static void SpeakNow() { if (Application.isPlaying) AHLife.TestGreet(); }
     [MenuItem("Ashen Hollow/Test: Switch Language")]
