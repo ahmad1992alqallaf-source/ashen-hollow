@@ -109,6 +109,24 @@ public static class AHSolidify
                 g.AddBlocker(c, Mathf.Min(b.size.x, b.size.z) * 0.3f); n++;
             }
         }
+        // everything you use must be usable from somewhere you can stand: a fishing spot far out in the water, or a tent
+        // house whose own walls fill its reach, gets a reach that comes to the nearest open ground
+        int longer = 0;
+        foreach (var sp in AHGather.Spots)
+        {
+            if (sp.kind == "chop" || sp.reach <= 0.5f || Standable(g, sp.pos, sp.reach, gy)) continue;
+            for (float d = sp.reach + 0.5f; d <= sp.reach + 10f; d += 0.5f)
+            {
+                bool hit = false;
+                for (int k = 0; k < 24 && !hit; k++)
+                {
+                    float a = k * Mathf.PI / 12f; var q = sp.pos + new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * d; q.y = gy;
+                    if (g.InArea(q) && !g.Blocked(q, 0.3f)) hit = true;
+                }
+                if (hit) { sp.reach = d + 0.8f; longer++; break; }
+            }
+        }
+        if (longer > 0) Debug.Log("Ashen Hollow: " + longer + " things you use given a longer reach (no ground to stand on near them)");
         Last = n;
         if (n > 0) Debug.Log("Ashen Hollow: " + n + " solid things given blockers (you could walk through them)");
     }

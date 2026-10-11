@@ -173,6 +173,45 @@ public static class AHWorldAudit
             cases.Add(new Case { kind = "STUCK", a = new Prop { t = null, root = what, path = what, b = pb, foot = 1f }, note = "nowhere to stand within " + reach.ToString("F1") + " m", score = 1000f });
         };
         foreach (var sp in AHGather.Spots) if (sp.kind != "chop" && sp.reach > 0.5f) stuck(sp.pos, sp.reach, "spot " + sp.kind + " " + (sp.name ?? sp.type ?? ""));
+        // cut off: walking out from where the hero stands, every way out, every person and everything you use can be reached
+        {
+            var ar = g.AreaRect; float res = 1.2f;
+            if ((ar.width / res) * (ar.height / res) > 120000f) res = Mathf.Sqrt(ar.width * ar.height / 120000f);
+            int nx = Mathf.CeilToInt(ar.width / res) + 1, nz = Mathf.CeilToInt(ar.height / res) + 1;
+            System.Func<int, int, bool> free = (i, j) => { var q = new Vector3(ar.xMin + i * res, gy, ar.yMin + j * res); return g.InArea(q) && !g.Blocked(q, 0.3f); };
+            Vector3 hp = g.player != null ? g.player.transform.position : g.W(0, 0);
+            int si = Mathf.RoundToInt((hp.x - ar.xMin) / res), sj = Mathf.RoundToInt((hp.z - ar.yMin) / res);
+            var ok = new bool[nx, nz]; var v2 = new bool[nx, nz]; var q2 = new Queue<Vector2Int>(); int reached = 0;
+            for (int rad = 0; rad < 6 && q2.Count == 0; rad++)
+                for (int di = -rad; di <= rad && q2.Count == 0; di++) for (int dj = -rad; dj <= rad && q2.Count == 0; dj++)
+                { int i = si + di, j = sj + dj; if (i < 0 || j < 0 || i >= nx || j >= nz) continue; if (free(i, j)) { v2[i, j] = true; q2.Enqueue(new Vector2Int(i, j)); } }
+            while (q2.Count > 0)
+            {
+                var c = q2.Dequeue(); ok[c.x, c.y] = true; reached++;
+                for (int d = 0; d < 4; d++)
+                {
+                    int i = c.x + (d == 0 ? 1 : d == 1 ? -1 : 0), j = c.y + (d == 2 ? 1 : d == 3 ? -1 : 0);
+                    if (i < 0 || j < 0 || i >= nx || j >= nz || v2[i, j]) continue; v2[i, j] = true; if (free(i, j)) q2.Enqueue(new Vector2Int(i, j));
+                }
+            }
+            System.Action<Vector3, float, string> reach = (at, r, what) =>
+            {
+                int ci = Mathf.RoundToInt((at.x - ar.xMin) / res), cj = Mathf.RoundToInt((at.z - ar.yMin) / res); int rr = Mathf.CeilToInt(r / res);
+                for (int i = ci - rr; i <= ci + rr; i++) for (int j = cj - rr; j <= cj + rr; j++)
+                {
+                    if (i < 0 || j < 0 || i >= nx || j >= nz || !ok[i, j]) continue;
+                    if ((new Vector2(ar.xMin + i * res - at.x, ar.yMin + j * res - at.z)).magnitude <= r) return;
+                }
+                var pb = new Bounds(new Vector3(at.x, gy + 1f, at.z), new Vector3(1f, 2f, 1f));
+                cases.Add(new Case { kind = "CUTOFF", a = new Prop { root = what, path = what, b = pb, foot = 1f }, note = "can't be walked to from the hero", score = 2000f });
+            };
+            if (reached > 20)
+            {
+                foreach (var sp in AHGather.Spots) if (sp.kind != "chop" && sp.reach > 0.5f) reach(sp.pos, Mathf.Max(sp.reach, 1.5f), "spot " + sp.kind + " " + (sp.name ?? sp.type ?? ""));
+                foreach (var npc in Object.FindObjectsByType<AHNpc>(FindObjectsSortMode.None)) reach(npc.transform.position, 2.5f, "npc " + npc.name);
+                if (g.data != null && g.data.exits != null) foreach (var e in g.data.exits) reach(e.r > 0f ? g.W(e.x, e.z) : g.W((e.x0 + e.x1) / 2f, (e.z0 + e.z1) / 2f), 4f, "exit");
+            }
+        }
         foreach (var npc in Object.FindObjectsByType<AHNpc>(FindObjectsSortMode.None)) stuck(npc.transform.position, 2.2f, "npc " + npc.name);
         cases.Sort((x, y) => y.score.CompareTo(x.score));
         var o = new StringBuilder();
@@ -189,7 +228,7 @@ public static class AHWorldAudit
             o.AppendLine(string.Format("  {0} {1} [{2}] size {3} at {4} {5}{6}", c.kind, c.a.path, c.a.root, c.a.b.size.ToString("F1"), c.a.b.center.ToString("F0"), c.note, c.b != null ? "  WITH " + c.b.path + " size " + c.b.b.size.ToString("F1") : ""));
         }
         File.AppendAllText(Path.Combine(Dir, "audit.txt"), o.ToString());
-        foreach (var kind in new[] { "FLOAT", "SUNK", "INSIDE", "WALK", "STUCK" })
+        foreach (var kind in new[] { "FLOAT", "SUNK", "INSIDE", "WALK", "STUCK", "CUTOFF" })
         {
             var sel = new List<Bounds>();
             foreach (var c in cases) if (c.kind == kind && sel.Count < 12) { var b = c.a.b; if (c.b != null) b.Encapsulate(c.b.b); sel.Add(b); }
