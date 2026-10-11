@@ -46,7 +46,12 @@ mons_path = root + "/Resources/AH/Data/monsters.json"
 M = json.load(open(mons_path, encoding="utf-8"))
 # monsters whose own model is made (the model files stay on the PC): their own look in BEASTS, not tinted; the
 # four-legged ones wear an existing animal's skeleton and clips
+def biped(f, size): return {"files": [f], "size": size, "noTint": True, "idle": "Idle", "walk": "Walk", "move": "Walk",
+                             "attack": ["Attack", "Attack2"], "hit": "Hit", "death": "Death"}
 own = {
+    "dm_imp":       ("dm_imp",       biped("b_dm_gnashing_imp", 1.4)),
+    "dm_veilwitch": ("dm_veilwitch", biped("b_dm_veilwitch", 1.9)),
+    "dm_gloomwing": ("dm_gloomwing", biped("b_dm_gloomwing_fiend", 2.2)),
     "dm_hound":    ("dm_hellhound", dict(M["BEASTS"]["shadowwolf"], files=["b_dm_hellhound"], size=2.0, noTint=True)),
     "dm_behemoth": ("dm_behemoth",  dict(M["BEASTS"]["wb_tusk"], files=["b_dm_behemoth"], noTint=True)),
 }
