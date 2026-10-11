@@ -97,6 +97,7 @@ public static class AHBevel
     // the caves, dungeons and the Sunken Forge were built of plain flat-coloured blocks and wedges in the web game: they
     // get a rough stone surface (a noise texture made here, tinted with each block's own colour, tiled by its size)
     static Texture2D stoneTex; static readonly Dictionary<string, Material> stoneMats = new Dictionary<string, Material>();
+    public static Texture2D Stone { get { return StoneTex(); } }
     static Texture2D StoneTex()
     {
         if (stoneTex != null) return stoneTex;

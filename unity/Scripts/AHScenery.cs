@@ -1940,8 +1940,33 @@ public class AHSpin : MonoBehaviour { public float speed = 20f; void Update() { 
 // holds a statue still: one frame of its idle pose, blended in, then left alone
 public class AHStatueFreeze : MonoBehaviour
 {
-    [System.NonSerialized] public AHAnim anim; float t;
-    void Update() { t += Time.deltaTime; if (anim != null) anim.Tick(Time.deltaTime); if (t > 0.6f) Destroy(this); }
+    // holds the pose a moment, then keeps the whole figure in carved stone: the hero's clothes, hair and face are dressed
+    // a little after it is built (and again as the outfit loads), so the stone is laid on more than once
+    [System.NonSerialized] public AHAnim anim; float t; int coats;
+    static Material stone;
+    void Update()
+    {
+        t += Time.deltaTime; if (anim != null && t < 0.6f) anim.Tick(Time.deltaTime);
+        float[] at = { 0.6f, 2f, 5f, 10f };
+        if (coats < at.Length && t > at[coats]) { Coat(); coats++; }
+        if (coats >= at.Length) Destroy(this);
+    }
+    void Coat()
+    {
+        if (stone == null)
+        {
+            stone = new Material(Shader.Find("Universal Render Pipeline/Lit")) { name = "statue stone" };
+            stone.SetTexture("_BaseMap", AHBevel.Stone); stone.SetTextureScale("_BaseMap", new Vector2(3f, 3f));
+            stone.SetColor("_BaseColor", new Color(0.8f, 0.78f, 0.74f)); stone.SetFloat("_Smoothness", 0.08f); stone.enableInstancing = true;
+        }
+        foreach (var r in GetComponentsInChildren<Renderer>(true))
+        {
+            if (r is ParticleSystemRenderer) { r.enabled = false; continue; }
+            var ms = r.sharedMaterials; bool change = false;
+            for (int i = 0; i < ms.Length; i++) if (ms[i] != stone) { ms[i] = stone; change = true; }
+            if (change) r.sharedMaterials = ms;
+        }
+    }
 }
 
 // embers drifting up out of a volcano's crater
