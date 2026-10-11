@@ -1070,6 +1070,7 @@ public static class AHMenu
         if (best != null) g.player.transform.position = g.Resolve(best.transform.position + (g.player.transform.position - best.transform.position).normalized * 6f, 0.35f);
     }
     [MenuItem("Ashen Hollow/Travel (test)/Your Homestead")] static void THome() { var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return; if (g.player.home == null) { Debug.Log("Ashen Hollow: buy the deed first (Test: Open Land Agent)"); return; } AHHome.TravelHome(g); }
+    [MenuItem("Ashen Hollow/Travel (test)/Abyssal Realm")] static void TAbyss() { TravelTo(AHAbyss.Area); }
     [MenuItem("Ashen Hollow/Travel (test)/Hollow Meadow")] static void T0() { TravelTo("meadow"); }
     [MenuItem("Ashen Hollow/Travel (test)/Old Mill Road")] static void T1() { TravelTo("mill"); }
     [MenuItem("Ashen Hollow/Travel (test)/Silkwood")] static void T2() { TravelTo("silkwood"); }

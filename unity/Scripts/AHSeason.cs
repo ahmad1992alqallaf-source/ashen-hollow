@@ -25,7 +25,7 @@ public class AHSeason : MonoBehaviour
     {
         string a = AHGame.AreaId;
         Shader.SetGlobalFloat("_AHSnow", 0f); Shader.SetGlobalFloat("_AHLeaves", 0f);
-        if (AHDungeon.IsDungeon(a) || a == AHDeep.Area || a == "raid" || a == "tutorial") return;
+        if (AHDungeon.IsDungeon(a) || a == AHDeep.Area || a == "raid" || a == "tutorial" || a == AHAbyss.Area) return;
         // what lies on the ground: snow in winter and fallen leaves in autumn, but not in the hot lands
         bool hot = System.Array.IndexOf(Hot, a) >= 0, cold = a == "frost" || a == "hc_city";
         AHForest.ApplySeason(hot ? "" : cold && Now != "winter" ? "" : Now);   // and the trees turn with the year

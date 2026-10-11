@@ -113,7 +113,7 @@ public class AHGame : MonoBehaviour
         Spread = 1f;
         GameObject wp = Resources.Load<GameObject>(AreaPath + AreaId + "_world_kk");   // a city with its old houses cut out for the detailed buildings
         if (wp == null) wp = Resources.Load<GameObject>(AreaPath + AreaId + "_world");
-        if (wp == null && AreaId == AHDeep.Area) { }   // the Ashen Deep is built in code, floor by floor (AHDeep)
+        if (wp == null && (AreaId == AHDeep.Area || AreaId == AHAbyss.Area)) { }   // the Ashen Deep and the Abyssal Realm are built in code
         else if (wp == null) Debug.LogError("Ashen Hollow: the " + AreaId + " model did not import. Is the glTFast package installed?");
         else
         {
@@ -203,6 +203,7 @@ public class AHGame : MonoBehaviour
         AHHomeView.Setup(this);
         AHRaidView.Setup(this);
         AHDeepView.Setup(this);   // the Ashen Deep: this floor's rooms, foes, traps and stairs
+        AHAbyss.Setup(this);      // the Abyssal Realm: its islands over the void (and the rift to it in the Fossil Lands)
         AHStory.Setup(this);      // the Ashen King story: its people in the meadow, an unfinished fight, the statue
         AHJuice.Ensure(this); AHJuice.SetupDummy(this);   // hit-stop, shake, combos; the Training Golem in the meadow
         AHSeason.Setup(this);     // falling leaves, snow, blossom or fireflies, by the real season
@@ -1135,5 +1136,6 @@ public class AHGame : MonoBehaviour
             sun.intensity = 0.45f; sun.color = new Color(0.75f, 0.7f, 0.68f);
             DayLight = 0.5f;
         }
+        if (AHAbyss.Sky(sun)) DayLight = 0.5f;   // the void: the same cold violet light at every hour
     }
 }
