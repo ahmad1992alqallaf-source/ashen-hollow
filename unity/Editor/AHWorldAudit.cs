@@ -156,6 +156,24 @@ public static class AHWorldAudit
                 if (frac > 0.45f && near < 1.0f && Mathf.Max(va, vb) < 4000f)
                     cases.Add(new Case { kind = "INSIDE", a = a, b = b, note = (frac * 100f).ToString("F0") + "% of the smaller", score = Mathf.Min(va, vb) * frac });
             }
+        // stuck: something you use (a station, a chest, a waystone) or someone you talk to with no free ground
+        // to stand on within reach of it (a new blocker may have closed it in)
+        System.Action<Vector3, float, string> stuck = (at, reach, what) =>
+        {
+            for (int k = 0; k < 16; k++)
+            {
+                float a = k * Mathf.PI / 8f;
+                foreach (float rr in new[] { reach * 0.55f, reach * 0.85f, reach * 0.98f })
+                {
+                    var q = at + new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * rr; q.y = gy;
+                    if (g.InArea(q) && !g.Blocked(q, 0.3f)) return;
+                }
+            }
+            var pb = new Bounds(new Vector3(at.x, gy + 1f, at.z), new Vector3(1f, 2f, 1f));
+            cases.Add(new Case { kind = "STUCK", a = new Prop { t = null, root = what, path = what, b = pb, foot = 1f }, note = "nowhere to stand within " + reach.ToString("F1") + " m", score = 1000f });
+        };
+        foreach (var sp in AHGather.Spots) if (sp.kind != "chop" && sp.reach > 0.5f) stuck(sp.pos, sp.reach, "spot " + sp.kind + " " + (sp.name ?? sp.type ?? ""));
+        foreach (var npc in Object.FindObjectsByType<AHNpc>(FindObjectsSortMode.None)) stuck(npc.transform.position, 2.2f, "npc " + npc.name);
         cases.Sort((x, y) => y.score.CompareTo(x.score));
         var o = new StringBuilder();
         var count = new Dictionary<string, int>(); var byRoot = new Dictionary<string, int>();
@@ -171,7 +189,7 @@ public static class AHWorldAudit
             o.AppendLine(string.Format("  {0} {1} [{2}] size {3} at {4} {5}{6}", c.kind, c.a.path, c.a.root, c.a.b.size.ToString("F1"), c.a.b.center.ToString("F0"), c.note, c.b != null ? "  WITH " + c.b.path + " size " + c.b.b.size.ToString("F1") : ""));
         }
         File.AppendAllText(Path.Combine(Dir, "audit.txt"), o.ToString());
-        foreach (var kind in new[] { "FLOAT", "SUNK", "INSIDE", "WALK" })
+        foreach (var kind in new[] { "FLOAT", "SUNK", "INSIDE", "WALK", "STUCK" })
         {
             var sel = new List<Bounds>();
             foreach (var c in cases) if (c.kind == kind && sel.Count < 12) { var b = c.a.b; if (c.b != null) b.Encapsulate(c.b.b); sel.Add(b); }

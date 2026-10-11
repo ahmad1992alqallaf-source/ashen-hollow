@@ -659,7 +659,7 @@ public static class AHWardrobe
                 if (f == "crown") for (int i = 0; i < 7; i++) { float a = i * Mathf.PI * 2 / 7; K.Mesh(cone, new Vector3(Mathf.Cos(a) * 0.098f, 0.09f, Mathf.Sin(a) * 0.103f - 0.03f), new Vector3(0.045f, 0.075f, 0.045f), Vector3.zero); }
                 else K.Prim(PrimitiveType.Sphere, new Vector3(0, 0.08f, 0.075f), Vector3.one * 0.028f, Vector3.zero, K.Gold);
             }
-            else if (f == "halo") K.Mesh(torus, new Vector3(0, 0.22f, -0.04f), new Vector3(0.24f, 0.6f, 0.24f), Vector3.zero);
+            else if (f == "halo") K.Mesh(torus, new Vector3(0, 0.165f, -0.04f), new Vector3(0.2f, 0.5f, 0.2f), Vector3.zero);   // close over the crown, not hanging high above it
             else if (f == "horns" || f == "antlers")
             {
                 foreach (int sx in new[] { -1, 1 })

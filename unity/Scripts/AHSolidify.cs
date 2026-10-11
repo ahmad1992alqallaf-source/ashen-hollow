@@ -78,15 +78,19 @@ public static class AHSolidify
                 if (atWay && post && foot < 2.5f) { g.AddBlocker(c, thin * 0.4f); n++; continue; }
                 if (atWay) continue;
                 // something you use stands in it (an oven, a furnace, a stall's trader): stay well inside its reach
-                float reach = float.MaxValue;
+                float reach = float.MaxValue; var uses = new List<AHSpot>();
                 foreach (var s in AHGather.Spots)
                 {
                     if (s.kind == "chop") continue;
-                    if (s.pos.x > b.min.x - 0.5f && s.pos.x < b.max.x + 0.5f && s.pos.z > b.min.z - 0.5f && s.pos.z < b.max.z + 0.5f) reach = Mathf.Min(reach, s.reach);
+                    if (s.pos.x > b.min.x - 0.5f && s.pos.x < b.max.x + 0.5f && s.pos.z > b.min.z - 0.5f && s.pos.z < b.max.z + 0.5f) { reach = Mathf.Min(reach, s.reach); uses.Add(s); }
                 }
+                bool box = false;
                 if (reach < float.MaxValue) g.AddBlocker(c, Mathf.Min(thin * 0.42f, Mathf.Max(0.3f, reach * 0.55f)));
                 else if (foot < thin * 1.8f) g.AddBlocker(c, thin * 0.42f);
-                else g.AddBlockBox(b, 0.25f);
+                else { g.AddBlockBox(b, 0.25f); box = true; }
+                // never close in something you use: with no ground left to stand on within its reach, the blocker goes again
+                bool shut = false; foreach (var s in uses) if (!Standable(g, s.pos, s.reach, gy)) { shut = true; break; }
+                if (shut) { var rr = new Rect(c.x - 0.1f, c.z - 0.1f, 0.2f, 0.2f); if (box) g.RemoveBoxesIn(new Rect(b.min.x - 0.01f, b.min.z - 0.01f, b.size.x + 0.02f, b.size.z + 0.02f)); else g.RemoveBlockersIn(rr); continue; }
                 n++;
             }
         }
@@ -107,6 +111,20 @@ public static class AHSolidify
         }
         Last = n;
         if (n > 0) Debug.Log("Ashen Hollow: " + n + " solid things given blockers (you could walk through them)");
+    }
+
+    static bool Standable(AHGame g, Vector3 at, float reach, float gy)
+    {
+        for (int k = 0; k < 16; k++)
+        {
+            float a = k * Mathf.PI / 8f;
+            foreach (float rr in new[] { reach * 0.55f, reach * 0.85f, reach * 0.98f })
+            {
+                var q = at + new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * rr; q.y = gy;
+                if (g.InArea(q) && !g.Blocked(q, 0.3f)) return true;
+            }
+        }
+        return false;
     }
 
     static bool OpenName(string s) { if (s.Contains("post") || s.Contains("Post")) return false; foreach (var o in Open) if (s.Contains(o)) return true; return false; }
