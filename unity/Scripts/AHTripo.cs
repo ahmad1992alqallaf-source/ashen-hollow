@@ -142,6 +142,7 @@ public static class AHTripo
         // how big this hero's head is next to the male hero's (head joint 1.571 m above the feet)
         float k = 1f; var an = body.GetComponent<Animator>();
         if (an != null && an.isHuman) { var hb = an.GetBoneTransform(HumanBodyBones.Head); if (hb != null) k = Mathf.Clamp((hb.position.y - body.position.y) / (1.571f * Mathf.Max(0.01f, body.lossyScale.y)), 0.7f, 1.3f); }
+        k = Mathf.Max(k, 1f);   // a shorter hero's head is no narrower (a smaller helm showed the top of a woman's head through it)
         var root = new GameObject("TripoHelm").transform;
         root.position = head.position; root.rotation = Quaternion.LookRotation(fwd, Vector3.up);
         var m = Object.Instantiate(pf, root, false); m.name = "Model"; m.transform.localPosition = Vector3.zero; m.transform.localRotation = Quaternion.identity;

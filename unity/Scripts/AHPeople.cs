@@ -107,7 +107,7 @@ public static class AHPeople
 
         // the weapon from the KayKit set, held in the right hand (and an off-hand item in the left)
         string wm, main, off; WeaponFor(cls.id, out wm, out main, out off);
-        if (wm != null) Arm(rig, wm, main, off, g, cls.id == "warrior" ? "steel" : cls.id == "warden" ? "ember" : null);   // our crest on the class shield
+        if (wm != null) Arm(rig, wm, main, off, g, cls.id == "warrior" ? "steel" : cls.id == "warden" ? "ember" : null, cls.id);   // our crest on the class shield
         // a VRoid body, if one has been made for this hero (AHVRoid)
         var vm = AHVRoid.ModelFor(cls, look);
         if (vm != null && AHVRoid.Link(rig, holder, body, vm))
@@ -124,7 +124,7 @@ public static class AHPeople
         return rig;
     }
 
-    public static void Arm(GameObject rig, string wm, string main, string off, AHGame g, string crest = null)
+    public static void Arm(GameObject rig, string wm, string main, string off, AHGame g, string crest = null, string cls = null)
     {
         var pf = Resources.Load<GameObject>("AH/Models/" + wm);
         if (pf == null) return;
@@ -143,12 +143,15 @@ public static class AHPeople
         bool warden = main == "StoneHammer", tripoShield = false;
         if (warden) { if (AHTripo.Hold(hr, "warden_hammer", main, q, p, 0.6f, 0.2f, false) == null) StoneHammer(hr, q, p); }
         else if (main == "1H_Wand") Wand(hr, q, p);   // our own carved wand (the KayKit one was a thin bent pink stick)
+        else if (main == "1H_Axe") SpiritAxe(hr, q, p);   // our own shaman's axe (the KayKit one read as a flat white blade)
+        else if (main == "2H_Staff") Staff(hr, q, p, cls == "druid");   // our own staffs (the KayKit one was a pink pole)
         else Grab(tmp.transform, main, hr, q, p);
         if (off != null)
         {
             Grip(off, false, out q, out p);
             tripoShield = warden && AHTripo.Hold(hl, "warden_shield", off, q, new Vector3(0.085f, -0.07f, 0f), 0.66f, 0f, true) != null;   // its middle on the back of the forearm, just above the wrist
             if (off == "Spellbook") Tome(hl, false);   // our own closed tome (the KayKit book was a bright pink open box)
+            else if (off == "Round_Shield") RoundShield(hl, q, p);   // our own round shield (the KayKit one came out plain white)
             else if (!tripoShield) Grab(tmp.transform, off, hl, q, p);
         }
         Object.Destroy(tmp);
@@ -232,6 +235,139 @@ public static class AHPeople
         P(PrimitiveType.Cube, new Vector3(-0.11f, 0.77f, -0.087f), new Vector3(0.1f, 0.018f, 0.004f), new Vector3(0, 0, -10f), hamEmber);
         P(PrimitiveType.Cube, new Vector3(0, 0.9f, 0), new Vector3(0.1f, 0.06f, 0.1f), Vector3.zero, hamStone);                  // the cap
         root.localScale *= 0.68f;   // a one-handed hammer: about 0.65 m, its head the size of a loaf
+    }
+
+    // the shaman's axe (ours): a dark wood haft wrapped in leather, a bronze bearded blade with a turquoise stone set
+    // in it and a lighter cutting edge, a spike behind, and two feathers tied below the head. About 0.6 m long
+    static Material axeWood, axeWrap, axeBronze, axeEdge, axeStone, axeFeather;
+    static void SpiritAxe(Transform hand, Quaternion q, Vector3 p)
+    {
+        if (hand == null) return;
+        if (axeWood == null)
+        {
+            var sh = Shader.Find("Universal Render Pipeline/Lit");
+            axeWood = new Material(sh); axeWood.color = new Color(0.3f, 0.2f, 0.13f); axeWood.SetFloat("_Smoothness", 0.25f);
+            axeWrap = new Material(sh); axeWrap.color = new Color(0.45f, 0.28f, 0.16f); axeWrap.SetFloat("_Smoothness", 0.15f);
+            axeBronze = new Material(sh); axeBronze.color = new Color(0.46f, 0.31f, 0.18f); axeBronze.SetFloat("_Metallic", 0.75f); axeBronze.SetFloat("_Smoothness", 0.5f);
+            axeEdge = new Material(sh); axeEdge.color = new Color(0.66f, 0.6f, 0.52f); axeEdge.SetFloat("_Metallic", 0.85f); axeEdge.SetFloat("_Smoothness", 0.7f);
+            axeStone = new Material(sh); axeStone.color = new Color(0.2f, 0.72f, 0.7f); axeStone.SetFloat("_Smoothness", 0.8f); axeStone.EnableKeyword("_EMISSION"); axeStone.SetColor("_EmissionColor", new Color(0.2f, 0.75f, 0.72f) * 0.6f);
+            axeFeather = new Material(sh); axeFeather.color = new Color(0.9f, 0.86f, 0.78f); axeFeather.SetFloat("_Smoothness", 0.1f);
+        }
+        var root = new GameObject("Weapon_1H_Axe").transform; root.SetParent(hand, false);
+        root.localPosition = p; root.localRotation = q;
+        Vector3 hs = hand.lossyScale; root.localScale = new Vector3(1f / Mathf.Max(1e-5f, hs.x), 1f / Mathf.Max(1e-5f, hs.y), 1f / Mathf.Max(1e-5f, hs.z));
+        System.Action<PrimitiveType, Vector3, Vector3, Vector3, Material> P = (t, pos, sc, rot, m) =>
+        {
+            var go = GameObject.CreatePrimitive(t); Object.Destroy(go.GetComponent<Collider>());
+            go.name = "Piece"; go.transform.SetParent(root, false); go.transform.localPosition = pos; go.transform.localScale = sc; go.transform.localEulerAngles = rot;
+            var r = go.GetComponent<Renderer>(); r.sharedMaterial = m; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+        };
+        P(PrimitiveType.Cylinder, new Vector3(0, 0.26f, 0), new Vector3(0.036f, 0.38f, 0.036f), Vector3.zero, axeWood);                 // the haft
+        P(PrimitiveType.Cylinder, new Vector3(0, 0.02f, 0), new Vector3(0.044f, 0.09f, 0.044f), Vector3.zero, axeWrap);                 // the leather grip
+        P(PrimitiveType.Sphere, new Vector3(0, -0.08f, 0), new Vector3(0.05f, 0.035f, 0.05f), Vector3.zero, axeBronze);                 // the pommel
+        P(PrimitiveType.Cylinder, new Vector3(0, 0.58f, 0), new Vector3(0.05f, 0.07f, 0.05f), Vector3.zero, axeBronze);                 // the socket round the haft
+        P(PrimitiveType.Cube, new Vector3(0.07f, 0.58f, 0), new Vector3(0.1f, 0.07f, 0.024f), Vector3.zero, axeBronze);                  // the blade's neck
+        P(PrimitiveType.Cube, new Vector3(0.155f, 0.575f, 0), new Vector3(0.09f, 0.15f, 0.02f), Vector3.zero, axeBronze);               // the blade
+        P(PrimitiveType.Cube, new Vector3(0.175f, 0.645f, 0), new Vector3(0.08f, 0.05f, 0.02f), new Vector3(0, 0, 30f), axeBronze);       // its upper horn
+        P(PrimitiveType.Cube, new Vector3(0.165f, 0.49f, 0), new Vector3(0.08f, 0.07f, 0.02f), new Vector3(0, 0, -35f), axeBronze);       // the beard, swept down
+        P(PrimitiveType.Cube, new Vector3(0.205f, 0.565f, 0), new Vector3(0.016f, 0.26f, 0.022f), Vector3.zero, axeEdge);                // the cutting edge
+        P(PrimitiveType.Sphere, new Vector3(0.14f, 0.58f, 0), new Vector3(0.045f, 0.045f, 0.03f), Vector3.zero, axeStone);              // the stone, both faces
+        P(PrimitiveType.Cube, new Vector3(-0.055f, 0.58f, 0), new Vector3(0.06f, 0.03f, 0.018f), new Vector3(0, 0, 8f), axeBronze);      // the back spike
+        P(PrimitiveType.Cylinder, new Vector3(0, 0.66f, 0), new Vector3(0.03f, 0.015f, 0.03f), Vector3.zero, axeBronze);                // the cap
+        foreach (float s in new[] { -1f, 1f })   // feathers on a thong below the head
+            P(PrimitiveType.Sphere, new Vector3(-0.03f, 0.43f, s * 0.02f), new Vector3(0.022f, 0.1f, 0.008f), new Vector3(0, 0, 12f * s), axeFeather);
+        P(PrimitiveType.Cylinder, new Vector3(0, 0.49f, 0), new Vector3(0.042f, 0.012f, 0.042f), Vector3.zero, axeWrap);               // the thong
+    }
+
+    // a staff (ours), about 1.6 m, held a third of the way up: the mage's is dark wood with silver bands and three
+    // silver claws holding a glowing blue orb; the druid's is pale gnarled wood whose top curls round a green stone,
+    // with leaves sprouting from it
+    static Material stWood, stDruidWood, stSilver, stOrb, stLeaf, stGreen;
+    static void Staff(Transform hand, Quaternion q, Vector3 p, bool druid)
+    {
+        if (hand == null) return;
+        if (stWood == null)
+        {
+            var sh = Shader.Find("Universal Render Pipeline/Lit");
+            stWood = new Material(sh); stWood.color = new Color(0.24f, 0.15f, 0.1f); stWood.SetFloat("_Smoothness", 0.35f);
+            stDruidWood = new Material(sh); stDruidWood.color = new Color(0.46f, 0.36f, 0.24f); stDruidWood.SetFloat("_Smoothness", 0.15f);
+            stSilver = new Material(sh); stSilver.color = new Color(0.78f, 0.8f, 0.84f); stSilver.SetFloat("_Metallic", 0.85f); stSilver.SetFloat("_Smoothness", 0.7f);
+            stOrb = new Material(sh); stOrb.color = new Color(0.45f, 0.7f, 1f); stOrb.SetFloat("_Smoothness", 0.9f); stOrb.EnableKeyword("_EMISSION"); stOrb.SetColor("_EmissionColor", new Color(0.35f, 0.6f, 1f) * 1.4f);
+            stGreen = new Material(sh); stGreen.color = new Color(0.4f, 0.9f, 0.45f); stGreen.SetFloat("_Smoothness", 0.85f); stGreen.EnableKeyword("_EMISSION"); stGreen.SetColor("_EmissionColor", new Color(0.3f, 0.85f, 0.4f) * 1.1f);
+            stLeaf = new Material(sh); stLeaf.color = new Color(0.3f, 0.55f, 0.22f); stLeaf.SetFloat("_Smoothness", 0.3f);
+        }
+        var root = new GameObject("Weapon_2H_Staff").transform; root.SetParent(hand, false);
+        root.localPosition = p; root.localRotation = q;
+        Vector3 hs = hand.lossyScale; root.localScale = new Vector3(1f / Mathf.Max(1e-5f, hs.x), 1f / Mathf.Max(1e-5f, hs.y), 1f / Mathf.Max(1e-5f, hs.z));
+        System.Action<PrimitiveType, Vector3, Vector3, Vector3, Material> P = (t, pos, sc, rot, m) =>
+        {
+            var go = GameObject.CreatePrimitive(t); Object.Destroy(go.GetComponent<Collider>());
+            go.name = "Piece"; go.transform.SetParent(root, false); go.transform.localPosition = pos; go.transform.localScale = sc; go.transform.localEulerAngles = rot;
+            var r = go.GetComponent<Renderer>(); r.sharedMaterial = m; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+        };
+        const float bottom = -0.5f, top = 1.08f;   // held a third of the way up
+        if (!druid)
+        {
+            P(PrimitiveType.Cylinder, new Vector3(0, (bottom + top) * 0.5f, 0), new Vector3(0.034f, (top - bottom) * 0.5f, 0.034f), Vector3.zero, stWood);   // the shaft
+            P(PrimitiveType.Cylinder, new Vector3(0, bottom - 0.02f, 0), new Vector3(0.04f, 0.025f, 0.04f), Vector3.zero, stSilver);                        // the foot
+            foreach (float y in new[] { -0.08f, 0.1f, 0.62f, 0.98f }) P(PrimitiveType.Cylinder, new Vector3(0, y, 0), new Vector3(0.042f, 0.012f, 0.042f), Vector3.zero, stSilver);   // bands
+            P(PrimitiveType.Cylinder, new Vector3(0, top + 0.01f, 0), new Vector3(0.06f, 0.02f, 0.06f), Vector3.zero, stSilver);                             // the cup
+            for (int i = 0; i < 3; i++)   // three claws round the orb
+            {
+                float a = i * 120f;
+                var dir = Quaternion.Euler(0, a, 0) * Vector3.right;
+                P(PrimitiveType.Cube, new Vector3(0, top + 0.08f, 0) + dir * 0.055f, new Vector3(0.016f, 0.15f, 0.016f), new Vector3(0, a, 12f), stSilver);   // leaning in over the orb
+            }
+            P(PrimitiveType.Sphere, new Vector3(0, top + 0.11f, 0), new Vector3(0.1f, 0.1f, 0.1f), Vector3.zero, stOrb);                                   // the orb
+        }
+        else
+        {
+            // a gnarled shaft: short lengths each leaning a little, a knot or two, then the crook round the stone
+            float y0 = bottom; int n = 6; float seg = (top - bottom) / n;
+            for (int i = 0; i < n; i++)
+            {
+                float lean = (i % 2 == 0 ? 3f : -3f);
+                P(PrimitiveType.Cylinder, new Vector3(Mathf.Sin(i * 1.7f) * 0.008f, y0 + seg * 0.5f, Mathf.Cos(i * 1.3f) * 0.008f), new Vector3(0.04f - i * 0.002f, seg * 0.55f, 0.04f - i * 0.002f), new Vector3(lean, 0, -lean), stDruidWood);
+                y0 += seg;
+            }
+            P(PrimitiveType.Sphere, new Vector3(0.012f, 0.3f, 0), new Vector3(0.055f, 0.06f, 0.055f), Vector3.zero, stDruidWood);   // knots
+            P(PrimitiveType.Sphere, new Vector3(-0.01f, 0.72f, 0.01f), new Vector3(0.05f, 0.055f, 0.05f), Vector3.zero, stDruidWood);
+            // the crook: the wood curls up and over the stone
+            P(PrimitiveType.Cylinder, new Vector3(0.04f, top + 0.07f, 0), new Vector3(0.03f, 0.08f, 0.03f), new Vector3(0, 0, -30f), stDruidWood);
+            P(PrimitiveType.Cylinder, new Vector3(0.05f, top + 0.19f, 0), new Vector3(0.026f, 0.07f, 0.026f), new Vector3(0, 0, 35f), stDruidWood);
+            P(PrimitiveType.Cylinder, new Vector3(-0.01f, top + 0.24f, 0), new Vector3(0.022f, 0.05f, 0.022f), new Vector3(0, 0, 100f), stDruidWood);
+            P(PrimitiveType.Sphere, new Vector3(-0.005f, top + 0.13f, 0), new Vector3(0.085f, 0.1f, 0.085f), Vector3.zero, stGreen);   // the stone
+            foreach (var lf in new[] { new Vector4(-0.05f, top - 0.02f, 0.02f, 40f), new Vector4(0.06f, top + 0.02f, -0.02f, -50f), new Vector4(-0.03f, 0.45f, 0.03f, 55f) })
+                P(PrimitiveType.Sphere, new Vector3(lf.x, lf.y, lf.z), new Vector3(0.05f, 0.012f, 0.026f), new Vector3(0, 30f, lf.w), stLeaf);   // leaves
+        }
+    }
+
+    // the warrior's round shield (ours): a domed shield of painted wood with an iron rim and boss. It faces +z like the
+    // KayKit ones, so the crest still goes on its face; its first part is the face (the crest is sized from it)
+    static Material shFace, shIron;
+    static void RoundShield(Transform hand, Quaternion q, Vector3 p)
+    {
+        if (hand == null) return;
+        if (shFace == null)
+        {
+            var sh = Shader.Find("Universal Render Pipeline/Lit");
+            shFace = new Material(sh); shFace.color = new Color(0.42f, 0.13f, 0.11f); shFace.SetFloat("_Smoothness", 0.35f);
+            shIron = new Material(sh); shIron.color = new Color(0.55f, 0.56f, 0.6f); shIron.SetFloat("_Metallic", 0.85f); shIron.SetFloat("_Smoothness", 0.55f);
+        }
+        var root = new GameObject("Weapon_Round_Shield").transform; root.SetParent(hand, false);
+        root.localPosition = p; root.localRotation = q;
+        Vector3 hs = hand.lossyScale; root.localScale = new Vector3(1f / Mathf.Max(1e-5f, hs.x), 1f / Mathf.Max(1e-5f, hs.y), 1f / Mathf.Max(1e-5f, hs.z));
+        System.Action<PrimitiveType, Vector3, Vector3, Vector3, Material> P = (t, pos, sc, rot, m) =>
+        {
+            var go = GameObject.CreatePrimitive(t); Object.Destroy(go.GetComponent<Collider>());
+            go.name = "Piece"; go.transform.SetParent(root, false); go.transform.localPosition = pos; go.transform.localScale = sc; go.transform.localEulerAngles = rot;
+            var r = go.GetComponent<Renderer>(); r.sharedMaterial = m; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+        };
+        P(PrimitiveType.Sphere, new Vector3(0, 0, 0.0f), new Vector3(0.56f, 0.56f, 0.07f), Vector3.zero, shFace);                  // the face, gently domed
+        P(PrimitiveType.Cylinder, new Vector3(0, 0, -0.004f), new Vector3(0.585f, 0.012f, 0.585f), new Vector3(90f, 0, 0), shIron); // the rim
+        P(PrimitiveType.Sphere, new Vector3(0, 0, 0.03f), new Vector3(0.1f, 0.1f, 0.05f), Vector3.zero, shIron);                   // the boss
+        foreach (float a in new[] { 0f, 90f, 180f, 270f })   // rivets round the edge
+            P(PrimitiveType.Sphere, Quaternion.Euler(0, 0, a + 45f) * new Vector3(0.24f, 0, 0) + new Vector3(0, 0, 0.012f), new Vector3(0.025f, 0.025f, 0.015f), Vector3.zero, shIron);
     }
 
     // the priest's wand (ours): a leather-wrapped grip in the fist, a dark wood shaft with gold bands, and a pale
