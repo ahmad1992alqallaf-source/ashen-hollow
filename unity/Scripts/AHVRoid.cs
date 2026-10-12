@@ -322,6 +322,10 @@ public static class AHVRoid
         extraMats[key] = m; return m;
     }
 
+    // the old head the helms and hoods were shaped for: the same for every class (the robed classes' old bodies have
+    // narrow heads, so a hood sized against them came out half as big again on the mage, priest and druid)
+    static float OldHeadWidth(bool male, float measured) { return male ? 0.311f : 0.217f; }
+
     // swap the hero's look for the VRoid body; returns false (and changes nothing) if it can't
     public static bool Link(GameObject rig, Transform holder, string body, GameObject model)
     {
@@ -360,9 +364,10 @@ public static class AHVRoid
             // (the old male head is broad, so on the male VRoid head the gear needs a little more size and sits lower)
             bool male = model.name.StartsWith("hero_m");
             float qw = Mathf.Max(qb.size.x, qb.size.z), vw = Mathf.Max(vb.size.x, vb.size.z) * (male ? 1.5f : 1.3f);
+            link.VHeadWidth = Mathf.Max(vb.size.x, vb.size.z);
             link.SetupHead(qHead, qHead.InverseTransformPoint(new Vector3(qb.center.x, qb.max.y, qb.center.z)),
                            vHead, vHead.InverseTransformPoint(new Vector3(vb.center.x, vb.max.y - (male ? 0.012f : 0.018f), vb.center.z)),
-                           qw > 1e-3f ? Mathf.Clamp(vw / qw, 0.6f, 1.8f) : 1f);
+                           Mathf.Clamp(vw / OldHeadWidth(male, qw), 0.6f, 1.8f));
         }
         return true;
     }
@@ -599,6 +604,7 @@ public class AHVRoidLink : MonoBehaviour
     // how much smaller the VRoid body is around this bone (by the length of the limb it starts)
     Transform qHead, vHead; Vector3 qTop, vTop; float headK = 1f;
     public float HeadScale { get { return headK; } }   // how much bigger the VRoid head is than the old one
+    public float VHeadWidth;   // the VRoid head's own width (skull and hair), the same whatever class's old body is under it
     public void SetupHead(Transform q, Vector3 qTopLocal, Transform v, Vector3 vTopLocal, float k) { qHead = q; qTop = qTopLocal; vHead = v; vTop = vTopLocal; headK = k; lastKids = -1; }
 
     float Scale(Transform s, Transform d)

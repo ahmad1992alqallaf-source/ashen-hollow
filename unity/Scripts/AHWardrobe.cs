@@ -622,7 +622,7 @@ public static class AHWardrobe
             go.transform.SetParent(bone, true);
             bool isMetal = Metal.Contains(d.form ?? "");
             var kind = isMetal ? AHGearTex.Kind.Metal : Leathery(d) ? AHGearTex.Kind.Leather : AHGearTex.Kind.Cloth;
-            return new Kit { root = go.transform, k = k, kind = kind, col = dyeOn && !isMetal ? Color.Lerp(d.color, dye, 0.55f) : d.color, metal = isMetal, glow = d.form == "halo" ? 1.6f : d.form == "molten" ? 0.5f : d.form == "ember" ? 0.25f : d.rarity == "legend" ? 0.55f : d.rarity == "set" ? 0.18f : 0f };   // legendary and set pieces shine a little
+            return new Kit { root = go.transform, k = k, kind = kind, col = dyeOn && !isMetal ? Color.Lerp(d.color, dye, 0.55f) : d.color, metal = isMetal, glow = d.form == "halo" ? 0.45f : d.form == "molten" ? 0.5f : d.form == "ember" ? 0.25f : d.rarity == "legend" ? 0.55f : d.rarity == "set" ? 0.18f : 0f };   // legendary and set pieces shine a little
         };
 
         // ---- head ----
@@ -663,7 +663,7 @@ public static class AHWardrobe
                 if (f == "crown") for (int i = 0; i < 7; i++) { float a = i * Mathf.PI * 2 / 7; K.Mesh(cone, new Vector3(Mathf.Cos(a) * 0.098f, 0.09f, Mathf.Sin(a) * 0.103f - 0.03f), new Vector3(0.045f, 0.075f, 0.045f), Vector3.zero); }
                 else K.Prim(PrimitiveType.Sphere, new Vector3(0, 0.08f, 0.075f), Vector3.one * 0.028f, Vector3.zero, K.Gold);
             }
-            else if (f == "halo") K.Mesh(torus, new Vector3(0, 0.165f, -0.04f), new Vector3(0.2f, 0.5f, 0.2f), Vector3.zero);   // close over the crown, not hanging high above it
+            else if (f == "halo") K.Mesh(torus, new Vector3(0, 0.12f, -0.03f), new Vector3(0.17f, 0.28f, 0.17f), Vector3.zero);   // a slim gold ring close over the crown (a thick glowing one read as a floating cap)
             else if (f == "horns" || f == "antlers")
             {
                 // antlers: a band round the brow with small branching tines (at full size they stood up like two tall

@@ -141,6 +141,10 @@ public class AHQOutfitHide : MonoBehaviour
                 if (a == null || h == null) continue; segs.Add(a.position); segs.Add(f != null ? f.position : h.position);
             }
         int cutTris = 0; string on = outfit.name; bool closed = on.Contains("tqo_");
+        // the outfit has its own arms and gloved hands: the VRoid hand goes altogether (its longer fingers poked out of the
+        // glove as little pale bits below it)
+        bool gloved = false;
+        foreach (var o in outfit.GetComponentsInChildren<SkinnedMeshRenderer>(false)) { string on2 = o.name; if (on2.Contains("Arms") && !on2.Contains("Bracer") && !on2.Contains("Guard") && !on2.EndsWith("_lining")) { gloved = true; break; } }
         // a cloth hood: the hair stays inside it (only what pokes out through the cloth goes), so the hood is full
         // round the face instead of showing a bald brow or an empty space where the hair was
         bool hood = helmet && !closed && (on.Contains("Ranger:Head") || on.Contains("RangerShade:Head") || on.Contains("RangerTide:Head") || on.Contains("RangerArcane:Head") || on.Contains("RangerGrove:Head"));
@@ -214,6 +218,7 @@ public class AHQOutfitHide : MonoBehaviour
                     // under closed plate the shins, feet and hands are all plate: the body's own there would only peek out
                     // below the boots or past the gauntlets as a dark shape when walking, so it goes
                     if (closed && (n.Contains("LowerLeg") || n.Contains("Foot") || n.Contains("Toe") || n.Contains("Hand") || n.Contains("Thumb") || n.Contains("Index") || n.Contains("Middle") || n.Contains("Ring") || n.Contains("Little"))) { if (!hide[i]) { hide[i] = true; nh++; } continue; }
+                    if (gloved && (n.Contains("Hand") || n.Contains("Thumb") || n.Contains("Index") || n.Contains("Middle") || n.Contains("Ring") || n.Contains("Little"))) { if (!hide[i]) { hide[i] = true; nh++; } continue; }
                     arm[i] = n.Contains("LowerArm") || n.Contains("Hand") || n.Contains("Thumb") || n.Contains("Index") || n.Contains("Middle") || n.Contains("Ring") || n.Contains("Little");
                     // only the snug part of a sleeve: a wide bell cuff would hang off the hand
                     if (arm[i] && segs.Count > 0)
@@ -276,6 +281,7 @@ public class AHQOutfitFollow : MonoBehaviour
     readonly List<S> order = new List<S>();
     Transform rig, standRoot; AHVRoidLink link; Dictionary<string, Transform> ubc;
     float bodyK = 1f; Renderer[] rends; bool shown = true;
+    public string Info;   // (test) how the head pieces were sized
 
     public void Setup(Transform rigRoot, Dictionary<string, Transform> bones, AHVRoidLink l)
     {
@@ -287,6 +293,7 @@ public class AHQOutfitFollow : MonoBehaviour
             Transform qp = bones["pelvis"], qh; bones.TryGetValue("Head", out qh);
             Transform vp = link.Map(qp), vh = qh != null ? link.Map(qh) : null;
             if (vp != null && vh != null && qh != null) { float a = (qh.position - qp.position).magnitude, b = (vh.position - vp.position).magnitude; if (a > 0.01f) bodyK = Mathf.Clamp(b / a, 0.6f, 1.4f); }
+            Info = "bodyK " + bodyK.ToString("F3") + " headScale " + link.HeadScale.ToString("F3") + " vHeadW " + link.VHeadWidth.ToString("F3") + " qHeadLossy " + (qh != null ? qh.lossyScale.x.ToString("F3") : "-") + " k " + (bodyK * HeadK()).ToString("F3");
         }
     }
 
@@ -296,11 +303,13 @@ public class AHQOutfitFollow : MonoBehaviour
         if (link == null) return src;   // the classic body: the rig's own bones
         s = new S { src = src, stand = new GameObject("stand_" + src.name).transform, head = src.name == "Head" };
         s.stand.SetParent(standRoot, false);
-        s.dst = link.Map(src);
+        // the glove's fingers keep their own shape on the hand (laid on the VRoid's longer, differently curled fingers,
+        // the fingertips came away from the glove as little pale bits below it)
+        s.dst = Finger(src.name) ? null : link.Map(src);
         if (s.dst == null)
         {
-            // not a humanoid bone (root, finger tips, toe tips): keep its offset from the nearest one that is
-            for (var p = src.parent; p != null && p != rig; p = p.parent) { var d = link.Map(p); if (d != null) { s.anchorSrc = p; s.anchorDst = d; break; } }
+            // not a humanoid bone (root, finger tips, toe tips) or a finger: keep its offset from the nearest one that is
+            for (var p = src.parent; p != null && p != rig; p = p.parent) { var d = Finger(p.name) ? null : link.Map(p); if (d != null) { s.anchorSrc = p; s.anchorDst = d; break; } }
         }
         // a limb or spine bone: the next joint down the chain, so the outfit's limb can be laid along the VRoid limb
         if (s.dst != null && Limb(src.name))
@@ -326,6 +335,7 @@ public class AHQOutfitFollow : MonoBehaviour
         }
         s.stand.localScale = s.src.lossyScale * k;
     }
+    static bool Finger(string n) { return n.StartsWith("thumb_") || n.StartsWith("index_") || n.StartsWith("middle_") || n.StartsWith("ring_") || n.StartsWith("pinky_"); }
     static bool Limb(string n) { return n.StartsWith("thigh_") || n.StartsWith("calf_") || n.StartsWith("upperarm_") || n.StartsWith("lowerarm_"); }
     float HeadK() { return link != null ? Mathf.Max(1f, link.HeadScale / Mathf.Max(0.3f, bodyK)) : 1f; }
 

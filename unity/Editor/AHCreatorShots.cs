@@ -17,6 +17,9 @@ public static class AHCreatorShots
     static readonly List<GameObject> stands = new List<GameObject>();
     static readonly List<AHAnim> anims = new List<AHAnim>();
     public static string Only;
+    // only.txt "hands": the hands up close instead, every class, man and woman (HeroShots/creator/hands.png: a row a
+    // class; columns: man right hand, man left hand, man hands from behind, then the same for the woman)
+    static bool Hands; static Texture2D handSheet;
 
     [MenuItem("Ashen Hollow/Test: Creator Look Shots #&h")]
     static void Run()
@@ -24,6 +27,7 @@ public static class AHCreatorShots
         if (!Application.isPlaying || AHGame.I == null) return;
         dir = Path.Combine(Application.dataPath, "../HeroShots/creator"); Directory.CreateDirectory(dir);
         string tf = Path.Combine(dir, "only.txt"); Only = File.Exists(tf) ? File.ReadAllText(tf).Trim() : null; if (Only == "") Only = null;
+        Hands = Only == "hands"; if (Hands) { Only = null; handSheet = new Texture2D(S * 6, S * Classes.Length, TextureFormat.RGB24, false); }
         ci = -1; Next();
     }
 
@@ -38,9 +42,13 @@ public static class AHCreatorShots
     {
         Clear();
         do ci++; while (ci < Classes.Length && Only != null && Classes[ci] != Only);
-        if (ci >= Classes.Length) { Debug.Log("Ashen Hollow: creator shots saved to " + Path.GetFullPath(dir)); return; }
+        if (ci >= Classes.Length)
+        {
+            if (Hands && handSheet != null) { handSheet.Apply(); File.WriteAllBytes(Path.Combine(dir, "hands.png"), handSheet.EncodeToPNG()); Object.Destroy(handSheet); handSheet = null; }
+            Debug.Log("Ashen Hollow: creator shots saved to " + Path.GetFullPath(dir)); return;
+        }
         string cls = Classes[ci]; int n = 0;
-        foreach (var hair in Hairs)
+        foreach (var hair in Hands ? new[] { "pony" } : Hairs)
             foreach (var sex in new[] { "m", "f" })
             {
                 var holder = new GameObject("CreatorStand_" + n).transform; holder.position = new Vector3(7000f + n * 6f, -900f, 0f); n++;
@@ -77,8 +85,43 @@ public static class AHCreatorShots
         return null;
     }
 
+    static Transform BoneOf(GameObject st, HumanBodyBones b)
+    {
+        var link = st.GetComponentInChildren<AHVRoidLink>(true);
+        if (link != null && link.Body != null) { var an = link.Body.GetComponent<Animator>(); if (an != null && an.isHuman) return an.GetBoneTransform(b); }
+        return null;
+    }
+
+    static void ShootHands()
+    {
+        var cg = new GameObject("CreatorCam"); var cam = cg.AddComponent<Camera>(); cam.fieldOfView = 30f; cam.nearClipPlane = 0.02f; cam.farClipPlane = 30f; cam.cullingMask = 1 << L;
+        cam.clearFlags = CameraClearFlags.SolidColor; cam.backgroundColor = new Color(0.55f, 0.6f, 0.68f);
+        var lg = new GameObject("CrLight"); var li = lg.AddComponent<Light>(); li.type = LightType.Directional; li.intensity = 1.3f; li.cullingMask = 1 << L; lg.transform.rotation = Quaternion.Euler(35f, 150f, 0f);
+        var lg2 = new GameObject("CrFill"); var l2 = lg2.AddComponent<Light>(); l2.type = LightType.Directional; l2.intensity = 0.8f; l2.cullingMask = 1 << L; lg2.transform.rotation = Quaternion.Euler(25f, -30f, 0f);
+        var rt = new RenderTexture(S, S, 24); cam.targetTexture = rt;
+        for (int i = 0; i < stands.Count && i < 2; i++)
+        {
+            var st = stands[i]; if (st == null) continue;
+            for (int j = 0; j < stands.Count; j++) if (stands[j] != null) foreach (var t in stands[j].GetComponentsInChildren<Transform>(true)) t.gameObject.layer = j == i ? L : 0;
+            Vector3 fwd = st.transform.forward, right = st.transform.right;
+            var rh = BoneOf(st, HumanBodyBones.RightHand); var lh = BoneOf(st, HumanBodyBones.LeftHand);
+            Vector3 r = rh != null ? rh.position : st.transform.position + Vector3.up * 0.9f - right * 0.3f, l = lh != null ? lh.position : st.transform.position + Vector3.up * 0.9f + right * 0.3f;
+            var shots = new[] {
+                new { at = r, dir = (fwd * 0.8f - right * 0.5f).normalized, dist = 0.55f },
+                new { at = l, dir = (fwd * 0.8f + right * 0.5f).normalized, dist = 0.55f },
+                new { at = (r + l) * 0.5f, dir = (-fwd).normalized, dist = 1.6f } };
+            for (int k = 0; k < shots.Length; k++)
+            {
+                cam.transform.position = shots[k].at + shots[k].dir * shots[k].dist; cam.transform.LookAt(shots[k].at); cam.Render();
+                RenderTexture.active = rt; handSheet.ReadPixels(new Rect(0, 0, S, S), (i * 3 + k) * S, (Classes.Length - 1 - ci) * S); RenderTexture.active = null;
+            }
+        }
+        cam.targetTexture = null; Object.Destroy(cg); Object.Destroy(lg); Object.Destroy(lg2); Object.Destroy(rt);
+    }
+
     static void Shoot()
     {
+        if (Hands) { ShootHands(); return; }
         var sheet = new Texture2D(S * 6, S * Hairs.Length, TextureFormat.RGB24, false);
         var px = sheet.GetPixels(); for (int i = 0; i < px.Length; i++) px[i] = new Color(0.2f, 0.2f, 0.22f); sheet.SetPixels(px);
         var cg = new GameObject("CreatorCam"); var cam = cg.AddComponent<Camera>(); cam.fieldOfView = 30f; cam.nearClipPlane = 0.02f; cam.farClipPlane = 30f; cam.cullingMask = 1 << L;
