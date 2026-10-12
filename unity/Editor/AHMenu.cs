@@ -1559,4 +1559,34 @@ public static class AHMenu
     }
     [MenuItem("Ashen Hollow/Test: Class Feet Running %&y")]
     static void ClassFeet() { var g = AHGame.I; if (Application.isPlaying && g != null && g.player != null) AHLineup.Run(g, true); }
+
+    // every renderer near any VRoid hero's hands (what is that thing by the hand?): HeroShots/near_hands.txt
+    [MenuItem("Ashen Hollow/Test: What Is By The Hands #&l")]
+    static void NearHands()
+    {
+        if (!Application.isPlaying) return;
+        var sb = new System.Text.StringBuilder();
+        foreach (var link in Object.FindObjectsByType<AHVRoidLink>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+        {
+            if (link.Body == null) continue; var an = link.Body.GetComponent<Animator>(); if (an == null) continue;
+            var root = link.transform.root;
+            sb.AppendLine("== " + root.name + " / " + link.name);
+            foreach (var hb in new[] { HumanBodyBones.LeftHand, HumanBodyBones.RightHand })
+            {
+                var h = an.GetBoneTransform(hb); if (h == null) continue;
+                sb.AppendLine(" " + hb + " at " + h.position.ToString("F2"));
+                foreach (var r in root.GetComponentsInChildren<Renderer>(false))
+                {
+                    if (!r.enabled || !r.gameObject.activeInHierarchy) continue;
+                    var b = r.bounds; float d = Mathf.Sqrt(b.SqrDistance(h.position));
+                    if (d > 0.12f || b.size.magnitude > 1.2f) continue;
+                    string path = r.name; for (var t = r.transform.parent; t != null && t != root; t = t.parent) path = t.name + "/" + path;
+                    string mats = ""; foreach (var m in r.sharedMaterials) mats += (m != null ? m.name + "(" + (m.HasProperty("_BaseColor") ? m.GetColor("_BaseColor").ToString() : "") + ")" : "null") + " ";
+                    sb.AppendLine("   " + d.ToString("F3") + " size " + b.size.ToString("F2") + " " + path + " : " + mats);
+                }
+            }
+        }
+        System.IO.File.WriteAllText(System.IO.Path.Combine(Application.dataPath, "../HeroShots/near_hands.txt"), sb.ToString());
+        Debug.Log("Ashen Hollow: near_hands.txt written");
+    }
 }

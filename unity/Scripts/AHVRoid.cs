@@ -382,7 +382,7 @@ public static class AHVRoid
         }
     }
 
-    // the class look: a sash in the class's colour over the robe's belt, tied at the hip with two trailing ribbons
+    // the class look: a sash in the class's colour over the robe's belt, knotted at the hip
     public static void ClassSash(GameObject v, Color c)
     {
         if (v == null) return;
@@ -404,7 +404,7 @@ public static class AHVRoid
         band.AddComponent<MeshFilter>().sharedMesh = Band(sx + 0.012f, sz + 0.012f, 0.07f, 28);
         var mr = band.AddComponent<MeshRenderer>(); mr.sharedMaterial = mat;
         band.transform.SetParent(spine, true);
-        // the knot at the left hip and two ribbons hanging from it
+        // the knot at the left hip
         Vector3 knot = ctr - rt * (sx + 0.01f) + fw * 0.02f;
         System.Func<Vector3, Vector3, Vector3, Material, Transform> box = (at, size, eul, m) =>
         {
@@ -413,8 +413,7 @@ public static class AHVRoid
             go.GetComponent<Renderer>().sharedMaterial = m; go.transform.SetParent(hips, true); return go.transform;
         };
         box(knot, new Vector3(0.05f, 0.06f, 0.05f), Vector3.zero, dark);
-        box(knot - Vector3.up * 0.2f - rt * 0.012f, new Vector3(0.012f, 0.38f, 0.06f), new Vector3(0f, 0f, -6f), mat);
-        box(knot - Vector3.up * 0.16f + fw * 0.03f - rt * 0.008f, new Vector3(0.012f, 0.3f, 0.05f), new Vector3(8f, 0f, -3f), mat);
+        // (no long ribbons: stiff, they hung by the hand like a pale blade)
     }
     // an open band (no caps) round the waist
     static Mesh Band(float rx, float rz, float h, int seg)
