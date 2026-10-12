@@ -331,12 +331,19 @@ public static class AHCity
             {
                 float u = sp.x + (i + 0.5f) * s;
                 float cx = alongX ? u : line, cz = alongX ? line : u;
-                var go = Object.Instantiate(wallPf, root, false); go.name = "Wall";
-                foreach (var cl in go.GetComponentsInChildren<Collider>(true)) Object.Destroy(cl);
+                // two KayKit walls back to back, so the wall shows dressed stone and battlements from inside the city
+                // as well as from outside (one alone showed a bare slab and its walkway from within)
                 Vector3 p = g.W(cx, cz); p.y = ground;
-                go.transform.position = p; go.transform.rotation = Quaternion.Euler(0f, yaw, 0f);
-                go.transform.localScale = new Vector3(s / 2f * 1.03f, 4.1f / 1.1f, (thick + 0.5f) / 0.8f);
-                AHModel.SetShadows(go); WallPieces++;
+                Vector3 across = Quaternion.Euler(0f, yaw, 0f) * Vector3.forward; float half = (thick + 0.9f) / 2f;
+                foreach (int face in new[] { 0, 1 })
+                {
+                    var go = Object.Instantiate(wallPf, root, false); go.name = "Wall";
+                    foreach (var cl in go.GetComponentsInChildren<Collider>(true)) Object.Destroy(cl);
+                    go.transform.position = p + across * (face == 0 ? -half * 0.5f : half * 0.5f);
+                    go.transform.rotation = Quaternion.Euler(0f, yaw + (1 - face) * 180f, 0f);   // battlements outward on both faces, the walkways meeting in the middle
+                    go.transform.localScale = new Vector3(s / 2f * 1.03f, 4.1f / 1.1f, half / 0.8f);
+                    AHModel.SetShadows(go); WallPieces++;
+                }
             }
             }
         }
@@ -388,7 +395,58 @@ public static class AHCity
                 go.transform.localScale = new Vector3(d.magnitude / 2f, 1.9f / 1.1f, 2.1f / 0.8f);
                 AHModel.SetShadows(go); WallPieces++;
             }
+        StoneTint(root);
         Debug.Log("Ashen Hollow: city walls rebuilt (" + WallPieces + " pieces, " + hid + " old parts hidden)");
+        // once the mountains are in: the crags that stood in a ring hard against the walls are cleared, so the wall stands
+        // clean on its own line
+        var tidy = root.gameObject.AddComponent<AHWallTidy>(); tidy.g = g; tidy.world = world; tidy.ours = root; tidy.ground = ground;
+        tidy.walls = walls; tidy.towers = towers;
+    }
+
+    // each city's walls and towers in its own stone: sandstone in the desert, pale granite in the snow, dark basalt by
+    // the fire, mossy stone by the mire, sea-washed stone on the coast (the KayKit pieces all come in one grey-blue)
+    static readonly Dictionary<string, Color> WallStone = new Dictionary<string, Color>
+    {
+        { "ss_city", new Color(1.45f, 1.15f, 0.78f) }, { "hc_city", new Color(1.2f, 1.22f, 1.26f) }, { "ch_city", new Color(0.62f, 0.56f, 0.55f) },
+        { "mw_city", new Color(0.9f, 1.05f, 0.82f) }, { "co_city", new Color(1.12f, 1.1f, 1.0f) },
+    };
+    static void StoneTint(Transform root)
+    {
+        Color k; if (!WallStone.TryGetValue(AHGame.AreaId, out k)) return;
+        var made = new Dictionary<Material, Material>();
+        foreach (Transform t in root)
+        {
+            if (!(t.name == "Wall" || t.name == "Wall tower" || t.name == "Gate tower" || t.name == "Gate lintel")) continue;
+            foreach (var r in t.GetComponentsInChildren<Renderer>(true))
+            {
+                var ms = r.sharedMaterials;
+                for (int i = 0; i < ms.Length; i++)
+                {
+                    if (ms[i] == null) continue; Material m;
+                    if (!made.TryGetValue(ms[i], out m))
+                    {
+                        m = new Material(ms[i]) { name = ms[i].name + " (city stone)" };
+                        // every colour the shader takes as its base (not emission): the KayKit pieces come through glTF, whose
+                        // shader graph names it its own way
+                        var sh = m.shader; var names = new List<string>();
+                        for (int p = 0; p < sh.GetPropertyCount(); p++)
+                        {
+                            if (sh.GetPropertyType(p) != UnityEngine.Rendering.ShaderPropertyType.Color) continue;
+                            string pn = sh.GetPropertyName(p), lo = pn.ToLowerInvariant(); names.Add(pn);
+                            if (lo.Contains("emiss") || lo.Contains("spec") || lo.Contains("sheen") || lo.Contains("atten")) continue;
+                            if (!(lo.Contains("base") || lo.Contains("albedo") || lo == "_color" || lo.Contains("diffuse"))) continue;
+                            var c = m.GetColor(pn); m.SetColor(pn, new Color(c.r * k.r, c.g * k.g, c.b * k.b, c.a));
+                        }
+                        // the glTF shader also reads the factor through a keyword-less vector on some versions
+                        if (m.HasProperty("baseColorFactor") && !names.Contains("baseColorFactor")) { var v = m.GetVector("baseColorFactor"); m.SetVector("baseColorFactor", new Vector4(v.x * k.r, v.y * k.g, v.z * k.b, v.w)); }
+                        Debug.Log("Ashen Hollow: wall stone " + ms[i].name + " colours [" + string.Join(",", names) + "]");
+                        made[ms[i]] = m;
+                    }
+                    ms[i] = m;
+                }
+                r.sharedMaterials = ms;
+            }
+        }
     }
 
     // a gatehouse over an opening cut in a straight wall: a tall tower each side and a battlemented lintel between
@@ -785,3 +843,45 @@ public static class AHCity
         Bounds b = rs[0].bounds; for (int i = 1; i < rs.Length; i++) b.Encapsulate(rs[i].bounds); return b;
     }
 }
+
+// the tidy-up after a city's walls are rebuilt (see AHCity.Walls)
+public class AHWallTidy : MonoBehaviour
+{
+    public AHGame g; public Transform world, ours; public float ground; public List<AHBox> walls; public List<AHCircle> towers;
+    float t; int rocks;
+
+    bool OnWall(Vector2 p, float pad, out float alongIn)
+    {
+        alongIn = 0f;
+        foreach (var w in walls)
+        {
+            bool alongX = w.w >= w.h; float L = Mathf.Max(w.w, w.h), th = Mathf.Min(w.w, w.h);
+            float a0 = alongX ? w.x : w.z, line = alongX ? w.z + w.h / 2f : w.x + w.w / 2f;
+            float along = alongX ? p.x : p.y, across = alongX ? p.y : p.x;
+            if (along > a0 - pad && along < a0 + L + pad && Mathf.Abs(across - line) < th / 2f + pad) { alongIn = across - line; return true; }
+        }
+        foreach (var c in towers) if ((p - new Vector2(c.x, c.z)).magnitude < c.r + pad) return true;
+        return false;
+    }
+
+    void Update()
+    {
+        if (g == null || walls == null) { enabled = false; return; }
+        t += Time.deltaTime;
+        // crags hard against the wall, inside or out (the mountains are put in a moment after the city)
+        if (t > 0.3f && Mathf.Repeat(t, 0.5f) < Time.deltaTime)
+        {
+            var mr = GameObject.Find("Mountains");
+            if (mr != null)
+                foreach (Transform m in mr.transform)
+                {
+                    if (!m.gameObject.activeSelf) continue;
+                    var rs = m.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) continue;
+                    Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+                    float a; if (OnWall(g.ToWeb(b.center), Mathf.Max(b.extents.x, b.extents.z) * 0.6f + 5.5f, out a)) { m.gameObject.SetActive(false); rocks++; }
+                }
+        }
+        if (t > 6f) { if (rocks > 0) Debug.Log("Ashen Hollow: " + rocks + " crags cleared from beside the city walls"); enabled = false; }
+    }
+}
+

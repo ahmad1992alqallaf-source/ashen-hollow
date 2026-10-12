@@ -209,7 +209,7 @@ public class AHGame : MonoBehaviour
         AHSeason.Setup(this);     // falling leaves, snow, blossom or fireflies, by the real season
         AHGallery.Setup(this);
         AHGrade.Setup(this);
-        AHCamFade.Ensure(this);   // trees and roofs between the camera and you step aside   // the picture: tone curve, bloom, colour, vignette
+        // (nothing is hidden when it stands between the camera and you: the camera comes in closer instead)   // the picture: tone curve, bloom, colour, vignette
         AHInterior.Setup(this); if (GetComponent<AHInteriorTick>() == null) gameObject.AddComponent<AHInteriorTick>();    // your costumes on plinths by your house
         AHKQ.Setup(this);
         AHComp.SpawnPet(this);

@@ -1304,7 +1304,7 @@ public class AHPlayer : MonoBehaviour
     }
 
     // the work tool in the hand (the weapons are put away meanwhile); the fishing line runs to the water
-    GameObject toolGo; string toolKind; LineRenderer fishLine; Vector3 fishAt;
+    GameObject toolGo; string toolKind; LineRenderer fishLine; Vector3 fishAt; readonly List<GameObject> toolHid = new List<GameObject>();
     void ShowTool(string kind, Vector3 at)
     {
         if (kind == toolKind && toolGo != null) { fishAt = at; return; }
@@ -1312,8 +1312,12 @@ public class AHPlayer : MonoBehaviour
         if (kind == null || model == null || !g.lookHero) return;
         toolGo = AHPeople.Tool(model, kind, kind == "axe" ? Skill("woodcutting") : kind == "pick" ? Skill("mining") : 1); toolKind = kind; fishAt = at;
         if (toolGo == null) { toolKind = null; return; }
-        if (weaponR != null) weaponR.gameObject.SetActive(false);
-        if (weaponL != null) weaponL.gameObject.SetActive(false);
+        // every weapon the hero holds goes away while working (the gear's and a collection's too, wherever they hang)
+        toolHid.Clear();
+        // (from the hero's root: the VRoid body stands beside the old rig, and the link moves what the hands hold onto it)
+        foreach (var t in transform.GetComponentsInChildren<Transform>(false))
+            if (t.name.StartsWith("Weapon_") && t.gameObject.activeSelf && !t.IsChildOf(toolGo.transform)) toolHid.Add(t.gameObject);
+        foreach (var w in toolHid) w.SetActive(false);
         if (kind == "rod")
         {
             toolGo.AddComponent<AHRodAim>().who = transform;
@@ -1328,8 +1332,8 @@ public class AHPlayer : MonoBehaviour
         if (toolGo != null) Destroy(toolGo);
         if (fishLine != null) Destroy(fishLine.gameObject);
         toolGo = null; toolKind = null; fishLine = null;
-        if (weaponR != null) weaponR.gameObject.SetActive(true);
-        if (weaponL != null) weaponL.gameObject.SetActive(true);
+        foreach (var w in toolHid) if (w != null) w.SetActive(true);
+        toolHid.Clear();
     }
     void ToolTick()
     {

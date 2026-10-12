@@ -843,7 +843,7 @@ public static class AHWardrobe
                         K.Mesh(WingCoverts, new Vector3(0, 0, -0.004f), ws, Vector3.zero, K.Dark);
                         K.Mesh(WingArm, new Vector3(0, 0, -0.008f), ws, Vector3.zero, K.Gold);
                     }
-                    w.gameObject.AddComponent<AHWingFlap>().Setup(sx, moving);
+                    w.gameObject.AddComponent<AHWingRig>().Setup(sx, moving, rig.transform, dragon);   // a jointed, springy wing (AHWingRig.cs)
                     K.root = back;
                 }
             }
@@ -943,6 +943,7 @@ public class AHCapeSwing : MonoBehaviour
 }
 
 // a cosmetic wing's slow beat: folds back and forth about its root, quicker and wider while the hero runs
+// (heroes' wings now use AHWingRig; kept for anything else that still flaps a rigid wing)
 public class AHWingFlap : MonoBehaviour
 {
     float sx = 1f, t, amp; Func<bool> moving; Quaternion rest;

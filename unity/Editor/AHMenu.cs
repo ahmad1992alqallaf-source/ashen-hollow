@@ -366,7 +366,8 @@ public static class AHMenu
             g.StartCoroutine(ShotLater(k));
             return;
         }
-        Debug.Log("Ashen Hollow: no work spots here");
+        // none here (inside a city): off to the meadow, where there are trees and rocks; press again once there
+        Debug.Log("Ashen Hollow: no work spots here, going to the meadow (press again)"); TravelTo("meadow");
     }
     static System.Collections.IEnumerator ShotLater(string k)
     {
