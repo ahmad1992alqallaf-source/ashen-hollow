@@ -33,7 +33,7 @@ public static class AHGripShots
             if (k == "only") only = v.Length > 0 ? v : null;
             else if (k == "sex") sex = v == "f" ? "f" : "m";
             else if (float.TryParse(v, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out f))
-            { if (k == "staff") AHPeople.StaffTilt = f; else if (k == "fist") AHVRoidLink.FistCurl = f; else if (k == "thumb") AHVRoidLink.ThumbCurl = f; }
+            { if (k == "staff") AHPeople.StaffTilt = f; else if (k == "lean") AHPeople.StaffLean = f; else if (k == "fist") AHVRoidLink.FistCurl = f; else if (k == "thumb") AHVRoidLink.ThumbCurl = f; }
         }
         ci = -1; Next();
     }

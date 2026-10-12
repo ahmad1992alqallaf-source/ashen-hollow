@@ -143,7 +143,7 @@ public class AHQOutfitHide : MonoBehaviour
         int cutTris = 0; string on = outfit.name; bool closed = on.Contains("tqo_");
         // a cloth hood: the hair stays inside it (only what pokes out through the cloth goes), so the hood is full
         // round the face instead of showing a bald brow or an empty space where the hair was
-        bool hood = helmet && !closed && (on.Contains("Ranger:Head") || on.Contains("RangerShade:Head") || on.Contains("RangerTide:Head"));
+        bool hood = helmet && !closed && (on.Contains("Ranger:Head") || on.Contains("RangerShade:Head") || on.Contains("RangerTide:Head") || on.Contains("RangerArcane:Head") || on.Contains("RangerGrove:Head"));
         // a closed knight's helm: the bigger VRoid face would poke out at the cheeks, so it is shaded dark (behind the visor)
         bool visor = helmet && !closed && on.Contains("Knight") && on.Contains(":Head");
         foreach (var s in body.GetComponentsInChildren<SkinnedMeshRenderer>(true))
@@ -462,6 +462,10 @@ public static class AHQOutfitPlan
             else if (f == "horns") part = S + "Knight_Cloth:Head";
             // the Ranger's green hood suits the leather classes; robed classes keep the wardrobe's hood in the item's colour
             else if ((f == "hood" || f == "cowl" || f == "mhood") && cls != "mage" && cls != "priest" && cls != "druid") part = S + RangerOf(cls) + ":Head";
+            // the mage and the druid: the Ranger's hood in arcane blue / in the druid's brown (their drawn wizard hat and
+            // antler crown looked big and crude on the VRoid heads)
+            else if (cls == "mage" && (f == "mhood" || f == "hood" || f == "cowl")) part = S + "RangerArcane:Head";
+            else if (cls == "druid" && (f == "antlers" || f == "hood" || f == "cowl" || f == "mhood")) part = S + "RangerGrove:Head";
             if (part != null) { spec += "+" + part; covered.Add("head"); }
         }
         var sh = AHItems.Get(shown("shoulders") ?? "");
