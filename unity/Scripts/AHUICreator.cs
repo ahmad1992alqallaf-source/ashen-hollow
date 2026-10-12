@@ -211,8 +211,8 @@ public partial class AHUI
     }
 
     // hairstyles that came out the same as another on the VRoid heroes (Bob as Short, Wild mane as Long, Bald as Shaved),
-    // or that don't hold up on them (Spiky: drawn spikes over a bob): left off the list (a hero who has one keeps it)
-    static readonly HashSet<string> HairDup = new HashSet<string> { "bob", "mane", "bald", "spiky" };
+    // left off the list (a hero who has one keeps it)
+    static readonly HashSet<string> HairDup = new HashSet<string> { "bob", "mane", "bald" };
     static List<KeyValuePair<string, string>> Opts(string key)
     {
         var l = new List<KeyValuePair<string, string>>();

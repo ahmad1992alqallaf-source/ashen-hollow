@@ -11,7 +11,7 @@ using UnityEngine;
 public static class AHCreatorShots
 {
     static readonly string[] Classes = { "warrior", "warden", "mage", "priest", "rogue", "ranger", "druid", "shaman" };
-    static readonly string[] Hairs = { "pony", "short", "long", "braid", "bun", "twin", "bob", "mohawk", "spiky", "mane", "shaved", "bald" };
+    static readonly string[] Hairs = { "pony", "short", "long", "braid", "bun", "twin", "wolf", "lowpony", "spiky", "mohawk", "shaved", "bald" };
     const int L = 29, S = 240;
     static int ci, frame; static string dir;
     static readonly List<GameObject> stands = new List<GameObject>();

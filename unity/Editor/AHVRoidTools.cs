@@ -29,6 +29,19 @@ public static class AHVRoidTools
             }
         }
         AssetDatabase.Refresh();
+        // a build whose textures came out empty (a .vrm imported while the game was playing): what UniVRM made is thrown
+        // away and the .vrm imported again (run Collect once more afterwards to move the new prefab in)
+        bool redo = false;
+        foreach (var f in Directory.GetFiles(Dir, "*.prefab"))
+        {
+            string n = Path.GetFileNameWithoutExtension(f), tex = Path.Combine(Dir, n + ".Textures"), vrm = Src + "/" + n + ".vrm";
+            if (!Directory.Exists(tex) || Directory.GetFiles(tex, "*.png").Length > 0 || !File.Exists(vrm)) continue;
+            AssetDatabase.DeleteAsset(Dir + "/" + n + ".prefab");
+            foreach (var d in Directory.GetDirectories(Dir, n + ".*")) AssetDatabase.DeleteAsset(d.Replace('\\', '/'));
+            AssetDatabase.ImportAsset(vrm, ImportAssetOptions.ForceUpdate);
+            Debug.Log("Ashen Hollow: VRoid " + n + " had no textures: imported again (run Collect once more)"); redo = true;
+        }
+        if (redo) { AssetDatabase.Refresh(); return; }
         foreach (var f in Directory.GetFiles(Dir, "*.prefab"))
         {
             string path = f.Replace('\\', '/');

@@ -34,7 +34,10 @@ public static class AHVRoid
         {
             case "pony": return "ponytail";
             case "mohawk": return "short";   // shaved sides and a crest (Style)
-            case "short": case "spiky": case "shaved": case "bald": case "bob": return "short";
+            case "spiky": return "spiky";     // its own messy spiky build (falls back to the short cut with drawn spikes)
+            case "wolf": return "wolf";       // layered wolf cut
+            case "lowpony": return "lowpony"; // long hair tied low at the nape
+            case "short": case "shaved": case "bald": case "bob": return "short";
             case "long": case "mane": return "long";
             case "braid": return "braid";
             case "bun": return "bun";     // its own VRoid build (the drawn topknot on the short cut is the fallback)
@@ -156,6 +159,7 @@ public static class AHVRoid
         };
         Quaternion face = Quaternion.LookRotation(fw, up);
         bool realBun = Resources.Load<GameObject>("AH/VRoid/hero_" + (look.sex == "f" ? "f_" : "m_") + "bun") != null;
+        bool realSpiky = Resources.Load<GameObject>("AH/VRoid/hero_" + (look.sex == "f" ? "f_" : "m_") + "spiky") != null;
         if (look.hair == "bun" && !realBun)
         {
             // a high topknot: a round bun on the crown, tied with a band and pinned with a gold pin
@@ -185,7 +189,7 @@ public static class AHVRoid
                 sp.GetComponent<Renderer>().sharedMaterial = crest; sp.transform.SetParent(head, true);
             }
         }
-        else if (look.hair == "spiky")
+        else if (look.hair == "spiky" && !realSpiky)
         {
             // tufts of hair spiking up and back over the crown and the back of the head, in the hair's own colour, their
             // roots sunk into the hair (a ring of dark cones round the head read as a crown of thorns)

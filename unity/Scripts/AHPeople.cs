@@ -36,9 +36,9 @@ public static class AHPeople
             case "bald": return null;
             case "shaved": return "qHair_Buzzed";
             case "bun": return "qHair_Buns";
-            case "short": case "bob": case "spiky": case "mohawk": return "qHair_SimpleParted";
+            case "short": case "bob": case "spiky": case "mohawk": case "wolf": return "qHair_SimpleParted";
         }
-        return "qHair_Long";   // pony, long, braid, twin, mane
+        return "qHair_Long";   // pony, lowpony, long, braid, twin, mane
     }
 
     // the class weapon: KayKit model and the node names to borrow (main hand, off hand)
