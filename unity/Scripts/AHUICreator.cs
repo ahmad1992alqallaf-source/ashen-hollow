@@ -213,11 +213,22 @@ public partial class AHUI
     // hairstyles that came out the same as another on the VRoid heroes (Bob as Short, Wild mane as Long, Bald as Shaved),
     // left off the list (a hero who has one keeps it)
     static readonly HashSet<string> HairDup = new HashSet<string> { "bob", "mane", "bald" };
-    static List<KeyValuePair<string, string>> Opts(string key)
+    // hairstyles for one sex only (the rest are for both): twin tails, a high bun and a braid for women; a short crop,
+    // a mohawk, shaved and messy spikes for men
+    static readonly HashSet<string> HairF = new HashSet<string> { "twin", "bun", "braid" };
+    static readonly HashSet<string> HairM = new HashSet<string> { "short", "mohawk", "shaved", "spiky" };
+    static bool HairFor(string hair, string sex) { return sex == "f" ? !HairM.Contains(hair) : !HairF.Contains(hair); }
+    // a hero who changes sex keeps their hairstyle if it suits, else takes the first one that does
+    static void FitHair(AHLook L)
+    {
+        if (L == null || HairFor(L.hair, L.sex)) return;
+        foreach (var kv in Opts("hair", L.sex)) { L.hair = kv.Key; return; }
+    }
+    static List<KeyValuePair<string, string>> Opts(string key, string sex = null)
     {
         var l = new List<KeyValuePair<string, string>>();
         var o = AHJson.A(AHJson.O(AHJson.O(AHDB.Rules, "LOOK"), "OPTS"), key);
-        if (o != null) foreach (var r in o) { var row = r as List<object>; if (row == null || row.Count < 2) continue; if (key == "hair" && HairDup.Contains(Convert.ToString(row[0]))) continue; l.Add(new KeyValuePair<string, string>(Convert.ToString(row[0], System.Globalization.CultureInfo.InvariantCulture), (string)row[1])); }
+        if (o != null) foreach (var r in o) { var row = r as List<object>; if (row == null || row.Count < 2) continue; if (key == "hair" && (HairDup.Contains(Convert.ToString(row[0])) || (sex != null && !HairFor(Convert.ToString(row[0]), sex)))) continue; l.Add(new KeyValuePair<string, string>(Convert.ToString(row[0], System.Globalization.CultureInfo.InvariantCulture), (string)row[1])); }
         return l;
     }
 
@@ -312,7 +323,7 @@ public partial class AHUI
                 string k = row[1], label = row[2], kind = row[3];
                 if (k == "markCol" && (L.mark == "none" || L.mark == "scar" || L.mark == "freckles" || L.mark == "blush")) continue;
                 CrLabel(label, 16, new Color(1f, 0.85f, 0.55f), 22f);
-                if (kind == "opt") { CrChips(Opts(k), v => LookGet(L, k) == v, v => { LookSet(L, k, v); p.ApplyLook(); }); continue; }
+                if (kind == "opt") { CrChips(Opts(k, k == "hair" ? L.sex : null), v => LookGet(L, k) == v, v => { LookSet(L, k, v); if (k == "sex") FitHair(L); p.ApplyLook(); }); continue; }
                 if (kind == "cloth")
                 {
                     var cl = LookList("CLOTH"); var it = new List<KeyValuePair<string, string>>();
