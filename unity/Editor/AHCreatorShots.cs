@@ -26,6 +26,9 @@ public static class AHCreatorShots
     // only.txt "hairs": every hairstyle on a plain hero (no gear), man and woman, front, back and side, as big pictures
     // (HeroShots/creator/hairs_<n>.png, four hairstyles a sheet)
     static bool HairsMode;
+    // only.txt "beards": the same pictures, every kind of facial hair on a man (with short hair, then with a wolf cut)
+    static bool BeardsMode;
+    static readonly string[] Beards = { "stubble", "mustache", "goatee", "short", "full", "long" };
 
     [MenuItem("Ashen Hollow/Test: Creator Look Shots #&h")]
     static void Run()
@@ -34,7 +37,8 @@ public static class AHCreatorShots
         dir = Path.Combine(Application.dataPath, "../HeroShots/creator"); Directory.CreateDirectory(dir);
         string tf = Path.Combine(dir, "only.txt"); Only = File.Exists(tf) ? File.ReadAllText(tf).Trim() : null; if (Only == "") Only = null;
         Bodies = Only == "bodies"; if (Bodies) Only = null;
-        HairsMode = Only == "hairs"; if (HairsMode) Only = "rogue";   // (daggers at the hips: nothing in front of the head)
+        BeardsMode = Only == "beards";
+        HairsMode = Only == "hairs" || BeardsMode; if (HairsMode) Only = "rogue";   // (daggers at the hips: nothing in front of the head)
         Hands = Only == "hands"; if (Hands) { Only = null; handSheet = new Texture2D(S * 6, S * Classes.Length, TextureFormat.RGB24, false); }
         ci = -1; Next();
     }
@@ -56,11 +60,13 @@ public static class AHCreatorShots
             Debug.Log("Ashen Hollow: creator shots saved to " + Path.GetFullPath(dir)); return;
         }
         string cls = Classes[ci]; int n = 0;
-        foreach (var hair in Hands || Bodies ? new[] { "pony" } : Hairs)
-            foreach (var sex in new[] { "m", "f" })
+        foreach (var item in Hands || Bodies ? new[] { "pony" } : BeardsMode ? Beards : Hairs)
+            for (int si = 0; si < 2; si++)
             {
                 var holder = new GameObject("CreatorStand_" + n).transform; holder.position = new Vector3(7000f + n * 6f, -900f, 0f); n++;
-                var look = new AHLook { sex = sex, hair = hair, hairCol = 2, cloth = 0, beard = sex == "m" && (hair == "short" || hair == "mane") ? "short" : "none" };
+                string sex = BeardsMode || si == 0 ? "m" : "f", hair = BeardsMode ? (si == 0 ? "short" : "wolf") : item;
+                string beard = BeardsMode ? item : sex == "m" && (hair == "short" || hair == "mane") ? "short" : "none";
+                var look = new AHLook { sex = sex, hair = hair, hairCol = 2, cloth = 0, beard = beard };
                 AHAnim a = null; GameObject rig = null;
                 try { rig = AHPeople.BuildHero(holder, AHClasses.Get(cls), look, AHGame.I, out a); } catch (System.Exception e) { Debug.LogWarning("creator shots: " + e.Message); }
                 if (rig != null)
@@ -112,7 +118,7 @@ public static class AHCreatorShots
         for (int i = 0; i < stands.Count; i++)
         {
             int hi = i / 2, fem = i % 2, row = hi % per;
-            if (fem == 0 && row == 0) { if (sheet != null) { sheet.Apply(); File.WriteAllBytes(Path.Combine(dir, "hairs_" + sheetNo++ + ".png"), sheet.EncodeToPNG()); Object.Destroy(sheet); } sheet = new Texture2D(HS * 6, HS * per, TextureFormat.RGB24, false); }
+            if (fem == 0 && row == 0) { if (sheet != null) { sheet.Apply(); File.WriteAllBytes(Path.Combine(dir, (BeardsMode ? "beards_" : "hairs_") + sheetNo++ + ".png"), sheet.EncodeToPNG()); Object.Destroy(sheet); } sheet = new Texture2D(HS * 6, HS * per, TextureFormat.RGB24, false); }
             var st = stands[i]; if (st == null) continue;
             for (int j = 0; j < stands.Count; j++) if (stands[j] != null) foreach (var t in stands[j].GetComponentsInChildren<Transform>(true)) t.gameObject.layer = j == i ? L : 0;
             var head = HeadOf(st); Vector3 hc = head != null ? head.position + Vector3.up * 0.02f : st.transform.position + Vector3.up * 1.6f;
@@ -124,7 +130,7 @@ public static class AHCreatorShots
                 RenderTexture.active = rt; sheet.ReadPixels(new Rect(0, 0, HS, HS), (fem * 3 + k) * HS, (per - 1 - row) * HS); RenderTexture.active = null;
             }
         }
-        if (sheet != null) { sheet.Apply(); File.WriteAllBytes(Path.Combine(dir, "hairs_" + sheetNo + ".png"), sheet.EncodeToPNG()); Object.Destroy(sheet); }
+        if (sheet != null) { sheet.Apply(); File.WriteAllBytes(Path.Combine(dir, (BeardsMode ? "beards_" : "hairs_") + sheetNo + ".png"), sheet.EncodeToPNG()); Object.Destroy(sheet); }
         cam.targetTexture = null; Object.Destroy(cg); Object.Destroy(lg); Object.Destroy(lg2); Object.Destroy(rt);
     }
 

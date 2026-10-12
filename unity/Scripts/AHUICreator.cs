@@ -221,7 +221,9 @@ public partial class AHUI
     // a hero who changes sex keeps their hairstyle if it suits, else takes the first one that does
     static void FitHair(AHLook L)
     {
-        if (L == null || HairFor(L.hair, L.sex)) return;
+        if (L == null) return;
+        if (L.sex == "f") L.beard = "none";
+        if (HairFor(L.hair, L.sex)) return;
         foreach (var kv in Opts("hair", L.sex)) { L.hair = kv.Key; return; }
     }
     static List<KeyValuePair<string, string>> Opts(string key, string sex = null)
@@ -322,6 +324,7 @@ public partial class AHUI
                 if (row[0] != crTab) continue;
                 string k = row[1], label = row[2], kind = row[3];
                 if (k == "markCol" && (L.mark == "none" || L.mark == "scar" || L.mark == "freckles" || L.mark == "blush")) continue;
+                if (k == "beard" && L.sex == "f") continue;   // no facial hair on women
                 CrLabel(label, 16, new Color(1f, 0.85f, 0.55f), 22f);
                 if (kind == "opt") { CrChips(Opts(k, k == "hair" ? L.sex : null), v => LookGet(L, k) == v, v => { LookSet(L, k, v); if (k == "sex") FitHair(L); p.ApplyLook(); }); continue; }
                 if (kind == "cloth")

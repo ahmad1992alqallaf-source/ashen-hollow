@@ -210,6 +210,7 @@ public static class AHVRoid
                 sp.GetComponent<Renderer>().sharedMaterial = hm; sp.transform.SetParent(head, true);
             }
         }
+        if (look.sex != "f" && !string.IsNullOrEmpty(look.beard) && look.beard != "none") Beard(v, head, look.beard, hk, skin, b, w, up, fw, rt);
         if (look.ears == "pointed" || look.ears == "elven")
         {
             // ears that sweep up and back from the side of the head, in the face's own tone
@@ -222,6 +223,102 @@ public static class AHVRoid
                 Vector3 dirE = (rt * sx * 0.75f + up * 0.6f - fw * 0.35f).normalized;
                 piece(root + dirE * L * 0.45f * w, new Vector3(0.09f, L, 0.2f) * w, Quaternion.LookRotation(Vector3.Cross(dirE, rt * sx).normalized, dirE), em);
             }
+        }
+    }
+
+    // facial hair (VRoid has none): the face's own skin over the jaw, lip or chin, copied a little out from the face in
+    // the hair's colour (stubble: a thin darker shade of the skin), and a long beard hangs a tapered tuft from the chin.
+    // Everything is placed between the chin and the tip of the nose (found on the face itself), so it fits every face
+    static void Beard(GameObject v, Transform head, string kind, Color hk, Color skin, Bounds hb, float w, Vector3 up, Vector3 fw, Vector3 rt)
+    {
+        SkinnedMeshRenderer face = null;
+        foreach (var s in v.GetComponentsInChildren<SkinnedMeshRenderer>(true)) if (s.name == "Face") { face = s; break; }
+        if (face == null || face.sharedMesh == null) return;
+        var fm = face.sharedMesh; var mats = face.sharedMaterials;
+        int skinSub = -1;
+        for (int sub = 0; sub < fm.subMeshCount && sub < mats.Length; sub++)
+        {
+            string mn = mats[sub] != null ? mats[sub].name.ToUpperInvariant() : "";
+            if (mn.Contains("FACE_00_SKIN") || (skinSub < 0 && mn.Contains("_SKIN"))) skinSub = sub;
+        }
+        if (skinSub < 0) return;
+        var baked = new Mesh(); face.BakeMesh(baked, true);
+        var vs = baked.vertices; var ns = baked.normals; Object.Destroy(baked);
+        if (vs.Length != fm.vertexCount || ns.Length != vs.Length) return;
+        var M = face.transform.localToWorldMatrix; Vector3 c = hb.center;
+        var tri = fm.GetTriangles(skinSub);
+        // each vertex across (x), up (y) and forward (z), in head widths from the head's middle
+        var X = new float[vs.Length]; var Y = new float[vs.Length]; var Z = new float[vs.Length]; var wp = new Vector3[vs.Length]; var wn = new Vector3[vs.Length];
+        for (int i = 0; i < vs.Length; i++)
+        {
+            wp[i] = M.MultiplyPoint3x4(vs[i]); wn[i] = M.MultiplyVector(ns[i]).normalized;
+            Vector3 d = wp[i] - c; X[i] = Vector3.Dot(d, rt) / w; Y[i] = Vector3.Dot(d, up) / w; Z[i] = Vector3.Dot(d, fw) / w;
+        }
+        // the chin (the face's lowest point down the middle) and the tip of the nose (its furthest point forward)
+        float chin = float.MaxValue, noseZ = float.MinValue, nose = 0f;
+        foreach (int i in tri)
+        {
+            if (Mathf.Abs(X[i]) > 0.05f || Z[i] < 0f) continue;
+            if (Y[i] < chin) chin = Y[i];
+            if (Z[i] > noseZ) { noseZ = Z[i]; nose = Y[i]; }
+        }
+        float span = nose - chin; if (chin == float.MaxValue || span < 0.08f) return;
+        bool stubble = kind == "stubble", lip = kind == "mustache", goatee = kind == "goatee";
+        bool full = kind == "full" || kind == "long";
+        // t: 0 at the chin, 1 at the tip of the nose (the mouth sits about 0.5 to 0.8)
+        System.Func<int, float> T = i => (Y[i] - chin) / span;
+        System.Func<int, bool> on = i =>
+        {
+            float x = Mathf.Abs(X[i]), t = T(i);
+            if (Z[i] < -0.05f) return false;                                           // the face, not round the ears
+            bool tash = t > 0.8f && t < 0.97f && x < 0.15f || (x > 0.08f && x < 0.15f && t > 0.5f && t <= 0.8f);   // over the lip and down the sides
+            bool mouthHole = t > 0.42f && t <= 0.8f && x <= 0.08f;
+            bool chinTuft = t <= 0.42f && x < 0.12f;
+            if (lip) return tash;
+            if (goatee) return tash || chinTuft;
+            if (mouthHole) return false;
+            if (tash) return true;
+            // the jaw and the cheeks, rising towards the ears (side burns)
+            float top = full ? Mathf.Lerp(0.85f, 1.6f, Mathf.InverseLerp(0.15f, 0.45f, x)) : Mathf.Lerp(0.55f, 1.25f, Mathf.InverseLerp(0.15f, 0.45f, x));
+            return t < top;
+        };
+        var map = new Dictionary<int, int>(); var nv = new List<Vector3>(); var nt = new List<int>();
+        float baseT = (stubble ? 0.005f : kind == "short" ? 0.016f : lip ? 0.02f : 0.024f) * w;
+        var hw = head.worldToLocalMatrix;
+        for (int t = 0; t + 2 < tri.Length; t += 3)
+        {
+            if (!on(tri[t]) || !on(tri[t + 1]) || !on(tri[t + 2])) continue;
+            for (int k = 0; k < 3; k++)
+            {
+                int i = tri[t + k], j;
+                if (!map.TryGetValue(i, out j))
+                {
+                    j = nv.Count; map[i] = j;
+                    float th = baseT * (full ? 1f + 1.6f * Mathf.Clamp01(1f - T(i)) : 1f);   // a full beard is thickest at the chin
+                    nv.Add(hw.MultiplyPoint3x4(wp[i] + wn[i] * th));
+                }
+                nt.Add(j);
+            }
+        }
+        if (nt.Count == 0) return;
+        var mesh = new Mesh(); mesh.name = "Beard"; mesh.SetVertices(nv); mesh.SetTriangles(nt, 0); mesh.RecalculateNormals(); mesh.RecalculateBounds();
+        Color sk = new Color(1f, 0.88f, 0.8f) * SkinTint(skin);
+        Color col = stubble ? Color.Lerp(sk, hk * 0.55f, 0.28f) : hk * 0.9f; col.a = 1f;
+        var mat = new Material(Shader.Find("Universal Render Pipeline/Unlit")); mat.SetColor("_BaseColor", col);   // flat, like the VRoid face and hair
+        var go = new GameObject("Beard"); go.transform.SetParent(head, false);
+        go.AddComponent<MeshFilter>().sharedMesh = mesh; go.AddComponent<MeshRenderer>().sharedMaterial = mat;
+        if (kind == "long")
+        {
+            // a tuft hanging from the chin, broad at the top and tapering to a point
+            Vector3 chinAt = c + up * chin * w + fw * 0.36f * w;
+            foreach (int i in tri) if (Mathf.Abs(X[i]) < 0.05f && Mathf.Abs(Y[i] - chin) < 0.01f) { chinAt = wp[i]; break; }
+            var tuft = GameObject.CreatePrimitive(PrimitiveType.Cube); Object.Destroy(tuft.GetComponent<Collider>()); tuft.name = "Beard";
+            tuft.GetComponent<MeshFilter>().sharedMesh = Spike();
+            Vector3 dn = (-up * 0.95f + fw * 0.25f).normalized;
+            tuft.transform.position = chinAt + up * 0.12f * w - fw * 0.08f * w;
+            tuft.transform.rotation = Quaternion.LookRotation(Vector3.Cross(rt, dn).normalized, dn);   // its width across the face, its depth front to back
+            tuft.transform.localScale = new Vector3(0.2f * w, 0.55f * w, 0.12f * w);
+            tuft.GetComponent<Renderer>().sharedMaterial = mat; tuft.transform.SetParent(head, true);
         }
     }
 
