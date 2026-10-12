@@ -142,6 +142,7 @@ public static class AHPeople
         // the Warden's lava hammer and shield (made with Tripo from our concept art); our code-built ones if they are missing
         bool warden = main == "StoneHammer", tripoShield = false;
         if (warden) { if (AHTripo.Hold(hr, "warden_hammer", main, q, p, 0.6f, 0.2f, false) == null) StoneHammer(hr, q, p); }
+        else if (main == "1H_Wand") Wand(hr, q, p);   // our own carved wand (the KayKit one was a thin bent pink stick)
         else Grab(tmp.transform, main, hr, q, p);
         if (off != null)
         {
@@ -231,6 +232,40 @@ public static class AHPeople
         P(PrimitiveType.Cube, new Vector3(-0.11f, 0.77f, -0.087f), new Vector3(0.1f, 0.018f, 0.004f), new Vector3(0, 0, -10f), hamEmber);
         P(PrimitiveType.Cube, new Vector3(0, 0.9f, 0), new Vector3(0.1f, 0.06f, 0.1f), Vector3.zero, hamStone);                  // the cap
         root.localScale *= 0.68f;   // a one-handed hammer: about 0.65 m, its head the size of a loaf
+    }
+
+    // the priest's wand (ours): a leather-wrapped grip in the fist, a dark wood shaft with gold bands, and a pale
+    // gold gem at the tip with a soft glow; about 0.36 m, pointing out of the thumb side of the fist like a short blade
+    static Material wandWood, wandGrip, wandGold, wandGem;
+    static void Wand(Transform hand, Quaternion q, Vector3 p)
+    {
+        if (hand == null) return;
+        if (wandWood == null)
+        {
+            var sh = Shader.Find("Universal Render Pipeline/Lit");
+            wandWood = new Material(sh); wandWood.color = new Color(0.3f, 0.18f, 0.1f); wandWood.SetFloat("_Smoothness", 0.4f);
+            wandGrip = new Material(sh); wandGrip.color = new Color(0.22f, 0.12f, 0.08f); wandGrip.SetFloat("_Smoothness", 0.2f);
+            wandGold = new Material(sh); wandGold.color = new Color(0.95f, 0.72f, 0.25f); wandGold.SetFloat("_Metallic", 0.9f); wandGold.SetFloat("_Smoothness", 0.65f);
+            wandGem = new Material(sh); wandGem.color = new Color(1f, 0.92f, 0.62f); wandGem.SetFloat("_Smoothness", 0.85f); wandGem.EnableKeyword("_EMISSION"); wandGem.SetColor("_EmissionColor", new Color(1f, 0.85f, 0.45f) * 0.9f);
+        }
+        var root = new GameObject("Weapon_1H_Wand").transform; root.SetParent(hand, false);
+        root.localRotation = q; root.localPosition = p;
+        Vector3 hs = hand.lossyScale; root.localScale = new Vector3(1f / Mathf.Max(1e-5f, hs.x), 1f / Mathf.Max(1e-5f, hs.y), 1f / Mathf.Max(1e-5f, hs.z));
+        root.localPosition -= q * Vector3.up * 0.05f * (1f / Mathf.Max(1e-5f, hs.y));   // the grip, not the shaft, in the fist
+        System.Action<PrimitiveType, Vector3, Vector3, Material> P = (t, pos, sc, m) =>
+        {
+            var go = GameObject.CreatePrimitive(t); Object.Destroy(go.GetComponent<Collider>());
+            go.name = "Piece"; go.transform.SetParent(root, false); go.transform.localPosition = pos; go.transform.localScale = sc;
+            var r = go.GetComponent<Renderer>(); r.sharedMaterial = m; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+        };
+        P(PrimitiveType.Sphere, new Vector3(0, -0.005f, 0), new Vector3(0.03f, 0.022f, 0.03f), wandGold);        // the pommel
+        P(PrimitiveType.Cylinder, new Vector3(0, 0.05f, 0), new Vector3(0.026f, 0.05f, 0.026f), wandGrip);      // the wrapped grip
+        P(PrimitiveType.Cylinder, new Vector3(0, 0.105f, 0), new Vector3(0.032f, 0.007f, 0.032f), wandGold);    // the guard band
+        P(PrimitiveType.Cylinder, new Vector3(0, 0.18f, 0), new Vector3(0.019f, 0.075f, 0.019f), wandWood);     // the shaft, in two tapering lengths
+        P(PrimitiveType.Cylinder, new Vector3(0, 0.29f, 0), new Vector3(0.014f, 0.04f, 0.014f), wandWood);
+        P(PrimitiveType.Cylinder, new Vector3(0, 0.255f, 0), new Vector3(0.022f, 0.005f, 0.022f), wandGold);    // a band between them
+        P(PrimitiveType.Cylinder, new Vector3(0, 0.334f, 0), new Vector3(0.026f, 0.006f, 0.026f), wandGold);    // the setting
+        P(PrimitiveType.Sphere, new Vector3(0, 0.358f, 0), new Vector3(0.034f, 0.042f, 0.034f), wandGem);       // the gem
     }
 
     // the priest's holy book (ours): a closed tome bound in deep red leather, cream page edges, gold corners, a gold

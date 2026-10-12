@@ -111,6 +111,7 @@ public class AHQOutfitHide : MonoBehaviour
     readonly List<SkinnedMeshRenderer> darkened = new List<SkinnedMeshRenderer>();
     readonly List<KeyValuePair<SkinnedMeshRenderer, Material[]>> swapped = new List<KeyValuePair<SkinnedMeshRenderer, Material[]>>();
     static Material underMat;
+    public static Color NeckShade = new Color(0.72f, 0.63f, 0.62f);   // a warm shadow under the chin
     static readonly Color Under = new Color(0.17f, 0.13f, 0.12f, 1f);   // a dark padded under-suit, warm like the basalt plates
     const float Cell = 0.05f, Reach = 0.10f, Through = 0.07f, Close = 0.03f, Snug = 0.07f;
 
@@ -170,7 +171,7 @@ public class AHQOutfitHide : MonoBehaviour
             // the neck, the head and the hair are only cut where they poke out through the outfit: cut under a collar
             // too, they left a hole at the nape through which the inside of the face showed
             // the hair lies over the clothes and is never cut, except where it pokes out through a hood
-            var soft = new bool[v.Length]; var hairV = new bool[v.Length]; var neckV = new bool[v.Length]; var bw0 = mesh.boneWeights; var sb0 = s.bones; bool hairMesh = nm.Contains("hair");
+            var soft = new bool[v.Length]; var hairV = new bool[v.Length]; var neckV = new bool[v.Length]; var shadeV = new bool[v.Length]; var bw0 = mesh.boneWeights; var sb0 = s.bones; bool hairMesh = nm.Contains("hair");
             for (int i = 0; i < v.Length; i++)
             {
                 if (hairMesh) { hairV[i] = true; continue; }
@@ -184,6 +185,7 @@ public class AHQOutfitHide : MonoBehaviour
                 // the hair and the collar at the back)
                 // (and so does the head when no helmet hides it: cut at the nape against a high collar, the inside of the
                 // face showed through from behind)
+                if (bn.Contains("Neck") || bn.Contains("Chest")) shadeV[i] = true;   // the neck, and the chest skin showing in an open collar
                 if ((bn.Contains("Neck") || (!helmet && bn.Contains("Head"))) && !closed) { neckV[i] = true; continue; }
             }
             // under a closed suit of plate the body stays inside, darkened to a black under-suit, so no chink between
@@ -234,6 +236,9 @@ public class AHQOutfitHide : MonoBehaviour
                 }
             var cut = Instantiate(mesh); cut.name = mesh.name + " (under outfit)";
             var smats = s.sharedMaterials;
+            // the neck in its own shade of the skin: lit as brightly as the face, the face and neck read as one flat pale
+            // shape and the head looked set on top of the collar; a shaded neck (as drawn in anime) sits under the chin
+            var neckTris = new List<int>(); Material skinMat = null;
             for (int sm = 0; sm < mesh.subMeshCount; sm++)
             {
                 var t = mesh.GetTriangles(sm); var keep = new List<int>(t.Length);
@@ -248,9 +253,18 @@ public class AHQOutfitHide : MonoBehaviour
                     if (cloth && !(arm[t[i]] && arm[t[i + 1]] && arm[t[i + 2]])) { cutTris++; continue; }
                     int h = (hide[t[i]] ? 1 : 0) + (hide[t[i + 1]] ? 1 : 0) + (hide[t[i + 2]] ? 1 : 0);
                     if (h >= (hood && hairV[t[i]] ? 2 : 1)) { cutTris++; continue; }
+                    if (!closed && mn.Contains("SKIN") && shadeV[t[i]] && shadeV[t[i + 1]] && shadeV[t[i + 2]]) { neckTris.Add(t[i]); neckTris.Add(t[i + 1]); neckTris.Add(t[i + 2]); if (skinMat == null) skinMat = smats[sm]; continue; }
                     keep.Add(t[i]); keep.Add(t[i + 1]); keep.Add(t[i + 2]);
                 }
                 cut.SetTriangles(keep, sm);
+            }
+            if (neckTris.Count > 0 && skinMat != null)
+            {
+                int ns = mesh.subMeshCount; cut.subMeshCount = ns + 1; cut.SetTriangles(neckTris, ns);
+                var shade = new Material(skinMat) { name = skinMat.name + " (neck shade)" };
+                foreach (var prop in new[] { "_Color", "_BaseColor", "_ShadeColor", "_LitColor" }) if (shade.HasProperty(prop)) { var c = shade.GetColor(prop); shade.SetColor(prop, new Color(c.r * NeckShade.r, c.g * NeckShade.g, c.b * NeckShade.b, c.a)); }
+                var nm2 = new Material[ns + 1]; for (int i = 0; i < ns; i++) nm2[i] = i < smats.Length ? smats[i] : null; nm2[ns] = shade;
+                swapped.Add(new KeyValuePair<SkinnedMeshRenderer, Material[]>(s, smats)); s.sharedMaterials = nm2;
             }
             smrs.Add(s); originals.Add(mesh); cuts.Add(cut); s.sharedMesh = cut;
         }
