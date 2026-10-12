@@ -400,11 +400,12 @@ public static class AHQOutfitPlan
     {
         switch (cls)
         {
-            case "warrior": return S + ((chest.style ?? "") == "royal" ? "Knight_Cloth" : "Knight") + ":-Head,-Pauldron";
+            // (no scarf: wound up to the chin it hid the neck, and the head looked set straight on the shoulders)
+            case "warrior": return S + ((chest.style ?? "") == "royal" ? "Knight_Cloth" : "Knight") + ":-Head,-Pauldron,-Scarf";
             case "rogue": return S + "RangerShade:Body,Arms,-Bracer+" + S + "Wizard:Legs,Feet";
             case "ranger": return S + "Ranger:-Head,-Pauldron";
             case "shaman": return S + "Peasant:Body,Legs+" + S + "RangerTide:Arms,Feet";
-            case "priest": return S + "Noble:-Head,-Pauldron";
+            case "priest": return S + "Noble:-Head,-Pauldron,-Gorget";   // no gorget: the gold collar plate came up to the chin
             case "mage": return S + "Wizard";
             case "druid": return fem ? S + "Peasant" : S + "Peasant:-Arms+" + S + "Ranger:Arms,-Bracer";
             case "warden": return S + "KnightClothStone:-Head,-Pauldron";   // armour under a tabard, recoloured sandstone and ember
@@ -482,12 +483,13 @@ public static class AHQOutfitPlan
         if (sh != null)
         {
             string f = sh.form ?? "", sa = Armor(sh), part = null;
-            if (f == "plates" || f == "spikes")
-            {
-                if (sa == "plate") part = S + (cls == "warden" ? "KnightClothStone" : f == "spikes" ? "Knight_Cloth" : "Knight") + ":Pauldron";
-                else if (sa == "leather") part = S + RangerOf(cls) + ":Pauldron";
-                else part = S + (Priest.Contains(sh.style ?? "") || cls == "priest" ? "Noble:Lion" : "Noble:Pauldron,-Lion");
-            }
+            // every mantle is worn as the outfit's own shoulder armour (fur and feather mantles drawn as loose shapes
+            // floated off the slimmer VRoid shoulders)
+            if (sa == "plate") part = S + (cls == "warden" ? "KnightClothStone" : f == "spikes" ? "Knight_Cloth" : "Knight") + ":Pauldron";
+            else if (sa == "leather") part = S + RangerOf(cls) + ":Pauldron";
+            else if (cls == "druid") part = S + "RangerGrove:Pauldron";
+            else if (cls == "mage") part = S + "RangerArcane:Pauldron";
+            else part = S + "Noble:Pauldron,-Lion";   // (the lion-head pauldron sat on the VRoid shoulder as a lump)
             if (part != null) { spec += "+" + part; covered.Add("shoulders"); }
         }
         return spec;

@@ -312,9 +312,11 @@ public static class AHWardrobe
     // rows v0..v1 of it (0 = collar, 1 = hem), pushed out by 'lift' (a trim laid over the cloth); two faces, so it
     // shows from inside as well
     static readonly Dictionary<string, Mesh> cloaks = new Dictionary<string, Mesh>();
-    static Mesh Cloak(float L, float v0, float v1, float lift)
+    // slim: for the VRoid body (narrower shoulders, a flatter back): it lies on the shoulders and hangs close down the
+    // back, curved round the sides, instead of standing off behind as a flat board
+    static Mesh Cloak(float L, float v0, float v1, float lift, bool slim = false)
     {
-        string key = Mathf.RoundToInt(L * 100f) + "_" + Mathf.RoundToInt(v0 * 100f) + "_" + Mathf.RoundToInt(v1 * 100f);
+        string key = Mathf.RoundToInt(L * 100f) + "_" + Mathf.RoundToInt(v0 * 100f) + "_" + Mathf.RoundToInt(v1 * 100f) + (slim ? "_s" : "");
         Mesh m; if (cloaks.TryGetValue(key, out m) && m != null) return m;
         int nu = 14, nv = Mathf.Max(2, Mathf.RoundToInt(12 * (v1 - v0))); var v = new List<Vector3>(); var t = new List<int>();
         for (int side = 0; side < 2; side++)
@@ -324,9 +326,11 @@ public static class AHWardrobe
                 for (int i = 0; i <= nu; i++)
                 {
                     float u = i / (float)nu, w = Mathf.Lerp(v0, v1, j / (float)nv), e = 2f * u - 1f;
-                    float wid = Mathf.Lerp(0.36f, 0.6f, Mathf.Pow(w, 0.8f));
+                    float wid = slim ? Mathf.Lerp(0.3f, 0.5f, Mathf.Pow(w, 0.9f)) : Mathf.Lerp(0.36f, 0.6f, Mathf.Pow(w, 0.8f));
                     float y = 0.07f - w * L + Mathf.Pow(w, 4f) * 0.06f * e * e;
-                    float z = -0.15f - w * L * 0.2f + Mathf.Lerp(0.13f, 0.035f, w) * e * e - 0.024f * w * (0.5f + 0.5f * Mathf.Sin(u * Mathf.PI * 6f + 0.5f));
+                    float z = slim
+                        ? -0.1f - w * L * 0.07f - Mathf.Sin(Mathf.Clamp01(w * 2.2f) * Mathf.PI) * 0.03f + Mathf.Lerp(0.1f, 0.075f, w) * e * e - 0.018f * w * (0.5f + 0.5f * Mathf.Sin(u * Mathf.PI * 6f + 0.5f))
+                        : -0.15f - w * L * 0.2f + Mathf.Lerp(0.13f, 0.035f, w) * e * e - 0.024f * w * (0.5f + 0.5f * Mathf.Sin(u * Mathf.PI * 6f + 0.5f));
                     v.Add(new Vector3(e * wid * 0.5f, y, z + th - lift));
                 }
             for (int j = 0; j < nv; j++)
@@ -659,7 +663,7 @@ public static class AHWardrobe
             else if (f == "crown" || f == "circlet")
             {
                 // snug on the brow (it stood well off the VRoid hair as a floating ring)
-                K.Mesh(torus, new Vector3(0, 0.08f, -0.03f), new Vector3(0.19f, 0.26f, 0.205f), Vector3.zero);
+                K.Mesh(torus, new Vector3(0, 0.075f, -0.03f), new Vector3(0.18f, 0.2f, 0.195f), Vector3.zero);
                 if (f == "crown") for (int i = 0; i < 7; i++) { float a = i * Mathf.PI * 2 / 7; K.Mesh(cone, new Vector3(Mathf.Cos(a) * 0.098f, 0.09f, Mathf.Sin(a) * 0.103f - 0.03f), new Vector3(0.045f, 0.075f, 0.045f), Vector3.zero); }
                 else K.Prim(PrimitiveType.Sphere, new Vector3(0, 0.08f, 0.075f), Vector3.one * 0.028f, Vector3.zero, K.Gold);
             }
@@ -796,11 +800,13 @@ public static class AHWardrobe
                 // a draped cloak: wraps round the shoulders, falls in folds, flares and rounds off at the hem
                 // over a real outfit the cloak hangs a little further back (armour and coats are thicker than the body),
                 // and its collar bar is left off (it stood out above the outfit's shoulders)
-                var off = outfitOn ? new Vector3(0, 0.015f, -0.05f) : Vector3.zero;
-                K.Mesh(Cloak(L, 0f, 1f, 0f), off, Vector3.one, Vector3.zero);
+                bool slim = rig.GetComponent<AHVRoidLink>() != null;
+                var off = outfitOn ? new Vector3(0, 0.015f, slim ? -0.035f : -0.05f) : Vector3.zero;
+                K.Mesh(Cloak(L, 0f, 1f, 0f, slim), off, Vector3.one, Vector3.zero);
                 if (!outfitOn) K.Prim(PrimitiveType.Cube, new Vector3(0, 0.07f, -0.12f), new Vector3(0.42f, 0.06f, 0.08f), Vector3.zero, K.Dark);
-                foreach (int sx in new[] { -1, 1 }) K.Prim(PrimitiveType.Sphere, new Vector3(sx * 0.17f, 0.06f, -0.06f) + off, new Vector3(0.055f, 0.055f, 0.03f), Vector3.zero, K.Gold);   // the clasps
-                if (f == "ember") K.Mesh(Cloak(L, 0.93f, 1f, -0.006f), off, Vector3.one, Vector3.zero, K.Gold);
+                // the clasps (on the VRoid body they hung in the air beside its narrower shoulders: left off)
+                if (!slim) foreach (int sx in new[] { -1, 1 }) K.Prim(PrimitiveType.Sphere, new Vector3(sx * 0.17f, 0.06f, -0.06f) + off, new Vector3(0.055f, 0.055f, 0.03f), Vector3.zero, K.Gold);
+                if (f == "ember") K.Mesh(Cloak(L, 0.93f, 1f, -0.006f, slim), off, Vector3.one, Vector3.zero, K.Gold);
             }
             else if (f == "coat" && !outfitOn)   // a real outfit already has its own coat: no loose coat tails over it
                 foreach (int sx in new[] { -1, 1 }) K.Prim(PrimitiveType.Cube, new Vector3(sx * 0.1f, -L * 0.62f, -0.2f - L * 0.08f), new Vector3(0.2f, L * 0.55f, 0.025f), new Vector3(9, 0, sx * 4));
@@ -834,8 +840,12 @@ public static class AHWardrobe
             }
             else if (f == "quiver")
             {
-                K.Prim(PrimitiveType.Cylinder, new Vector3(0.06f, -0.1f, -0.16f), new Vector3(0.1f, 0.2f, 0.1f), new Vector3(0, 0, 25));
-                for (int i = 0; i < 4; i++) K.Prim(PrimitiveType.Cube, new Vector3(0.14f + i * 0.012f, 0.12f + (i % 2) * 0.01f, -0.16f + (i - 1.5f) * 0.02f), new Vector3(0.012f, 0.08f, 0.03f), new Vector3(0, 0, 25), K.Gold);
+                // the quiver slung across the back, and the fletchings at its top end (they were drawn at the wrong end
+                // and stood beside the head)
+                bool slimQ = rig.GetComponent<AHVRoidLink>() != null; float qz = slimQ ? -0.14f : -0.16f;
+                var qc = new Vector3(0.06f, -0.1f, qz); var qr = Quaternion.Euler(0, 0, 25);
+                K.Prim(PrimitiveType.Cylinder, qc, new Vector3(0.1f, 0.2f, 0.1f), new Vector3(0, 0, 25));
+                for (int i = 0; i < 4; i++) K.Prim(PrimitiveType.Cube, qc + qr * new Vector3(-0.027f + i * 0.018f, 0.235f + (i % 2) * 0.012f, (i % 2 == 0 ? -0.012f : 0.012f)), new Vector3(0.012f, 0.07f, 0.028f), new Vector3(0, 0, 25), K.Gold);
             }
         }
         foreach (Transform tf in rig.GetComponentsInChildren<Transform>(true)) if (tf.name == "Piece") { var r = tf.GetComponent<Renderer>(); if (r != null) r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On; }

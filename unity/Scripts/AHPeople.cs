@@ -147,7 +147,8 @@ public static class AHPeople
         {
             Grip(off, false, out q, out p);
             tripoShield = warden && AHTripo.Hold(hl, "warden_shield", off, q, new Vector3(0.085f, -0.07f, 0f), 0.66f, 0f, true) != null;   // its middle on the back of the forearm, just above the wrist
-            if (!tripoShield) Grab(tmp.transform, off, hl, q, p);
+            if (off == "Spellbook") Tome(hl, false);   // our own closed tome (the KayKit book was a bright pink open box)
+            else if (!tripoShield) Grab(tmp.transform, off, hl, q, p);
         }
         Object.Destroy(tmp);
         if (crest != null && !tripoShield && off != null && off.Contains("Shield") && hl != null) ShieldCrest(hl.Find("Weapon_" + off), crest);
@@ -230,6 +231,46 @@ public static class AHPeople
         P(PrimitiveType.Cube, new Vector3(-0.11f, 0.77f, -0.087f), new Vector3(0.1f, 0.018f, 0.004f), new Vector3(0, 0, -10f), hamEmber);
         P(PrimitiveType.Cube, new Vector3(0, 0.9f, 0), new Vector3(0.1f, 0.06f, 0.1f), Vector3.zero, hamStone);                  // the cap
         root.localScale *= 0.68f;   // a one-handed hammer: about 0.65 m, its head the size of a loaf
+    }
+
+    // the priest's holy book (ours): a closed tome bound in deep red leather, cream page edges, gold corners, a gold
+    // clasp and a sun on its cover, carried by its spine in the palm, standing along the hand like a book at your side
+    static Material tomeLeather, tomeSpine, tomePage, tomeGold;
+    static void Tome(Transform hand, bool right)
+    {
+        if (hand == null) return;
+        if (tomeLeather == null)
+        {
+            var sh = Shader.Find("Universal Render Pipeline/Lit");
+            tomeLeather = new Material(sh); tomeLeather.color = new Color(0.42f, 0.09f, 0.08f); tomeLeather.SetFloat("_Smoothness", 0.35f);
+            tomeSpine = new Material(sh); tomeSpine.color = new Color(0.28f, 0.06f, 0.05f); tomeSpine.SetFloat("_Smoothness", 0.3f);
+            tomePage = new Material(sh); tomePage.color = new Color(0.86f, 0.68f, 0.32f); tomePage.SetFloat("_Metallic", 0.6f); tomePage.SetFloat("_Smoothness", 0.5f);   // gilded page edges
+            tomeGold = new Material(sh); tomeGold.color = new Color(0.95f, 0.72f, 0.25f); tomeGold.SetFloat("_Metallic", 0.9f); tomeGold.SetFloat("_Smoothness", 0.65f);
+        }
+        var root = new GameObject("Weapon_Spellbook").transform; root.SetParent(hand, false);
+        Vector3 hs = hand.lossyScale; root.localScale = new Vector3(1f / Mathf.Max(1e-5f, hs.x), 1f / Mathf.Max(1e-5f, hs.y), 1f / Mathf.Max(1e-5f, hs.z));
+        // the palm faces -x on the left hand, +x on the right: the book lies against it, fingers (+y) along its height
+        float sx = right ? 1f : -1f, T = 0.045f, H = 0.25f, W = 0.18f;
+        root.localPosition = new Vector3(sx * (0.03f + T * 0.5f), 0.1f, 0.025f);
+        root.localRotation = Quaternion.Euler(0f, sx * 35f, 0f);   // turned so its cover shows from the front, not only its edge
+        System.Action<PrimitiveType, Vector3, Vector3, Vector3, Material> P = (t, pos, sc, rot, m) =>
+        {
+            var go = GameObject.CreatePrimitive(t); Object.Destroy(go.GetComponent<Collider>());
+            go.name = "Piece"; go.transform.SetParent(root, false); go.transform.localPosition = pos; go.transform.localScale = sc; go.transform.localEulerAngles = rot;
+            var r = go.GetComponent<Renderer>(); r.sharedMaterial = m; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+        };
+        foreach (float f in new[] { -1f, 1f }) P(PrimitiveType.Cube, new Vector3(f * (T * 0.5f - 0.004f), 0, 0), new Vector3(0.008f, H, W), Vector3.zero, tomeLeather);   // the two covers
+        P(PrimitiveType.Cube, new Vector3(0, 0, 0.004f), new Vector3(T - 0.012f, H - 0.012f, W - 0.008f), Vector3.zero, tomePage);   // the pages
+        P(PrimitiveType.Cylinder, new Vector3(0, 0, -W * 0.5f), new Vector3(T, H * 0.5f, T * 0.6f), Vector3.zero, tomeSpine);   // the rounded spine
+        foreach (float y in new[] { -0.08f, 0f, 0.08f }) P(PrimitiveType.Cube, new Vector3(0, y, -W * 0.5f - T * 0.28f), new Vector3(T * 1.02f, 0.008f, 0.006f), Vector3.zero, tomeGold);   // bands on the spine
+        foreach (float f in new[] { -1f, 1f })
+            foreach (float cy in new[] { -1f, 1f })
+                P(PrimitiveType.Cube, new Vector3(f * T * 0.5f, cy * (H * 0.5f - 0.015f), W * 0.5f - 0.015f), new Vector3(0.006f, 0.03f, 0.03f), Vector3.zero, tomeGold);   // the corners
+        P(PrimitiveType.Cube, new Vector3(0, 0, W * 0.5f + 0.002f), new Vector3(T + 0.006f, 0.035f, 0.008f), Vector3.zero, tomeGold);   // the clasp
+        // a sun on the outer cover: a disc and eight short rays
+        float ox = -sx * (T * 0.5f + 0.002f);
+        P(PrimitiveType.Cylinder, new Vector3(ox, 0, 0.01f), new Vector3(0.05f, 0.002f, 0.05f), new Vector3(0, 0, 90), tomeGold);
+        for (int i = 0; i < 8; i++) { float a = i * 45f; P(PrimitiveType.Cube, new Vector3(ox, Mathf.Sin(a * Mathf.Deg2Rad) * 0.04f, 0.01f + Mathf.Cos(a * Mathf.Deg2Rad) * 0.04f), new Vector3(0.003f, 0.006f, 0.022f), new Vector3(-a, 0, 0), tomeGold); }
     }
 
     // how long each kind of weapon is in the hand, in metres (the KayKit sets come in different sizes)
