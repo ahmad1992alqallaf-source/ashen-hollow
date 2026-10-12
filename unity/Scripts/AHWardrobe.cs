@@ -599,6 +599,7 @@ public static class AHWardrobe
         Transform head = Bone(rig, "Head"), chest = Bone(rig, "spine_03"), pelvis = Bone(rig, "pelvis");
         if (head == null || chest == null) return;   // the KayKit class hero has no such rig: nothing to dress
         var old = rig.GetComponent<AHQOutfitAuto>(); if (old != null) UnityEngine.Object.Destroy(old);
+        foreach (var ofc in rig.GetComponents<AHFittedCape>()) UnityEngine.Object.Destroy(ofc);   // (its cape goes with it)
         bool outfitOn = false;
         if (heroSex != null && RealOutfits)
         {
@@ -795,7 +796,14 @@ public static class AHWardrobe
             // the back piece follows the chest but stays upright, and swings back as you run
             K.root.SetParent(rig.transform, true); K.root.gameObject.AddComponent<AHCapeSwing>().Setup(hold, moving, chest, f == "cloak" || f == "ember" || f == "coat" ? 1f : f == "wings" ? 0.3f : 0.15f);
             float L = Mathf.Max(0.6f, (chest.position.y - ground) / k * 0.82f);
-            if (f == "cloak" || f == "ember")
+            // a hero on a VRoid body: a cloak made to measure on the body (put on once the body and outfit are there)
+            if ((f == "cloak" || f == "ember") && heroSex != null)
+            {
+                var fc = rig.AddComponent<AHFittedCape>(); fc.mat = K.Mat; fc.trim = f == "ember" ? K.Gold : null; fc.moving = moving; fc.hold = hold;
+                var KK = K; float kL = L; bool on2 = outfitOn;
+                fc.fallback = () => { if (KK.root == null) return; KK.Mesh(Cloak(kL, 0f, 1f, 0f), on2 ? new Vector3(0, 0.015f, -0.05f) : Vector3.zero, Vector3.one, Vector3.zero); };
+            }
+            else if (f == "cloak" || f == "ember")
             {
                 // a draped cloak: wraps round the shoulders, falls in folds, flares and rounds off at the hem
                 // over a real outfit the cloak hangs a little further back (armour and coats are thicker than the body),
@@ -946,5 +954,128 @@ public class AHWingFlap : MonoBehaviour
         t += Time.deltaTime * (1.6f + amp * 3.4f);
         float beat = Mathf.Sin(t) * (6f + amp * 16f);
         transform.localRotation = rest * Quaternion.Euler(0, sx * beat * 0.6f, -sx * beat);
+    }
+}
+
+// a cloak made to measure on the VRoid hero: laid over the tops of the shoulders and round the back of the neck,
+// following the back (of the outfit, the body under it) down to the waist, and from there falling straight, so it
+// never stands off behind the hero or leaves a gap at the shoulders. Skinned to the upper chest, with its lower part
+// on a swing joint that lifts back as the hero runs. Built once the VRoid body and its outfit are on (a few frames
+// after the hero); without a VRoid body the drawn cloak is put on instead.
+public class AHFittedCape : MonoBehaviour
+{
+    public Material mat, trim; public Func<bool> moving; public Transform hold; public Action fallback;
+    int frames; bool built; Transform swing, uc; Quaternion swingRest; float tilt, ph;
+    GameObject capeGo;
+
+    void LateUpdate()
+    {
+        if (built) { Swing(); return; }
+        frames++;
+        var link = GetComponent<AHVRoidLink>();
+        bool outfit = false;
+        if (transform.parent != null) foreach (Transform c in transform.parent) if (c.name.StartsWith("QOutfit_")) { outfit = true; break; }
+        if ((link == null || link.Body == null || !outfit) && frames < 45) return;
+        built = true;
+        if (link == null || link.Body == null || !Build(link)) { if (fallback != null) fallback(); enabled = false; }
+    }
+
+    void OnDestroy() { if (capeGo != null) Destroy(capeGo); }
+
+    bool Build(AHVRoidLink link)
+    {
+        var an = link.Body.GetComponent<Animator>(); if (an == null || !an.isHuman) return false;
+        uc = an.GetBoneTransform(HumanBodyBones.UpperChest) ?? an.GetBoneTransform(HumanBodyBones.Chest);
+        Transform lua = an.GetBoneTransform(HumanBodyBones.LeftUpperArm), rua = an.GetBoneTransform(HumanBodyBones.RightUpperArm), neck = an.GetBoneTransform(HumanBodyBones.Neck);
+        Transform lf = an.GetBoneTransform(HumanBodyBones.LeftFoot), hips = an.GetBoneTransform(HumanBodyBones.Hips);
+        if (uc == null || lua == null || rua == null || lf == null || hips == null) return false;
+        Vector3 fwd = hold != null ? hold.forward : link.Body.forward; fwd.y = 0f; fwd.Normalize(); Vector3 right = Vector3.Cross(Vector3.up, fwd);
+        Vector3 mid = (lua.position + rua.position) * 0.5f;
+        // the hero's surface: the outfit and the body, as points in the hero's own frame (x right, y up, z forward)
+        var pts = new List<Vector3>(); var baked = new Mesh();
+        System.Action<SkinnedMeshRenderer> add = s =>
+        {
+            if (s == null || !s.enabled || s.sharedMesh == null) return; string n = s.name;
+            if (n.Contains("Hair") || n.Contains("Face") || n.Contains("lining") || n.Contains("Head") || n.Contains("Hood")) return;
+            s.BakeMesh(baked, true); var m = Matrix4x4.TRS(s.transform.position, s.transform.rotation, Vector3.one); var v = baked.vertices;
+            for (int i = 0; i < v.Length; i += 2) { var p = m.MultiplyPoint3x4(v[i]) - mid; pts.Add(new Vector3(Vector3.Dot(p, right), p.y, Vector3.Dot(p, fwd))); }
+        };
+        foreach (var s in link.Body.GetComponentsInChildren<SkinnedMeshRenderer>()) add(s);
+        if (transform.parent != null) foreach (Transform c in transform.parent) if (c.name.StartsWith("QOutfit_")) foreach (var s in c.GetComponentsInChildren<SkinnedMeshRenderer>()) add(s);
+        Destroy(baked);
+        if (pts.Count < 50) return false;
+        float hw = Vector3.Distance(lua.position, rua.position) * 0.5f + 0.01f;
+        // the top of the shoulders, just above the shoulder joints (not the top of a pauldron)
+        float top = 0.055f, hem = (lf.position.y - mid.y) + 0.22f, waist = hips.position.y - mid.y;
+        const int nu = 17, nv = 22;
+        var vs = new Vector3[nu * nv]; var uv = new Vector2[nu * nv]; var tv = new float[nv];
+        for (int j = 0; j < nv; j++)
+        {
+            float t = j / (float)(nv - 1);
+            // rows close together over the shoulders, wider apart lower down
+            float y = j == 0 ? top : Mathf.Lerp(top - 0.03f, hem, Mathf.Pow((j - 1) / (float)(nv - 2), 1.15f));
+            tv[j] = Mathf.InverseLerp(top, hem, y);
+            float w = hw * (y > waist ? Mathf.Lerp(1f, 0.96f, Mathf.InverseLerp(top, waist, y)) : Mathf.Lerp(0.96f, 1.32f, Mathf.InverseLerp(waist, hem, y)));
+            for (int i = 0; i < nu; i++)
+            {
+                float e = i / (float)(nu - 1) * 2f - 1f, x = e * w;
+                // how far back the hero reaches here (outfit or body), searched near this height
+                float back = float.MaxValue;
+                foreach (var p in pts) if (Mathf.Abs(p.y - y) < 0.035f && Mathf.Abs(p.x - x) < 0.045f && p.z < back) back = p.z;
+                float z = back < float.MaxValue ? back - 0.018f : float.MaxValue;
+                // over the shoulders the edges come forward and lie on top of them
+                if (j == 0) z = (back < float.MaxValue ? back - 0.01f : -0.06f) + Mathf.Lerp(0.0f, 0.045f, e * e * e * e);
+                // below the waist it falls straight from the fullest point above (and never sinks into the legs)
+                if (j > 0)
+                {
+                    float above = vs[(j - 1) * nu + i].z;
+                    if (z == float.MaxValue || y < waist) z = Mathf.Min(z == float.MaxValue ? above : z, above);   // hangs straight down
+                    else z = Mathf.Min(z, above + 0.04f);   // follows the back in, but only gently
+                }
+                // soft folds lower down
+                float fold = Mathf.Clamp01((waist - y) / Mathf.Max(0.1f, waist - hem)) * 0.02f * Mathf.Sin(e * Mathf.PI * 3.5f);
+                vs[j * nu + i] = new Vector3(x, y, z - fold);
+                uv[j * nu + i] = new Vector2(i / (float)(nu - 1) * 2f, tv[j] * 4f);
+            }
+        }
+        // into the world, then into the cape's own space (it sits under the VRoid body, so it shows and hides with it)
+        capeGo = new GameObject("FittedCape"); capeGo.transform.SetParent(link.Body, false); capeGo.layer = link.Body.gameObject.layer;
+        var ct = capeGo.transform; ct.position = mid; ct.rotation = Quaternion.LookRotation(fwd);
+        swing = new GameObject("CapeSwing").transform; swing.SetParent(uc, true); swing.position = mid + Vector3.up * top; swing.rotation = ct.rotation; swingRest = swing.localRotation;
+        int n2 = vs.Length; var verts = new Vector3[n2 * 2]; var uvs = new Vector2[n2 * 2]; var bw = new BoneWeight[n2 * 2];
+        for (int j = 0; j < nv; j++)
+            for (int i = 0; i < nu; i++)
+            {
+                int k = j * nu + i; Vector3 local = vs[k];
+                float s = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.12f, 0.55f, tv[j]));   // how much of it swings
+                var b = new BoneWeight { boneIndex0 = 0, weight0 = 1f - s, boneIndex1 = 1, weight1 = s };
+                verts[k] = local; uvs[k] = uv[k]; bw[k] = b;
+                verts[n2 + k] = local + Vector3.forward * 0.004f; uvs[n2 + k] = uv[k]; bw[n2 + k] = b;   // the inside face (toward the body)
+            }
+        var main = new List<int>(); var edge = new List<int>();
+        for (int j = 0; j < nv - 1; j++)
+            for (int i = 0; i < nu - 1; i++)
+            {
+                int p = j * nu + i, q = p + nu; var l = trim != null && tv[j] > 0.93f ? edge : main;
+                l.AddRange(new[] { p, p + 1, q + 1, p, q + 1, q });                                        // outside (facing back)
+                l.AddRange(new[] { n2 + p, n2 + q + 1, n2 + p + 1, n2 + p, n2 + q, n2 + q + 1 });          // inside (facing the body)
+            }
+        var mesh = new Mesh { name = "fitted cape" }; mesh.vertices = verts; mesh.uv = uvs; mesh.boneWeights = bw;
+        mesh.subMeshCount = trim != null ? 2 : 1; mesh.SetTriangles(main, 0); if (trim != null) mesh.SetTriangles(edge, 1);
+        mesh.RecalculateNormals(); mesh.RecalculateBounds();
+        var bones = new[] { uc, swing };
+        mesh.bindposes = new[] { uc.worldToLocalMatrix * ct.localToWorldMatrix, swing.worldToLocalMatrix * ct.localToWorldMatrix };
+        var r = capeGo.AddComponent<SkinnedMeshRenderer>(); r.sharedMesh = mesh; r.bones = bones; r.rootBone = uc; r.updateWhenOffscreen = true;
+        r.sharedMaterials = trim != null ? new[] { mat, trim } : new[] { mat }; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+        return true;
+    }
+
+    void Swing()
+    {
+        if (swing == null || hold == null) return;
+        bool m = moving != null && moving();
+        tilt = Mathf.Lerp(tilt, m ? 14f : 0f, Time.deltaTime * 4f); ph += Time.deltaTime * (m ? 8f : 1.6f);
+        float a = tilt + Mathf.Sin(ph) * (m ? 2.5f : 0.8f);
+        swing.localRotation = swingRest; swing.rotation = Quaternion.AngleAxis(a, hold.right) * swing.rotation;
     }
 }

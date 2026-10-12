@@ -324,6 +324,7 @@ public static class AHVRoid
 
     // the old head the helms and hoods were shaped for: the same for every class (the robed classes' old bodies have
     // narrow heads, so a hood sized against them came out half as big again on the mage, priest and druid)
+    public static float NeckK = 1.3f;
     static float OldHeadWidth(bool male, float measured) { return male ? 0.311f : 0.217f; }
 
     // swap the hero's look for the VRoid body; returns false (and changes nothing) if it can't
@@ -358,6 +359,14 @@ public static class AHVRoid
         }
         var link = rig.AddComponent<AHVRoidLink>();
         link.Setup(arm, av, v.transform, an.avatar);
+        // a fuller neck (the anime neck is a thin stalk: in the outfits' collars it stood in an empty ring and the head
+        // looked as if it floated); the head is scaled back so it keeps its size
+        var vNeck = an.GetBoneTransform(HumanBodyBones.Neck);
+        if (vNeck != null && vHead != null && vHead.parent == vNeck)
+        {
+            vNeck.localScale = new Vector3(NeckK, 1f, NeckK);
+            vHead.localScale = new Vector3(1f / NeckK, 1f, 1f / NeckK);
+        }
         if (headOk)
         {
             // the VRoid skull plus its hair is about an eighth wider than the face mesh alone
