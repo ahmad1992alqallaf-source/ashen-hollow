@@ -12,6 +12,7 @@ public static class AHSolidify
     static readonly string[] Roots = { "Rebuilt props", "Rebuilt boxes", "Stations", "Stalls and wells", "Ruins", "Graves", "Tents", "Crystals", "Palms", "Cacti", "Bones", "Coral", "Mushrooms", "Treasure", "Bank vault", "Village", "Statue garden", "Training yard", "Fossils", "Ships", "Ore rocks", "Ore", "City buildings", "Castle", "Palace", "Great skull", "Dragon nest", "Arena", "BountyBoard", "Kingsbane statue", "Statue", "Waystone", "Inn sign", "Homestead",
         // the dungeons: their standing pillars and the barrels, racks and statues along the walls
         "Dungeon dressing", "The Sunken Forge", "The Hollow Below", "Frostpeak Caverns", "The Molten Depths", "Tomb of the Sand King", "The Mire Warrens" };
+    static readonly string[] Many = { "Rebuilt props", "Rebuilt boxes", "Stations", "Stalls and wells", "Ruins", "Graves", "Tents", "Crystals", "Palms", "Cacti", "Bones", "Coral", "Mushrooms", "Treasure", "Fossils", "Ships", "Ore rocks", "Ore", "City buildings", "Village", "Homestead" };
     static readonly string[] Open = { "Bridge", "bridge", "Rug", "Carpet", "Arch", "arch", "Awning", "Gate", "Portal", "Door", "Path", "Road", "Plank", "Dock", "Pier", "Stairs", "Step", "Banner", "Flag", "Lamp", "Lantern", "Sign", "Fence", "Rope", "qd_wall", "qd_column", "qd_banner", "torch", "Torch", "web", "Web" };
     public static int Last;
 
@@ -52,7 +53,9 @@ public static class AHSolidify
             var units = new List<Transform>();
             // one thing made of parts (a waystone, a statue) when it all stands in one small place; otherwise a
             // collection (the stations, the tents, the props of a land), each child its own thing
-            var all = root.GetComponentsInChildren<Renderer>(); bool one = all.Length > 0 && all.Length < 40;
+            // (a land's rebuilt props, stations or tents are always a collection, however few: Coralport's cauldron and
+            // loom, five metres apart, were once taken for one thing and boxed in together)
+            var all = root.GetComponentsInChildren<Renderer>(); bool one = all.Length > 0 && all.Length < 40 && System.Array.IndexOf(Many, root.name) < 0;
             if (one) { Bounds rb = all[0].bounds; foreach (var r in all) rb.Encapsulate(r.bounds); one = Mathf.Max(rb.size.x, rb.size.z) <= 8f; }
             if (one) units.Add(root.transform);
             else foreach (Transform c in root.transform) units.Add(c);
@@ -72,7 +75,9 @@ public static class AHSolidify
                 if (b.size.y < 0.9f || foot < 0.5f || foot > 12f || b.min.y > gy + 0.5f) continue;
                 Vector3 c = new Vector3(b.center.x, gy, b.center.z), pv = new Vector3(u.position.x, gy, u.position.z);
                 if (g.Blocked(c, 0.05f) || g.Blocked(pv, 0.05f) || !g.InArea(c)) continue;
-                bool atWay = false; foreach (var k in keep) { Vector3 d = k - c; d.y = 0f; if (d.magnitude < foot * 0.5f + 2.5f) { atWay = true; break; } }
+                // (a small thing, a cauldron or a loom, only when it truly stands in the way: within a stride of it)
+                float margin = foot < 3f ? 1.1f : 2.5f;
+                bool atWay = false; foreach (var k in keep) { Vector3 d = k - c; d.y = 0f; if (d.magnitude < foot * 0.5f + margin) { atWay = true; break; } }
                 // a gate post stands beside the way through it: solid, but only its own thin footprint
                 bool post = u.name.Contains("post") || u.name.Contains("Post");
                 if (atWay && post && foot < 2.5f) { g.AddBlocker(c, thin * 0.4f); n++; continue; }
@@ -84,12 +89,19 @@ public static class AHSolidify
                     if (s.kind == "chop") continue;
                     if (s.pos.x > b.min.x - 0.5f && s.pos.x < b.max.x + 0.5f && s.pos.z > b.min.z - 0.5f && s.pos.z < b.max.z + 0.5f) { reach = Mathf.Min(reach, s.reach); uses.Add(s); }
                 }
-                bool box = false;
-                if (reach < float.MaxValue) g.AddBlocker(c, Mathf.Min(thin * 0.42f, Mathf.Max(0.3f, reach * 0.55f)));
-                else if (foot < thin * 1.8f) g.AddBlocker(c, thin * 0.42f);
+                bool box = false; float rad = 0f;
+                if (reach < float.MaxValue) g.AddBlocker(c, rad = Mathf.Min(thin * 0.42f, Mathf.Max(0.3f, reach * 0.55f)));
+                else if (foot < thin * 1.8f) g.AddBlocker(c, rad = thin * 0.42f);
                 else { g.AddBlockBox(b, 0.25f); box = true; }
-                // never close in something you use: with no ground left to stand on within its reach, the blocker goes again
+                // never close in something you use: with no ground left to stand on within its reach, it is used from
+                // just beside it (a cauldron or a loom with a short reach); only failing that does the blocker go again
                 bool shut = false; foreach (var s in uses) if (!Standable(g, s.pos, s.reach, gy)) { shut = true; break; }
+                if (shut && !box)
+                {
+                    float need = rad + 0.9f; bool ok = true;
+                    foreach (var s in uses) if (!Standable(g, s.pos, Mathf.Max(s.reach, need + Vector3.Distance(new Vector3(s.pos.x, gy, s.pos.z), c)), gy)) { ok = false; break; }
+                    if (ok) { foreach (var s in uses) s.reach = Mathf.Max(s.reach, need + Vector3.Distance(new Vector3(s.pos.x, gy, s.pos.z), c)); n++; continue; }
+                }
                 if (shut) { var rr = new Rect(c.x - 0.1f, c.z - 0.1f, 0.2f, 0.2f); if (box) g.RemoveBoxesIn(new Rect(b.min.x - 0.01f, b.min.z - 0.01f, b.size.x + 0.02f, b.size.z + 0.02f)); else g.RemoveBlockersIn(rr); continue; }
                 n++;
             }

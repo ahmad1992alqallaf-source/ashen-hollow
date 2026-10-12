@@ -143,8 +143,14 @@ public class AHTrailer : MonoBehaviour
                 }
             }
             cam.transform.position = pos; cam.transform.LookAt(look);
-            if (g.cam != null) { cam.clearFlags = g.cam.clearFlags; cam.backgroundColor = g.cam.backgroundColor; cam.cullingMask = g.cam.cullingMask; }
-            cam.targetTexture = rt; cam.Render();
+            if (g.cam != null)
+            {   // the game camera's own look (its post-processing, volumes and brightness), only placed elsewhere
+                cam.CopyFrom(g.cam); cam.fieldOfView = 42f; cam.nearClipPlane = 0.1f; cam.farClipPlane = Mathf.Max(600f, g.cam.farClipPlane);
+                var gd = g.cam.GetComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>(); var td = cam.GetComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
+                if (gd != null && td != null) { td.renderPostProcessing = true; td.volumeLayerMask = gd.volumeLayerMask; td.volumeTrigger = gd.volumeTrigger != null ? gd.volumeTrigger : g.cam.transform; }
+                cam.transform.position = pos; cam.transform.LookAt(look);
+            }
+            cam.enabled = false; cam.targetTexture = rt; cam.Render();
             RenderTexture.active = rt; grab.ReadPixels(new Rect(0, 0, W, H), 0, 0); grab.Apply(false); RenderTexture.active = null;
             File.WriteAllBytes(Path.Combine(sd, "f_" + f.ToString("00000") + ".jpg"), grab.EncodeToJPG(90));
         }

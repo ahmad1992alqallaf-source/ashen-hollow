@@ -1101,7 +1101,7 @@ public static class AHMenu
         if (to.sqrMagnitude > 0.01f) { g.player.transform.rotation = Quaternion.LookRotation(to); g.camYaw = g.player.transform.eulerAngles.y; }
     }
     // stand in front of the nearest city statue, looking at it
-    [MenuItem("Ashen Hollow/Test: Look At Statue")]
+    [MenuItem("Ashen Hollow/Test: Look At Statue #&s")]
     static void LookStatue()
     {
         var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
@@ -1114,6 +1114,15 @@ public static class AHMenu
         g.player.transform.rotation = Quaternion.LookRotation(to); g.camYaw = g.player.transform.eulerAngles.y;
         var rs = st.GetComponentsInChildren<Renderer>(); Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
         Debug.Log("Ashen Hollow: statue at " + st.transform.position + " bounds " + b.center + " size " + b.size);
+        // every part of it, to HeroShots/statue.txt (what is drawn, where, how big, in what)
+        var sb = new System.Text.StringBuilder(); sb.AppendLine("statue " + st.transform.position + " scale " + st.transform.localScale + " kids " + st.transform.childCount);
+        foreach (var r in st.GetComponentsInChildren<Renderer>(true))
+        {
+            string path = r.name; for (var t = r.transform.parent; t != null && t != st.transform; t = t.parent) path = t.name + "/" + path;
+            var sk = r as SkinnedMeshRenderer;
+            sb.AppendLine((r.enabled && r.gameObject.activeInHierarchy ? "ON  " : "off ") + path + " | " + r.GetType().Name + " | c " + r.bounds.center.ToString("F2") + " s " + r.bounds.size.ToString("F2") + " | mat " + (r.sharedMaterial != null ? r.sharedMaterial.name + "/" + r.sharedMaterial.shader.name : "none") + (sk != null ? " | mesh " + (sk.sharedMesh != null ? sk.sharedMesh.name + " v" + sk.sharedMesh.vertexCount : "NONE") + " root " + (sk.rootBone != null ? sk.rootBone.name + " " + sk.rootBone.position.ToString("F2") : "none") : "") + " | lossy " + r.transform.lossyScale.ToString("F2"));
+        }
+        System.IO.File.WriteAllText(System.IO.Path.Combine(Application.dataPath, "../HeroShots/statue.txt"), sb.ToString());
         // a picture of it from the front and from a corner (HeroShots/statue.png)
         const int W = 640, H = 480; var sheet = new Texture2D(W * 3, H, TextureFormat.RGB24, false);
         var cg = new GameObject("StatueCam"); var cam = cg.AddComponent<Camera>(); cam.fieldOfView = 40f; cam.nearClipPlane = 4f;   // clips away the garden trees between the camera and the statue

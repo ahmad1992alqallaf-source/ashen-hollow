@@ -180,7 +180,9 @@ public static class AHBevel
             if (rmf == null || rmf.sharedMesh == null || rmf.sharedMesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.Color)) continue;   // painted with vertex colours (cacti, coral): a texture would wash them out
             Color c = m.HasProperty("_BaseColor") ? m.GetColor("_BaseColor") : m.HasProperty("baseColorFactor") ? m.GetColor("baseColorFactor") : Color.grey;
             if (c.a < 0.95f) continue;
-            float h, sat, v; Color.RGBToHSV(c, out h, out sat, out v);
+            // judged by the colour as seen (the stored colour is linear, which makes a pale grey stone look saturated
+            // enough to be taken for wood)
+            float h, sat, v; Color.RGBToHSV(c.gamma, out h, out sat, out v);
             string kind = sat < 0.18f || v < 0.25f ? "stone" : (h > 0.02f && h < 0.15f && v < 0.8f) ? "wood" : "cloth";
             var b = r.bounds; float big = Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z));
             float tile = kind == "cloth" ? Mathf.Clamp(Mathf.Round(big * 3f), 2f, 24f) : Mathf.Clamp(Mathf.Round(big / (kind == "wood" ? 1.2f : 1.6f)), 1f, 10f);

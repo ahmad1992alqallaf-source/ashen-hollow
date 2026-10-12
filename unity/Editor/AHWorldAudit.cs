@@ -28,6 +28,9 @@ public static class AHWorldAudit
     static void All()
     {
         if (!Application.isPlaying || AHGame.I == null) return;
+        // HeroShots/audit_only.txt ("co_city,mw_city"): just those lands, for a re-check after a fix
+        string[] areas = Areas; string onlyPath = Path.Combine(Application.dataPath, "../HeroShots/audit_only.txt");
+        if (File.Exists(onlyPath)) { var l = File.ReadAllText(onlyPath).Split(new[] { ',', '\n', '\r', ' ' }, System.StringSplitOptions.RemoveEmptyEntries); if (l.Length > 0) areas = l; }
         foreach (var f in Directory.GetFiles(Dir)) File.Delete(f);
         File.WriteAllText(Path.Combine(Dir, "audit.txt"), "");
         int i = -1; double t0 = 0; string want = null;
@@ -39,10 +42,10 @@ public static class AHWorldAudit
             if (want != null && (AHGame.AreaId != want || t - t0 < 11)) { if (t - t0 > 45) want = null; return; }
             if (want != null) Here();
             i++;
-            if (i >= Areas.Length) { EditorApplication.update -= cb; Debug.Log("Ashen Hollow: world audit done (HeroShots/audit)"); return; }
-            var ta = Resources.Load<TextAsset>("AH/Areas/" + Areas[i]); if (ta == null) { want = null; return; }
+            if (i >= areas.Length) { EditorApplication.update -= cb; Debug.Log("Ashen Hollow: world audit done (HeroShots/audit)"); return; }
+            var ta = Resources.Load<TextAsset>("AH/Areas/" + areas[i]); if (ta == null) { want = null; return; }
             var d = JsonUtility.FromJson<AHWorldData>(ta.text);
-            want = Areas[i]; t0 = t;
+            want = areas[i]; t0 = t;
             if (AHGame.AreaId != want) AHGame.I.Travel(want, d.spawn.x, d.spawn.z, 0f);
         };
         EditorApplication.update += cb;

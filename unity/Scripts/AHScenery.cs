@@ -600,6 +600,9 @@ public static class AHScenery
             AHAnim an; GameObject hero = null;
             try { hero = AHPeople.BuildHero(holder, AHClasses.Get("warrior"), new AHLook { hair = "short", beard = "full" }, g, out an); } catch { an = null; }
             if (hero == null) { Object.Destroy(holder.gameObject); continue; }
+            // a knight in full plate, helm and pauldrons (the bare body alone read as a figure in a long gown);
+            // it is put on a few frames later, once the body is linked, and turned to stone with the rest
+            if (Resources.Load<GameObject>("AH/Models/Outfits/qoMale_Knight") != null) { var auto = hero.AddComponent<AHQOutfitAuto>(); auto.spec = "qoMale_Knight"; }
             foreach (var c in hero.GetComponentsInChildren<Collider>(true)) Object.Destroy(c);
             var stone = Mat("statue_stone", C(0x9a968c), 0.1f);
             foreach (var r in hero.GetComponentsInChildren<Renderer>(true)) { var ms = r.sharedMaterials; for (int i = 0; i < ms.Length; i++) ms[i] = stone; r.sharedMaterials = ms; }
@@ -1023,7 +1026,7 @@ public static class AHScenery
         float tf = top != null ? Mathf.Max(TrueSize(top).x, TrueSize(top).z) : F * 0.7f;
         var go = new GameObject("Plinth"); go.transform.SetParent(root, false);
         var P = new Parts();
-        Material st = Mat("pl_stone" + ColorUtility.ToHtmlStringRGB(sc), Color.Lerp(sc, C(0xA8A296), 0.35f), 0.2f), st2 = Mat("pl_stone2", C(0x8C877C), 0.2f), dk = Mat("pl_dark", C(0x5E5A52), 0.15f);
+        Material st = Mat("pl_stone", C(0xB4AEA2), 0.2f), st2 = Mat("pl_stone2", C(0x9C978C), 0.2f), dk = Mat("pl_dark", C(0x76716A), 0.15f);   // pale carved stone, as the garden round it
         float y = 0f;
         System.Action<Material, float, float> step = (m, f, h) => { P.Add(m, Bev(new Vector3(f, h, f), 0.04f), new Vector3(0, y + h * 0.5f, 0), Quaternion.identity, Vector3.one); y += h; };
         step(st2, F + 0.35f, 0.16f);
