@@ -801,7 +801,8 @@ public static class AHWardrobe
                 // over a real outfit the cloak hangs a little further back (armour and coats are thicker than the body),
                 // and its collar bar is left off (it stood out above the outfit's shoulders)
                 bool slim = rig.GetComponent<AHVRoidLink>() != null;
-                var off = outfitOn ? new Vector3(0, 0.015f, slim ? -0.035f : -0.05f) : Vector3.zero;
+                // (on the VRoid body raised to the top of the shoulders: it started down at the shoulder blades)
+                var off = outfitOn ? (slim ? new Vector3(0, 0.12f, -0.04f) : new Vector3(0, 0.015f, -0.05f)) : (slim ? new Vector3(0, 0.1f, 0.01f) : Vector3.zero);
                 K.Mesh(Cloak(L, 0f, 1f, 0f, slim), off, Vector3.one, Vector3.zero);
                 if (!outfitOn) K.Prim(PrimitiveType.Cube, new Vector3(0, 0.07f, -0.12f), new Vector3(0.42f, 0.06f, 0.08f), Vector3.zero, K.Dark);
                 // the clasps (on the VRoid body they hung in the air beside its narrower shoulders: left off)

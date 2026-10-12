@@ -170,7 +170,7 @@ public class AHQOutfitHide : MonoBehaviour
             // the neck, the head and the hair are only cut where they poke out through the outfit: cut under a collar
             // too, they left a hole at the nape through which the inside of the face showed
             // the hair lies over the clothes and is never cut, except where it pokes out through a hood
-            var soft = new bool[v.Length]; var hairV = new bool[v.Length]; var bw0 = mesh.boneWeights; var sb0 = s.bones; bool hairMesh = nm.Contains("hair");
+            var soft = new bool[v.Length]; var hairV = new bool[v.Length]; var neckV = new bool[v.Length]; var bw0 = mesh.boneWeights; var sb0 = s.bones; bool hairMesh = nm.Contains("hair");
             for (int i = 0; i < v.Length; i++)
             {
                 if (hairMesh) { hairV[i] = true; continue; }
@@ -180,7 +180,11 @@ public class AHQOutfitHide : MonoBehaviour
                 if (hairV[i]) continue;
                 // under a helm the scalp all goes (it showed pale through the helm's ear holes and over its crown)
                 if (helmet && bn.Contains("Head") && !closed) { hide[i] = true; nh++; continue; }
-                soft[i] = bn.Contains("Neck") || (!helmet && bn.Contains("Head"));
+                // the neck always stays whole (cut where it poked through a collar, it left a see-through gap between
+                // the hair and the collar at the back)
+                // (and so does the head when no helmet hides it: cut at the nape against a high collar, the inside of the
+                // face showed through from behind)
+                if ((bn.Contains("Neck") || (!helmet && bn.Contains("Head"))) && !closed) { neckV[i] = true; continue; }
             }
             // under a closed suit of plate the body stays inside, darkened to a black under-suit, so no chink between
             // the plates shows the world behind (only the hair, and whatever pokes out through the plates, goes)
@@ -204,7 +208,7 @@ public class AHQOutfitHide : MonoBehaviour
                 // under a closed suit only what pokes out through the plates goes; what is under them stays, dark
                 // (under closed plate only what is actually outside the plate goes: the rest stays as dark padding behind
                 // every chink between the plates)
-                if (hairV[i]) continue;   // the hair over the clothes, and the fringe framing the face in a hood, stay whole
+                if (hairV[i] || neckV[i]) continue;   // the hair over the clothes, the fringe framing the face in a hood, and the neck stay whole
                 else if (closed || soft[i]) { if (along > 0.004f && dist < Through) { hide[i] = true; nh++; } }
                 else if (dist < Close || (along > 0.5f * dist && dist < Through) || along < -0.5f * dist) { hide[i] = true; nh++; }
             }
