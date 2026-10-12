@@ -1310,7 +1310,7 @@ public class AHPlayer : MonoBehaviour
         if (kind == toolKind && toolGo != null) { fishAt = at; return; }
         HideTool();
         if (kind == null || model == null || !g.lookHero) return;
-        toolGo = AHPeople.Tool(model, kind); toolKind = kind; fishAt = at;
+        toolGo = AHPeople.Tool(model, kind, kind == "axe" ? Skill("woodcutting") : kind == "pick" ? Skill("mining") : 1); toolKind = kind; fishAt = at;
         if (toolGo == null) { toolKind = null; return; }
         if (weaponR != null) weaponR.gameObject.SetActive(false);
         if (weaponL != null) weaponL.gameObject.SetActive(false);

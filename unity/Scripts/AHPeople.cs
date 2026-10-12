@@ -460,11 +460,26 @@ public static class AHPeople
 
     // a work tool in the right hand: the woodcutter's axe (the KayKit hand axe), a pickaxe or a fishing rod
     static Material toolWood, toolIron, toolLine;
-    public static GameObject Tool(GameObject rig, string kind)
+    // the crest work tools (made with Tripo from our concept sheets), better ones as the skill grows: the best one this
+    // level has reached whose model is in (Resources/AH/Models/Tripo/tool_<kind>_<name>, kept on the PC)
+    static readonly Dictionary<string, KeyValuePair<int, string>[]> CrestTools = new Dictionary<string, KeyValuePair<int, string>[]>
+    {
+        { "axe", new[] { new KeyValuePair<int, string>(1, "tool_axe_grovebite"), new KeyValuePair<int, string>(8, "tool_axe_embercleave"), new KeyValuePair<int, string>(15, "tool_axe_frostbeard") } },
+        { "pick", new[] { new KeyValuePair<int, string>(1, "tool_pick_sunstone"), new KeyValuePair<int, string>(8, "tool_pick_tidequarry"), new KeyValuePair<int, string>(15, "tool_pick_moonspike") } },
+    };
+    public static GameObject Tool(GameObject rig, string kind, int level = 1)
     {
         if (rig == null || kind == null) return null;
         Transform hr = Find(rig.transform, "hand_r"); if (hr == null) return null;
         Quaternion q; Vector3 p; Grip("1H_Axe", true, out q, out p);
+        KeyValuePair<int, string>[] tiers;
+        if (CrestTools.TryGetValue(kind, out tiers))
+        {
+            string best = null; foreach (var t in tiers) if (level >= t.Key && AHTripo.Has(t.Value)) best = t.Value;
+            if (best == null) foreach (var t in tiers) if (AHTripo.Has(t.Value)) { best = t.Value; break; }   // not reached any yet: the first that is in
+            var held = best != null ? AHTripo.Hold(hr, best, "tool", q, p, kind == "axe" ? 0.72f : 0.8f, 0.1f, false) : null;
+            if (held != null) { held.name = "Tool_" + kind; return held.gameObject; }
+        }
         if (kind == "axe")
         {
             var pf = Resources.Load<GameObject>("AH/Models/Barbarian_t"); if (pf == null) return null;
