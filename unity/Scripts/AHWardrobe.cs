@@ -644,9 +644,13 @@ public static class AHWardrobe
             else if (f == "mhood")
             {
                 // the mage's wizard hat: a wide soft brim and a tall crown that bends back at the tip, with a band
-                K.Mesh(WizardHat, Vector3.zero, Vector3.one, Vector3.zero);
-                K.Mesh(torus, new Vector3(0, 0.09f, -0.025f), new Vector3(0.262f, 0.45f, 0.272f), Vector3.zero, K.Dark);
-                K.Prim(PrimitiveType.Cube, new Vector3(0, 0.09f, 0.112f), new Vector3(0.045f, 0.035f, 0.012f), Vector3.zero, K.Gold);
+                // (at 0.78 of its first size: on the bigger VRoid heads the brim stood out past the shoulders and hid the face)
+                const float hs = 0.78f;
+                // and lifted so the brim sits on the brow: it had come down over the eyes and mouth on the VRoid heads
+                Vector3 lift = new Vector3(0f, 0.05f, -0.01f);
+                K.Mesh(WizardHat, lift, Vector3.one * hs, Vector3.zero);
+                K.Mesh(torus, new Vector3(0, 0.09f, -0.025f) * hs + lift, new Vector3(0.262f, 0.45f, 0.272f) * hs, Vector3.zero, K.Dark);
+                K.Prim(PrimitiveType.Cube, new Vector3(0, 0.09f, 0.112f) * hs + lift, new Vector3(0.045f, 0.035f, 0.012f) * hs, Vector3.zero, K.Gold);
             }
             else if (f == "hood" || f == "cowl")
             {
@@ -662,11 +666,20 @@ public static class AHWardrobe
             else if (f == "halo") K.Mesh(torus, new Vector3(0, 0.165f, -0.04f), new Vector3(0.2f, 0.5f, 0.2f), Vector3.zero);   // close over the crown, not hanging high above it
             else if (f == "horns" || f == "antlers")
             {
+                // antlers: a band round the brow with small branching tines (at full size they stood up like two tall
+                // green spears over the head)
+                float a = f == "antlers" ? 0.55f : 1f;
+                if (f == "antlers") K.Mesh(torus, new Vector3(0, 0.065f, -0.03f), new Vector3(0.162f, 0.18f, 0.175f), Vector3.zero, K.Dark);
                 foreach (int sx in new[] { -1, 1 })
                 {
                     if (f == "horns") { K.Mesh(frustum, new Vector3(sx * 0.075f, 0.05f, -0.02f), new Vector3(0.05f, 0.12f, 0.05f), new Vector3(-10, 0, -sx * 62)); K.Mesh(cone, new Vector3(sx * 0.17f, 0.1f, -0.03f), new Vector3(0.075f, 0.17f, 0.075f), new Vector3(-20, 0, -sx * 18)); }
-                    else K.Mesh(cone, new Vector3(sx * 0.07f, 0.07f, -0.03f), new Vector3(0.06f, 0.26f, 0.06f), new Vector3(-15, 0, -sx * 22));
-                    if (f == "antlers") { K.Mesh(cone, new Vector3(sx * 0.12f, 0.19f, -0.04f), new Vector3(0.04f, 0.12f, 0.04f), new Vector3(10, 0, -sx * 60)); K.Mesh(cone, new Vector3(sx * 0.1f, 0.22f, -0.07f), new Vector3(0.04f, 0.1f, 0.04f), new Vector3(-30, 0, -sx * 10)); }
+                    else
+                    {
+                        Vector3 b0 = new Vector3(sx * 0.085f, 0.1f, -0.03f);
+                        K.Mesh(cone, b0, new Vector3(0.05f, 0.26f, 0.05f) * a, new Vector3(-15, 0, -sx * 22));
+                        K.Mesh(cone, b0 + new Vector3(sx * 0.05f, 0.12f, -0.01f) * a, new Vector3(0.035f, 0.12f, 0.035f) * a, new Vector3(10, 0, -sx * 60));
+                        K.Mesh(cone, b0 + new Vector3(sx * 0.03f, 0.15f, -0.04f) * a, new Vector3(0.035f, 0.1f, 0.035f) * a, new Vector3(-30, 0, -sx * 10));
+                    }
                 }
             }
             else if (f == "tricorn")
