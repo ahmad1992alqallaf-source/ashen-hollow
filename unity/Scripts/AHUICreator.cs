@@ -13,6 +13,7 @@ public partial class AHUI
     Text crTitle, crSub, crHint, crBeginText;
     // the barber's chair and the home mirror (web crMode 'barber' / 'mirror'): change your look for a price
     string crMode = "new"; AHLook crOrig; string crOrigName; RectTransform crCancel;
+    RectTransform crGearBtn; Text crGearText; bool crGear;   // the new hero shown in its starting gear (or plain)
     static readonly Dictionary<string, string[]> LookGroups = new Dictionary<string, string[]>
     {
         { "hair", new[] { "hair", "beard", "hairCol", "hiCol", "cloth" } }, { "face", new[] { "eyeShape", "eye", "brow", "mouth", "nose", "ears", "mark", "markCol" } },
@@ -89,6 +90,12 @@ public partial class AHUI
         taps.Add(new TapBtn { rt = crCancel, layer = 4, act = CancelCreator });
         crCancel.gameObject.SetActive(false);
         taps.Add(new TapBtn { rt = begin, layer = 4, act = FinishCreator });
+        // under the hero: try the class's starting gear on, or take it off again (the hero is made plain, in the body's
+        // own clothes, which fit it as they were made for it)
+        crGearBtn = Img("TryGear", crRoot, white, new Vector2(0f, 0f), new Vector2(150, 64), new Vector2(240, 58), new Color(0.3f, 0.22f, 0.12f, 0.95f));
+        Img("Edge", crGearBtn, white, new Vector2(0.5f, 1f), new Vector2(0, -2), new Vector2(240, 4), new Color(0.85f, 0.6f, 0.25f, 1f));
+        crGearText = Center(Label(crGearBtn, "T", "Try gear on", 22, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(240, 40), Color.white)); crGearText.fontStyle = FontStyle.Bold;
+        taps.Add(new TapBtn { rt = crGearBtn, layer = 4, act = () => { crGear = !crGear; RenderCreator(); } });
         crRoot.gameObject.SetActive(false);
     }
 
@@ -104,6 +111,7 @@ public partial class AHUI
         crRoot.SetAsLastSibling();
         Time.timeScale = 0f;
         if (mode == "new") { AHHeroHall.Open(g, crRoot); AHHeroHall.Shift = 1f; }   // a new hero is made by the campfire, the game put away
+        crGear = false; crGearBtn.gameObject.SetActive(mode == "new");
         ptrs.Clear();
         crTab = paid ? "hair" : "class";
         foreach (var kv in crTabImgs) kv.Value.gameObject.SetActive(!paid || (kv.Key != "class" && kv.Key != "path"));
@@ -202,11 +210,14 @@ public partial class AHUI
         crY += h + 10f;
     }
 
+    // hairstyles that came out the same as another on the VRoid heroes (Bob as Short, Wild mane as Long, Bald as Shaved),
+    // or that don't hold up on them (Spiky: drawn spikes over a bob): left off the list (a hero who has one keeps it)
+    static readonly HashSet<string> HairDup = new HashSet<string> { "bob", "mane", "bald", "spiky" };
     static List<KeyValuePair<string, string>> Opts(string key)
     {
         var l = new List<KeyValuePair<string, string>>();
         var o = AHJson.A(AHJson.O(AHJson.O(AHDB.Rules, "LOOK"), "OPTS"), key);
-        if (o != null) foreach (var r in o) { var row = r as List<object>; if (row == null || row.Count < 2) continue; l.Add(new KeyValuePair<string, string>(Convert.ToString(row[0], System.Globalization.CultureInfo.InvariantCulture), (string)row[1])); }
+        if (o != null) foreach (var r in o) { var row = r as List<object>; if (row == null || row.Count < 2) continue; if (key == "hair" && HairDup.Contains(Convert.ToString(row[0]))) continue; l.Add(new KeyValuePair<string, string>(Convert.ToString(row[0], System.Globalization.CultureInfo.InvariantCulture), (string)row[1])); }
         return l;
     }
 
@@ -330,7 +341,9 @@ public partial class AHUI
         // on the hair and face pages the hood, hat or helm comes off, so the hair being chosen shows
         bool bare = crTab == "hair" || crTab == "face";
         if (bare != AHWardrobe.BareHead) { AHWardrobe.BareHead = bare; p.ApplyLook(); }
-        if (crMode == "new" && AHHeroHall.Showing) AHHeroHall.Show(p.cls, p.look, s => AHWardrobe.Shown(p, s), p);   // the hero by the fire, as made so far
+        // the hero by the fire, as made so far: plain, or in the class's starting gear (the weapon is always in hand)
+        if (crGearText != null) crGearText.text = crGear ? "Take gear off" : "Try gear on";
+        if (crMode == "new" && AHHeroHall.Showing) AHHeroHall.Show(p.cls, p.look, s => crGear || s == "weapon" ? AHWardrobe.Shown(p, s) : null, p);
     }
 
     void CrY(float dy) { crY += dy; }

@@ -37,7 +37,7 @@ public static class AHVRoid
             case "short": case "spiky": case "shaved": case "bald": case "bob": return "short";
             case "long": case "mane": return "long";
             case "braid": return "braid";
-            case "bun": return "short";   // the high bun: the short cut with a topknot on top (Style)
+            case "bun": return "bun";     // its own VRoid build (the drawn topknot on the short cut is the fallback)
             case "twin": return "twin";
         }
         return null;
@@ -155,7 +155,8 @@ public static class AHVRoid
             go.GetComponent<Renderer>().sharedMaterial = mat; go.transform.SetParent(head, true); return go.transform;
         };
         Quaternion face = Quaternion.LookRotation(fw, up);
-        if (look.hair == "bun")
+        bool realBun = Resources.Load<GameObject>("AH/VRoid/hero_" + (look.sex == "f" ? "f_" : "m_") + "bun") != null;
+        if (look.hair == "bun" && !realBun)
         {
             // a high topknot: a round bun on the crown, tied with a band and pinned with a gold pin
             Vector3 c = top + up * 0.06f * w - fw * 0.12f * w;
@@ -165,35 +166,45 @@ public static class AHVRoid
         }
         else if (look.hair == "mohawk")
         {
-            // shaved sides (the hair hidden, the scalp left) and a crest from brow to nape
+            // shaved sides (the hair hidden, the scalp left) and a crest of hair from brow to nape: thin blades of hair
+            // standing up and sweeping back, tallest over the crown (round blobs read as a row of balls)
             foreach (var r in v.GetComponentsInChildren<Renderer>(true)) if (r.name.Contains("Hair")) r.enabled = false;
-            for (int i = 0; i < 7; i++)
+            const int n = 9; var crest = Mat(hk * 0.72f, 0.3f);   // the shade of the shaved scalp beside it
+            for (int i = 0; i < n; i++)
             {
-                float t = -1f + i / 3f;   // -1 at the front, +1 at the back
-                Vector3 at = top - fw * t * 0.42f * w + up * (0.08f - t * t * 0.22f) * w;
-                piece(at, new Vector3(0.1f, 0.34f * (1f - 0.25f * Mathf.Abs(t)), 0.26f) * w, face * Quaternion.Euler(t * 35f, 0f, 0f), hm);
+                float t = -0.95f + i * 1.9f / (n - 1);   // -1 at the brow, +1 at the nape
+                float ang = Mathf.Lerp(-0.55f, 1.65f, (t + 1f) * 0.5f);   // round the top of the skull
+                Vector3 at = top - up * 0.48f * w + (up * Mathf.Cos(ang) - fw * Mathf.Sin(ang)) * 0.46f * w;   // on the scalp (the skull's middle half a head below its top)
+                Vector3 normal = (up * Mathf.Cos(ang) - fw * Mathf.Sin(ang)).normalized;
+                Vector3 way = (normal * 0.75f - fw * 0.55f).normalized;   // up from the scalp, swept back
+                float h = (0.36f + 0.16f * (1f - Mathf.Abs(t - 0.1f))) * w;
+                var sp = GameObject.CreatePrimitive(PrimitiveType.Cube); Object.Destroy(sp.GetComponent<Collider>());
+                sp.GetComponent<MeshFilter>().sharedMesh = Spike(); sp.name = "HairExtra";
+                sp.transform.position = at - way * h * 0.25f; sp.transform.rotation = Quaternion.LookRotation(Vector3.Cross(way, rt).normalized, way);
+                sp.transform.localScale = new Vector3(0.05f * w, h, 0.17f * w);   // thin side to side, long front to back
+                sp.GetComponent<Renderer>().sharedMaterial = crest; sp.transform.SetParent(head, true);
             }
         }
         else if (look.hair == "spiky")
         {
-            // sharp tapered spikes in three rings, standing up and out from inside the hair (the face kept clear)
-            float[] rr = { 0.36f, 0.22f, 0.08f }, lift = { -0.24f, -0.13f, -0.08f }, lean = { 1.25f, 0.7f, 0.2f }, len = { 0.34f, 0.4f, 0.38f }, rad = { 0.075f, 0.08f, 0.085f };
-            var sm = Mat(hk * 0.78f, 0.3f);   // a shade darker: lit spikes otherwise read paler than the painted hair
-            int[] cnt = { 13, 8, 4 };
-            for (int ring = 0; ring < 3; ring++)
-                for (int i = 0; i < cnt[ring]; i++)
-                {
-                    float a = (i + ring * 0.37f) * Mathf.PI * 2f / cnt[ring]; Vector3 dir = rt * Mathf.Cos(a) + fw * Mathf.Sin(a) * 0.85f;
-                    if (Vector3.Dot(dir, fw) > 0.5f && ring == 0) continue;
-                    Vector3 at = top + up * lift[ring] * w + dir * rr[ring] * w - fw * 0.07f * w;
-                    Vector3 way = (up + dir * lean[ring] - fw * 0.25f).normalized;
-                    float k = 0.85f + 0.3f * Mathf.Abs(Mathf.Sin(a * 3f + ring));
-                    var sp = GameObject.CreatePrimitive(PrimitiveType.Cube); Object.Destroy(sp.GetComponent<Collider>());
-                    sp.GetComponent<MeshFilter>().sharedMesh = Spike(); sp.name = "HairExtra";
-                    sp.transform.position = at; sp.transform.rotation = Quaternion.FromToRotation(Vector3.up, way);
-                    sp.transform.localScale = new Vector3(rad[ring], len[ring] * k, rad[ring]) * w;
-                    sp.GetComponent<Renderer>().sharedMaterial = sm; sp.transform.SetParent(head, true);
-                }
+            // tufts of hair spiking up and back over the crown and the back of the head, in the hair's own colour, their
+            // roots sunk into the hair (a ring of dark cones round the head read as a crown of thorns)
+            var rng = new System.Random(7);
+            for (int i = 0; i < 34; i++)
+            {
+                float yaw = ((float)rng.NextDouble() * 2f - 1f) * 1.45f;                    // across the head and over the sides
+                float pitch = Mathf.Lerp(-0.3f, 1.35f, (float)rng.NextDouble());             // from the crown back to the nape
+                Vector3 n2 = (up * Mathf.Cos(pitch) - fw * Mathf.Sin(pitch) * Mathf.Cos(yaw * 0.6f) + rt * Mathf.Sin(yaw) * 0.55f).normalized;
+                if (Vector3.Dot(n2, fw) > 0.15f) continue;                                    // the face kept clear
+                Vector3 at = top - up * 0.48f * w + n2 * 0.5f * w;   // on the hair over the skull
+                Vector3 way = (n2 * 0.7f - fw * 0.6f + up * 0.1f).normalized;   // swept back like gelled hair
+                float len = (0.3f + 0.16f * (float)rng.NextDouble()) * w;
+                var sp = GameObject.CreatePrimitive(PrimitiveType.Cube); Object.Destroy(sp.GetComponent<Collider>());
+                sp.GetComponent<MeshFilter>().sharedMesh = Spike(); sp.name = "HairExtra";
+                sp.transform.position = at - way * len * 0.42f; sp.transform.rotation = Quaternion.FromToRotation(Vector3.up, way);
+                sp.transform.localScale = new Vector3(0.1f * w, len, 0.1f * w);
+                sp.GetComponent<Renderer>().sharedMaterial = hm; sp.transform.SetParent(head, true);
+            }
         }
         if (look.ears == "pointed" || look.ears == "elven")
         {
