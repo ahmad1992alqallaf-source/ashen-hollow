@@ -8,8 +8,11 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 src, out = sys.argv[1], sys.argv[2]
 W, H, FPS, XF = 1280, 720, 30, 12          # cross-fade frames
+SKIP = {'abyss'}                 # shots left out of the cut
+TRIM = {'fight': (55, None), 'city': (0, 82)}   # (first frame, last frame) kept of a shot: the camera started inside a tree
+CUT = {'city': [(56, 82)], 'ember_fight': [(24, 46)]}   # frames taken out of the middle first (a wall or a monster across the lens); TRIM counts after
 TEXT = {   # a line over a shot (by its name)
-    'dawn': 'A LIVING WORLD AWAITS', 'lava': 'LANDS OF ASH AND FIRE', 'abyss': 'BEYOND THE EDGE OF THE WORLD',
+    'dawn': 'A LIVING WORLD AWAITS', 'lava': 'JOURNEY ACROSS THE WILDS', 'abyss': 'BEYOND THE EDGE OF THE WORLD', 'ember_fight': 'LANDS OF ASH AND FIRE',
     'depths': 'DELVE INTO ANCIENT DEPTHS', 'throne': 'FACE THE EMBER THRONE', 'hero': 'FORGE YOUR LEGEND',
 }
 FONT = next((f for f in ['/usr/share/fonts/opentype/noto/NotoSerifCJK-Bold.ttc', '/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf'] if os.path.exists(f)), None)
@@ -30,15 +33,16 @@ def vignette():
     yy, xx = np.mgrid[0:H, 0:W]; r = np.sqrt(((xx - W / 2) / (W / 2)) ** 2 + ((yy - H / 2) / (H / 2)) ** 2)
     return np.clip(1.15 - 0.35 * r ** 2, 0.55, 1.0)[..., None]
 VIG = vignette()
-def grade(im):
+def grade(im, lift=1.0):
     a = np.asarray(im).astype(np.float32) / 255
+    if lift != 1.0: a = np.power(a, lift)                   # dark scenes (dungeons, the throne) opened up
     a = a * VIG; a = np.clip((a - 0.5) * 1.08 + 0.5, 0, 1)       # a touch of contrast and a dark edge
     a[..., 0] *= 1.03; a[..., 2] *= 0.97                         # a little warmer
     # letterbox bars: the film look
     bar = int(H * 0.075); a[:bar] = 0; a[-bar:] = 0
     return Image.fromarray((np.clip(a, 0, 1) * 255).astype(np.uint8))
 
-shots = sorted(d for d in glob.glob(os.path.join(src, '[0-9][0-9]_*')) if os.path.isdir(d))
+shots = sorted(d for d in glob.glob(os.path.join(src, '[0-9][0-9]_*')) if os.path.isdir(d) and os.path.basename(d)[3:] not in {'abyss'})
 frames_out = os.path.join(os.path.dirname(os.path.abspath(out)), 'trailer_frames'); os.makedirs(frames_out, exist_ok=True)
 for f in glob.glob(os.path.join(frames_out, '*.jpg')): os.remove(f)
 n = 0
@@ -52,11 +56,18 @@ for i in range(int(2.8 * FPS)):
 prev_tail = None
 for k, sd in enumerate(shots):
     name = os.path.basename(sd)[3:]
+    if name in SKIP: continue
     fs = sorted(glob.glob(os.path.join(sd, 'f_*.jpg')))
+    if name in CUT: fs = [f for i, f in enumerate(fs) if not any(a <= i < b for a, b in CUT[name])]
+    if name in TRIM: fs = fs[TRIM[name][0]:TRIM[name][1]]
     if not fs: continue
     m = len(fs); keep = XF if k < len(shots) - 1 else 0; tail = []
+    # how dark the shot is (a few frames): below a quarter brightness it is lifted toward it, once for the whole shot
+    lum = np.mean([np.asarray(Image.open(fs[j]).convert('L').resize((160, 90))).mean() / 255 for j in range(0, m, max(1, m // 6))])
+    lift = 1.0 if lum >= 0.3 else max(0.55, math.log(0.3) / math.log(max(0.05, lum)))
+    print(name, 'brightness', round(lum, 2), 'lift', round(lift, 2))
     for i, fp in enumerate(fs):
-        im = grade(Image.open(fp).convert('RGB').resize((W, H)))
+        im = grade(Image.open(fp).convert('RGB').resize((W, H)), lift)
         if name in TEXT:
             tt = i / max(1, m - 1); a = min(1, max(0, (tt - 0.12) * 4)) * min(1, max(0, (0.92 - tt) * 5))
             im = caption(im, TEXT[name], a)

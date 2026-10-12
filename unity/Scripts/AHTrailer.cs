@@ -21,13 +21,13 @@ public class AHTrailer : MonoBehaviour
         new Shot("dawn", "meadow", 5f, "descend", "idle"),
         new Shot("road", "meadow", 4f, "track", "run"),
         new Shot("fight", "meadow", 5f, "orbit", "fight") { a0 = -40f, a1 = 50f, r = 7f, h = 2.6f },
-        new Shot("lava", "ember", 4.5f, "wide", "run") { a0 = 20f, a1 = 55f, r = 30f, h = 16f },
+        new Shot("lava", "ember", 4.5f, "vista", "run") { a0 = -25f, a1 = 15f },
         new Shot("ember_fight", "ember", 4f, "orbit", "fight") { a0 = 160f, a1 = 220f, r = 6.5f, h = 2.2f },
-        new Shot("abyss", "abyss", 5f, "wide", "idle") { a0 = 0f, a1 = 50f, r = 40f, h = 20f },
+        new Shot("abyss", "abyss", 5f, "vista", "idle") { a0 = -40f, a1 = 20f },
         new Shot("city", "hc_city", 4f, "track", "run"),
         new Shot("depths", "d_molten", 4.5f, "follow", "run"),
         new Shot("depths_fight", "d_molten", 4f, "orbit", "fight") { a0 = 30f, a1 = 100f, r = 6f, h = 2.4f },
-        new Shot("throne", "raid", 6f, "orbit", "fight") { a0 = 200f, a1 = 300f, r = 11f, h = 4.5f },
+        new Shot("throne", "raid", 6f, "orbit", "fight") { a0 = 200f, a1 = 290f, r = 8f, h = 3.5f },
         new Shot("hero", "meadow", 4.5f, "portrait", "idle") { a0 = -30f, a1 = 30f, r = 3.2f, h = 1.55f },
     };
     public const int W = 1280, H = 720, Fps = 30;
@@ -55,7 +55,7 @@ public class AHTrailer : MonoBehaviour
         foreach (var s in List)
         {
             n++;
-            if (Only != null && s.name != Only) continue;
+            if (Only != null && System.Array.IndexOf(Only.Split(','), s.name) < 0) continue;   // only.txt: "fight,lava" films just those
             // get there and let the land finish building
             var g = AHGame.I;
             if (AHGame.AreaId != s.area && g != null)
@@ -86,8 +86,10 @@ public class AHTrailer : MonoBehaviour
         if (s.act == "fight")
         {
             // the nearest living enemy; the hero is put a few steps from it, facing it
-            float best = 80f;
-            foreach (var m in g.mobs) { if (m == null || m.dead) continue; float dd = Vector3.Distance(m.transform.position, p.transform.position); if (dd < best) { best = dd; foe = m; } }
+            // out in the wild if there is anything there (not among the stalls and anvils of a town square)
+            float best = 400f;
+            foreach (var m in g.mobs) { if (m == null || m.dead || g.InTown(m.transform.position)) continue; float dd = Vector3.Distance(m.transform.position, p.transform.position); if (dd < 25f) continue; if (dd < best) { best = dd; foe = m; } }
+            if (foe == null) foreach (var m in g.mobs) { if (m == null || m.dead) continue; float dd = Vector3.Distance(m.transform.position, p.transform.position); if (dd < best) { best = dd; foe = m; } }
             if (foe != null)
             {
                 Vector3 to = foe.transform.position - p.transform.position; to.y = 0f; if (to.sqrMagnitude < 0.01f) to = Vector3.forward;
@@ -127,6 +129,11 @@ public class AHTrailer : MonoBehaviour
                 case "track": pos = h + side * 4.5f + Vector3.up * 1.7f - fwd * (1.5f - u * 1.5f); look = h + fwd * 2.5f + Vector3.up * 1.2f; break;
                 case "follow": pos = h - fwd * 5.5f + Vector3.up * 2.4f + side * 0.8f; look = h + fwd * 4f + Vector3.up * 1.3f; break;
                 case "wide": { float a = Mathf.Lerp(s.a0, s.a1, e) * Mathf.Deg2Rad; pos = h + new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * s.r + Vector3.up * s.h; look = h + Vector3.up * 2f; break; }
+                case "vista":
+                {   // from just behind the hero, out over the land, turning slowly
+                    float a = Mathf.Lerp(s.a0, s.a1, e) * Mathf.Deg2Rad; Vector3 dir = fwd * Mathf.Cos(a) + side * Mathf.Sin(a);
+                    pos = h - dir * 5.5f + Vector3.up * 3.2f + Vector3.Cross(Vector3.up, dir) * 1.6f; look = h + dir * 35f + Vector3.up * 2f; break;
+                }
                 case "portrait": { float a = Mathf.Lerp(s.a0, s.a1, e) * Mathf.Deg2Rad; Vector3 face = p.transform.forward; face.y = 0f; face.Normalize(); Vector3 fs = Vector3.Cross(Vector3.up, face); pos = h + (face * Mathf.Cos(a) + fs * Mathf.Sin(a)) * s.r + Vector3.up * s.h; look = h + Vector3.up * 1.35f; break; }
                 default:
                 {   // orbit round the fight (the hero and the foe both in the picture)

@@ -14,4 +14,19 @@ public static class AHTrailerMenu
         string of = Path.Combine(dir, "only.txt"); AHTrailer.Only = File.Exists(of) ? File.ReadAllText(of).Trim() : null; if (AHTrailer.Only == "") AHTrailer.Only = null;
         AHTrailer.Begin(dir);
     }
+
+    // each filmed shot packed into one zip (HeroShots/trailer/zips/<shot>.zip), to carry the frames off the PC in a few files
+    [MenuItem("Ashen Hollow/Test: Pack Trailer Frames #&k")]
+    static void Pack()
+    {
+        string dir = Path.Combine(Application.dataPath, "../HeroShots/trailer"), zd = Path.Combine(dir, "zips"); Directory.CreateDirectory(zd);
+        int n = 0;
+        foreach (var sd in Directory.GetDirectories(dir))
+        {
+            string name = Path.GetFileName(sd); if (name == "zips") continue;
+            string zp = Path.Combine(zd, name + ".zip"); if (File.Exists(zp)) File.Delete(zp);
+            System.IO.Compression.ZipFile.CreateFromDirectory(sd, zp, System.IO.Compression.CompressionLevel.NoCompression, false); n++;
+        }
+        Debug.Log("Ashen Hollow: " + n + " trailer shots packed into " + Path.GetFullPath(zd));
+    }
 }
