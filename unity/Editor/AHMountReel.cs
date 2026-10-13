@@ -52,6 +52,7 @@ public static class AHMountReel
                 Vector3 want = fwd * (f < 45 ? 0.22f : 1f); Vector3 cf = g.CamForward(), cr = g.CamRight();
                 AHInput.TestMove = new Vector2(Vector3.Dot(want, cr), Vector3.Dot(want, cf));
                 yield return new WaitForEndOfFrame();
+                if (f == 35 || f == 110) { var gt = p.GetComponentInChildren<AHMountGait>(); if (gt != null) Debug.Log("Ashen Hollow: mount gait " + k + " frame " + f + ": " + gt.State); }
                 Vector3 h = p.transform.position;
                 if (g.cam != null) { cam.CopyFrom(g.cam); cam.fieldOfView = 40f; }
                 cam.transform.position = h + side * back + Vector3.up * (big ? 2.6f : 1.9f) + fwd * 1.2f; cam.transform.LookAt(h + Vector3.up * (big ? 1.6f : 1.2f) + fwd * 0.6f);

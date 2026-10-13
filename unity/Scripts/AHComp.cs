@@ -585,6 +585,7 @@ public class AHMountGait : MonoBehaviour
     Transform back; Vector3 back0; int restN; float bobY, bobZ; Transform rig; float rigZ0 = float.NaN;
     // the raptors' own run hardly bends the body: a swaying tail, a rolling spine and a steadied head added on top
     Transform[] tail, spine, neck; float phase, sway; string playing; float playSpeed = 1f;
+    public string State { get { return (playing ?? "idle") + " x" + playSpeed.ToString("F2") + " at " + gs.ToString("F2") + " m/s (walk " + walkV.ToString("F2") + ", run " + runV.ToString("F2") + ")"; } }
     public void Setup(AHAnim a, AHPlayer who)
     {
         anim = a; p = who; anim.Play("Idle", true); lastPos = p.transform.position;
@@ -647,9 +648,10 @@ public class AHMountGait : MonoBehaviour
         {
             idleT = 0f;
             // walk up to a brisk walk, then the run; a little either way of the change so it does not flicker
-            float change = Mathf.Min(walkV * 1.5f, runV * 0.6f);
-            if (running && gs < change * 0.85f) running = false; else if (!running && gs > change * 1.1f) running = true;
-            playing = running ? run : walk; playSpeed = running ? Mathf.Clamp(gs / runV, 0.55f, 1.6f) : Mathf.Clamp(gs / walkV, 0.45f, 1.7f);
+            // (a slowed-down gallop looks like hopping on the spot: below the change it walks, quickening into a trot)
+            float change = Mathf.Max(walkV * 1.9f, runV * 0.55f);
+            if (running && gs < change * 0.85f) running = false; else if (!running && gs > change * 1.05f) running = true;
+            playing = running ? run : walk; playSpeed = running ? Mathf.Clamp(gs / runV, 0.9f, 1.9f) : Mathf.Clamp(gs / walkV, 0.5f, 2.0f);
             anim.Play(playing, true, playSpeed);
         }
         else
