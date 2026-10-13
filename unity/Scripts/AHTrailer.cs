@@ -71,6 +71,7 @@ public class AHTrailer : MonoBehaviour
             }
             yield return new WaitForSecondsRealtime(9f);
             g = AHGame.I; if (g == null || g.player == null) continue;
+            g.SetTimeOfDay(0.3f);   // filmed by day (a shot taken late in a session came out in the dark)
             string sd = Path.Combine(dir, n.ToString("00") + "_" + s.name); Directory.CreateDirectory(sd);
             foreach (var f in Directory.GetFiles(sd, "*.jpg")) File.Delete(f);
             yield return Film(g, s, sd);
@@ -81,6 +82,7 @@ public class AHTrailer : MonoBehaviour
         busy = false; Destroy(rt); Destroy(gameObject);
     }
 
+    public static string RideMount = "goldsteed";
     IEnumerator Film(AHGame g, Shot s, string sd)
     {
         var p = g.player; int frames = Mathf.RoundToInt(s.secs * Fps);
@@ -100,8 +102,16 @@ public class AHTrailer : MonoBehaviour
             }
         }
         // on a mount for a ride shot (and off it again after)
-        bool rode = false;
-        if (s.act == "ride" && !p.mounted) { AHComp.Mount(g); rode = p.mounted; }
+        bool rode = false; string wasMount = p.mountSel;
+        if (s.act == "ride")
+        {
+            // on the golden steed (a flying phoenix leaves its rider out of the frame), standing a moment first so the
+            // rider settles into the saddle
+            if (p.mounted) AHComp.Dismount(g, true);
+            if (!p.mounts.Contains(RideMount)) p.mounts.Add(RideMount);
+            p.mountSel = RideMount; AHComp.Mount(g); rode = p.mounted;
+            yield return new WaitForSecondsRealtime(2.5f);
+        }
         if (s.act != "ride" && p.mounted) AHComp.Dismount(g, true);
         Vector3 fwd = p.transform.forward; fwd.y = 0f; fwd.Normalize();
         Vector3 start = p.transform.position;
@@ -164,6 +174,7 @@ public class AHTrailer : MonoBehaviour
         }
         Time.captureFramerate = 0; AHInput.TestMove = Vector2.zero;
         if (rode && p.mounted) AHComp.Dismount(g, true);
+        if (s.act == "ride") p.mountSel = wasMount;
         p.transform.position = start;
     }
 }
