@@ -636,6 +636,7 @@ public class AHMountGait : MonoBehaviour
         if (runV < 1f || runV > 20f) runV = 2.6f * size;
         if (runV < walkV * 1.3f) runV = walkV * 2.5f;
         if (trot != null && (trotV <= walkV * 1.1f || trotV >= runV)) trotV = (walkV + runV) * 0.5f;
+        p.mountWalk = walkV * 1.3f; p.mountTrot = trot != null ? trotV * 1.15f : 0f;
         var tl = new List<Transform>(); var sp = new List<Transform>(); var nk = new List<Transform>();
         for (int i = 1; i <= 8; i++) { var t = Find(transform, "Tail_" + i); if (t != null) tl.Add(t); var q = Find(transform, "Spine_" + i); if (q != null) sp.Add(q); var n = Find(transform, "Neck_" + i); if (n != null) nk.Add(n); }
         if (tl.Count >= 3 && sp.Count >= 1) { tail = tl.ToArray(); spine = sp.ToArray(); neck = nk.ToArray(); }
@@ -663,7 +664,7 @@ public class AHMountGait : MonoBehaviour
             idleT = 0f;
             // walk up to a brisk walk, then the run; a little either way of the change so it does not flicker
             // (a slowed-down gallop looks like hopping on the spot: below the change it walks, quickening into a trot)
-            float change = trot != null ? Mathf.Max(trotV * 1.5f, runV * 0.6f) : Mathf.Max(walkV * 1.9f, runV * 0.55f);
+            float change = trot != null ? Mathf.Max(trotV * 1.45f, runV * 0.8f) : Mathf.Max(walkV * 1.8f, runV * 0.8f);
             if (running && gs < change * 0.85f) running = false; else if (!running && gs > change * 1.05f) running = true;
             if (!running && trot != null)
             {
@@ -673,7 +674,7 @@ public class AHMountGait : MonoBehaviour
             }
             else trotting = false;
             playing = running ? run : trotting ? trot : walk;
-            playSpeed = running ? Mathf.Clamp(gs / runV, 0.9f, 1.9f) : trotting ? Mathf.Clamp(gs / trotV, 0.7f, 1.8f) : Mathf.Clamp(gs / walkV, 0.5f, 2.0f);
+            playSpeed = running ? Mathf.Clamp(gs / runV, 1.0f, 1.9f) : trotting ? Mathf.Clamp(gs / trotV, 0.7f, 1.8f) : Mathf.Clamp(gs / walkV, 0.5f, 2.0f);
             anim.Play(playing, true, playSpeed);
         }
         else
@@ -837,7 +838,7 @@ public class AHMountGait : MonoBehaviour
 
     void OnDestroy()
     {
-        if (p != null) p.seatBob = 0f;
+        if (p != null) { p.seatBob = 0f; p.mountWalk = 0f; p.mountTrot = 0f; }
         if (link != null) link.ride = 0f;
         if (rig != null && !float.IsNaN(rigZ0)) { var lp = rig.localPosition; lp.z = rigZ0; rig.localPosition = lp; }
         if (anim != null) anim.Dispose();
@@ -846,14 +847,55 @@ public class AHMountGait : MonoBehaviour
 
 // feathered wings on a mount's shoulders (the Voidwing): they follow the top of its back, held half open and swept back,
 // beating slowly while it stands and harder at the gallop
+// the Voidwing's wings: two feathered cards (one picture, tools/mounts/wing_tex.py, mirrored for the left) at the
+// withers, each in two parts hinged at the wrist so the tip lags the beat. Spread and beating while it moves; half
+// folded and swept back, breathing slowly, while it stands.
 public class AHMountWings : MonoBehaviour
 {
-    Transform spine; Transform[] wings = new Transform[2]; AHPlayer p; float t, amp;
-    static Material Mat(Color c, float glow)
+    Transform spine; Transform[] roots = new Transform[2], tips = new Transform[2]; AHPlayer p; float t, amp;
+    const float Span = 2.0f;               // one wing, shoulder to tip (metres)
+    const float U0 = 30f / 2048f, V0 = 330f / 1024f, UW = 1250f / 2048f, VW = 300f / 1024f;   // the picture's shoulder and wrist
+    static Material mat;
+    static Material Mat()
     {
-        var m = new Material(Shader.Find("Universal Render Pipeline/Lit")); m.SetColor("_BaseColor", c); m.SetFloat("_Smoothness", 0.35f);
-        if (glow > 0f) { m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", c * glow); }
+        if (mat != null) return mat;
+        var tex = Resources.Load<Texture2D>("AH/Textures/Wings/voidwing");
+        mat = new Material(Shader.Find("Universal Render Pipeline/Lit")); mat.name = "VoidwingWing";
+        mat.SetColor("_BaseColor", Color.white); mat.SetFloat("_Smoothness", 0.3f); mat.SetFloat("_Cull", 0f); mat.doubleSidedGI = true;
+        if (tex != null)
+        {
+            tex.wrapMode = TextureWrapMode.Clamp;
+            mat.SetTexture("_BaseMap", tex); mat.SetFloat("_AlphaClip", 1f); mat.SetFloat("_Cutoff", 0.45f); mat.EnableKeyword("_ALPHATEST_ON");
+            mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
+            // a faint violet glow from the feathers themselves, so they read in the dark
+            mat.EnableKeyword("_EMISSION"); mat.SetTexture("_EmissionMap", tex); mat.SetColor("_EmissionColor", new Color(0.45f, 0.35f, 0.7f));
+        }
+        else mat.SetColor("_BaseColor", new Color(0.12f, 0.07f, 0.22f));
+        return mat;
+    }
+    // where a point of the picture (u across, vt down from the top) lies in the wing: x out from the body, z back
+    static Vector3 At(float u, float vt, int sx) { return new Vector3(sx * (u - U0) * Span, 0f, (V0 - vt) * Span * 0.5f); }
+    static Mesh Panel(float u0, float u1, int sx, Vector3 origin)
+    {
+        // a small grid (so the light and the fog fall smoothly over it)
+        const int NX = 4, NY = 3; var v = new List<Vector3>(); var uv = new List<Vector2>(); var tri = new List<int>();
+        for (int y = 0; y <= NY; y++) for (int x = 0; x <= NX; x++)
+        {
+            float u = Mathf.Lerp(u0, u1, x / (float)NX), vu = y / (float)NY;
+            v.Add(At(u, 1f - vu, sx) - origin); uv.Add(new Vector2(u, vu));
+        }
+        for (int y = 0; y < NY; y++) for (int x = 0; x < NX; x++)
+        {
+            int a = y * (NX + 1) + x, b = a + 1, c = a + NX + 1, d = c + 1;
+            if (sx > 0) { tri.Add(a); tri.Add(c); tri.Add(b); tri.Add(b); tri.Add(c); tri.Add(d); }
+            else { tri.Add(a); tri.Add(b); tri.Add(c); tri.Add(b); tri.Add(d); tri.Add(c); }
+        }
+        var m = new Mesh { name = "MountWingPanel" }; m.SetVertices(v); m.SetUVs(0, uv); m.SetTriangles(tri, 0); m.RecalculateNormals(); m.RecalculateBounds();
         return m;
+    }
+    static void Show(Transform parent, Mesh mesh)
+    {
+        parent.gameObject.AddComponent<MeshFilter>().sharedMesh = mesh; parent.gameObject.AddComponent<MeshRenderer>().sharedMaterial = Mat();
     }
     void Start()
     {
@@ -861,38 +903,34 @@ public class AHMountWings : MonoBehaviour
         var sp = new List<Transform>(); foreach (var t2 in GetComponentsInChildren<Transform>()) if (t2.name.ToLowerInvariant().Contains("spine") && !t2.name.EndsWith("_end")) sp.Add(t2);
         // the withers: the spine bone nearest the front legs
         if (sp.Count > 0) spine = sp[Mathf.Min(sp.Count - 1, (sp.Count * 3) / 4)];
-        Material feath = Mat(new Color(0.09f, 0.06f, 0.2f), 0.15f), under = Mat(new Color(0.18f, 0.1f, 0.36f), 0.35f), cov = Mat(new Color(0.05f, 0.04f, 0.1f), 0f), arm = Mat(new Color(0.12f, 0.1f, 0.16f), 0f);
         for (int s = 0; s < 2; s++)
         {
             int sx = s == 0 ? -1 : 1;
             var root = new GameObject("MountWing").transform; root.SetParent(transform, false);
-            var wg = new GameObject("WingShape").transform; wg.SetParent(root, false);
-            Vector3 ws = new Vector3(sx * 1.5f, 1.4f, 1.5f);
-            Piece(wg, AHWardrobe.WingFeathers, new Vector3(0, 0, 0.02f), new Vector3(sx * 1.35f, 1.25f, 1.35f), under);
-            Piece(wg, AHWardrobe.WingFeathers, Vector3.zero, ws, feath);
-            Piece(wg, AHWardrobe.WingCoverts, new Vector3(0, 0, -0.012f), ws, cov);
-            Piece(wg, AHWardrobe.WingArm, new Vector3(0, 0, -0.02f), ws, arm);
-            wings[s] = root;
+            var inner = new GameObject("Inner").transform; inner.SetParent(root, false); Show(inner, Panel(0f, UW, sx, Vector3.zero));
+            Vector3 wrist = At(UW, VW, sx);
+            var tip = new GameObject("Tip").transform; tip.SetParent(root, false); tip.localPosition = wrist; Show(tip, Panel(UW, 1f, sx, wrist));
+            roots[s] = root; tips[s] = tip;
         }
-    }
-    static void Piece(Transform parent, Mesh mesh, Vector3 pos, Vector3 scale, Material m)
-    {
-        var o = new GameObject("Piece"); o.transform.SetParent(parent, false); o.transform.localPosition = pos; o.transform.localScale = scale;
-        o.AddComponent<MeshFilter>().sharedMesh = mesh; var r = o.AddComponent<MeshRenderer>(); r.sharedMaterial = m;
     }
     void LateUpdate()
     {
-        if (wings[0] == null) return;
+        if (roots[0] == null) return;
         float dt = Time.deltaTime; bool moving = p != null && p.Moving;
-        amp = Mathf.Lerp(amp, moving ? 1f : 0.3f, 1f - Mathf.Exp(-dt * 2.5f));
-        t += dt * (1.4f + amp * 3.2f);
-        float beat = Mathf.Sin(t) * (6f + amp * 22f);
+        amp = Mathf.Lerp(amp, moving ? 1f : 0f, 1f - Mathf.Exp(-dt * 2.5f));
+        t += dt * (1.2f + amp * 3.6f);
+        float beat = Mathf.Sin(t), lag = Mathf.Sin(t - 0.9f);
+        // standing: raised a little, swept well back, the tips drooping; moving: spread, beating, the tips following
+        // (the beat stays mostly above the back: a full downstroke on the ground swept the wing into the dirt)
+        float sweep = Mathf.Lerp(52f, 16f, amp), lift = Mathf.Lerp(24f, 22f, amp) + beat * Mathf.Lerp(3f, 24f, amp);
+        float bend = Mathf.Lerp(-38f, -6f, amp) + lag * Mathf.Lerp(2f, 16f, amp);
         Vector3 at = spine != null ? spine.position : transform.position + transform.up * 1.4f;
         for (int s = 0; s < 2; s++)
         {
-            int sx = s == 0 ? -1 : 1; var w = wings[s];
-            w.position = at + transform.up * 0.12f + transform.right * sx * 0.16f;
-            w.rotation = transform.rotation * Quaternion.Euler(-8f, sx * (28f + amp * 12f), sx * 12f - sx * beat);
+            int sx = s == 0 ? -1 : 1; var w = roots[s];
+            w.position = at + transform.up * 0.1f + transform.right * sx * 0.2f;
+            w.rotation = transform.rotation * Quaternion.AngleAxis(sx * sweep, Vector3.up) * Quaternion.AngleAxis(sx * lift, Vector3.forward) * Quaternion.AngleAxis(-6f, Vector3.right);
+            tips[s].localRotation = Quaternion.AngleAxis(sx * bend, Vector3.forward);
         }
     }
 }

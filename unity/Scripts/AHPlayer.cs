@@ -164,6 +164,7 @@ public class AHPlayer : MonoBehaviour
     [System.NonSerialized] public GameObject mountGo;
     [System.NonSerialized] public float seatY;
     [System.NonSerialized] public float seatBob;   // the mount's back rising and falling under the rider (AHMountGait)
+    [System.NonSerialized] public float mountWalk, mountTrot;   // the mount's own walking and trotting speeds (AHMountGait), 0 when not known
     public GameObject Model { get { return model; } }
     public float LastHurt { get { return lastHurt; } }
     public bool InFight { get { return Time.time - lastHurt < 6f || Time.time - lastCast < 4f; } }
@@ -516,8 +517,18 @@ public class AHPlayer : MonoBehaviour
         else if (atkT <= 0f && move.sqrMagnitude > 0.0025f)
         {
             float step = speed * (bearT > 0f ? 1.05f : 1f) * SpeedMult * AHComp.MountSpeed(this) * (1f - 0.4f * wadeDepth * (mounted ? 0.4f : 1f)) * dt;
-            pos += move * step;
-            AHComp.RideTick(g, step * move.magnitude);
+            // in the saddle the stick picks a gait rather than any speed at all: a light push walks, a full push
+            // gallops (and a mount that can trot trots in between), so the legs always move at their own pace instead
+            // of a slow-motion gallop
+            Vector3 mv = move;
+            if (mounted && mountWalk > 0f && dt > 0f)
+            {
+                float full = step / dt, mg = Mathf.Clamp01(move.magnitude);
+                float want = mg < 0.5f ? mountWalk : (mountTrot > 0f && mg < 0.85f ? mountTrot : full);
+                mv = move.normalized * Mathf.Min(1f, want / Mathf.Max(0.01f, full));
+            }
+            pos += mv * step;
+            AHComp.RideTick(g, step * mv.magnitude);
             // a mount at a gallop kicks up dust behind it
             if (mounted && (dustT -= dt) <= 0f) { dustT = 0.11f; AHFx.Pop(transform.position - move.normalized * 1.1f + Vector3.up * 0.12f + transform.right * UnityEngine.Random.Range(-0.3f, 0.3f), 0.8f, new Color(0.78f, 0.7f, 0.56f, 0.4f), 0.55f); }
             transform.rotation = Quaternion.Slerp(transform.rotation, g.Face(move), 1f - Mathf.Exp(-dt * 14f));
