@@ -60,6 +60,38 @@ public static class AHPhoneTex
         Debug.Log("Ashen Hollow: phone textures: " + done + " models changed, " + skip + " left (Builds/phone_textures.txt)");
     }
 
+    // tighter still for phones: ASTC 8x8 everywhere (about half the size of 6x6), and props, buildings and old web
+    // models at 512; heroes' outfits, beasts, mounts, weapons and the lands keep their size
+    [MenuItem("Ashen Hollow/Phone Textures: Squeeze %#&6")]
+    static void Squeeze()
+    {
+        var paths = new List<string>();
+        foreach (var guid in AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets/AshenHollow/Resources", "Assets/Polyart" }))
+        {
+            string p = AssetDatabase.GUIDToAssetPath(guid); if (p.Contains("_tex/") || p.StartsWith("Assets/Polyart") || p.Contains("/VRoid/")) paths.Add(p);
+        }
+        int n = 0;
+        try
+        {
+            AssetDatabase.StartAssetEditing();
+            foreach (var p in paths)
+            {
+                var ti = AssetImporter.GetAtPath(p) as TextureImporter; if (ti == null) continue;
+                bool small = p.Contains("/Models/KK/") || p.Contains("/Models/Town/") || p.Contains("/Models/Nature/") || p.Contains("/Models/Web/") || p.Contains("/Models/QD/") || p.Contains("/Models/Mobs/");
+                bool ground = p.Contains("/Areas/") || p.Contains("_world_tex/") || p.Contains("_world_kk_tex/");
+                bool hero = p.Contains("/VRoid/");   // faces and hair stay sharp: 6x6
+                int max = ground ? 2048 : small ? 512 : 1024;
+                if (p.StartsWith("Assets/Polyart") || hero) { var cur = ti.GetPlatformTextureSettings("Android"); if (ti.textureType == TextureImporterType.NormalMap || hero) { if (cur.overridden && cur.maxTextureSize <= 1024) continue; cur.overridden = true; cur.maxTextureSize = 1024; cur.format = TextureImporterFormat.ASTC_6x6; ti.SetPlatformTextureSettings(cur); ti.SaveAndReimport(); n++; continue; } }
+                var a = ti.GetPlatformTextureSettings("Android");
+                if (a.overridden && a.maxTextureSize == max && a.format == TextureImporterFormat.ASTC_8x8) continue;
+                a.overridden = true; a.maxTextureSize = max; a.format = ground ? TextureImporterFormat.ASTC_6x6 : TextureImporterFormat.ASTC_8x8; a.compressionQuality = 50;
+                ti.SetPlatformTextureSettings(a); ti.SaveAndReimport(); n++;
+            }
+        }
+        finally { AssetDatabase.StopAssetEditing(); }
+        Debug.Log("Ashen Hollow: phone textures squeezed: " + n + " of " + paths.Count);
+    }
+
     [MenuItem("Ashen Hollow/Phone Textures: Restore %#&3")]
     static void Restore()
     {

@@ -34,7 +34,7 @@ public static class AHBuild
         Debug.Log("Ashen Hollow: Android settings ready");
     }
 
-    [MenuItem("Ashen Hollow/Build Android APK")]
+    [MenuItem("Ashen Hollow/Build Android APK %#&5")]
     public static void BuildApk() { Build(false); }
 
     // builds, installs on the phone picked as Run Device (USB debugging on) and starts it
