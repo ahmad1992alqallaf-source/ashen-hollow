@@ -201,4 +201,76 @@ public static class AHPhoneTex
         AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
         return "done (" + written.Count + " pictures)";
     }
+
+    // Vertex colours that are all white do nothing (the colour comes from the picture) but every vertex still carries
+    // them: in the outfits that is a sixth of the mesh. "Phone Meshes: Drop White Colours" takes them out of every model
+    // whose vertex colours are pure white (models that really are coloured by their vertices are left alone), and the
+    // extra colour sets glTF allows (which the game never reads) with them.
+    [MenuItem("Ashen Hollow/Phone Meshes: Drop White Colours %#&0")]
+    static void DropWhite()
+    {
+        var list = new List<string>();
+        foreach (var dir in Directory.GetDirectories("Assets", "Resources", SearchOption.AllDirectories))
+            foreach (var f in Directory.GetFiles(dir, "*.glb", SearchOption.AllDirectories)) list.Add(f.Replace('\\', '/'));
+        int done = 0; var log = new StringBuilder();
+        try
+        {
+            AssetDatabase.StartAssetEditing();
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (EditorUtility.DisplayCancelableProgressBar("Drop white colours", list[i], i / (float)list.Count)) break;
+                string r = WhiteColours(list[i]); if (r.StartsWith("done")) { done++; log.AppendLine(list[i] + ": " + r); }
+                else if (r != "no colours") log.AppendLine(list[i] + ": " + r);
+            }
+        }
+        finally { AssetDatabase.StopAssetEditing(); EditorUtility.ClearProgressBar(); }
+        AssetDatabase.Refresh();
+        Directory.CreateDirectory("Builds"); File.WriteAllText("Builds/white_colours.txt", log.ToString());
+        Debug.Log("Ashen Hollow: white vertex colours dropped from " + done + " models (Builds/white_colours.txt)");
+    }
+
+    static string WhiteColours(string path)
+    {
+        var bytes = File.ReadAllBytes(path);
+        if (bytes.Length < 20 || bytes[0] != 'g' || bytes[1] != 'l' || bytes[2] != 'T' || bytes[3] != 'F') return "not a glb";
+        int jsonLen = System.BitConverter.ToInt32(bytes, 12);
+        string json = Encoding.UTF8.GetString(bytes, 20, jsonLen);
+        if (!json.Contains("\"COLOR_")) return "no colours";
+        int binStart = 20 + jsonLen, binLen = 0, binData = 0;
+        if (binStart + 8 <= bytes.Length) { binLen = System.BitConverter.ToInt32(bytes, binStart); binData = binStart + 8; }
+        int a0, a1; var accs = Objects(json, "accessors", out a0, out a1);
+        int b0, b1; var views = Objects(json, "bufferViews", out b0, out b1);
+        // every COLOR_0 must be white
+        foreach (Match m in Regex.Matches(json, "\"COLOR_0\"\\s*:\\s*(\\d+)"))
+        {
+            int ai = int.Parse(m.Groups[1].Value); if (ai >= accs.Count) return "bad accessor";
+            string acc = json.Substring(accs[ai].Key, accs[ai].Value - accs[ai].Key + 1);
+            int bv = Num(acc, "bufferView", -1); if (bv < 0 || bv >= views.Count || binData == 0) return "colour not in the file";
+            string view = json.Substring(views[bv].Key, views[bv].Value - views[bv].Key + 1);
+            int count = Num(acc, "count", 0), ct = Num(acc, "componentType", 5126), off = binData + Num(view, "byteOffset", 0) + Num(acc, "byteOffset", 0);
+            int comps = acc.Contains("\"VEC4\"") ? 4 : 3, csz = ct == 5126 ? 4 : ct == 5123 ? 2 : 1, stride = Num(view, "byteStride", comps * csz);
+            for (int v = 0; v < count; v++)
+                for (int c = 0; c < 3; c++)   // red, green, blue (alpha does not tint)
+                {
+                    int p = off + v * stride + c * csz; float x;
+                    if (ct == 5126) x = System.BitConverter.ToSingle(bytes, p); else if (ct == 5123) x = System.BitConverter.ToUInt16(bytes, p) / 65535f; else x = bytes[p] / 255f;
+                    if (x < 0.995f) return "coloured (kept)";
+                }
+        }
+        string bak = Backup + "/" + path; if (!File.Exists(bak)) { Directory.CreateDirectory(Path.GetDirectoryName(bak)); File.Copy(path, bak); }
+        int before = json.Length;
+        json = Regex.Replace(json, ",\\s*\"COLOR_\\d+\"\\s*:\\s*\\d+", "");
+        json = Regex.Replace(json, "\"COLOR_\\d+\"\\s*:\\s*\\d+\\s*,", "");
+        var nj = Encoding.UTF8.GetBytes(json); int pad = (4 - nj.Length % 4) % 4;
+        using (var ms = new MemoryStream())
+        using (var w = new BinaryWriter(ms))
+        {
+            int total = 12 + 8 + nj.Length + pad + (binLen > 0 ? 8 + binLen : 0);
+            w.Write(0x46546C67); w.Write(2); w.Write(total);
+            w.Write(nj.Length + pad); w.Write(0x4E4F534A); w.Write(nj); for (int i = 0; i < pad; i++) w.Write((byte)0x20);
+            if (binLen > 0) w.Write(bytes, binStart, 8 + binLen);
+            File.WriteAllBytes(path, ms.ToArray());
+        }
+        return "done";
+    }
 }
