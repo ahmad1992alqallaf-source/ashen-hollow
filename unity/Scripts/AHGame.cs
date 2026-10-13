@@ -50,6 +50,11 @@ public class AHGame : MonoBehaviour
     static readonly bool[] WalkT = { true, true, false, false, true, false, true, true, true, true };
     readonly List<Vector4> lakes = new List<Vector4>();               // centre x, centre z, radius x, radius z
     Rect area;
+    // (for the editor's map checks)
+    public Rect WalkArea { get { return area; } }
+    public List<Vector4> Lakes { get { return lakes; } }
+    public List<Rect> Floors { get { return floors; } }
+    public List<Rect> Blocks { get { return rects; } }
     public Rect AreaRect { get { return area; } }
     Light sun;
     Material skyMat, waterMat;

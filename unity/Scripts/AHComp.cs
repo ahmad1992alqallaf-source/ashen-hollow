@@ -45,6 +45,32 @@ public static class AHComp
         return (L >= 20 ? 1.5f : 1f) * (ks == skill ? 1.5f : ks == "all" ? 1.25f : 1f);
     }
     public static float Fetch(AHPlayer p) { float k = PetK(p, "fetch"); return 1f + (k > 0f ? (0.05f + PetLv(p, p.pet) * 0.0075f) * k : 0f); }
+    // Lucky: rare drops (a chance under 10%) turn up more often
+    public static float Lucky(AHPlayer p) { float k = PetK(p, "lucky"); return 1f + (k > 0f ? (0.1f + PetLv(p, p.pet) * 0.01f) * k : 0f); }
+
+    // what a pet does for you, skill by skill, in numbers (the pet window's details page): name, level it comes at,
+    // learnt yet, and what it does at the pet's level now
+    public static List<string[]> PetDetails(AHPlayer p, string k)
+    {
+        var res = new List<string[]>(); string was = p.pet; p.pet = k;   // (worked out as if this pet were out)
+        int L = PetLv(p, k);
+        var sks = AHDB.List("companions", "PET_SKILLS");
+        if (sks != null) foreach (var o in sks)
+            {
+                var r = o as List<object>; int at = (int)(double)r[0]; string nm = (string)r[1]; bool got = L >= at; string what;
+                switch (nm)
+                {
+                    case "Fetch": { float kk = PetK(p, "fetch"); what = got ? "+" + Mathf.RoundToInt((0.05f + L * 0.0075f) * kk * 100f) + "% coins from every kill" : (string)r[2]; break; }
+                    case "Forager": { float kk = PetK(p, "forage"); what = got ? Mathf.RoundToInt((0.05f + L * 0.008f) * kk * 100f) + "% chance of an extra material when you gather" : (string)r[2]; break; }
+                    case "Guard": { float kk = PetK(p, "guard"); what = got ? "bites what hunts you every 2 s for " + Mathf.RoundToInt(22f * (L / 10f) * kk) + "% of your damage" : (string)r[2]; break; }
+                    case "Mend": { float kk = PetK(p, "mend"); what = got ? "heals " + (2.5f * kk).ToString("0.#") + "% of your health every 8 s in a fight" : (string)r[2]; break; }
+                    case "Lucky": { float kk = PetK(p, "lucky"); what = got ? "rare drops come " + Mathf.RoundToInt((0.1f + L * 0.01f) * kk * 100f) + "% more often" : (string)r[2]; break; }
+                    default: what = (string)r[2]; break;
+                }
+                res.Add(new[] { nm, at.ToString(), got ? "1" : "0", what });
+            }
+        p.pet = was; return res;
+    }
 
     // pet evolution: a pet grows as it levels (Grown at 8, Elder at 15, Mythic at 20, glowing)
     public static readonly int[] EvoAt = { 8, 15, 20 };
@@ -137,6 +163,8 @@ public static class AHComp
         holder.transform.SetParent(p.transform, false);
         if (p.mountSel == AHPhoenix.Id) AHPhoenix.Build(holder.transform, p);   // built from flame, not loaded
         else { AHAnim a; AHModel.Spawn(holder.transform, "Comp/mount_" + p.mountSel, 0f, false, 0f, out a); if (a != null && a.HasClips) holder.AddComponent<AHMountGait>().Setup(a, p); else if (a != null) a.Dispose(); }
+        // some mounts are made small (the wolves): grown to a riding size
+        float msc = (float)AHJson.N(AHJson.O(Mounts, p.mountSel), "scale", 1); if (msc != 1f) holder.transform.localScale = Vector3.one * msc;
         foreach (var c in holder.GetComponentsInChildren<Collider>()) Object.Destroy(c);
         AHModel.SetShadows(holder);
         p.mountGo = holder; p.mounted = true; p.seatY = p.mountSel == AHPhoenix.Id && holder.GetComponentInChildren<AHPhoenixRide>() != null ? AHPhoenixRide.Seat + 0.4f : Seat(p.mountSel);
@@ -197,10 +225,15 @@ public static class AHComp
     }
 }
 
-// a pet: trots (or flies) behind your shoulder, bites what you fight (Guard) and heals you (Mend)
+// a pet: trots beside you, flies (only one with real flying animation), or rides on your shoulder (the birds and the
+// baby dragon, made as still figures: a parrot flying about while perched, a dragon "sitting on air", looked wrong);
+// bites what you fight (Guard) and heals you (Mend)
 public class AHPetFollow : MonoBehaviour
 {
-    AHGame g; string kind; bool fly; GameObject model; float phase, guardT = 2f, mendT = 8f; AHAnim anim;
+    AHGame g; string kind; bool fly, perch; GameObject model; float phase, guardT = 2f, mendT = 8f; AHAnim anim;
+    static readonly HashSet<string> Perchers = new HashSet<string> { "parrot", "owl", "lantern_owl", "drake" };
+    public static float PerchH = 0.27f, PerchUp = 0.21f, PerchOut = 0.03f, PerchBack = 0.02f;
+    Vector3 feetOff; Transform shoulder, upperArm; Vector3 perchVel, perchPos; float lookYaw, lookTo, lookAt, hopT = -1f, nextHop;
     // tricks (AHPetTricks): the one being done, how long the hero has stood still, when the pet may show off again
     AHPetTricks.Trick trick; float trickT, modelH = 0.5f, stillT, showOffAt; Quaternion baseRot = Quaternion.identity; Vector3 baseScale = Vector3.one, lastHeroPos;
     public void StartTrick(AHPetTricks.Trick t) { trick = t; trickT = 0f; showOffAt = Time.time + Random.Range(25f, 40f); }
@@ -223,6 +256,9 @@ public class AHPetFollow : MonoBehaviour
         }
         else model = AHModel.Spawn(transform, "Comp/pet_" + k, 0f, false, 0f, out a);
         if (a != null && a.HasClips) anim = a; else if (a != null) a.Dispose();
+        // flying only with real wingbeats; the still birds and the dragon ride on your shoulder
+        fly = fly && anim != null && anim.Has("Fly");
+        perch = !fly && Perchers.Contains(k) && model != null && !(k == "drake" && Resources.Load<GameObject>("AH/Models/Comp/pet_drake_hd") == null);
         AHModel.SetShadows(model);
         // evolved pets are bigger, and a Mythic one glows
         int stage = AHComp.EvoStage(g.player, k);
@@ -230,17 +266,75 @@ public class AHPetFollow : MonoBehaviour
         if (model != null)
         {
             baseRot = model.transform.localRotation; baseScale = model.transform.localScale;
-            var rs = model.GetComponentsInChildren<Renderer>(true); if (rs.Length > 0) { var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); modelH = Mathf.Clamp(b.size.y, 0.2f, 2f); }
+            var rs = model.GetComponentsInChildren<Renderer>(true); if (rs.Length > 0) { var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); modelH = Mathf.Clamp(b.size.y, 0.05f, 2f); }
+            if (perch && modelH > 0.01f)
+            {
+                // shoulder-sized (an evolved one a little bigger)
+                float want = PerchH * (k == "drake" ? 1.15f : 1f) * (1f + 0.08f * stage);
+                model.transform.localScale *= want / modelH; baseScale = model.transform.localScale; modelH = want;
+                // its feet at its origin again (the scaling moved them): measured in this pet's space
+                model.transform.localPosition = Vector3.zero;
+                Bounds lb = new Bounds(); bool any = false;
+                foreach (var r in model.GetComponentsInChildren<Renderer>(true)) { var bb = r.bounds; var lo = transform.InverseTransformPoint(bb.min); var hi = transform.InverseTransformPoint(bb.max); var b2 = new Bounds(lo, Vector3.zero); b2.Encapsulate(hi); if (!any) { lb = b2; any = true; } else lb.Encapsulate(b2); }
+                feetOff = new Vector3(-lb.center.x, -lb.min.y, -lb.center.z);
+                foreach (var r in model.GetComponentsInChildren<Renderer>(true)) r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;   // (a shadow on your own shoulder flickers)
+                nextHop = Time.time + Random.Range(6f, 12f); lookAt = Time.time + 2f;
+            }
         }
         showOffAt = Time.time + 20f;
         if (stage >= 3 && model != null) { var gl = new GameObject("MythicGlow"); gl.transform.SetParent(model.transform, false); gl.transform.localPosition = Vector3.up * 0.4f; gl.AddComponent<AHWeaponGlow>().col = new Color(1f, 0.8f, 0.35f); }
     }
     void OnDestroy() { if (anim != null) anim.Dispose(); }
 
+    // the hero's left shoulder (the VRoid body's if there is one, else the old rig's)
+    void FindShoulder(AHPlayer p)
+    {
+        var link = p.GetComponentInChildren<AHVRoidLink>();
+        if (link != null && link.Body != null)
+        {
+            var an = link.Body.GetComponent<Animator>();
+            if (an != null && an.isHuman) { shoulder = an.GetBoneTransform(HumanBodyBones.LeftShoulder); upperArm = an.GetBoneTransform(HumanBodyBones.LeftUpperArm); }
+        }
+        if (upperArm == null) foreach (var t in p.GetComponentsInChildren<Transform>(true)) { if (t.name == "clavicle_l") shoulder = t; else if (t.name == "upperarm_l") upperArm = t; }
+        if (shoulder == null) shoulder = upperArm;
+    }
+
+    // perched: sits on top of the shoulder, turning its head about, now and then shuffling its feet or hopping on the
+    // spot; it sways with your steps and leans as you run
+    void LateUpdate()
+    {
+        if (!perch || g == null || g.player == null || model == null) return;
+        var p = g.player; float dt = Time.deltaTime; if (dt <= 0f) return;
+        if (upperArm == null || shoulder == null) FindShoulder(p);
+        if (upperArm == null) { perch = false; return; }
+        Vector3 up = p.transform.up, fw = p.transform.forward, right = p.transform.right;
+        Vector3 at = Vector3.Lerp(shoulder.position, upperArm.position, 0.85f) + up * PerchUp - right * PerchOut - fw * PerchBack;
+        // a soft follow so it rides your movement rather than being nailed on
+        if (perchPos == Vector3.zero || (perchPos - at).sqrMagnitude > 4f) perchPos = at;
+        perchPos = Vector3.SmoothDamp(perchPos, at, ref perchVel, 0.045f);
+        transform.position = perchPos;
+        // its head turns to look about, back to the front now and then
+        if (Time.time > lookAt) { lookTo = Random.value < 0.4f ? 0f : Random.Range(-70f, 70f); lookAt = Time.time + Random.Range(1.2f, 4f); }
+        lookYaw = Mathf.LerpAngle(lookYaw, lookTo, 1f - Mathf.Exp(-dt * 7f));
+        bool run = p.Moving;
+        float lean = run ? -10f : 0f;
+        transform.rotation = Quaternion.LookRotation(fw, up) * Quaternion.Euler(lean, lookYaw, 0f);
+        // a hop on the spot, or a shuffle
+        float hop = 0f;
+        if (hopT < 0f && Time.time > nextHop) { hopT = 0f; nextHop = Time.time + Random.Range(7f, 15f); }
+        if (hopT >= 0f) { hopT += dt; hop = Mathf.Sin(Mathf.Clamp01(hopT / 0.35f) * Mathf.PI) * modelH * 0.18f; if (hopT > 0.35f) hopT = -1f; }
+        phase += dt;
+        float breathe = 1f + Mathf.Sin(phase * 2.2f) * 0.025f;
+        model.transform.localPosition = model.transform.localRotation * Quaternion.Inverse(baseRot) * feetOff + new Vector3(0f, hop, 0f);
+        model.transform.localRotation = baseRot * Quaternion.Euler(Mathf.Sin(phase * (run ? 9f : 1.3f)) * (run ? 4f : 1.5f), 0f, Mathf.Sin(phase * (run ? 4.5f : 0.9f)) * (run ? 5f : 2f));
+        model.transform.localScale = new Vector3(baseScale.x * breathe, baseScale.y / breathe, baseScale.z * breathe);
+    }
+
     void Update()
     {
         var p = g.player; if (p == null || model == null) return;
         float dt = Time.deltaTime;
+        if (perch) { PetJobs(p, dt); return; }   // (placed in LateUpdate, after the body has moved)
         Vector3 goal = p.transform.position - p.transform.forward * 0.3f + p.transform.right * 1.5f;   // at your side, out of the camera's line
         Vector3 d = goal - transform.position; d.y = 0;
         if (d.magnitude > 20f) { transform.position = goal; d = Vector3.zero; }
@@ -285,6 +379,11 @@ public class AHPetFollow : MonoBehaviour
             anim.Tick(dt);
         }
         if (kind == "slime" || kind == "toad" || kind == "pumpkin_slime") model.transform.localScale = Vector3.Scale(baseScale, new Vector3(1f + Mathf.Sin(phase * 6f) * 0.07f, 1f - Mathf.Sin(phase * 6f) * 0.07f, 1f));   // (keeping an evolved pet's size)
+        PetJobs(p, dt);
+    }
+
+    void PetJobs(AHPlayer p, float dt)
+    {
         if (p.dead) return;
         // Guard: a bite every 2 s at whatever is hunting you
         guardT -= dt;
@@ -477,12 +576,13 @@ public class AHAlly : MonoBehaviour
 // a living mount (the Quaternius horses and wolves): stands and breathes, gallops while you ride on
 public class AHMountGait : MonoBehaviour
 {
+    public static bool TestRun;   // (editor test: gallop on the spot)
     AHAnim anim; AHPlayer p; float idleT;
     public void Setup(AHAnim a, AHPlayer who) { anim = a; p = who; anim.Play("Idle", true); }
     void Update()
     {
         if (anim == null || p == null) return;
-        if (p.Moving) { idleT = 0f; float sp = 0.85f + 0.25f * Mathf.Clamp01(AHComp.MountSpeed(p) - 1.5f); if (!anim.Play("Gallop", true, sp)) anim.Play("Run", true, sp); }
+        if (p.Moving || TestRun) { idleT = 0f; float sp = 0.85f + 0.25f * Mathf.Clamp01(AHComp.MountSpeed(p) - 1.5f); if (!anim.Play("Gallop", true, sp)) anim.Play("Run", true, sp); }
         else
         {
             idleT += Time.deltaTime;

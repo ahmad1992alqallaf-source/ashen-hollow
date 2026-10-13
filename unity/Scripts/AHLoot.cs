@@ -42,7 +42,8 @@ public static class AHLoot
                 var row = o as List<object>;
                 if (row == null || row.Count < 2 || !(row[0] is string)) continue;
                 string id = (string)row[0];
-                if (Random.value >= (double)row[1]) continue;
+                double ch = (double)row[1]; if (ch < 0.1) ch *= AHComp.Lucky(p);   // your pet's Lucky skill
+                if (Random.value >= ch) continue;
                 if (id.StartsWith("mount:") || id.StartsWith("pet:"))
                 {
                     // a rare mount or pet (web: straight into your stable)

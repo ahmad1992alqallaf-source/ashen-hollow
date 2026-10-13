@@ -266,6 +266,31 @@ public partial class AHUI
         p.bag.Touch(); g.MarkDirty();
     }
 
+    // ---------- a pet's skills, in numbers (from the companions page) ----------
+    string petInfo;
+    void RenderPetInfo(AHPlayer p)
+    {
+        string k = petInfo; if (k == null) { wkMode = "comp"; RenderComp(p); return; }
+        long done, need; int L; AHComp.Bar(p, k, false, out done, out need, out L);
+        var kind = AHJson.A(AHDB.Table("companions", "PET_KIND"), k);
+        int stage = AHComp.EvoStage(p, k);
+        wkTitle.text = AHComp.PetName(k) + " · Lv " + L;
+        wkHint.text = "Pets don’t add to your stats: they help you with skills, learnt as they level and stronger the higher their level. " + (kind != null && kind.Count > 1 ? "This one’s gift: " + kind[1] + ". " : "") + "At level 20 every skill is 50% stronger.";
+        var rows = new List<Action<int>>();
+        rows.Add(slot => Row(slot, AHComp.PetName(k), new Color(1f, 0.62f, 0.24f),
+            "Level " + L + " · " + (need > 0 ? done.ToString("#,0") + " / " + need.ToString("#,0") + " XP to the next" : "max level") + (stage > 0 ? " · " + AHComp.EvoName[stage - 1] : ""),
+            AHJson.S(AHJson.O(AHComp.Pets, k), "blurb"),
+            new WkBtn { label = "Back", on = true, col = Plain, act = () => { wkMode = "comp"; wkPageI = 0; RenderWork(); } }));
+        foreach (var d in AHComp.PetDetails(p, k))
+        {
+            var dd = d; bool got = dd[2] == "1";
+            rows.Add(slot => Row(slot, (got ? "" : "<color=#7a7068>") + dd[0] + (got ? "" : "</color>"), got ? new Color(0.62f, 0.9f, 0.55f) : new Color(1f, 1f, 1f, 0.6f),
+                got ? dd[3] : "Learnt at level " + dd[1] + ": " + dd[3], got ? "Learnt at level " + dd[1] : ""));
+        }
+        int from = Paged(rows.Count);
+        for (int i = from; i < Mathf.Min(rows.Count, from + RowsPerPage); i++) rows[i](i - from);
+    }
+
     // ---------- companions (web compHtml): pets, mounts and your party ----------
     public void OpenComp()
     {
@@ -289,6 +314,7 @@ public partial class AHUI
             bool outNow = p.pet == k;
             rows.Add(slot => Row(slot, AHComp.PetName(kk) + " · Lv " + L + (outNow ? "  <color=#9be37a>out</color>" : ""), new Color(1f, 0.62f, 0.24f),
                 (need > 0 ? done.ToString("#,0") + " / " + need.ToString("#,0") + " XP" : "Max level") + (kind != null && kind.Count > 1 ? " · " + kind[1] : ""), string.Join(" · ", sk.ToArray()),
+                new WkBtn { label = "Skills", on = true, col = Plain, act = () => { petInfo = kk; wkMode = "petinfo"; wkPageI = 0; RenderWork(); } },
                 outNow ? new WkBtn { label = "Feed", on = true, col = Plain, act = () => { AHComp.Treat(g); RenderWork(); } } : null,
                 new WkBtn { label = outNow ? "Put away" : "Call", on = true, col = outNow ? Plain : Go, act = () => { p.pet = outNow ? null : kk; AHComp.SpawnPet(g); g.MarkDirty(); RenderWork(); } }));
         }

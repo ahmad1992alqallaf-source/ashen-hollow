@@ -63,7 +63,8 @@
    "name": "Frost dire wolf",
    "price": 7800,
    "speed": 1.75,
-   "blurb": "Bred in Highcairn. Runs on snow like it is road."
+   "blurb": "Bred in Highcairn. Runs on snow like it is road.",
+   "scale": 1.5
   },
   "raptor": {
    "name": "Island raptor",
@@ -97,7 +98,8 @@
    "price": 0,
    "speed": 1.9,
    "rare": true,
-   "blurb": "Rimeclaw’s pup, grown huge and loyal. Rare drop."
+   "blurb": "Rimeclaw’s pup, grown huge and loyal. Rare drop.",
+   "scale": 1.6
   },
   "dunestrider": {
    "name": "Dunestrider",
@@ -205,12 +207,12 @@
  "SEAT": {
   "horse": 0.64,
   "destrier": 0.64,
-  "direwolf": 0.52,
+  "direwolf": 0.86,
   "raptor": 0.52,
   "goldsteed": 0.64,
   "nightmare": 0.64,
   "bogstrider": 0.69,
-  "glacierwolf": 0.52,
+  "glacierwolf": 0.88,
   "dunestrider": 0.69,
   "tidelizard": 0.69,
   "emberlizard": 0.69,
