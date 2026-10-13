@@ -133,6 +133,75 @@ public static class AHWardrobe
     }
     // ---- feathered wing meshes (span along +X, the leading edge arching up, feathers hanging down and out) ----
     static Mesh wingF, wingC, wingA;
+
+    // ---- the crest wings: Tripo models from our own concept art (prepared by tools/tripo/wing_prep.py) ----
+    // each model holds the crest plate ("Hub") and the right wing ("Wing": its root at its origin, laid flat along +x,
+    // 0.9 long). Per wing: how far it sweeps back at the shoulder (degrees); where the plate's middle sits from the
+    // wing's root (x, y, z on the hero's back, z forward: the model's units); and its magic (AHWingFx)
+    struct CrestWing { public float sweep; public Vector3 hub; public string fx; }
+    static readonly Dictionary<string, CrestWing> CrestWings = new Dictionary<string, CrestWing>
+    {
+        { "wing_emberplume", new CrestWing { sweep = 56.5f, hub = new Vector3(-0.109f, -0.09f, 0.025f), fx = "ember" } },
+        { "wing_glacierfan", new CrestWing { sweep = 42.7f, hub = new Vector3(-0.146f, 0f, -0.051f), fx = "frost" } },
+        { "wing_thunderfork", new CrestWing { sweep = 49.6f, hub = new Vector3(-0.127f, -0.074f, 0.028f), fx = "storm" } },
+        { "wing_grovebloom", new CrestWing { sweep = 25.5f, hub = new Vector3(-0.175f, -0.061f, -0.024f), fx = "nature" } },
+        { "wing_nightveil", new CrestWing { sweep = 50.4f, hub = new Vector3(-0.142f, -0.013f, -0.027f), fx = "shadow" } },
+        { "wing_dawnfeather", new CrestWing { sweep = 27.1f, hub = new Vector3(-0.172f, 0.096f, -0.026f), fx = "celestial" } },
+    };
+    public static float CrestWingSize = 0.9f;
+    public static Vector3 CrestWingAt = new Vector3(0f, 0.02f, -0.2f);
+    static void TripoWings(Kit K, string kid, float k, Func<bool> moving, GameObject rig)
+    {
+        var cw = CrestWings[kid];
+        var inst = UnityEngine.Object.Instantiate(Resources.Load<GameObject>("AH/Models/Tripo/" + kid));
+        MeshFilter hubMf = null, wingMf = null;
+        foreach (var mf in inst.GetComponentsInChildren<MeshFilter>(true))
+        {
+            string n = mf.name + "/" + (mf.transform.parent != null ? mf.transform.parent.name : "") + "/" + (mf.sharedMesh != null ? mf.sharedMesh.name : "");
+            if (n.Contains("Hub")) hubMf = mf; else if (n.Contains("Wing")) wingMf = mf;
+        }
+        if (wingMf == null) { UnityEngine.Object.Destroy(inst); return; }
+        // the importer turns the model's x (and so its z) about: the wing must reach out to +x, the plate face back
+        float sg = Mathf.Sign(wingMf.sharedMesh.bounds.center.x); if (sg == 0f) sg = 1f;
+        float S = CrestWingSize * k; var back = K.root;
+        Vector3 H = CrestWingAt * k;
+        Func<Transform, MeshFilter, Vector3, Vector3, Transform> piece = (parent, src, at, sc) =>
+        {
+            var go = new GameObject("Piece"); go.transform.SetParent(parent, false); go.transform.localPosition = at; go.transform.localScale = sc;
+            go.AddComponent<MeshFilter>().sharedMesh = src.sharedMesh;
+            var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterials = src.GetComponent<MeshRenderer>().sharedMaterials;
+            mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On; go.layer = rig.layer;
+            return go.transform;
+        };
+        if (hubMf != null) piece(back, hubMf, H, new Vector3(S * sg, S, S * sg));
+        foreach (int sx in new[] { -1, 1 })
+        {
+            // the wing's root: the plate's middle less the plate's offset (mirrored for the left wing)
+            var w = new GameObject("Wing").transform; w.SetParent(back, false); w.gameObject.layer = rig.layer;
+            w.localPosition = H - new Vector3(sx * cw.hub.x, cw.hub.y, cw.hub.z) * S;
+            w.localRotation = Quaternion.Euler(0f, sx * cw.sweep, 0f);
+            // the left wing is the right one mirrored in the mesh itself (a skinned mesh under a negative scale is
+            // drawn inside out)
+            var pc = piece(w, wingMf, Vector3.zero, new Vector3(S * sg, S, S * sg));
+            if (sx < 0) pc.GetComponent<MeshFilter>().sharedMesh = Mirrored(wingMf.sharedMesh);
+            var wr = w.gameObject.AddComponent<AHWingRig>(); wr.fromMesh = true; wr.Setup(sx, moving, rig.transform, kid.Contains("nightveil"));
+            // how it moves: crystal wings stiff with a shiver, the leaf wings soft and swaying, the bat wings slow and deep
+            wr.style = cw.fx == "frost" || cw.fx == "storm" ? "crystal" : cw.fx == "nature" ? "leaf" : cw.fx == "shadow" ? "membrane" : "feather";
+            w.gameObject.AddComponent<AHWingFx>().kind = cw.fx;
+        }
+        UnityEngine.Object.Destroy(inst);
+    }
+    static readonly Dictionary<Mesh, Mesh> mirrored = new Dictionary<Mesh, Mesh>();
+    static Mesh Mirrored(Mesh src)
+    {
+        Mesh m; if (mirrored.TryGetValue(src, out m) && m != null) return m;
+        m = UnityEngine.Object.Instantiate(src); m.name = src.name + " (mirrored)";
+        var v = m.vertices; for (int i = 0; i < v.Length; i++) v[i].x = -v[i].x; m.vertices = v;
+        var n = m.normals; for (int i = 0; i < n.Length; i++) n[i].x = -n[i].x; m.normals = n;
+        var t = m.tangents; for (int i = 0; i < t.Length; i++) { t[i].x = -t[i].x; t[i].w = -t[i].w; } m.tangents = t;
+        for (int s = 0; s < m.subMeshCount; s++) { var tr = m.GetTriangles(s); for (int i = 0; i < tr.Length; i += 3) { int x = tr[i]; tr[i] = tr[i + 1]; tr[i + 1] = x; } m.SetTriangles(tr, s); }
+        m.RecalculateBounds(); mirrored[src] = m; return m;
+    }
     static Vector3 Lead(float t) { return new Vector3(t, 0.2f * Mathf.Sin(t * Mathf.PI * 0.75f) - 0.04f * t, 0f); }
     static void Quad2(List<Vector3> v, List<int> tr, Vector3 a, Vector3 b, Vector3 c, Vector3 d)
     {
@@ -819,6 +888,8 @@ public static class AHWardrobe
             }
             else if (f == "coat" && !outfitOn)   // a real outfit already has its own coat: no loose coat tails over it
                 foreach (int sx in new[] { -1, 1 }) K.Prim(PrimitiveType.Cube, new Vector3(sx * 0.1f, -L * 0.62f, -0.2f - L * 0.08f), new Vector3(0.2f, L * 0.55f, 0.025f), new Vector3(9, 0, sx * 4));
+            else if (f == "wings" && CrestWings.ContainsKey(kid) && AHTripo.Has(kid))
+                TripoWings(K, kid, k, moving, rig);
             else if (f == "wings")
             {
                 var back = K.root;

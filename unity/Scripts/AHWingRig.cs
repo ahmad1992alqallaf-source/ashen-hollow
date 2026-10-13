@@ -17,15 +17,37 @@ public class AHWingRig : MonoBehaviour
     float sx = 1f; Func<bool> moving; Transform hero; bool dragon;
     Transform b0, b1, b2; Quaternion r0, r1, r2;
     bool built; Vector3 lastPos; float lastYaw; Vector3 vel; float yawRate;
-    float run, air, walk, stretchT = -1f, nextStretch, ph, breathe;
+    float run, air, walk;
+    // the pair's shared rhythm (one beat, one glide, one stretch for both wings; worked out once a frame)
+    class Pace { public int frame = -1; public float stretchT = -1f, nextStretch, ph, breathe, glideT, nextGlide, glide, shakeT = -1f, nextShake, stretch, shake; }
+    Pace P;
     // spring state for each joint: [flap, lift, fold] angles and their velocities
     readonly float[] ang = new float[9], spd = new float[9];
     public static float TestAir, TestRun; public static bool TestStretch;   // tests: force a flight, a run, a stretch
+    // a modelled wing (the crest wings): its wrist and tip are found on the mesh rather than assumed
+    public bool fromMesh;
+    // how this kind of wing moves: "feather" (the default), "membrane" (bat and dragon wings: slow, deep, a long wave
+    // through them), "crystal" (stiff, quick, with a shiver), "leaf" (soft and swaying)
+    public string style = "feather";
+    float seed, flare, prevAir;
+    // for the wing's effects (AHWingFx): its bones, how it is moving, the beat, and points on its surface (each held by
+    // the bone that carries it most, in that bone's space)
+    public Transform Bone(int i) { return i == 0 ? b0 : i == 1 ? b1 : b2; }
+    public float Air { get { return air; } }
+    public float Run { get { return run; } }
+    public float Open { get; private set; }
+    public float Stroke { get; private set; }
+    public int Beats { get; private set; }
+    public readonly List<KeyValuePair<int, Vector3>> Samples = new List<KeyValuePair<int, Vector3>>();
 
     public void Setup(float side, Func<bool> mv, Transform who, bool isDragon)
     {
         sx = side; moving = mv; hero = who; dragon = isDragon;
-        nextStretch = Time.time + UnityEngine.Random.Range(5f, 10f); ph = UnityEngine.Random.value * 6.28f;
+        if (isDragon) style = "membrane";
+        seed = UnityEngine.Random.Range(0f, 100f);
+        // the other wing's rhythm, if it is already made
+        if (transform.parent != null) foreach (var o in transform.parent.GetComponentsInChildren<AHWingRig>(true)) if (o != this && o.P != null) { P = o.P; break; }
+        if (P == null) P = new Pace { nextStretch = Time.time + UnityEngine.Random.Range(5f, 10f), ph = UnityEngine.Random.value * 6.28f, nextShake = Time.time + UnityEngine.Random.Range(4f, 9f), nextGlide = Time.time + 2f };
     }
 
     // the joints, along the span (+x in the wing's own space, mirrored by the meshes' negative x scale on the left)
@@ -41,9 +63,16 @@ public class AHWingRig : MonoBehaviour
         // the wing's size: the first piece's scale (all pieces share it), its sign giving the side
         Vector3 ps = pieces[0].localScale; float span = Mathf.Abs(ps.x);
         Vector3 e = Elbow, t = Tip; e.x *= Mathf.Sign(ps.x); t.x *= Mathf.Sign(ps.x);
+        Vector3 ap = new Vector3(span, Mathf.Abs(ps.y), Mathf.Abs(ps.z));
+        if (fromMesh)
+        {
+            // along the top (leading) edge of the wing: the wrist half way out, the tip near the end
+            var mv = pieces[0].GetComponent<MeshFilter>().sharedMesh.vertices;
+            e = Edge(mv, 0.45f); t = Edge(mv, 0.8f); ap = ps;
+        }
         b0 = new GameObject("WingShoulder").transform; b0.SetParent(transform, false);
-        b1 = new GameObject("WingWrist").transform; b1.SetParent(b0, false); b1.localPosition = Vector3.Scale(e, new Vector3(span, Mathf.Abs(ps.y), Mathf.Abs(ps.z)));
-        b2 = new GameObject("WingTip").transform; b2.SetParent(b1, false); b2.localPosition = Vector3.Scale(t - e, new Vector3(span, Mathf.Abs(ps.y), Mathf.Abs(ps.z)));
+        b1 = new GameObject("WingWrist").transform; b1.SetParent(b0, false); b1.localPosition = Vector3.Scale(e, ap);
+        b2 = new GameObject("WingTip").transform; b2.SetParent(b1, false); b2.localPosition = Vector3.Scale(t - e, ap);
         r0 = b0.localRotation; r1 = b1.localRotation; r2 = b2.localRotation;
         var bones = new[] { b0, b1, b2 };
         foreach (var p in pieces)
@@ -67,12 +96,29 @@ public class AHWingRig : MonoBehaviour
             mesh.boneWeights = bw;
             var bp = new Matrix4x4[3]; for (int i = 0; i < 3; i++) bp[i] = bones[i].worldToLocalMatrix * p.localToWorldMatrix;
             mesh.bindposes = bp;
+            // points on it for the effects to rise from
+            for (int n = 0; n < 48 && vs.Length > 0; n++)
+            {
+                int i = UnityEngine.Random.Range(0, vs.Length);
+                Samples.Add(new KeyValuePair<int, Vector3>(bw[i].boneIndex0, bp[bw[i].boneIndex0].MultiplyPoint3x4(vs[i])));
+            }
             var mats = mr.sharedMaterials; var shadow = mr.shadowCastingMode;
             DestroyImmediate(mr); DestroyImmediate(mf);
             var smr = p.gameObject.AddComponent<SkinnedMeshRenderer>(); smr.sharedMesh = mesh; smr.bones = bones; smr.rootBone = b0; smr.sharedMaterials = mats;
             smr.updateWhenOffscreen = true; smr.shadowCastingMode = shadow;
         }
         if (hero != null) { lastPos = hero.position; lastYaw = hero.eulerAngles.y; }
+    }
+
+    // a point on the wing's top edge 'u' of the way out (mesh units; the side and the axes as the mesh has them)
+    static Vector3 Edge(Vector3[] v, float u)
+    {
+        var ys = new List<float>(); float sx = 0f, n = 0f;
+        foreach (var p in v) if (Mathf.Abs(Mathf.Abs(p.x) - u) < 0.05f) { ys.Add(p.y); sx += p.x; n++; }
+        if (n < 3) return new Vector3(u, 0f, 0f);
+        ys.Sort(); float top = ys[Mathf.Min(ys.Count - 1, (int)(ys.Count * 0.75f))];
+        float z = 0f, m = 0f; foreach (var p in v) if (Mathf.Abs(Mathf.Abs(p.x) - u) < 0.05f && p.y > top - 0.08f) { z += p.z; m++; }
+        return new Vector3(sx / n, top, m > 0 ? z / m : 0f);
     }
 
     // a soft spring toward the target (a touch under-damped: it settles with a small overshoot, like a real wing)
@@ -97,54 +143,112 @@ public class AHWingRig : MonoBehaviour
         float flat = new Vector2(vel.x, vel.z).magnitude;
         bool mv = moving != null && moving();
         float k = 1f - Mathf.Exp(-dt * 3f);
-        if (TestStretch && stretchT < 0f) stretchT = 0f;   // (the test turns it off again)
         walk = Mathf.Lerp(walk, mv && flat < 4.2f ? 1f : 0f, k);
         run = Mathf.Lerp(run, (mv && flat >= 4.2f) || TestRun > 0f ? 1f : 0f, k);
         air = Mathf.Lerp(air, Mathf.Abs(vel.y) > 2.6f ? 1f : 0f, 1f - Mathf.Exp(-dt * (Mathf.Abs(vel.y) > 2.6f ? 4f : 1.5f)));
         if (TestAir > 0f) air = Mathf.Lerp(air, 1f, 1f - Mathf.Exp(-dt * 4f));   // (a slope walked up is not flight)
-        // a stretch now and then while standing
-        float stretch = 0f;
-        if (!mv && air < 0.2f && TestRun <= 0f)
+
+        // ---- what makes it alive rather than a machine ----
+        // each kind of wing has its own build
+        float pRate = 1.6f, pAmp = 38f, pBend = 1f, pK = 1f, pShiver = 0f, pSway = 0f;
+        switch (style)
         {
-            if (stretchT < 0f && Time.time > nextStretch) stretchT = 0f;
-            if (stretchT >= 0f)
-            {
-                stretchT += dt; const float dur = 3.4f;
-                stretch = Mathf.Sin(Mathf.Clamp01(stretchT / dur) * Mathf.PI);
-                if (stretchT > dur) { stretchT = -1f; nextStretch = Time.time + UnityEngine.Random.Range(9f, 16f); }
-            }
+            case "membrane": pRate = 1.1f; pAmp = 46f; pBend = 1.35f; pK = 0.8f; break;
+            case "crystal": pRate = 1.8f; pAmp = 30f; pBend = 0.6f; pK = 1.3f; pShiver = 1f; break;
+            case "leaf": pRate = 1.3f; pAmp = 34f; pBend = 1.3f; pK = 0.75f; pSway = 1f; break;
         }
-        else { stretchT = -1f; nextStretch = Mathf.Max(nextStretch, Time.time + 4f); }
+        float t = Time.time + seed;
+        // slow wandering noise: each wing its own small wobbles (N); the pair's beat wanders together (Nb)
+        Func<float, float, float> N = (f, o) => (Mathf.PerlinNoise(t * f, o + seed) - 0.5f) * 2f;
+        Func<float, float, float> Nb = (f, o) => (Mathf.PerlinNoise(Time.time * f, o) - 0.5f) * 2f;
+        float rateK = 1f + Nb(0.3f, 1f) * 0.12f, ampK = 1f + Nb(0.4f, 2f) * 0.15f;
+        // the pair's rhythm, once a frame: stretches, ruffles, glides and the beat itself
+        if (P.frame != Time.frameCount)
+        {
+            P.frame = Time.frameCount;
+            if (TestStretch && P.stretchT < 0f) P.stretchT = 0f;   // (the test turns it off again)
+            // a stretch now and then while standing
+            P.stretch = 0f;
+            if (!mv && air < 0.2f && TestRun <= 0f)
+            {
+                if (P.stretchT < 0f && Time.time > P.nextStretch) P.stretchT = 0f;
+                if (P.stretchT >= 0f)
+                {
+                    P.stretchT += dt; const float dur = 3.4f;
+                    P.stretch = Mathf.Sin(Mathf.Clamp01(P.stretchT / dur) * Mathf.PI);
+                    if (P.stretchT > dur) { P.stretchT = -1f; P.nextStretch = Time.time + UnityEngine.Random.Range(9f, 16f); }
+                }
+            }
+            else { P.stretchT = -1f; P.nextStretch = Mathf.Max(P.nextStretch, Time.time + 4f); }
+            // in the air the beats are broken by glides: the wings held wide, riding the air, then beating again
+            if (air > 0.5f)
+            {
+                if (P.glideT > 0f) P.glideT -= dt;
+                else if (Time.time > P.nextGlide) { P.glideT = UnityEngine.Random.Range(0.9f, 1.8f); P.nextGlide = Time.time + P.glideT + UnityEngine.Random.Range(2.5f, 5f); }
+            }
+            else { P.glideT = 0f; P.nextGlide = Mathf.Max(P.nextGlide, Time.time + 1.5f); }
+            P.glide = Mathf.Lerp(P.glide, P.glideT > 0f ? 1f : 0f, 1f - Mathf.Exp(-dt * 3f));
+            // standing, now and then the feathers are shaken out (a quick ruffle that dies away)
+            P.shake = 0f;
+            if (!mv && air < 0.2f && P.stretchT < 0f && P.shakeT < 0f && Time.time > P.nextShake) P.shakeT = 0f;
+            if (P.shakeT >= 0f)
+            {
+                P.shakeT += dt; const float sd = 0.75f;
+                P.shake = Mathf.Sin(P.shakeT * 52f) * Mathf.Sin(Mathf.Clamp01(P.shakeT / sd) * Mathf.PI);
+                if (P.shakeT > sd) { P.shakeT = -1f; P.nextShake = Time.time + UnityEngine.Random.Range(7f, 14f); }
+            }
+            float r0_ = Mathf.Lerp(0.22f, pRate, air) * rateK * (1f - P.glide * 0.85f) + P.stretch * 0.45f + run * 0.5f;
+            P.ph += dt * r0_ * 6.2832f;
+            P.breathe += dt * 0.35f * 6.2832f;
+        }
+        float stretch = P.stretch, glide = P.glide, shake = P.shake, ph = P.ph, breathe = P.breathe;
+        // touching down: the wings flare open to brake, then settle
+        if (prevAir > 0.6f && air < prevAir - 0.01f && Mathf.Abs(vel.y) < 1.2f) flare = 1f;
+        flare = Mathf.MoveTowards(flare, 0f, dt * 1.3f); prevAir = air;
+
         // the beat: quick while flying, slow beats inside a stretch, a slow breath otherwise
-        float open = Mathf.Clamp01(Mathf.Max(air, Mathf.Max(stretch, run * 0.55f)));
-        float rate = Mathf.Lerp(0.22f, 1.6f, air) + stretch * 0.45f + run * 0.5f;
-        ph += dt * rate * 6.2832f;
-        breathe += dt * 0.35f * 6.2832f;
+        float open = Mathf.Clamp01(Mathf.Max(air, Mathf.Max(stretch, Mathf.Max(run * 0.55f, flare * 0.85f))));
         // downstroke quick, upstroke slow: a skewed wave
-        Func<float, float> stroke = p => { float s = Mathf.Sin(p); return s > 0f ? Mathf.Pow(s, 0.7f) : -Mathf.Pow(-s, 1.4f) * 0.8f; };
-        float beatAmp = air * 38f + stretch * 22f + run * 6f;
-        float flap0 = stroke(ph) * beatAmp, flap1 = stroke(ph - 0.9f) * beatAmp * 0.7f, flap2 = stroke(ph - 1.8f) * beatAmp * 0.55f;
+        Func<float, float> stroke = p => { float sn = Mathf.Sin(p); return sn > 0f ? Mathf.Pow(sn, 0.7f) : -Mathf.Pow(-sn, 1.4f) * 0.8f; };
+        float beatAmp = (air * pAmp * (1f - glide * 0.85f) + stretch * 22f + run * 6f) * ampK;
+        float st = stroke(ph); if (st > 0f && Stroke <= 0f) Beats++; Stroke = st; Open = open;
+        // the bend travels out along the wing: the wrist after the shoulder, the tip after the wrist
+        float wl = 0.9f * pBend;
+        float flap0 = st * beatAmp, flap1 = stroke(ph - wl) * beatAmp * 0.7f, flap2 = stroke(ph - 2f * wl) * beatAmp * 0.55f;
+        // on the upstroke the wing half folds (less air against it); on the downstroke it spreads full
+        float upF = air * (1f - glide) * Mathf.Clamp01(-Mathf.Sin(ph - wl * 0.5f));
+        // and it turns about its length: the leading edge down as it beats down, up as it rises
+        float twist = Mathf.Cos(ph) * beatAmp * 0.35f;
+        // gliding: small steering corrections and a lifted, shallow V
+        float gAdj = glide * N(0.8f, 5f) * 5f;
+        // a living wing is never quite still
+        float m0 = N(0.25f, 10f) * 2.2f, m1 = N(0.35f, 20f) * 2.6f, m2 = N(0.5f, 30f) * 3.4f;
+        float shiver = pShiver * (Mathf.Sin(t * 41f) * 0.6f + Mathf.Sin(t * 67f) * 0.4f) * (0.5f + run + air * 1.5f);
+        float sway = pSway * Mathf.Sin(t * 0.9f) * 3f;
         // the wind of running lifts the trailing tips and makes them flutter
-        float flutter = run * (Mathf.Sin(Time.time * 17f + sx) * 3f + Mathf.Sin(Time.time * 29f) * 1.5f);
+        float flutter = run * (Mathf.Sin(t * 17f) * 3f + Mathf.Sin(t * 29f) * 1.5f);
         // the walk's rock, with the steps
         float rock = walk * Mathf.Sin(Time.time * 7.5f) * 3.5f;
         // lag: turning swings the wings the other way, speeding up sweeps them back
         float lag = Mathf.Clamp(-yawRate * 0.04f, -14f, 14f) * sx + flat * 1.2f;
         float br = Mathf.Sin(breathe) * 2.5f * (1f - open);
-        // targets (degrees): flap (about the wing's up), lift (about its normal), fold (the wrist and tip folding down)
+        // targets (degrees): flap (about the wing's up), lift (about its normal), fold (the wrist and tip folding down),
+        // twist (about its length)
         float fold = Mathf.Lerp(1f, 0f, open);
-        Spring(0, flap0 + lag * 0.5f + rock + fold * 22f, air > 0.3f ? 4.5f : 2.2f, dt);
-        Spring(1, Mathf.Lerp(-10f, 12f, open) + br + rock * 0.5f, 2.0f, dt);
-        Spring(2, 0f, 1f, dt);
-        Spring(3, flap1 + lag * 0.4f, air > 0.3f ? 4f : 2.4f, dt);
-        Spring(4, -fold * 48f + br * 0.6f + run * 10f, 2.2f, dt);
-        Spring(5, 0f, 1f, dt);
-        Spring(6, flap2 + lag * 0.3f + flutter, air > 0.3f ? 3.6f : 3.2f, dt);
-        Spring(7, -fold * 34f + run * 8f + flutter * 0.4f, 2.6f, dt);
-        Spring(8, 0f, 1f, dt);
-        // apply, mirrored for the left wing (flap about the wing's up axis, lift and fold about its normal)
-        b0.localRotation = r0 * Quaternion.Euler(0f, sx * ang[0], sx * ang[1]);
-        b1.localRotation = r1 * Quaternion.Euler(0f, sx * ang[3], sx * ang[4]);
-        b2.localRotation = r2 * Quaternion.Euler(0f, sx * ang[6], sx * ang[7]);
+        float fa = air > 0.3f ? 4.5f : 2.2f;
+        Spring(0, flap0 + lag * 0.5f + rock + fold * 22f + m0 + gAdj, fa * pK, dt);
+        Spring(1, Mathf.Lerp(-10f, 12f, open) + br + rock * 0.5f + m0 * 0.6f + glide * 7f + shake * 3f, 2.0f * pK, dt);
+        Spring(2, twist * 0.4f + N(0.3f, 40f) * 1.5f, 3f * pK, dt);
+        Spring(3, flap1 + lag * 0.4f + m1 + sway * 0.5f, (air > 0.3f ? 4f : 2.4f) * pK, dt);
+        Spring(4, -fold * 48f - upF * 30f + br * 0.6f + run * 10f + m1 * 0.7f + shake * 6f, 2.2f * pK, dt);
+        Spring(5, twist * 0.7f, 3.4f * pK, dt);
+        Spring(6, flap2 + lag * 0.3f + flutter + m2 + shiver + sway, (air > 0.3f ? 3.6f : 3.2f) * pK, dt);
+        Spring(7, -fold * 34f - upF * 22f + run * 8f + flutter * 0.4f + shake * 9f + shiver * 0.5f + m2 * 0.5f, 2.6f * pK, dt);
+        Spring(8, twist + flutter * 0.5f, 3.8f * pK, dt);
+        // apply, mirrored for the left wing (flap about the wing's up axis, lift and fold about its normal; the twist
+        // about its length is the same both sides)
+        b0.localRotation = r0 * Quaternion.Euler(ang[2], sx * ang[0], sx * ang[1]);
+        b1.localRotation = r1 * Quaternion.Euler(ang[5], sx * ang[3], sx * ang[4]);
+        b2.localRotation = r2 * Quaternion.Euler(ang[8], sx * ang[6], sx * ang[7]);
     }
 }

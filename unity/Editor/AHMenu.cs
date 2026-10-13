@@ -1021,6 +1021,14 @@ public static class AHMenu
         AHWardrobe.SetCos(p, "cape", "royal_cape"); AHWardrobe.SetCos(p, "feet", "royal_boots");
         p.CheckOutfit(); g.ui.OpenWardrobe();
     }
+    // the six crest wings into the collection and the bag, the Emberplume ones worn
+    [MenuItem("Ashen Hollow/Test: Give Crest Wings")]
+    static void GiveCrestWings()
+    {
+        var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return; var p = g.player;
+        foreach (var id in AHWingShots.Crest) { AHWardrobe.Collect(p, id); p.bag.Add(id); }
+        AHWardrobe.SetCos(p, "cape", "wing_emberplume"); p.CheckOutfit();
+    }
     [MenuItem("Ashen Hollow/Test: Go To Bounty Board")]
     static void ToBoard()
     {
