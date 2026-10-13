@@ -8,11 +8,11 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 src, out = sys.argv[1], sys.argv[2]
 W, H, FPS, XF = 1280, 720, 30, 12          # cross-fade frames
-SKIP = {'abyss'}                 # shots left out of the cut
-TRIM = {'fight': (55, None), 'city': (0, 82)}   # (first frame, last frame) kept of a shot: the camera started inside a tree
-CUT = {'city': [(56, 82)], 'ember_fight': [(24, 46)]}   # frames taken out of the middle first (a wall or a monster across the lens); TRIM counts after
+SKIP = {'abyss', 'pet', 'coast'}                 # shots left out of the cut
+TRIM = {'dawn': (0, 112), 'fight': (50, None), 'ride': (8, 74)}   # (first frame, last frame) kept of a shot: dawn ends in a tent, fight starts in a tree, ride ends at a wall
+CUT = {}   # frames taken out of the middle first (a wall or a monster across the lens); TRIM counts after
 TEXT = {   # a line over a shot (by its name)
-    'dawn': 'A LIVING WORLD AWAITS', 'lava': 'JOURNEY ACROSS THE WILDS', 'abyss': 'BEYOND THE EDGE OF THE WORLD', 'ember_fight': 'LANDS OF ASH AND FIRE',
+    'dawn': 'A LIVING WORLD AWAITS', 'wings': 'TAKE TO THE SKIES', 'sea': 'SAIL TO DISTANT SHORES', 'ride': 'RIDE LEGENDARY MOUNTS', 'city': 'CITIES FULL OF LIFE', 'abyss': 'BEYOND THE EDGE OF THE WORLD', 'ember_fight': 'LANDS OF ASH AND FIRE',
     'depths': 'DELVE INTO ANCIENT DEPTHS', 'throne': 'FACE THE EMBER THRONE', 'hero': 'FORGE YOUR LEGEND',
 }
 FONT = next((f for f in ['/usr/share/fonts/opentype/noto/NotoSerifCJK-Bold.ttc', '/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf'] if os.path.exists(f)), None)

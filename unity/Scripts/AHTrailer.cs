@@ -20,11 +20,13 @@ public class AHTrailer : MonoBehaviour
     {
         new Shot("dawn", "meadow", 5f, "descend", "idle"),
         new Shot("road", "meadow", 4f, "track", "run"),
-        new Shot("fight", "meadow", 5f, "orbit", "fight") { a0 = -40f, a1 = 50f, r = 7f, h = 2.6f },
+        new Shot("wings", "meadow", 4.5f, "behind", "run"),
+                new Shot("fight", "meadow", 5f, "orbit", "fight") { a0 = -40f, a1 = 50f, r = 7f, h = 2.6f },
+        new Shot("sea", "tide", 5f, "vista", "idle") { a0 = 150f, a1 = 205f },
+        new Shot("ride", "sands", 3.5f, "ride", "ride"),
         new Shot("lava", "ember", 4.5f, "vista", "run") { a0 = -25f, a1 = 15f },
         new Shot("ember_fight", "ember", 4f, "orbit", "fight") { a0 = 160f, a1 = 220f, r = 6.5f, h = 2.2f },
-        new Shot("abyss", "abyss", 5f, "vista", "idle") { a0 = -40f, a1 = 20f },
-        new Shot("city", "hc_city", 4f, "track", "run"),
+                new Shot("city", "hc_city", 4f, "track", "run"),
         new Shot("depths", "d_molten", 4.5f, "follow", "run"),
         new Shot("depths_fight", "d_molten", 4f, "orbit", "fight") { a0 = 30f, a1 = 100f, r = 6f, h = 2.4f },
         new Shot("throne", "raid", 6f, "orbit", "fight") { a0 = 200f, a1 = 290f, r = 8f, h = 3.5f },
@@ -97,6 +99,10 @@ public class AHTrailer : MonoBehaviour
                 p.transform.position = at; p.transform.rotation = Quaternion.LookRotation(to.normalized); p.target = foe;
             }
         }
+        // on a mount for a ride shot (and off it again after)
+        bool rode = false;
+        if (s.act == "ride" && !p.mounted) { AHComp.Mount(g); rode = p.mounted; }
+        if (s.act != "ride" && p.mounted) AHComp.Dismount(g, true);
         Vector3 fwd = p.transform.forward; fwd.y = 0f; fwd.Normalize();
         Vector3 start = p.transform.position;
         Time.captureFramerate = Fps;
@@ -106,7 +112,7 @@ public class AHTrailer : MonoBehaviour
             p.hp = p.maxHp; p.mana = p.maxMana; p.dead = false;
             // what the hero does
             Vector3 want = Vector3.zero;
-            if (s.act == "run") want = fwd;
+            if (s.act == "run" || s.act == "ride") want = fwd;
             else if (s.act == "fight" && foe != null)
             {
                 if (foe.dead) { foe = null; foreach (var m in g.mobs) if (m != null && !m.dead && Vector3.Distance(m.transform.position, p.transform.position) < 25f) { foe = m; p.target = m; break; } }
@@ -127,6 +133,8 @@ public class AHTrailer : MonoBehaviour
             {
                 case "descend": pos = Vector3.Lerp(h - fwd * 45f + Vector3.up * 32f + side * 10f, h - fwd * 6.5f + Vector3.up * 2.6f + side * 2f, e); look = Vector3.Lerp(h + fwd * 12f, h + Vector3.up * 1.3f, e); break;
                 case "track": pos = h + side * 4.5f + Vector3.up * 1.7f - fwd * (1.5f - u * 1.5f); look = h + fwd * 2.5f + Vector3.up * 1.2f; break;
+                case "ride": pos = h + side * 7.5f + Vector3.up * 2.6f + fwd * (2.5f - u * 2f); look = h + Vector3.up * 1.4f + fwd * 1.2f; break;   // a rider from the side, the whole mount in view
+                case "behind": pos = h - fwd * (4.2f - u * 0.8f) + Vector3.up * 2.1f + side * (1.2f - u * 2.4f); look = h + fwd * 3f + Vector3.up * 1.4f; break;   // the wings and the back of the gear
                 case "follow": pos = h - fwd * 5.5f + Vector3.up * 2.4f + side * 0.8f; look = h + fwd * 4f + Vector3.up * 1.3f; break;
                 case "wide": { float a = Mathf.Lerp(s.a0, s.a1, e) * Mathf.Deg2Rad; pos = h + new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * s.r + Vector3.up * s.h; look = h + Vector3.up * 2f; break; }
                 case "vista":
@@ -155,6 +163,7 @@ public class AHTrailer : MonoBehaviour
             File.WriteAllBytes(Path.Combine(sd, "f_" + f.ToString("00000") + ".jpg"), grab.EncodeToJPG(90));
         }
         Time.captureFramerate = 0; AHInput.TestMove = Vector2.zero;
+        if (rode && p.mounted) AHComp.Dismount(g, true);
         p.transform.position = start;
     }
 }
