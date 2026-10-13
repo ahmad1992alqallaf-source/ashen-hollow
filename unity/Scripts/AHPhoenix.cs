@@ -56,8 +56,14 @@ public static class AHPhoenix
         if (Resources.Load<GameObject>("AH/Models/Comp/mount_phoenix") != null)
         {
             var mb = new GameObject("PhoenixBody").transform; mb.SetParent(holder, false);
-            AHAnim a; var inst = AHModel.Spawn(mb, "Comp/mount_phoenix", 4.8f, true, 0f, out a);   // by length (most of it is tail): a body big enough to sit on
-            if (a != null && a.HasClips) a.Play("Take 001", true, 1f);
+            // its one 16 s take (24 fps) is a whole flight: a barrel roll (frames 0-55), level wingbeats (56-184), a glide
+            // (185-325) and a dive (326-384). Looping all of it rolled the bird over and pitched it nose-down, rider and
+            // all, so only two clean loops are cut from it: the wingbeat (frames 60-116) and the glide (192-220)
+            var split = new System.Collections.Generic.List<object> {
+                new System.Collections.Generic.List<object> { "Fly", 60.0 / 24.0, 116.0 / 24.0 },
+                new System.Collections.Generic.List<object> { "Hover", 192.0 / 24.0, 220.0 / 24.0 } };
+            AHAnim a; var inst = AHModel.Spawn(mb, "Comp/mount_phoenix", 4.8f, true, 0f, out a, split);   // by length (most of it is tail): a body big enough to sit on
+            if (a != null && a.HasClips) a.Play("Hover", true, 1f);
             var lg0 = new GameObject("PhoenixLight"); lg0.transform.SetParent(mb, false); lg0.transform.localPosition = new Vector3(0, 0.6f, -0.6f);
             var li0 = lg0.AddComponent<Light>(); li0.type = LightType.Point; li0.color = new Color(1f, 0.55f, 0.2f); li0.range = 6f; li0.intensity = 1.1f; li0.shadows = LightShadows.None;
             mb.gameObject.AddComponent<AHPhoenixRide>().Setup(p, mb, a, li0);
@@ -155,9 +161,10 @@ public class AHPhoenixRide : MonoBehaviour
     {
         if (p == null) return;
         float dt = Time.deltaTime; t += dt; bool moving = p.Moving;
-        if (anim != null && moving != wasMoving) { anim.Play("Take 001", true, moving ? 1.5f : 0.7f); wasMoving = moving; }
-        // it flies, high enough that its wings clear the ground on the downbeat
-        float hover = 1.0f + Mathf.Sin(t * 1.7f) * 0.1f;
+        // beating its wings while it moves, gliding on still wings while it waits
+        if (anim != null && (moving != wasMoving || t < 0.05f)) { anim.Play(moving ? "Fly" : "Hover", true, moving ? 1.25f : 0.8f); wasMoving = moving; }
+        // it flies low, just high enough that its wings clear the ground on the downbeat
+        float hover = 0.55f + Mathf.Sin(t * 1.7f) * 0.08f;
         body.localPosition = new Vector3(0, hover, 0);
         body.localRotation = Quaternion.Euler(moving ? 6f : 0f, 0, Mathf.Sin(t * 0.9f) * 2f);
         p.seatY = Seat + hover;
