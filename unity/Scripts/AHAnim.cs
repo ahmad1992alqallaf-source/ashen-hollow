@@ -161,6 +161,36 @@ public class AHAnim
         }
     }
 
+    // how fast a walk or run clip carries the body over the ground (metres a second at speed 1): the foot that is
+    // down slides back under the body at exactly that speed, so playing the clip at groundSpeed / this keeps the feet
+    // planted (no skating, no hopping on the spot). 'space' gives forward; the feet are the leg chains' tips. 0 if unknown.
+    public float StrideSpeed(string name, Transform space, Transform[] feet, Transform body)
+    {
+        int i = Find(name);
+        if (i < 0 || legacy != null || !graph.IsValid() || i >= t0s.Count || feet == null || feet.Length == 0) return 0f;
+        float a = t0s[i], b = t1s[i], len = b - a; if (len <= 0.05f) return 0f;
+        var keepW = (float[])weights.Clone(); double keepT = plays[i].GetTime(); double keepS = plays[i].GetSpeed();
+        for (int k = 0; k < weights.Length; k++) mixer.SetInputWeight(k, k == i ? 1f : 0f);
+        const int N = 48; Vector3 fwd = space.forward; fwd.y = 0f; fwd.Normalize();
+        var vs = new List<float>(); int lastFoot = -1; float lastZ = 0f, bodyZ0 = 0f, bodyZ1 = 0f;
+        for (int s = 0; s <= N; s++)
+        {
+            plays[i].SetTime(a + len * s / N); plays[i].SetSpeed(0); graph.Evaluate(0f);
+            int low = -1; float lowY = float.MaxValue;
+            for (int f = 0; f < feet.Length; f++) if (feet[f] != null && feet[f].position.y < lowY) { lowY = feet[f].position.y; low = f; }
+            float z = low >= 0 ? Vector3.Dot(feet[low].position - space.position, fwd) : 0f;
+            if (low >= 0 && low == lastFoot) vs.Add((lastZ - z) / (len / N));   // the planted foot moving back
+            lastFoot = low; lastZ = z;
+            if (body != null) { float bz = Vector3.Dot(body.position - space.position, fwd); if (s == 0) bodyZ0 = bz; if (s == N) bodyZ1 = bz; }
+        }
+        for (int k = 0; k < weights.Length; k++) mixer.SetInputWeight(k, keepW[k]);
+        plays[i].SetTime(keepT); plays[i].SetSpeed(keepS); graph.Evaluate(0f);
+        vs.Sort(); float v = vs.Count > 4 ? vs[vs.Count * 3 / 5] : 0f;
+        // a clip that walks its own root forward (root motion baked in) shows it in the body instead
+        float rootV = (bodyZ1 - bodyZ0) / len;
+        return Mathf.Max(v, rootV);
+    }
+
     public void Dispose()
     {
         if (graph.IsValid()) graph.Destroy();

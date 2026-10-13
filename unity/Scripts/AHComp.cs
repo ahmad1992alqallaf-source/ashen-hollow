@@ -576,22 +576,138 @@ public class AHAlly : MonoBehaviour
 // a living mount (the Quaternius horses and wolves): stands and breathes, gallops while you ride on
 public class AHMountGait : MonoBehaviour
 {
+    // A mount walks when you go slowly and gallops (runs) when you go fast, each clip played at the speed that keeps its
+    // feet planted on the ground (measured from the clip itself). The rider rises and falls with the mount's back.
     public static bool TestRun;   // (editor test: gallop on the spot)
     AHAnim anim; AHPlayer p; float idleT;
-    public void Setup(AHAnim a, AHPlayer who) { anim = a; p = who; anim.Play("Idle", true); }
+    string walk, run; float walkV, runV; bool measured, running;
+    Vector3 lastPos; float gs;   // ground speed, smoothed (m/s)
+    Transform back; Vector3 back0; int restN; float bobY, bobZ; Transform rig; float rigZ0 = float.NaN;
+    // the raptors' own run hardly bends the body: a swaying tail, a rolling spine and a steadied head added on top
+    Transform[] tail, spine, neck; float phase, sway; string playing; float playSpeed = 1f;
+    public void Setup(AHAnim a, AHPlayer who)
+    {
+        anim = a; p = who; anim.Play("Idle", true); lastPos = p.transform.position;
+        walk = anim.Has("Walk") ? "Walk" : null;
+        run = anim.Has("Gallop") ? "Gallop" : anim.Has("Run") ? "Run" : walk;
+        if (walk == null) walk = run;
+    }
+
+    static Transform[] Feet(Transform root)
+    {
+        // the tips of the legs: the deepest bones under any bone named like a leg or foot
+        var l = new List<Transform>();
+        foreach (var t in root.GetComponentsInChildren<Transform>())
+        {
+            if (t.childCount > 0) continue;
+            for (var q = t; q != null && q != root; q = q.parent)
+            {
+                string n = q.name.ToLowerInvariant();
+                if (n.Contains("tail") || n.Contains("wing") || n.Contains("arm") || n.Contains("hand") || n.Contains("finger") || n.Contains("pole") || n.EndsWith("ik") || n.Contains("ik.") || n.Contains("ik_")) break;
+                if (n.Contains("leg") || n.Contains("foot") || n.Contains("toe") || n.Contains("hoof") || n.Contains("ankle") || n.Contains("calf") || n.Contains("thigh") || n.Contains("shin")) { l.Add(t); break; }
+            }
+        }
+        return l.ToArray();
+    }
+    static Transform Find(Transform root, params string[] names)
+    {
+        foreach (var n in names) foreach (var t in root.GetComponentsInChildren<Transform>()) if (t.name == n) return t;
+        return null;
+    }
+
+    void Measure()
+    {
+        measured = true;
+        var feet = Feet(transform);
+        var body = Find(transform, "Root", "root", "Hips", "Pelvis", "Torso", "Body");
+        walkV = walk != null ? anim.StrideSpeed(walk, transform, feet, body) : 0f;
+        runV = run != null ? anim.StrideSpeed(run, transform, feet, body) : 0f;
+        // nothing sensible measured: the old fixed rates (about 1.6 m/s walking, 6 galloping, for a horse)
+        float size = 1f; foreach (var r in GetComponentsInChildren<Renderer>()) size = Mathf.Max(size, r.bounds.size.y);
+        if (walkV < 0.3f || walkV > 6f) walkV = 0.7f * size;
+        if (runV < 1f || runV > 20f) runV = 2.6f * size;
+        if (runV < walkV * 1.3f) runV = walkV * 2.5f;
+        var tl = new List<Transform>(); var sp = new List<Transform>(); var nk = new List<Transform>();
+        for (int i = 1; i <= 8; i++) { var t = Find(transform, "Tail_" + i); if (t != null) tl.Add(t); var q = Find(transform, "Spine_" + i); if (q != null) sp.Add(q); var n = Find(transform, "Neck_" + i); if (n != null) nk.Add(n); }
+        if (tl.Count >= 3 && sp.Count >= 1) { tail = tl.ToArray(); spine = sp.ToArray(); neck = nk.ToArray(); }
+        back = Find(transform, "Torso2", "Back", "Torso", "Spine_2", "Spine_1", "B_Spine_02", "Spine", "spine", "Hips", "Pelvis");
+        Debug.Log("Ashen Hollow: mount " + p.mountSel + " walk " + walkV.ToString("F2") + " m/s, " + run + " " + runV.ToString("F2") + " m/s, " + feet.Length + " feet, back " + (back != null ? back.name : "-"));
+    }
+
     void Update()
     {
         if (anim == null || p == null) return;
-        if (p.Moving || TestRun) { idleT = 0f; float sp = 0.85f + 0.25f * Mathf.Clamp01(AHComp.MountSpeed(p) - 1.5f); if (!anim.Play("Gallop", true, sp)) anim.Play("Run", true, sp); }
+        float dt = Mathf.Max(Time.deltaTime, 1e-4f);
+        if (!measured) Measure();
+        Vector3 d = p.transform.position - lastPos; d.y = 0f; lastPos = p.transform.position;
+        float v = d.magnitude / dt; if (v > 40f) v = 0f;   // a teleport
+        gs = Mathf.Lerp(gs, v, 1f - Mathf.Exp(-dt * 8f));
+        if (TestRun) gs = runV;
+        if (p.Moving || TestRun || gs > 0.4f)
+        {
+            idleT = 0f;
+            // walk up to a brisk walk, then the run; a little either way of the change so it does not flicker
+            float change = Mathf.Min(walkV * 1.5f, runV * 0.6f);
+            if (running && gs < change * 0.85f) running = false; else if (!running && gs > change * 1.1f) running = true;
+            playing = running ? run : walk; playSpeed = running ? Mathf.Clamp(gs / runV, 0.55f, 1.6f) : Mathf.Clamp(gs / walkV, 0.45f, 1.7f);
+            anim.Play(playing, true, playSpeed);
+        }
         else
         {
-            idleT += Time.deltaTime;
+            running = false; idleT += dt; playing = null;
             // now and then it lowers its head or shifts its weight
             string idle = idleT > 9f && idleT < 13f ? (anim.Has("Idle_Headlow") ? "Idle_Headlow" : "Idle_2_HeadLow") : idleT > 20f && idleT < 23f ? "Idle_2" : "Idle";
             if (idleT > 23f) idleT = 0f;
             if (!anim.Play(idle, true)) anim.Play("Idle", true);
         }
-        anim.Tick(Time.deltaTime);
+        anim.Tick(dt);
     }
-    void OnDestroy() { if (anim != null) anim.Dispose(); }
+
+    // after the clip has moved the bones: the rider goes up and down (and a little to and fro) with the mount's back
+    void LateUpdate()
+    {
+        if (p == null || !p.mounted) return;
+        Sway();
+        if (back == null) return;
+        Vector3 local = transform.InverseTransformPoint(back.position); local.Scale(transform.lossyScale);
+        // where the back sits at rest: learned over the first half second standing still
+        if (restN < 30 && gs < 0.3f) { back0 = restN == 0 ? local : Vector3.Lerp(back0, local, 1f / (restN + 1)); restN++; }
+        if (restN == 0) return;
+        float k = 1f - Mathf.Exp(-Time.deltaTime * 30f);
+        bobY = Mathf.Lerp(bobY, Mathf.Clamp(local.y - back0.y, -0.35f, 0.3f), k);
+        bobZ = Mathf.Lerp(bobZ, Mathf.Clamp(local.z - back0.z, -0.2f, 0.2f), k);
+        p.seatBob = bobY;
+        if (rig == null && p.Model != null) rig = p.Model.transform;
+        if (rig != null) { if (float.IsNaN(rigZ0)) rigZ0 = rig.localPosition.z; var lp = rig.localPosition; lp.z = rigZ0 + bobZ; rig.localPosition = lp; }
+    }
+    void Sway()
+    {
+        if (tail == null) return;
+        float dt = Time.deltaTime;
+        // one stride cycle per play of the clip; idle: a slow lazy swing
+        float len = playing != null ? Mathf.Max(0.2f, anim.Length(playing)) : 3.2f;
+        phase += dt * (playing != null ? playSpeed : 1f) / len;
+        float want = playing == null ? 0.35f : running ? 1f : 0.7f;
+        sway = Mathf.MoveTowards(sway, want, dt * 1.5f);
+        float w = phase * Mathf.PI * 2f; Vector3 up = transform.up, fwd = transform.forward, side = transform.right;
+        // the tail: a wave running down it, side to side, a little up and down with each step
+        for (int i = 0; i < tail.Length; i++)
+        {
+            float yaw = Mathf.Sin(w - i * 0.7f) * (2.5f + i * 0.4f) * sway, pit = Mathf.Sin(2f * w - i * 0.5f) * 2.5f * sway;
+            tail[i].rotation = Quaternion.AngleAxis(yaw, up) * Quaternion.AngleAxis(pit, side) * tail[i].rotation;
+        }
+        // the body: rolls over each planted foot and twists against the tail
+        for (int i = 0; i < spine.Length; i++)
+            spine[i].rotation = Quaternion.AngleAxis(Mathf.Sin(w) * 2.5f * sway, fwd) * Quaternion.AngleAxis(-Mathf.Sin(w - 0.5f) * 2f * sway, up) * spine[i].rotation;
+        // the neck: bobs with the stride while the head is held steady towards the way it runs
+        for (int i = 0; i < neck.Length; i++)
+            neck[i].rotation = Quaternion.AngleAxis(Mathf.Sin(w) * 2f * sway, up) * Quaternion.AngleAxis(Mathf.Sin(2f * w + 1f) * 3f * sway, side) * neck[i].rotation;
+    }
+
+    void OnDestroy()
+    {
+        if (p != null) p.seatBob = 0f;
+        if (rig != null && !float.IsNaN(rigZ0)) { var lp = rig.localPosition; lp.z = rigZ0; rig.localPosition = lp; }
+        if (anim != null) anim.Dispose();
+    }
 }

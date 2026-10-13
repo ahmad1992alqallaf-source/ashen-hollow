@@ -56,7 +56,7 @@ public static class AHPhoenix
         if (Resources.Load<GameObject>("AH/Models/Comp/mount_phoenix") != null)
         {
             var mb = new GameObject("PhoenixBody").transform; mb.SetParent(holder, false);
-            AHAnim a; var inst = AHModel.Spawn(mb, "Comp/mount_phoenix", 3.2f, true, 0f, out a);
+            AHAnim a; var inst = AHModel.Spawn(mb, "Comp/mount_phoenix", 4.8f, true, 0f, out a);   // by length (most of it is tail): a body big enough to sit on
             if (a != null && a.HasClips) a.Play("Take 001", true, 1f);
             var lg0 = new GameObject("PhoenixLight"); lg0.transform.SetParent(mb, false); lg0.transform.localPosition = new Vector3(0, 0.6f, -0.6f);
             var li0 = lg0.AddComponent<Light>(); li0.type = LightType.Point; li0.color = new Color(1f, 0.55f, 0.2f); li0.range = 6f; li0.intensity = 1.1f; li0.shadows = LightShadows.None;
@@ -148,15 +148,16 @@ public class AHPhoenixFly : MonoBehaviour
 // riding the phoenix model: it hovers and bobs, leans into the run, beats faster while moving, glows and sheds embers
 public class AHPhoenixRide : MonoBehaviour
 {
-    public const float Seat = 0.82f;
+    public const float Seat = 1.5f;
     AHPlayer p; Transform body; AHAnim anim; Light li; float t; bool wasMoving;
     public void Setup(AHPlayer pl, Transform b, AHAnim a, Light l) { p = pl; body = b; anim = a; li = l; }
     void LateUpdate()
     {
         if (p == null) return;
         float dt = Time.deltaTime; t += dt; bool moving = p.Moving;
-        if (anim != null && moving != wasMoving) { anim.Play("Take 001", true, moving ? 1.8f : 1f); wasMoving = moving; }
-        float hover = 0.4f + Mathf.Sin(t * 1.7f) * 0.07f;
+        if (anim != null && moving != wasMoving) { anim.Play("Take 001", true, moving ? 1.5f : 0.7f); wasMoving = moving; }
+        // it flies, high enough that its wings clear the ground on the downbeat
+        float hover = 1.0f + Mathf.Sin(t * 1.7f) * 0.1f;
         body.localPosition = new Vector3(0, hover, 0);
         body.localRotation = Quaternion.Euler(moving ? 6f : 0f, 0, Mathf.Sin(t * 0.9f) * 2f);
         p.seatY = Seat + hover;

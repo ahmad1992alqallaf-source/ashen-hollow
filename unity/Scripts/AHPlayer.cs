@@ -163,6 +163,8 @@ public class AHPlayer : MonoBehaviour
     public int OwnOf(string id) { return Mathf.Max(0, bag.Count(id) - BoughtOf(id)); }
     [System.NonSerialized] public GameObject mountGo;
     [System.NonSerialized] public float seatY;
+    [System.NonSerialized] public float seatBob;   // the mount's back rising and falling under the rider (AHMountGait)
+    public GameObject Model { get { return model; } }
     public float LastHurt { get { return lastHurt; } }
     public bool InFight { get { return Time.time - lastHurt < 6f || Time.time - lastCast < 4f; } }
     [System.NonSerialized] public AHBag bag = new AHBag();
@@ -332,7 +334,7 @@ public class AHPlayer : MonoBehaviour
         if (model != null)
         {
             if (float.IsNaN(modelBaseY)) modelBaseY = model.transform.localPosition.y;
-            var lp = model.transform.localPosition; lp.y = modelBaseY - 0.4f * wadeDepth * (mounted ? 0.3f : 1f) + seatY + leapY; model.transform.localPosition = lp;
+            var lp = model.transform.localPosition; lp.y = modelBaseY - 0.4f * wadeDepth * (mounted ? 0.3f : 1f) + seatY + (mounted ? seatBob : 0f) + leapY; model.transform.localPosition = lp;
         }
         if (wd <= 0.02f) return;
         rippleT -= dt;

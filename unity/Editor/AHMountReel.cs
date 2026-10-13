@@ -26,9 +26,12 @@ public static class AHMountReel
         var go = new GameObject("ReelCam"); var cam = go.AddComponent<Camera>(); cam.enabled = false; cam.fieldOfView = 40f; cam.nearClipPlane = 0.1f; cam.farClipPlane = 600f;
         var rt = new RenderTexture(W, H, 24); var grab = new Texture2D(W, H, TextureFormat.RGB24, false);
         var names = new StringBuilder(); int n = 0;
+        // HeroShots/mount_reel/only.txt ("horse,phoenix") films just those
+        string onlyF = Path.Combine(root, "only.txt"); string[] only = File.Exists(onlyF) ? File.ReadAllText(onlyF).Split(new[] { ',', ' ', '\n', '\r' }, System.StringSplitOptions.RemoveEmptyEntries) : new string[0];
         foreach (var k in AHComp.Mounts.Keys)
         {
             n++;
+            if (only.Length > 0 && System.Array.IndexOf(only, k) < 0) continue;
             if (!p.mounts.Contains(k)) p.mounts.Add(k);
             if (p.mounted) AHComp.Dismount(g, true);
             p.transform.position = home; p.transform.rotation = homeRot;
@@ -41,12 +44,12 @@ public static class AHMountReel
             Vector3 fwd = p.transform.forward; fwd.y = 0f; fwd.Normalize(); Vector3 side = Vector3.Cross(Vector3.up, fwd);
             bool big = false; foreach (var r in p.GetComponentsInChildren<Renderer>()) if (r.bounds.size.y > 3.2f) big = true;
             float back = big ? 8.5f : 6f;
-            Time.captureFramerate = Fps; int frames = 115;
+            Time.captureFramerate = Fps; int frames = 130;
             for (int f = 0; f < frames; f++)
             {
                 p.hp = p.maxHp;
-                // walk a moment, then gallop
-                Vector3 want = fwd * (f < 25 ? 0.45f : 1f); Vector3 cf = g.CamForward(), cr = g.CamRight();
+                // a slow walk first, then full speed
+                Vector3 want = fwd * (f < 45 ? 0.22f : 1f); Vector3 cf = g.CamForward(), cr = g.CamRight();
                 AHInput.TestMove = new Vector2(Vector3.Dot(want, cr), Vector3.Dot(want, cf));
                 yield return new WaitForEndOfFrame();
                 Vector3 h = p.transform.position;
@@ -61,13 +64,14 @@ public static class AHMountReel
         }
         if (p.mounted) AHComp.Dismount(g, true);
         p.mountSel = was; p.transform.position = home; p.transform.rotation = homeRot;
-        File.WriteAllText(Path.Combine(root, "names.txt"), names.ToString());
+        if (only.Length == 0) File.WriteAllText(Path.Combine(root, "names.txt"), names.ToString());
         cam.targetTexture = null; Object.Destroy(rt); Object.Destroy(grab); Object.Destroy(go);
         // zips, to carry the frames off the PC in a few files
         string zd = Path.Combine(root, "zips"); Directory.CreateDirectory(zd);
         foreach (var sd in Directory.GetDirectories(root))
         {
             string nm = Path.GetFileName(sd); if (nm == "zips") continue;
+            if (only.Length > 0 && System.Array.IndexOf(only, nm.Substring(3)) < 0) continue;
             string zp = Path.Combine(zd, nm + ".zip"); if (File.Exists(zp)) File.Delete(zp);
             System.IO.Compression.ZipFile.CreateFromDirectory(sd, zp, System.IO.Compression.CompressionLevel.NoCompression, false);
         }
