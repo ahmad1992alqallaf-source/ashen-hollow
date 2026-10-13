@@ -44,6 +44,13 @@ public static class AHMountReel
             Vector3 fwd = p.transform.forward; fwd.y = 0f; fwd.Normalize(); Vector3 side = Vector3.Cross(Vector3.up, fwd);
             bool big = false; foreach (var r in p.GetComponentsInChildren<Renderer>()) if (r.bounds.size.y > 3.2f) big = true;
             float back = big ? 8.5f : 6f;
+            // a still from in front, a little to one side: how the rider sits astride
+            {
+                Vector3 h0 = p.transform.position; if (g.cam != null) { cam.CopyFrom(g.cam); } cam.fieldOfView = 35f;
+                cam.transform.position = h0 + fwd * (big ? 6f : 4.5f) + side * 1.6f + Vector3.up * 1.8f; cam.transform.LookAt(h0 + Vector3.up * 1.4f);
+                cam.targetTexture = rt; cam.Render(); RenderTexture.active = rt; grab.ReadPixels(new Rect(0, 0, W, H), 0, 0); grab.Apply(false); RenderTexture.active = null;
+                File.WriteAllBytes(Path.Combine(sd, "front.jpg"), grab.EncodeToJPG(90));
+            }
             Time.captureFramerate = Fps; int frames = 130;
             for (int f = 0; f < frames; f++)
             {

@@ -14,7 +14,7 @@ using UnityEngine;
 
 public class AHWingRig : MonoBehaviour
 {
-    float sx = 1f; Func<bool> moving; Transform hero; bool dragon;
+    float sx = 1f; Func<bool> moving; Transform hero; bool dragon; AHPlayer rider;
     Transform b0, b1, b2; Quaternion r0, r1, r2;
     bool built; Vector3 lastPos; float lastYaw; Vector3 vel; float yawRate;
     float run, air, walk;
@@ -143,9 +143,14 @@ public class AHWingRig : MonoBehaviour
         float flat = new Vector2(vel.x, vel.z).magnitude;
         bool mv = moving != null && moving();
         float k = 1f - Mathf.Exp(-dt * 3f);
+        // in the saddle the wings stay folded on the back (the mount's speed and bounce are not the hero running or
+        // flying), so they do not spread across the mount or into a winged mount's own wings
+        if (rider == null && hero != null) rider = hero.GetComponentInParent<AHPlayer>();
+        bool riding = rider != null && rider.mounted;
+        if (riding) { mv = true; flat = 0f; }
         walk = Mathf.Lerp(walk, mv && flat < 4.2f ? 1f : 0f, k);
         run = Mathf.Lerp(run, (mv && flat >= 4.2f) || TestRun > 0f ? 1f : 0f, k);
-        air = Mathf.Lerp(air, Mathf.Abs(vel.y) > 2.6f ? 1f : 0f, 1f - Mathf.Exp(-dt * (Mathf.Abs(vel.y) > 2.6f ? 4f : 1.5f)));
+        air = Mathf.Lerp(air, !riding && Mathf.Abs(vel.y) > 2.6f ? 1f : 0f, 1f - Mathf.Exp(-dt * (Mathf.Abs(vel.y) > 2.6f ? 4f : 1.5f)));
         if (TestAir > 0f) air = Mathf.Lerp(air, 1f, 1f - Mathf.Exp(-dt * 4f));   // (a slope walked up is not flight)
 
         // ---- what makes it alive rather than a machine ----

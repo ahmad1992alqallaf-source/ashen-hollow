@@ -587,7 +587,7 @@ public class AHMountGait : MonoBehaviour
     Transform[] tail, spine, neck; float phase, sway; string playing; float playSpeed = 1f;
     // the saddle: where on the mount's back the rider's hips belong (found from the mount's own mesh), and how far the
     // rider has been moved to sit there
-    string seatNote = ""; bool seatFound; Vector3 seat; float seatDz; int seatPass, seatFrame; Transform hips;
+    string seatNote = ""; bool seatFound; Vector3 seat; AHVRoidLink link; float seatDz; int seatPass, seatFrame; Transform hips;
     public string State { get { return (playing ?? "idle") + " x" + playSpeed.ToString("F2") + " at " + gs.ToString("F2") + " m/s (walk " + walkV.ToString("F2") + ", run " + runV.ToString("F2") + ")"; } }
     public void Setup(AHAnim a, AHPlayer who)
     {
@@ -672,6 +672,8 @@ public class AHMountGait : MonoBehaviour
     void LateUpdate()
     {
         if (p == null || !p.mounted) return;
+        if (link == null) link = p.GetComponentInChildren<AHVRoidLink>();
+        if (link != null) link.ride = Mathf.MoveTowards(link.ride, 1f, Time.deltaTime * 3f);
         Sway();
         if (back == null) return;
         Vector3 local = transform.InverseTransformPoint(back.position); local.Scale(transform.lossyScale);
@@ -816,6 +818,7 @@ public class AHMountGait : MonoBehaviour
     void OnDestroy()
     {
         if (p != null) p.seatBob = 0f;
+        if (link != null) link.ride = 0f;
         if (rig != null && !float.IsNaN(rigZ0)) { var lp = rig.localPosition; lp.z = rigZ0; rig.localPosition = lp; }
         if (anim != null) anim.Dispose();
     }

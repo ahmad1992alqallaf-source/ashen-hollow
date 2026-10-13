@@ -637,7 +637,31 @@ public class AHVRoidLink : MonoBehaviour
         // a hand holding something closes round it (the old rig's clips leave the fingers open, and a sword then
         // floats in front of a flat palm)
         if (pose.muscles != null) { if (Holding(vHandR)) Fist(pose.muscles, "Right"); if (Holding(vHandL)) Fist(pose.muscles, "Left"); }
+        if (pose.muscles != null && ride > 0.01f) RidePose(pose.muscles, ride);
         hd.SetHumanPose(ref pose);
+    }
+
+    // in the saddle (set each frame by the mount, 0..1): astride rather than sat on a chair. The thighs drop down the
+    // mount's sides and open round its body, the knees bend less, and the back leans a little into the ride.
+    [System.NonSerialized] public float ride;
+    public static float RideThigh = 0.4f, RideOpen = 0.55f, RideKnee = 0.15f, RideLean = 0.2f;
+    static int[] rideIdx;
+    static void RidePose(float[] m, float w)
+    {
+        if (rideIdx == null)
+        {
+            string[] names = { "Left Upper Leg Front-Back", "Right Upper Leg Front-Back", "Left Upper Leg In-Out", "Right Upper Leg In-Out",
+                               "Left Lower Leg Stretch", "Right Lower Leg Stretch", "Spine Front-Back", "Chest Front-Back" };
+            rideIdx = new int[names.Length];
+            for (int i = 0; i < names.Length; i++) rideIdx[i] = System.Array.IndexOf(HumanTrait.MuscleName, names[i]);
+        }
+        System.Action<int, float, float> to = (i, v, k) => { int j = rideIdx[i]; if (j >= 0 && j < m.Length) m[j] = Mathf.Lerp(m[j], v, k * w); };
+        to(0, RideThigh, 1f); to(1, RideThigh, 1f);
+        to(2, RideOpen, 1f); to(3, RideOpen, 1f);
+        to(4, RideKnee, 0.7f); to(5, RideKnee, 0.7f);
+        int sp = rideIdx[6], ch = rideIdx[7];
+        if (sp >= 0 && sp < m.Length) m[sp] = Mathf.Clamp(m[sp] + RideLean * w, -1f, 1f);
+        if (ch >= 0 && ch < m.Length) m[ch] = Mathf.Clamp(m[ch] + RideLean * 0.5f * w, -1f, 1f);
     }
 
     Transform vHandR, vHandL;
