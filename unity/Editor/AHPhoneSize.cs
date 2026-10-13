@@ -64,6 +64,85 @@ public static class AHPhoneSize
         Debug.Log("Ashen Hollow: mesh report in Builds/mesh_report.txt");
     }
 
+    // the animations by model: how much each model's clips take (the clips are most of what is left after the meshes
+    // and pictures), with how many clips and curves, to see which are worth thinning
+    [MenuItem("Ashen Hollow/Animation Weight Report")]
+    public static void Anims()
+    {
+        var rows = new List<KeyValuePair<long, string>>(); long all = 0;
+        var files = new List<string>();
+        foreach (var dir in Directory.GetDirectories("Assets", "Resources", SearchOption.AllDirectories))
+            foreach (var f in Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories)) if (f.EndsWith(".glb") || f.EndsWith(".fbx") || f.EndsWith(".anim") || f.EndsWith(".vrm")) files.Add(f.Replace('\\', '/'));
+        foreach (var dep in AssetDatabase.GetDependencies(files.ToArray(), true)) if ((dep.EndsWith(".fbx") || dep.EndsWith(".anim") || dep.EndsWith(".glb")) && !files.Contains(dep)) files.Add(dep);
+        int n = 0;
+        foreach (var p in files)
+        {
+            if (++n % 50 == 0) EditorUtility.DisplayProgressBar("Animation weight", p, n / (float)files.Count);
+            long sum = 0; int clips = 0, curves = 0, keys = 0;
+            foreach (var o in AssetDatabase.LoadAllAssetsAtPath(p))
+            {
+                var c = o as AnimationClip; if (c == null) continue;
+                clips++; sum += Profiler.GetRuntimeMemorySizeLong(c);
+                foreach (var b in AnimationUtility.GetCurveBindings(c)) { curves++; var cv = AnimationUtility.GetEditorCurve(c, b); if (cv != null) keys += cv.length; }
+            }
+            if (clips == 0) continue; all += sum;
+            rows.Add(new KeyValuePair<long, string>(sum, (sum / 1024) + " KB  " + clips + " clips, " + curves + " curves, " + keys + " keys  " + p));
+        }
+        EditorUtility.ClearProgressBar();
+        var sb = new StringBuilder(); sb.AppendLine("Animations: " + (all / 1048576) + " MB in " + rows.Count + " files");
+        var byDir = new Dictionary<string, long>();
+        foreach (var r in rows) { string d = Path.GetDirectoryName(r.Value.Substring(r.Value.IndexOf("Assets/"))).Replace('\\', '/'); long v; byDir.TryGetValue(d, out v); byDir[d] = v + r.Key; }
+        foreach (var kv in byDir.OrderByDescending(x => x.Value)) sb.AppendLine("  " + (kv.Value / 1048576) + " MB  " + kv.Key);
+        foreach (var r in rows.OrderByDescending(x => x.Key).Take(80)) sb.AppendLine(r.Value);
+        Directory.CreateDirectory("Builds"); File.WriteAllText("Builds/anim_report.txt", sb.ToString());
+        Debug.Log("Ashen Hollow: animation report in Builds/anim_report.txt");
+    }
+
+
+    // what each mesh stores per corner (position, normal, tangent, colours, uv sets, bone weights) and how big that is,
+    // with the phone build's vertex compression settings: to see which channels are worth dropping or packing smaller
+    // the build's vertex compression (not public in the editor API: read and written through reflection)
+    public static object VertexMask()
+    {
+        var pr = typeof(PlayerSettings).GetProperty("vertexChannelCompressionMask", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+        return pr != null ? pr.GetValue(null, null) : "(unknown)";
+    }
+
+    [MenuItem("Ashen Hollow/Mesh Layout Report %#&j")]
+    public static void Layout()
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("vertex compression (Android): " + VertexMask() + ", strip unused mesh parts: " + PlayerSettings.stripUnusedMeshComponents);
+        var byLayout = new Dictionary<string, long>(); var byLayoutN = new Dictionary<string, int>(); long total = 0; int n = 0;
+        var rows = new List<KeyValuePair<long, string>>();
+        foreach (var dir in Directory.GetDirectories("Assets", "Resources", SearchOption.AllDirectories))
+            foreach (var f in Directory.GetFiles(dir, "*.glb", SearchOption.AllDirectories))
+            {
+                string p = f.Replace('\\', '/'); if (++n % 40 == 0) EditorUtility.DisplayProgressBar("Mesh layout", p, 0.5f);
+                foreach (var o in AssetDatabase.LoadAllAssetsAtPath(p))
+                {
+                    var m = o as Mesh; if (m == null) continue;
+                    var attrs = m.GetVertexAttributes(); int stride = 0; var parts = new List<string>();
+                    foreach (var a in attrs)
+                    {
+                        int sz = a.format == UnityEngine.Rendering.VertexAttributeFormat.Float32 || a.format == UnityEngine.Rendering.VertexAttributeFormat.UInt32 || a.format == UnityEngine.Rendering.VertexAttributeFormat.SInt32 ? 4 : a.format == UnityEngine.Rendering.VertexAttributeFormat.Float16 || a.format == UnityEngine.Rendering.VertexAttributeFormat.UNorm16 || a.format == UnityEngine.Rendering.VertexAttributeFormat.SNorm16 || a.format == UnityEngine.Rendering.VertexAttributeFormat.UInt16 || a.format == UnityEngine.Rendering.VertexAttributeFormat.SInt16 ? 2 : 1;
+                        stride += sz * a.dimension; parts.Add(a.attribute + ":" + a.format + "x" + a.dimension);
+                    }
+                    long idx = 0; for (int s2 = 0; s2 < m.subMeshCount; s2++) idx += m.GetIndexCount(s2);
+                    long bytes = (long)stride * m.vertexCount + idx * (m.indexFormat == UnityEngine.Rendering.IndexFormat.UInt32 ? 4 : 2);
+                    string key = string.Join(" ", parts) + " idx" + (m.indexFormat == UnityEngine.Rendering.IndexFormat.UInt32 ? 32 : 16);
+                    long v; byLayout.TryGetValue(key, out v); byLayout[key] = v + bytes; int c; byLayoutN.TryGetValue(key, out c); byLayoutN[key] = c + 1; total += bytes;
+                    rows.Add(new KeyValuePair<long, string>(bytes, (bytes / 1024) + " KB  " + m.vertexCount + " verts x " + stride + " B  " + p + " : " + m.name));
+                }
+            }
+        EditorUtility.ClearProgressBar();
+        sb.AppendLine("all meshes (raw): " + (total / 1048576) + " MB");
+        foreach (var kv in byLayout.OrderByDescending(x => x.Value)) sb.AppendLine("  " + (kv.Value / 1048576) + " MB in " + byLayoutN[kv.Key] + " meshes: " + kv.Key);
+        sb.AppendLine("largest:"); foreach (var r in rows.OrderByDescending(x => x.Key).Take(40)) sb.AppendLine("  " + r.Value);
+        Directory.CreateDirectory("Builds"); File.WriteAllText("Builds/mesh_layout.txt", sb.ToString());
+        Debug.Log("Ashen Hollow: mesh layout in Builds/mesh_layout.txt");
+    }
+
     [MenuItem("Ashen Hollow/Phone Size Report #&z")]
     public static void Report()
     {
