@@ -199,6 +199,72 @@ public static class AHMountains
         OffTheWalls();
     }
 
+    // Foothills: some wild lands left whole stretches of their border open (the Mill's north and south sides, parts of
+    // the Vale), so past the last trees a flat green plain ran off to the far ranges, as if the world just stopped.
+    // Along every side of the land, any gap between the border crags wider than a crag is closed with one more crag of
+    // the same rock, standing just outside where you can walk. Gaps are kept where a road leaves the land (its exits
+    // and gates) and along a sea shore.
+    public static void Foothills(AHGame g)
+    {
+        if (root == null || mats == null || mats.Count == 0 || prefabs[0] == null || g == null || g.data == null) return;
+        string id = AHGame.AreaId; if (AHDungeon.IsDungeon(id) || id == "city" || id.EndsWith("_city") || id == "raid") return;
+        // the rock most of the border is made of
+        var use = new Dictionary<Material, int>(); foreach (Transform m in root) { if (m.name != "Mountain" || !m.gameObject.activeSelf) continue; var r = m.GetComponentInChildren<Renderer>(); if (r != null) { int c; use.TryGetValue(r.sharedMaterial, out c); use[r.sharedMaterial] = c + 1; } }
+        Color col = default; int most = 0; foreach (var kv in mats) { int c; if (use.TryGetValue(kv.Value, out c) && c > most) { most = c; col = kv.Key; } }
+        if (most < 6) return;   // a land without a crag border (it is meant to be open)
+        // how tall the border crags stand
+        var hs = new List<float>(); for (int i = 0; i < coneY.Count; i++) hs.Add(coneY[i].y); hs.Sort(); float hMid = hs.Count > 0 ? hs[hs.Count / 2] : 14f;
+        // the roads out
+        var keep = new List<Vector3>();
+        // (a way out along a whole side keeps its gap where the road leaves: the middle of that side)
+        if (g.data.exits != null) foreach (var e in g.data.exits) keep.Add(e.r > 0f ? g.W(e.x, e.z) : g.W((e.x0 + e.x1) * 0.5f, (e.z0 + e.z1) * 0.5f));
+        if (g.data.gates != null) foreach (var e in g.data.gates) keep.Add(g.W(e.x, e.z));
+        var R = g.WalkArea; int n = 0; var rnd = new System.Random(id.GetHashCode());
+        var sides = new[] { new Vector4(R.xMin, R.yMin, R.xMax, R.yMin), new Vector4(R.xMax, R.yMin, R.xMax, R.yMax), new Vector4(R.xMax, R.yMax, R.xMin, R.yMax), new Vector4(R.xMin, R.yMax, R.xMin, R.yMin) };
+        foreach (var sd in sides)
+        {
+            Vector3 a = new Vector3(sd.x, 0f, sd.y), b = new Vector3(sd.z, 0f, sd.w); Vector3 along = (b - a).normalized, outw = new Vector3(along.z, 0f, -along.x);
+            // (the land's rect is walked round anticlockwise or not: outward is whichever way leads away from its middle)
+            Vector3 mid = new Vector3(R.center.x, 0f, R.center.y); if (Vector3.Dot(outw, (a + b) * 0.5f - mid) < 0f) outw = -outw;
+            float len = (b - a).magnitude;
+            for (float t = -10f; t <= len + 10f; t += 9f)
+            {
+                float foot = Mathf.Lerp(15f, 22f, (float)rnd.NextDouble()), h = hMid * Mathf.Lerp(0.8f, 1.15f, (float)rnd.NextDouble());
+                Vector3 at = a + along * t + outw * (foot * 0.42f + 1.5f + (float)rnd.NextDouble() * 3f);
+                // already closed here?
+                float gap = float.MaxValue;
+                for (int i = 0; i < cones.Count; i++) { float d = new Vector2(at.x - cones[i].x, at.z - cones[i].y).magnitude - cones[i].z; if (d < gap) gap = d; }
+                if (gap < foot * 0.3f) continue;
+                bool skip = false;
+                foreach (var k in keep) if (new Vector2(at.x - k.x, at.z - k.z).magnitude < 7f + foot * 0.5f) { skip = true; break; }
+                if (skip) continue;
+                Vector3 edge = a + along * Mathf.Clamp(t, 0f, len) - outw * 2f;
+                if (AHSea.Sea(edge, 6f) || AHSea.Sea(at, 4f)) continue;   // a sea shore stays open
+                var bb = new Bounds(new Vector3(at.x, h * 0.5f, at.z), new Vector3(foot, h, foot));
+                Place(lite[0] != null ? lite : prefabs, lite[0] != null ? liteW : width, bb, col).name = "Foothill";
+                n++;
+            }
+        }
+        // and the corners, where two rows of crags meet at a slant and left a notch open to the plain
+        foreach (var c in new[] { new Vector2(R.xMin, R.yMin), new Vector2(R.xMax, R.yMin), new Vector2(R.xMin, R.yMax), new Vector2(R.xMax, R.yMax) })
+        {
+            Vector3 diag = new Vector3(Mathf.Sign(c.x - R.center.x), 0f, Mathf.Sign(c.y - R.center.y)).normalized;
+            for (int k = 0; k < 3; k++)
+            {
+                float foot = Mathf.Lerp(16f, 22f, (float)rnd.NextDouble()), h = hMid * Mathf.Lerp(0.85f, 1.15f, (float)rnd.NextDouble());
+                Vector3 at = new Vector3(c.x, 0f, c.y) + diag * (foot * 0.35f + k * 9f);
+                float gap = float.MaxValue;
+                for (int i = 0; i < cones.Count; i++) { float d = new Vector2(at.x - cones[i].x, at.z - cones[i].y).magnitude - cones[i].z; if (d < gap) gap = d; }
+                if (gap < foot * 0.3f || AHSea.Sea(at, 6f)) continue;
+                bool skip = false; foreach (var kp in keep) if (new Vector2(at.x - kp.x, at.z - kp.z).magnitude < 7f + foot * 0.5f) { skip = true; break; }
+                if (skip) continue;
+                Place(lite[0] != null ? lite : prefabs, lite[0] != null ? liteW : width, new Bounds(new Vector3(at.x, h * 0.5f, at.z), new Vector3(foot, h, foot)), col).name = "Foothill";
+                n++;
+            }
+        }
+        if (n > 0) Debug.Log("Ashen Hollow: " + n + " foothills close the gaps in the border");
+    }
+
     // crags and pines standing in a city's wall (Highcairn's spires came up through its walls and gate towers):
     // the wall is the edge there, so they go; their blockers stay, the wall stands on the same line
     static void OffTheWalls()

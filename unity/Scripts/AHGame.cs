@@ -163,6 +163,8 @@ public class AHGame : MonoBehaviour
         AHRange.Build(this, world);     // great mountain ranges on the horizon, past the border crags
         AHTents.Setup(this, world);     // striped pavilions and ridge tents instead of the pyramids
         AHScenery.Setup(this, world);   // wooden footbridges and broken stone columns
+        AHSea.Build(this, world, waterMat, lakes);   // a sea painted on the ground: real water over it, and no walking across it
+        AHMountains.Foothills(this);   // the open stretches of a land's border closed with crags (not over a sea or a road out)
         AHDreamScatter.Setup(this, world);  // Dreamscape bushes, flowers, grass and rocks (lands that use the pack)
 
         SetupLightAndSky();
@@ -595,6 +597,8 @@ public class AHGame : MonoBehaviour
     bool TileWalk(int c, int r) { if (c < 0 || r < 0 || c >= tCols || r >= tRows) return false; int k = tiles[r * tCols + c]; return k < WalkT.Length && WalkT[k]; }
     bool TileWalkAt(float wx, float wz) { return TileWalk(Mathf.FloorToInt((wx - tX0) / Tile), Mathf.FloorToInt((wz - tZ0) / Tile)); }
     // web zoneWalk: the spot and four points q around it all on walkable tiles
+    // the web game's tile map says you can walk here (false where an area has no tile map)
+    public bool TileLand(Vector3 p) { return tiles != null && TilesOk(p, 0.2f); }
     bool TilesOk(Vector3 p, float r)
     {
         if (tiles == null) return true;
@@ -852,7 +856,13 @@ public class AHGame : MonoBehaviour
             float dx = p.x - cPos[i].x, dz = p.z - cPos[i].z, rr = cRad[i] + r, d2 = dx * dx + dz * dz;
             if (d2 < rr * rr && d2 > 1e-6f) { float d = Mathf.Sqrt(d2); p.x = cPos[i].x + dx / d * rr; p.z = cPos[i].z + dz / d * rr; }
         }
-        foreach (var b in rects) p = PushOutOf(b, p, r);
+        // pushed out of one block you can land in the next one beside it (houses side by side in a town): go round again
+        for (int pass = 0; pass < 4; pass++)
+        {
+            bool moved = false;
+            foreach (var b in rects) { var q = PushOutOf(b, p, r); if (q.x != p.x || q.z != p.z) { p = q; moved = true; } }
+            if (!moved) break;
+        }
 
         foreach (var b in doors) p = PushOutOf(b, p, r);
         foreach (var l in lakes)
@@ -875,6 +885,7 @@ public class AHGame : MonoBehaviour
             }
             if (!on) p = best;
         }
+        p = AHSea.Keep(p);   // not out into a painted sea past the shallows
         p.x = Mathf.Clamp(p.x, area.xMin + r, area.xMax - r);
         p.z = Mathf.Clamp(p.z, area.yMin + r, area.yMax - r);
         p.y = 0f;

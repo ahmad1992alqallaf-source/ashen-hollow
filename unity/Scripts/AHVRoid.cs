@@ -355,7 +355,7 @@ public static class AHVRoid
                 if (!irisTex.TryGetValue(key, out tex) || tex == null)
                 {
                     var rtx = RenderTexture.GetTemporary(src.width, src.height, 0, RenderTextureFormat.ARGB32);
-                    Graphics.Blit(src, rtx); var prev = RenderTexture.active; RenderTexture.active = rtx;
+                    var prev = RenderTexture.active; Graphics.Blit(src, rtx); RenderTexture.active = rtx;
                     tex = new Texture2D(src.width, src.height, TextureFormat.RGBA32, true); tex.ReadPixels(new Rect(0, 0, src.width, src.height), 0, 0);
                     RenderTexture.active = prev; RenderTexture.ReleaseTemporary(rtx);
                     float th, ts, tv; Color.RGBToHSV(eye, out th, out ts, out tv);

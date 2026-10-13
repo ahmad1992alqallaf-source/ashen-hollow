@@ -13,7 +13,7 @@ using UnityEngine;
 
 public static class AHEdgeTour
 {
-    static readonly string[] Areas = { "meadow", "mill", "silkwood", "mire", "vale", "city", "frost", "hc_city", "sands", "ss_city", "mw_city", "isle", "tide", "co_city", "ember", "ch_city", "fossil", "abyss" };
+    static readonly string[] Areas = { "meadow", "mill", "silkwood", "mire", "vale", "city", "frost", "hc_city", "sands", "ss_city", "mw_city", "isle", "tide", "co_city", "ember", "ch_city", "fossil", "ashfall", "causeway", "fenwick", "kingsroad", "scorchwind", "whitepine", "homestead", "abyss" };
     static string Dir { get { var d = Path.Combine(Application.dataPath, "../HeroShots/edges"); Directory.CreateDirectory(d); return d; } }
 
     [MenuItem("Ashen Hollow/Test: Map Edge Tour #&e")]
@@ -22,26 +22,28 @@ public static class AHEdgeTour
         var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
         string[] list = Areas; string only = Path.Combine(Application.dataPath, "../HeroShots/edges_only.txt");
         if (File.Exists(only)) { var l = File.ReadAllText(only).Split(new[] { ',', '\n', '\r', ' ' }, System.StringSplitOptions.RemoveEmptyEntries); if (l.Length > 0) list = l; }
-        g.StartCoroutine(Tour(g, list));
+        // driven from the editor (travelling ends the game's own coroutines)
+        int i = -1; double t0 = 0; string want = null;
+        EditorApplication.CallbackFunction cb = null;
+        cb = () =>
+        {
+            var gg = AHGame.I;
+            if (!Application.isPlaying || gg == null) { EditorApplication.update -= cb; return; }
+            double t = EditorApplication.timeSinceStartup;
+            if (want != null && (AHGame.AreaId != want || t - t0 < 8)) { if (t - t0 > 60) want = null; return; }
+            if (want != null) Shoot(gg);
+            i++;
+            if (i >= list.Length) { EditorApplication.update -= cb; Debug.Log("Ashen Hollow: edge tour done (HeroShots/edges)"); return; }
+            var ta = Resources.Load<TextAsset>("AH/Areas/" + list[i]); if (ta == null) { want = null; return; }
+            var d = JsonUtility.FromJson<AHWorldData>(ta.text);
+            want = list[i]; t0 = t;
+            if (AHGame.AreaId != want) gg.Travel(want, d.spawn.x, d.spawn.z, 0f); else t0 -= 8;
+        };
+        EditorApplication.update += cb;
     }
 
     [MenuItem("Ashen Hollow/Test: Map Edge Shots Here")]
     static void Here() { var g = AHGame.I; if (Application.isPlaying && g != null) Shoot(g); }
-
-    static IEnumerator Tour(AHGame g, string[] list)
-    {
-        foreach (var id in list)
-        {
-            var ta = Resources.Load<TextAsset>("AH/Areas/" + id); if (ta == null) { Debug.Log("Ashen Hollow: edge tour: no area " + id); continue; }
-            var d = JsonUtility.FromJson<AHWorldData>(ta.text);
-            if (AHGame.AreaId != id) g.Travel(id, d.spawn.x, d.spawn.z, 0f);
-            float t0 = Time.realtimeSinceStartup;
-            while (AHGame.AreaId != id && Time.realtimeSinceStartup - t0 < 40f) yield return null;
-            yield return new WaitForSeconds(6f);
-            Shoot(g);
-        }
-        Debug.Log("Ashen Hollow: edge tour done (HeroShots/edges)");
-    }
 
     static void Shoot(AHGame g)
     {
@@ -69,6 +71,8 @@ public static class AHEdgeTour
             var b = r.bounds; sb.AppendLine("mesh " + n + " " + b.min.x.ToString("F1", ci) + " " + b.min.y.ToString("F2", ci) + " " + b.min.z.ToString("F1", ci) + " " + b.max.x.ToString("F1", ci) + " " + b.max.y.ToString("F2", ci) + " " + b.max.z.ToString("F1", ci) + " " + (r.enabled && r.gameObject.activeInHierarchy ? "on" : "off"));
         }
         File.WriteAllText(Path.Combine(Dir, id + "_top.txt"), sb.ToString());
+        if (AHSea.On && AHSea.DebugMask != null) File.WriteAllBytes(Path.Combine(Dir, id + "_sea.png"), AHSea.DebugMask.EncodeToPNG());
+        if (AHSea.DebugGround != null) File.WriteAllBytes(Path.Combine(Dir, id + "_ground.png"), AHSea.DebugGround.EncodeToPNG());
         Object.Destroy(rt);
         // at the edges, looking out: the four sides' middles and the four corners
         cam.orthographic = false; cam.fieldOfView = 62f;
@@ -83,15 +87,26 @@ public static class AHEdgeTour
             new KeyValuePair<Vector2, Vector2>(new Vector2(R.xMin + m, R.yMin + m), new Vector2(-1, -1).normalized), new KeyValuePair<Vector2, Vector2>(new Vector2(R.xMin + m, R.yMax - m), new Vector2(-1, 1).normalized),
         };
         var tex = new Texture2D(W, H, TextureFormat.RGB24, false);
+        var near = new StringBuilder();
         for (int i = 0; i < spots.Count; i++)
         {
             var s = spots[i]; Vector3 at = new Vector3(s.Key.x, gy + 2.4f, s.Key.y), dir = new Vector3(s.Value.x, 0f, s.Value.y);
             // stepped back inside a little, so the edge itself is in view
             go.transform.position = at - dir * 10f + Vector3.up * 3f; go.transform.rotation = Quaternion.LookRotation(dir + Vector3.down * 0.18f);
             cam.Render(); RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, W, H), 0, 0); RenderTexture.active = null;
+            // what stands in the view close by (to name an odd piece seen in the pictures)
+            Vector3 look = go.transform.position + go.transform.forward * 12f;
+            foreach (var r in Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+            {
+                if (!r.enabled || !r.gameObject.activeInHierarchy || r is ParticleSystemRenderer) continue;
+                var bb = r.bounds; if (bb.size.magnitude > 60f || bb.SqrDistance(look) > 64f) continue;
+                string path = r.name; for (var tt = r.transform.parent; tt != null && tt.parent != null; tt = tt.parent) path = tt.name + "/" + path;
+                near.AppendLine("view " + i + "\t" + path + "\t" + (r.sharedMaterial != null ? r.sharedMaterial.name + " (" + r.sharedMaterial.shader.name + ")" : "-") + "\t" + bb.center.ToString("F1") + " size " + bb.size.ToString("F1"));
+            }
             sheet.SetPixels((i % 4) * W, (1 - i / 4) * H, W, H, tex.GetPixels());
         }
         sheet.Apply(); File.WriteAllBytes(Path.Combine(Dir, id + "_edges.jpg"), sheet.EncodeToJPG(84));
+        File.WriteAllText(Path.Combine(Dir, id + "_near.txt"), near.ToString());
         RenderSettings.fog = fog;
         cam.targetTexture = null; Object.Destroy(rt); Object.Destroy(tex); Object.Destroy(sheet); Object.Destroy(go);
         Debug.Log("Ashen Hollow: edge shots " + id);
