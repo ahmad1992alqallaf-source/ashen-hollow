@@ -8,16 +8,19 @@ using UnityEngine;
 
 public static class AHWingShots
 {
+    static bool close;
     public static readonly string[] Crest = { "wing_emberplume", "wing_glacierfan", "wing_thunderfork", "wing_grovebloom", "wing_nightveil", "wing_dawnfeather" };
     [MenuItem("Ashen Hollow/Test: Wing Shots #&u")]
     static void Run()
     {
         var g = AHGame.I; if (!Application.isPlaying || g == null || g.player == null) return;
         string only = System.IO.Path.Combine(Application.dataPath, "../HeroShots/wings_only.txt");
-        string[] list = null;
+        string[] list = null; close = false;
         if (System.IO.File.Exists(only))
         {
             var l = System.IO.File.ReadAllText(only).Split(new[] { ',', '\n', '\r', ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
+            // "close": filmed near, frame after frame, to judge the movement
+            close = System.Array.IndexOf(l, "close") >= 0; if (close) l = System.Array.FindAll(l, x => x != "close");
             if (l.Length == 1 && l[0] == "crest") l = Crest;
             if (l.Length > 0) list = l;
         }
@@ -63,13 +66,13 @@ public static class AHWingShots
             AHWingRig.TestAir = row == 2 ? 1f : 0f; AHWingRig.TestRun = row == 1 ? 1f : 0f; AHWingRig.TestStretch = row == 0;
             yield return new WaitForSeconds(row == 0 ? 0.3f : 1.2f);
             AHWingRig.TestStretch = false;
-            float step = row == 0 ? 0.42f : row == 1 ? 0.12f : 0.09f;
+            float step = row == 0 ? 0.42f : row == 1 ? 0.12f : 0.09f; if (close) step = row == 0 ? 0.4f : 0.075f;
             for (int i = 0; i < N; i++)
             {
                 Vector3 at = hero.position + Vector3.up * 1.3f;
                 for (int v = 0; v < 2; v++)
                 {
-                    Vector3 d = v == 0 ? -hero.forward * 5f + Vector3.up * 3f : (hero.right * 0.9f - hero.forward * 0.6f).normalized * 6.5f + Vector3.up * 1.2f;
+                    Vector3 d = v == 0 ? -hero.forward * (close ? 3.2f : 5f) + Vector3.up * (close ? 1.6f : 3f) : (hero.right * 0.9f - hero.forward * 0.6f).normalized * (close ? 3.6f : 6.5f) + Vector3.up * (close ? 0.6f : 1.2f);
                     cam.transform.position = at + d; cam.transform.LookAt(at);
                     cam.Render(); RenderTexture.active = rt; sheet.ReadPixels(new Rect(0, 0, W, H), i * W, (5 - (row * 2 + v)) * H); RenderTexture.active = null;
                 }

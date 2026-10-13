@@ -210,20 +210,24 @@ public class AHWingRig : MonoBehaviour
         float open = Mathf.Clamp01(Mathf.Max(air, Mathf.Max(stretch, Mathf.Max(run * 0.55f, flare * 0.85f))));
         // downstroke quick, upstroke slow: a skewed wave
         Func<float, float> stroke = p => { float sn = Mathf.Sin(p); return sn > 0f ? Mathf.Pow(sn, 0.7f) : -Mathf.Pow(-sn, 1.4f) * 0.8f; };
-        float beatAmp = (air * pAmp * (1f - glide * 0.85f) + stretch * 22f + run * 6f) * ampK;
+        float beatAmp = (air * pAmp * (1f - glide * 0.85f) + stretch * 5f + run * 6f) * ampK;
         float st = stroke(ph); if (st > 0f && Stroke <= 0f) Beats++; Stroke = st; Open = open;
-        // the bend travels out along the wing: the wrist after the shoulder, the tip after the wrist
+        // the beat is the wing rising and falling (seen from behind, as a real wing beats), with a smaller sweep forward
+        // on the downstroke and back on the upstroke; the bend travels out along the wing, so the wrist follows the
+        // shoulder and the tip follows the wrist: the tip trails as the wing rises and whips through as it comes down
         float wl = 0.9f * pBend;
-        float flap0 = st * beatAmp, flap1 = stroke(ph - wl) * beatAmp * 0.7f, flap2 = stroke(ph - 2f * wl) * beatAmp * 0.55f;
-        // on the upstroke the wing half folds (less air against it); on the downstroke it spreads full
+        float s0 = st, s1 = stroke(ph - wl), s2 = stroke(ph - 2f * wl);
+        float lift0 = -s0 * beatAmp, lift1 = -(s1 - s0) * beatAmp * 0.55f, lift2 = -(s2 - s1) * beatAmp * 0.45f;
+        float swing0 = -s0 * beatAmp * 0.28f, swing1 = -(s1 - s0) * beatAmp * 0.18f, swing2 = -(s2 - s1) * beatAmp * 0.15f;
+        // on the upstroke the outer wing half folds (less air against it); on the downstroke it spreads full
         float upF = air * (1f - glide) * Mathf.Clamp01(-Mathf.Sin(ph - wl * 0.5f));
         // and it turns about its length: the leading edge down as it beats down, up as it rises
-        float twist = Mathf.Cos(ph) * beatAmp * 0.35f;
-        // gliding: small steering corrections and a lifted, shallow V
+        float twist = Mathf.Cos(ph) * beatAmp * 0.3f;
+        // gliding: held wide in a shallow V, small steering corrections
         float gAdj = glide * N(0.8f, 5f) * 5f;
         // a living wing is never quite still
         float m0 = N(0.25f, 10f) * 2.2f, m1 = N(0.35f, 20f) * 2.6f, m2 = N(0.5f, 30f) * 3.4f;
-        float shiver = pShiver * (Mathf.Sin(t * 41f) * 0.6f + Mathf.Sin(t * 67f) * 0.4f) * (0.5f + run + air * 1.5f);
+        float shiver = pShiver * (Mathf.Sin(t * 41f) * 0.6f + Mathf.Sin(t * 67f) * 0.4f) * (0.5f + run + air * 1.5f + stretch * 1.5f);
         float sway = pSway * Mathf.Sin(t * 0.9f) * 3f;
         // the wind of running lifts the trailing tips and makes them flutter
         float flutter = run * (Mathf.Sin(t * 17f) * 3f + Mathf.Sin(t * 29f) * 1.5f);
@@ -232,18 +236,20 @@ public class AHWingRig : MonoBehaviour
         // lag: turning swings the wings the other way, speeding up sweeps them back
         float lag = Mathf.Clamp(-yawRate * 0.04f, -14f, 14f) * sx + flat * 1.2f;
         float br = Mathf.Sin(breathe) * 2.5f * (1f - open);
-        // targets (degrees): flap (about the wing's up), lift (about its normal), fold (the wrist and tip folding down),
-        // twist (about its length)
+        // a stretch: the wings rise and reach forward, open full, quiver at the top, then settle back
+        float reach = stretch * stretch;
+        // targets (degrees): swing (about the wing's up: forward and back), lift (about its normal: up and down),
+        // twist (about its length); folded at rest (swept back, the wrist and tip folded down)
         float fold = Mathf.Lerp(1f, 0f, open);
         float fa = air > 0.3f ? 4.5f : 2.2f;
-        Spring(0, flap0 + lag * 0.5f + rock + fold * 22f + m0 + gAdj, fa * pK, dt);
-        Spring(1, Mathf.Lerp(-10f, 12f, open) + br + rock * 0.5f + m0 * 0.6f + glide * 7f + shake * 3f, 2.0f * pK, dt);
+        Spring(0, swing0 + lag * 0.5f + rock + fold * 22f - reach * 14f + m0 + gAdj, fa * pK, dt);
+        Spring(1, lift0 + Mathf.Lerp(-10f, 8f, open) + air * 6f + reach * 22f + br + rock * 0.5f + m0 * 0.6f + glide * 7f + shake * 3f, fa * pK, dt);
         Spring(2, twist * 0.4f + N(0.3f, 40f) * 1.5f, 3f * pK, dt);
-        Spring(3, flap1 + lag * 0.4f + m1 + sway * 0.5f, (air > 0.3f ? 4f : 2.4f) * pK, dt);
-        Spring(4, -fold * 48f - upF * 30f + br * 0.6f + run * 10f + m1 * 0.7f + shake * 6f, 2.2f * pK, dt);
+        Spring(3, swing1 + lag * 0.4f + m1 + sway * 0.5f, (air > 0.3f ? 4f : 2.4f) * pK, dt);
+        Spring(4, lift1 - fold * 48f - upF * 16f + br * 0.6f + run * 10f + reach * 6f + m1 * 0.7f + shake * 6f + shiver * 0.4f, (air > 0.3f ? 4f : 2.2f) * pK, dt);
         Spring(5, twist * 0.7f, 3.4f * pK, dt);
-        Spring(6, flap2 + lag * 0.3f + flutter + m2 + shiver + sway, (air > 0.3f ? 3.6f : 3.2f) * pK, dt);
-        Spring(7, -fold * 34f - upF * 22f + run * 8f + flutter * 0.4f + shake * 9f + shiver * 0.5f + m2 * 0.5f, 2.6f * pK, dt);
+        Spring(6, swing2 + lag * 0.3f + flutter + m2 + shiver + sway, (air > 0.3f ? 3.6f : 3.2f) * pK, dt);
+        Spring(7, lift2 - fold * 34f - upF * 12f + run * 8f + flutter * 0.4f + shake * 9f + shiver * 0.6f + m2 * 0.5f, (air > 0.3f ? 3.8f : 2.6f) * pK, dt);
         Spring(8, twist + flutter * 0.5f, 3.8f * pK, dt);
         // apply, mirrored for the left wing (flap about the wing's up axis, lift and fold about its normal; the twist
         // about its length is the same both sides)
