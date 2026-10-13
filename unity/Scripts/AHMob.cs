@@ -108,6 +108,9 @@ public class AHMob : MonoBehaviour
         }
         m.baseLocal = m.model.transform.localPosition; m.baseScale = m.model.transform.localScale;
         m.height = person != null ? personH : AHModel.LastHeight;
+        // feet on the ground: some models stand above (or sink into) the ground in their own idle and walk, measured by
+        // the editor's Monster Feet Check into AH/Data/mob_feet (the gap as a share of the monster's height)
+        float ff = FeetFix(t.id); if (ff != 0f) { m.baseLocal -= Vector3.up * ff * m.height; m.model.transform.localPosition = m.baseLocal; }
         AHModel.SetShadows(m.model);
         m.hasClips = m.anim != null && m.anim.HasClips;
         m.wanderWait = Random.Range(0.5f, 4f);
@@ -117,6 +120,18 @@ public class AHMob : MonoBehaviour
     }
 
     void OnDestroy() { if (anim != null) anim.Dispose(); }
+
+    static System.Collections.Generic.Dictionary<string, object> feetFix;
+    public static float FeetFix(string id)
+    {
+        if (feetFix == null)
+        {
+            var ta = Resources.Load<TextAsset>("AH/Data/mob_feet");
+            feetFix = (ta != null ? AHJson.Parse(ta.text) : null) as System.Collections.Generic.Dictionary<string, object> ?? new System.Collections.Generic.Dictionary<string, object>();
+        }
+        return id != null && feetFix.ContainsKey(id) ? (float)AHJson.N(feetFix, id, 0) : 0f;
+    }
+    public static void FeetReload() { feetFix = null; }
 
     // ---------- web MOB_SKINS: real models for some beasts ----------
     object skin;
@@ -399,6 +414,7 @@ public class AHMob : MonoBehaviour
 
     void Update()
     {
+        if (model == null) { enabled = false; return; }   // a build that failed part way (nothing to move)
         float dt = Time.deltaTime;
         if (dt <= 0f) return;
         if (anim != null) anim.Tick(dt);
