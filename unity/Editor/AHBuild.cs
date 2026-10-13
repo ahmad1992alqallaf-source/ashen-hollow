@@ -54,7 +54,7 @@ public static class AHBuild
             locationPathName = "Builds/AshenHollow.apk",
             target = BuildTarget.Android,
             targetGroup = BuildTargetGroup.Android,
-            options = (run ? BuildOptions.AutoRunPlayer : BuildOptions.None) | BuildOptions.CompressWithLz4HC   // packed tighter: smaller on the phone, same quality (the build takes a little longer)
+            options = run ? BuildOptions.AutoRunPlayer : BuildOptions.None   // (LZ4HC was tried: 717 MB against 648; the APK's own zip packs the loose data better)
         };
         var report = BuildPipeline.BuildPlayer(opts);
         var s = report.summary;
