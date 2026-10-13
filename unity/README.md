@@ -570,6 +570,8 @@ Played on a real Android phone (an Honor foldable). Fixed from that test:
   coloured with the Imphenzia PixPal palette (CC0).
 - Velociraptor, Pachycephalosaurus and Stegosaurus models, animations and sounds: 'PBR Animated Dinosaurs' by Ferocious
   Industries (Unity Asset Store, free).
+- 'Horse' by henrysteve973 (Henry S, sketchfab.com/henrysteve973), CC-BY 4.0 (https://sketchfab.com/3d-models/horse-a6f860e43e364619bccb174a1ac7d0c9): all six horse mounts, recoloured, with a caparison, a horn or horns added for the destrier, the Goldhorn steed and the gladiator's warhorse.
+- 'Magic Wolf' by alice.duarte13 (sketchfab.com/liiceduarte), CC-BY 4.0 (https://sketchfab.com/3d-models/magic-wolf-2b183ca4a3984c1385856ca864c7508c): the Frost dire wolf (recoloured) and the Glacier wolf, with the horse's saddle added.
 - 'Phoenix on fire update' by NORBERTO-3D (sketchfab.com/norberto3d), CC-BY 4.0. The scorpion, the pteranodon, the
   grim reaper and the skeleton mage are free downloads without licence notes in their files; check their pages
   before release.

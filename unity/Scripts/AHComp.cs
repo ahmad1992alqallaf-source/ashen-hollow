@@ -165,6 +165,8 @@ public static class AHComp
         else { AHAnim a; AHModel.Spawn(holder.transform, "Comp/mount_" + p.mountSel, 0f, false, 0f, out a); if (a != null && a.HasClips) holder.AddComponent<AHMountGait>().Setup(a, p); else if (a != null) a.Dispose(); }
         // some mounts are made small (the wolves): grown to a riding size
         float msc = (float)AHJson.N(AHJson.O(Mounts, p.mountSel), "scale", 1); if (msc != 1f) holder.transform.localScale = Vector3.one * msc;
+        // the Voidwing: a black horse with great dark feathered wings on its shoulders
+        if (p.mountSel == "voidwing") holder.AddComponent<AHMountWings>();
         foreach (var c in holder.GetComponentsInChildren<Collider>()) Object.Destroy(c);
         AHModel.SetShadows(holder);
         p.mountGo = holder; p.mounted = true; p.seatY = p.mountSel == AHPhoenix.Id && holder.GetComponentInChildren<AHPhoenixRide>() != null ? AHPhoenixRide.Seat + 0.4f : Seat(p.mountSel);
@@ -580,7 +582,7 @@ public class AHMountGait : MonoBehaviour
     // feet planted on the ground (measured from the clip itself). The rider rises and falls with the mount's back.
     public static bool TestRun;   // (editor test: gallop on the spot)
     AHAnim anim; AHPlayer p; float idleT;
-    string walk, run; float walkV, runV; bool measured, running;
+    string walk, run, trot; float walkV, runV, trotV; bool measured, running, trotting;
     Vector3 lastPos; float gs;   // ground speed, smoothed (m/s)
     Transform back; Vector3 back0; int restN; float bobY, bobZ; Transform rig; float rigZ0 = float.NaN;
     // the raptors' own run hardly bends the body: a swaying tail, a rolling spine and a steadied head added on top
@@ -595,6 +597,7 @@ public class AHMountGait : MonoBehaviour
         walk = anim.Has("Walk") ? "Walk" : null;
         run = anim.Has("Gallop") ? "Gallop" : anim.Has("Run") ? "Run" : walk;
         if (walk == null) walk = run;
+        trot = anim.Has("Trot") ? "Trot" : null;   // (the wolves: walk, trot, then run)
     }
 
     static Transform[] Feet(Transform root)
@@ -623,19 +626,27 @@ public class AHMountGait : MonoBehaviour
     {
         measured = true;
         var feet = Feet(transform);
-        var body = Find(transform, "Root", "root", "Hips", "Pelvis", "Torso", "Body");
+        var body = Find(transform, "Root", "root", "Hips", "Pelvis", "Torso", "Body", "BN_Root_01", "BN_Pelvis_060");
         walkV = walk != null ? anim.StrideSpeed(walk, transform, feet, body) : 0f;
         runV = run != null ? anim.StrideSpeed(run, transform, feet, body) : 0f;
+        trotV = trot != null ? anim.StrideSpeed(trot, transform, feet, body) : 0f;
         // nothing sensible measured: the old fixed rates (about 1.6 m/s walking, 6 galloping, for a horse)
         float size = 1f; foreach (var r in GetComponentsInChildren<Renderer>()) size = Mathf.Max(size, r.bounds.size.y);
         if (walkV < 0.3f || walkV > 6f) walkV = 0.7f * size;
         if (runV < 1f || runV > 20f) runV = 2.6f * size;
         if (runV < walkV * 1.3f) runV = walkV * 2.5f;
+        if (trot != null && (trotV <= walkV * 1.1f || trotV >= runV)) trotV = (walkV + runV) * 0.5f;
         var tl = new List<Transform>(); var sp = new List<Transform>(); var nk = new List<Transform>();
         for (int i = 1; i <= 8; i++) { var t = Find(transform, "Tail_" + i); if (t != null) tl.Add(t); var q = Find(transform, "Spine_" + i); if (q != null) sp.Add(q); var n = Find(transform, "Neck_" + i); if (n != null) nk.Add(n); }
         if (tl.Count >= 3 && sp.Count >= 1) { tail = tl.ToArray(); spine = sp.ToArray(); neck = nk.ToArray(); }
         back = Find(transform, "Torso2", "Back", "Torso", "Spine_2", "Spine_1", "B_Spine_02", "Spine", "spine", "Hips", "Pelvis");
-        Debug.Log("Ashen Hollow: mount " + p.mountSel + " walk " + walkV.ToString("F2") + " m/s, " + run + " " + runV.ToString("F2") + " m/s, " + feet.Length + " feet, back " + (back != null ? back.name : "-"));
+        if (back == null)
+        {
+            // other skeletons (BN_Spine_00_02 ...): the middle one of the bones named like a spine
+            var sp2 = new List<Transform>(); foreach (var t in GetComponentsInChildren<Transform>()) if (t.name.ToLowerInvariant().Contains("spine") && !t.name.EndsWith("_end")) sp2.Add(t);
+            if (sp2.Count > 0) back = sp2[sp2.Count / 2];
+        }
+        Debug.Log("Ashen Hollow: mount " + p.mountSel + " walk " + walkV.ToString("F2") + " m/s, " + (trot != null ? "trot " + trotV.ToString("F2") + " m/s, " : "") + run + " " + runV.ToString("F2") + " m/s, " + feet.Length + " feet, back " + (back != null ? back.name : "-"));
     }
 
     void Update()
@@ -652,14 +663,22 @@ public class AHMountGait : MonoBehaviour
             idleT = 0f;
             // walk up to a brisk walk, then the run; a little either way of the change so it does not flicker
             // (a slowed-down gallop looks like hopping on the spot: below the change it walks, quickening into a trot)
-            float change = Mathf.Max(walkV * 1.9f, runV * 0.55f);
+            float change = trot != null ? Mathf.Max(trotV * 1.5f, runV * 0.6f) : Mathf.Max(walkV * 1.9f, runV * 0.55f);
             if (running && gs < change * 0.85f) running = false; else if (!running && gs > change * 1.05f) running = true;
-            playing = running ? run : walk; playSpeed = running ? Mathf.Clamp(gs / runV, 0.9f, 1.9f) : Mathf.Clamp(gs / walkV, 0.5f, 2.0f);
+            if (!running && trot != null)
+            {
+                // between the walk and the run: a trot
+                float tIn = walkV * 1.5f;
+                if (trotting && gs < tIn * 0.85f) trotting = false; else if (!trotting && gs > tIn) trotting = true;
+            }
+            else trotting = false;
+            playing = running ? run : trotting ? trot : walk;
+            playSpeed = running ? Mathf.Clamp(gs / runV, 0.9f, 1.9f) : trotting ? Mathf.Clamp(gs / trotV, 0.7f, 1.8f) : Mathf.Clamp(gs / walkV, 0.5f, 2.0f);
             anim.Play(playing, true, playSpeed);
         }
         else
         {
-            running = false; idleT += dt; playing = null;
+            running = false; trotting = false; idleT += dt; playing = null;
             // now and then it lowers its head or shifts its weight
             string idle = idleT > 9f && idleT < 13f ? (anim.Has("Idle_Headlow") ? "Idle_Headlow" : "Idle_2_HeadLow") : idleT > 20f && idleT < 23f ? "Idle_2" : "Idle";
             if (idleT > 23f) idleT = 0f;
@@ -723,7 +742,8 @@ public class AHMountGait : MonoBehaviour
             for (int sm = 0; sm < mesh.subMeshCount; sm++)
             {
                 string mn = sm < mats.Length && mats[sm] != null ? mats[sm].name.ToLowerInvariant() : "";
-                bool isSaddle = mn.Contains("saddle") || mn.Contains("blanket") || mn.Contains("seat");
+                string rn = smr.name.ToLowerInvariant();   // (the bridle can share the saddle's leather: not the seat)
+                bool isSaddle = (mn.Contains("saddle") || mn.Contains("blanket") || mn.Contains("seat")) && !rn.Contains("bridle") && !rn.Contains("rein") && !rn.Contains("head");
                 var tri = mesh.GetTriangles(sm);
                 for (int i = 0; i < tri.Length; i += 3) { var q = Local(m.MultiplyPoint3x4(vs[tri[i]])); pts.Add(q); if (isSaddle) sad.Add(q); }
             }
@@ -735,7 +755,7 @@ public class AHMountGait : MonoBehaviour
         else
         {
             // between the hind legs and the forelegs
-            var hind = Find(transform, "BackShoulder.L", "BackUpperLeg.L", "Thigh.L", "Hip.L", "Pelvis.L"); var fore = Find(transform, "FrontShoulder.L", "FrontUpperLeg.L", "Shoulder.L", "UpperArm.L");
+            var hind = Find(transform, "BackShoulder.L", "BackUpperLeg.L", "Thigh.L", "Hip.L", "Pelvis.L", "BN_L_Calf_052"); var fore = Find(transform, "FrontShoulder.L", "FrontUpperLeg.L", "Shoulder.L", "UpperArm.L", "BN_L_UpperArm_039");
             if (hind == null || fore == null) return false;
             float a = Local(hind.position).z, b = Local(fore.position).z; if (a > b) { float t = a; a = b; b = t; }
             zMin = a + (b - a) * 0.25f; zMax = a + (b - a) * 0.8f;
@@ -821,5 +841,58 @@ public class AHMountGait : MonoBehaviour
         if (link != null) link.ride = 0f;
         if (rig != null && !float.IsNaN(rigZ0)) { var lp = rig.localPosition; lp.z = rigZ0; rig.localPosition = lp; }
         if (anim != null) anim.Dispose();
+    }
+}
+
+// feathered wings on a mount's shoulders (the Voidwing): they follow the top of its back, held half open and swept back,
+// beating slowly while it stands and harder at the gallop
+public class AHMountWings : MonoBehaviour
+{
+    Transform spine; Transform[] wings = new Transform[2]; AHPlayer p; float t, amp;
+    static Material Mat(Color c, float glow)
+    {
+        var m = new Material(Shader.Find("Universal Render Pipeline/Lit")); m.SetColor("_BaseColor", c); m.SetFloat("_Smoothness", 0.35f);
+        if (glow > 0f) { m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", c * glow); }
+        return m;
+    }
+    void Start()
+    {
+        p = GetComponentInParent<AHPlayer>();
+        var sp = new List<Transform>(); foreach (var t2 in GetComponentsInChildren<Transform>()) if (t2.name.ToLowerInvariant().Contains("spine") && !t2.name.EndsWith("_end")) sp.Add(t2);
+        // the withers: the spine bone nearest the front legs
+        if (sp.Count > 0) spine = sp[Mathf.Min(sp.Count - 1, (sp.Count * 3) / 4)];
+        Material feath = Mat(new Color(0.09f, 0.06f, 0.2f), 0.15f), under = Mat(new Color(0.18f, 0.1f, 0.36f), 0.35f), cov = Mat(new Color(0.05f, 0.04f, 0.1f), 0f), arm = Mat(new Color(0.12f, 0.1f, 0.16f), 0f);
+        for (int s = 0; s < 2; s++)
+        {
+            int sx = s == 0 ? -1 : 1;
+            var root = new GameObject("MountWing").transform; root.SetParent(transform, false);
+            var wg = new GameObject("WingShape").transform; wg.SetParent(root, false);
+            Vector3 ws = new Vector3(sx * 1.5f, 1.4f, 1.5f);
+            Piece(wg, AHWardrobe.WingFeathers, new Vector3(0, 0, 0.02f), new Vector3(sx * 1.35f, 1.25f, 1.35f), under);
+            Piece(wg, AHWardrobe.WingFeathers, Vector3.zero, ws, feath);
+            Piece(wg, AHWardrobe.WingCoverts, new Vector3(0, 0, -0.012f), ws, cov);
+            Piece(wg, AHWardrobe.WingArm, new Vector3(0, 0, -0.02f), ws, arm);
+            wings[s] = root;
+        }
+    }
+    static void Piece(Transform parent, Mesh mesh, Vector3 pos, Vector3 scale, Material m)
+    {
+        var o = new GameObject("Piece"); o.transform.SetParent(parent, false); o.transform.localPosition = pos; o.transform.localScale = scale;
+        o.AddComponent<MeshFilter>().sharedMesh = mesh; var r = o.AddComponent<MeshRenderer>(); r.sharedMaterial = m;
+    }
+    void LateUpdate()
+    {
+        if (wings[0] == null) return;
+        float dt = Time.deltaTime; bool moving = p != null && p.Moving;
+        amp = Mathf.Lerp(amp, moving ? 1f : 0.3f, 1f - Mathf.Exp(-dt * 2.5f));
+        t += dt * (1.4f + amp * 3.2f);
+        float beat = Mathf.Sin(t) * (6f + amp * 22f);
+        Vector3 at = spine != null ? spine.position : transform.position + transform.up * 1.4f;
+        for (int s = 0; s < 2; s++)
+        {
+            int sx = s == 0 ? -1 : 1; var w = wings[s];
+            w.position = at + transform.up * 0.12f + transform.right * sx * 0.16f;
+            w.rotation = transform.rotation * Quaternion.Euler(-8f, sx * (28f + amp * 12f), sx * 12f - sx * beat);
+        }
     }
 }

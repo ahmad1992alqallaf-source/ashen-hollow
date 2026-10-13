@@ -64,7 +64,7 @@
    "price": 7800,
    "speed": 1.75,
    "blurb": "Bred in Highcairn. Runs on snow like it is road.",
-   "scale": 1.5
+   "scale": 1.0
   },
   "raptor": {
    "name": "Island raptor",
@@ -99,7 +99,7 @@
    "speed": 1.9,
    "rare": true,
    "blurb": "Rimeclaw’s pup, grown huge and loyal. Rare drop.",
-   "scale": 1.6
+   "scale": 1.0
   },
   "dunestrider": {
    "name": "Dunestrider",
