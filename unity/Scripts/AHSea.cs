@@ -277,7 +277,8 @@ public static class AHSea
     public static bool Sea(Vector3 p, float r = 0f)
     {
         if (!On || wet == null) return false;
-        int R = Mathf.CeilToInt(r / Cell), cx = Mathf.FloorToInt((p.x - x0) / Cell), cz = Mathf.FloorToInt((p.z - z0) / Cell);
+        // (past the edge of the ground: as at the edge, where the open sea carries on)
+        int R = Mathf.CeilToInt(r / Cell), cx = Mathf.Clamp(Mathf.FloorToInt((p.x - x0) / Cell), 0, nx - 1), cz = Mathf.Clamp(Mathf.FloorToInt((p.z - z0) / Cell), 0, nz - 1);
         for (int z = cz - R; z <= cz + R; z += Mathf.Max(1, R / 3))
             for (int x = cx - R; x <= cx + R; x += Mathf.Max(1, R / 3))
                 if (x >= 0 && z >= 0 && x < nx && z < nz && wet[z * nx + x]) return true;
