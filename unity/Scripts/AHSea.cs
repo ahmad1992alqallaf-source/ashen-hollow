@@ -64,7 +64,8 @@ public static class AHSea
                     U0 = ta - Ux * pa.x - Uz * pa.y; mapped = true;
                 }
             }
-            if (!mapped) { Ux = new Vector2(1f / Mathf.Max(0.01f, b.size.x), 0f); Uz = new Vector2(0f, 1f / Mathf.Max(0.01f, b.size.z)); U0 = new Vector2(-b.min.x * Ux.x, -b.min.z * Uz.y); }
+            // (every land's world model so far lies mirrored east to west: the picture's left edge on the ground's east side)
+            if (!mapped) { Ux = new Vector2(-1f / Mathf.Max(0.01f, b.size.x), 0f); Uz = new Vector2(0f, 1f / Mathf.Max(0.01f, b.size.z)); U0 = new Vector2(b.max.x / Mathf.Max(0.01f, b.size.x), -b.min.z * Uz.y); }
             // the picture read back (whatever its import settings), then looked up cell by cell
             int tw = Mathf.Clamp(tex.width, 16, 1024), th = Mathf.Clamp(tex.height, 16, 1024);
             var rt = RenderTexture.GetTemporary(tw, th, 0, RenderTextureFormat.ARGB32);
