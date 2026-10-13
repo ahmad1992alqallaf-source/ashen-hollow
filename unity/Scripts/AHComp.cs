@@ -155,6 +155,20 @@ public static class AHComp
 
     public static void ToggleRide(AHGame g) { if (g.player.mounted) Dismount(g, false); else Mount(g); }
 
+    // TESTING: every mount can be ridden from PETS -> "All mounts", owned or not. Turn this off before release.
+    public const bool TestMounts = true;
+    static string trialPrev; static bool inTrial;
+    // ride any mount for a try: nothing is learned or saved, and getting off gives you back your own mount
+    public static void Try(AHGame g, string k)
+    {
+        var p = g.player;
+        if (p.mounted) Dismount(g, true);
+        if (!inTrial) { trialPrev = p.mountSel; inTrial = true; }
+        p.mountSel = k; Mount(g);
+        if (!p.mounted) EndTrial(p);
+    }
+    static void EndTrial(AHPlayer p) { if (!inTrial) return; inTrial = false; p.mountSel = trialPrev; trialPrev = null; }
+
     public static void Mount(AHGame g)
     {
         var p = g.player; if (p.mounted || !CanRide(g, true)) return;
@@ -180,6 +194,7 @@ public static class AHComp
         var p = g.player; if (!p.mounted) return;
         p.mounted = false; p.seatY = 0f;
         if (p.mountGo != null) Object.Destroy(p.mountGo); p.mountGo = null;
+        EndTrial(p);
         if (!quiet) AHFx.Ring(p.transform.position, 0.4f, 1.6f, new Color(0.85f, 0.75f, 0.55f, 0.8f), 0.5f);
         g.ui.RefreshRide();
     }
@@ -188,7 +203,7 @@ public static class AHComp
     static float mountAcc;
     public static void RideTick(AHGame g, float dist)
     {
-        var p = g.player; if (!p.mounted || p.mountSel == null) return;
+        var p = g.player; if (!p.mounted || p.mountSel == null || !p.mounts.Contains(p.mountSel)) return;   // (a mount only being tried learns nothing)
         mountAcc += dist / AHDB.S;
         if (mountAcc < 200f) return;
         string k = p.mountSel; int b = MountLv(p, k); long x; p.mountXp.TryGetValue(k, out x); p.mountXp[k] = x + (long)mountAcc; mountAcc = 0f;
@@ -611,7 +626,7 @@ public class AHMountGait : MonoBehaviour
             {
                 string n = q.name.ToLowerInvariant();
                 if (n.Contains("tail") || n.Contains("wing") || n.Contains("arm") || n.Contains("hand") || n.Contains("finger") || n.Contains("pole") || n.EndsWith("ik") || n.Contains("ik.") || n.Contains("ik_")) break;
-                if (n.Contains("leg") || n.Contains("foot") || n.Contains("toe") || n.Contains("hoof") || n.Contains("ankle") || n.Contains("calf") || n.Contains("thigh") || n.Contains("shin")) { l.Add(t); break; }
+                if (n.Contains("leg") || n.Contains("foot") || n.Contains("toe") || n.Contains("hoof") || n.Contains("ankle") || n.Contains("calf") || n.Contains("thigh") || n.Contains("shin") || n.Contains("pfote") || n.Contains("schenkel")) { l.Add(t); break; }   // (the wolf's rig names its paws in German)
             }
         }
         return l.ToArray();
@@ -640,7 +655,7 @@ public class AHMountGait : MonoBehaviour
         var tl = new List<Transform>(); var sp = new List<Transform>(); var nk = new List<Transform>();
         for (int i = 1; i <= 8; i++) { var t = Find(transform, "Tail_" + i); if (t != null) tl.Add(t); var q = Find(transform, "Spine_" + i); if (q != null) sp.Add(q); var n = Find(transform, "Neck_" + i); if (n != null) nk.Add(n); }
         if (tl.Count >= 3 && sp.Count >= 1) { tail = tl.ToArray(); spine = sp.ToArray(); neck = nk.ToArray(); }
-        back = Find(transform, "Torso2", "Back", "Torso", "Spine_2", "Spine_1", "B_Spine_02", "Spine", "spine", "Hips", "Pelvis");
+        back = Find(transform, "Torso2", "Back", "Torso", "Spine_2", "Spine_1", "B_Spine_02", "Spine", "spine", "Bauch.001", "Brust", "Hips", "Pelvis");
         if (back == null)
         {
             // other skeletons (BN_Spine_00_02 ...): the middle one of the bones named like a spine
@@ -756,7 +771,7 @@ public class AHMountGait : MonoBehaviour
         else
         {
             // between the hind legs and the forelegs
-            var hind = Find(transform, "BackShoulder.L", "BackUpperLeg.L", "Thigh.L", "Hip.L", "Pelvis.L", "BN_L_Calf_052"); var fore = Find(transform, "FrontShoulder.L", "FrontUpperLeg.L", "Shoulder.L", "UpperArm.L", "BN_L_UpperArm_039");
+            var hind = Find(transform, "BackShoulder.L", "BackUpperLeg.L", "Thigh.L", "Hip.L", "Pelvis.L", "BN_L_Calf_052", "Oberschenkel_L"); var fore = Find(transform, "FrontShoulder.L", "FrontUpperLeg.L", "Shoulder.L", "UpperArm.L", "BN_L_UpperArm_039", "Oberarm_L");
             if (hind == null || fore == null) return false;
             float a = Local(hind.position).z, b = Local(fore.position).z; if (a > b) { float t = a; a = b; b = t; }
             zMin = a + (b - a) * 0.25f; zMax = a + (b - a) * 0.8f;

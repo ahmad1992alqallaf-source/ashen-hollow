@@ -268,6 +268,29 @@ public partial class AHUI
 
     // ---------- a pet's skills, in numbers (from the companions page) ----------
     string petInfo;
+    // TESTING: every mount in the game, each with a Ride button (AHComp.TestMounts)
+    void RenderMountTest(AHPlayer p)
+    {
+        wkTitle.text = "All mounts (testing)";
+        wkHint.text = "Tap Ride to try any mount. Nothing is bought or learned, and getting off gives you back your own mount. You can’t mount up in a fight, in a dungeon or in the dark.";
+        var rows = new List<Action<int>>();
+        rows.Add(slot => Row(slot, "Back to companions", Color.white, "", "", new WkBtn { label = "Back", on = true, col = Plain, act = () => { wkMode = "comp"; wkPageI = 0; RenderWork(); } }));
+        var all = AHComp.Mounts;
+        if (all != null)
+            foreach (var kv in all)
+            {
+                string k = kv.Key; var m = AHJson.O(all, k);
+                bool riding = p.mounted && p.mountSel == k, own = p.mounts.Contains(k);
+                float sp = (float)AHJson.N(m, "speed", 1.5);
+                rows.Add(slot => Row(slot, AHComp.MountName(k) + (riding ? "  <color=#9be37a>riding</color>" : own ? "  <color=#c8b89a>yours</color>" : ""), new Color(1f, 0.62f, 0.24f),
+                    "+" + Mathf.RoundToInt((sp - 1f) * 100f) + "% speed · " + k, AHJson.S(m, "blurb"),
+                    riding ? new WkBtn { label = "Get off", on = true, col = Plain, act = () => { AHComp.Dismount(g, false); RenderWork(); } }
+                           : new WkBtn { label = "Ride", on = true, col = Go, act = () => { ShowWork(false); AHComp.Try(g, k); } }));
+            }
+        int from = Paged(rows.Count);
+        for (int i = from; i < Mathf.Min(rows.Count, from + RowsPerPage); i++) rows[i](i - from);
+    }
+
     void RenderPetInfo(AHPlayer p)
     {
         string k = petInfo; if (k == null) { wkMode = "comp"; RenderComp(p); return; }
@@ -304,6 +327,9 @@ public partial class AHUI
         wkTitle.text = "Companions";
         wkHint.text = "Pets level up when you win fights with them out, or when you feed them. Mounts level up as you ride. Buy pets at a menagerie, mounts at a stable, and hire sellswords at a tavern.";
         var rows = new List<Action<int>>();
+        if (AHComp.TestMounts)
+            rows.Add(slot => Row(slot, "All mounts (testing)", new Color(0.62f, 0.85f, 1f), "Ride any mount in the game to try it", "Nothing is bought or learned: getting off gives you back your own mount.",
+                new WkBtn { label = "Open", on = true, col = Go, act = () => { wkMode = "mounttest"; wkPageI = 0; RenderWork(); } }));
         var skills = AHDB.List("companions", "PET_SKILLS");
         foreach (var k in p.pets)
         {
