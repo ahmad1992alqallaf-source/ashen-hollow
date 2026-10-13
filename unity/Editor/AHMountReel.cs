@@ -38,7 +38,7 @@ public static class AHMountReel
             p.mountSel = k; AHComp.Mount(g);
             if (!p.mounted) { names.AppendLine(k + "\t(could not ride here)"); continue; }
             names.AppendLine(n.ToString("00") + "_" + k + "\t" + AHComp.MountName(k));
-            yield return new WaitForSecondsRealtime(1.2f);
+            yield return new WaitForSecondsRealtime(2.2f);   // standing: the mount learns its back and seats the rider
             string sd = Path.Combine(root, n.ToString("00") + "_" + k); Directory.CreateDirectory(sd);
             foreach (var f in Directory.GetFiles(sd, "*.jpg")) File.Delete(f);
             Vector3 fwd = p.transform.forward; fwd.y = 0f; fwd.Normalize(); Vector3 side = Vector3.Cross(Vector3.up, fwd);

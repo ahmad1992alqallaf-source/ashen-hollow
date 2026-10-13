@@ -585,6 +585,9 @@ public class AHMountGait : MonoBehaviour
     Transform back; Vector3 back0; int restN; float bobY, bobZ; Transform rig; float rigZ0 = float.NaN;
     // the raptors' own run hardly bends the body: a swaying tail, a rolling spine and a steadied head added on top
     Transform[] tail, spine, neck; float phase, sway; string playing; float playSpeed = 1f;
+    // the saddle: where on the mount's back the rider's hips belong (found from the mount's own mesh), and how far the
+    // rider has been moved to sit there
+    string seatNote = ""; bool seatFound; Vector3 seat; float seatDz; int seatPass, seatFrame; Transform hips;
     public string State { get { return (playing ?? "idle") + " x" + playSpeed.ToString("F2") + " at " + gs.ToString("F2") + " m/s (walk " + walkV.ToString("F2") + ", run " + runV.ToString("F2") + ")"; } }
     public void Setup(AHAnim a, AHPlayer who)
     {
@@ -675,13 +678,117 @@ public class AHMountGait : MonoBehaviour
         // where the back sits at rest: learned over the first half second standing still
         if (restN < 30 && gs < 0.3f) { back0 = restN == 0 ? local : Vector3.Lerp(back0, local, 1f / (restN + 1)); restN++; }
         if (restN == 0) return;
+        if (restN >= 30 && seatPass < 3 && gs < 0.3f && Time.frameCount - seatFrame > 15) { seatFrame = Time.frameCount; SitOnSaddle(); }   // a few frames apart: the body takes a frame to follow
         float k = 1f - Mathf.Exp(-Time.deltaTime * 30f);
         bobY = Mathf.Lerp(bobY, Mathf.Clamp(local.y - back0.y, -0.35f, 0.3f), k);
         bobZ = Mathf.Lerp(bobZ, Mathf.Clamp(local.z - back0.z, -0.2f, 0.2f), k);
         p.seatBob = bobY;
         if (rig == null && p.Model != null) rig = p.Model.transform;
-        if (rig != null) { if (float.IsNaN(rigZ0)) rigZ0 = rig.localPosition.z; var lp = rig.localPosition; lp.z = rigZ0 + bobZ; rig.localPosition = lp; }
+        if (rig != null) { if (float.IsNaN(rigZ0)) rigZ0 = rig.localPosition.z; var lp = rig.localPosition; lp.z = rigZ0 + seatDz + bobZ; rig.localPosition = lp; }
     }
+    // a point in the mount's own frame (metres: x right, y up, z forward)
+    Vector3 Local(Vector3 w) { Vector3 d = w - transform.position; return new Vector3(Vector3.Dot(d, transform.right), Vector3.Dot(d, transform.up), Vector3.Dot(d, transform.forward)); }
+
+    // the seat of the saddle: the low point of the back between the pommel and the cantle (or the middle of the saddle
+    // blanket when the saddle is its own part), measured on the mesh as it stands now
+    bool FindSeat()
+    {
+        var pts = new List<Vector3>(); var sad = new List<Vector3>(); var mesh = new Mesh();
+        foreach (var smr in GetComponentsInChildren<SkinnedMeshRenderer>())
+        {
+            // the baked vertices' space differs with how the model was imported: of the likely ones, keep the one whose
+            // box matches where the renderer really is
+            var wb = smr.bounds; Matrix4x4 m = Matrix4x4.identity; bool bestScale = true; float bestErr = float.MaxValue;
+            var tries = new[] { Matrix4x4.TRS(smr.transform.position, smr.transform.rotation, Vector3.one), smr.transform.localToWorldMatrix,
+                                smr.rootBone != null ? smr.rootBone.localToWorldMatrix : smr.transform.localToWorldMatrix,
+                                Matrix4x4.TRS(smr.transform.position, smr.transform.rotation, transform.lossyScale),
+                                Matrix4x4.TRS(smr.transform.position, smr.transform.rotation, new Vector3(1f / Mathf.Max(1e-4f, transform.lossyScale.x), 1f / Mathf.Max(1e-4f, transform.lossyScale.y), 1f / Mathf.Max(1e-4f, transform.lossyScale.z))) };
+            foreach (bool useScale in new[] { true, false })
+            {
+                smr.BakeMesh(mesh, useScale); var v0 = mesh.vertices; if (v0.Length == 0) continue;
+                foreach (var tm in tries)
+                {
+                    var bb = new Bounds(tm.MultiplyPoint3x4(v0[0]), Vector3.zero);
+                    for (int i = 0; i < v0.Length; i += 7) bb.Encapsulate(tm.MultiplyPoint3x4(v0[i]));
+                    float err = (bb.min - wb.min).magnitude + (bb.max - wb.max).magnitude;
+                    if (err < bestErr) { bestErr = err; m = tm; bestScale = useScale; }
+                }
+            }
+            seatNote += smr.name + " fit " + bestErr.ToString("F2") + (bestScale ? " scaled" : "") + "; ";
+            if (bestErr > 0.6f) continue;   // nothing lined up: not trusted
+            smr.BakeMesh(mesh, bestScale); var vs = mesh.vertices;
+            var mats = smr.sharedMaterials;
+            for (int sm = 0; sm < mesh.subMeshCount; sm++)
+            {
+                string mn = sm < mats.Length && mats[sm] != null ? mats[sm].name.ToLowerInvariant() : "";
+                bool isSaddle = mn.Contains("saddle") || mn.Contains("blanket") || mn.Contains("seat");
+                var tri = mesh.GetTriangles(sm);
+                for (int i = 0; i < tri.Length; i += 3) { var q = Local(m.MultiplyPoint3x4(vs[tri[i]])); pts.Add(q); if (isSaddle) sad.Add(q); }
+            }
+        }
+        Destroy(mesh);
+        if (pts.Count < 50) return false;
+        float zMin, zMax;
+        if (sad.Count > 20) { zMin = float.MaxValue; zMax = float.MinValue; foreach (var q in sad) { zMin = Mathf.Min(zMin, q.z); zMax = Mathf.Max(zMax, q.z); } float c = (zMin + zMax) * 0.5f, h = (zMax - zMin) * 0.3f; zMin = c - h; zMax = c + h; }
+        else
+        {
+            // between the hind legs and the forelegs
+            var hind = Find(transform, "BackShoulder.L", "BackUpperLeg.L", "Thigh.L", "Hip.L", "Pelvis.L"); var fore = Find(transform, "FrontShoulder.L", "FrontUpperLeg.L", "Shoulder.L", "UpperArm.L");
+            if (hind == null || fore == null) return false;
+            float a = Local(hind.position).z, b = Local(fore.position).z; if (a > b) { float t = a; a = b; b = t; }
+            zMin = a + (b - a) * 0.25f; zMax = a + (b - a) * 0.8f;
+        }
+        // the top line of the back along the middle, in short steps
+        const int N = 24; var top = new float[N]; for (int i = 0; i < N; i++) top[i] = float.MinValue;
+        float half = 0.12f;
+        foreach (var q in pts)
+        {
+            if (Mathf.Abs(q.x) > half || q.z < zMin || q.z > zMax) continue;
+            int i = Mathf.Clamp((int)((q.z - zMin) / (zMax - zMin) * N), 0, N - 1); if (q.y > top[i]) top[i] = q.y;
+        }
+        int best = -1; float bestY = float.MaxValue;
+        for (int i = 1; i < N - 1; i++)
+        {
+            if (top[i - 1] == float.MinValue || top[i] == float.MinValue || top[i + 1] == float.MinValue) continue;
+            float y = (top[i - 1] + top[i] + top[i + 1]) / 3f; if (y < bestY) { bestY = y; best = i; }
+        }
+        if (best < 0) return false;
+        seat = new Vector3(0f, top[best], zMin + (best + 0.5f) * (zMax - zMin) / N);
+        return true;
+    }
+
+    void SitOnSaddle()
+    {
+        seatPass++;
+        if (!seatFound)
+        {
+            // a reading that makes no sense (the seat below the back, or far above it) is replaced by a spot just above the
+            // middle of the back (scaled-up mounts like the wolves read badly from their mesh)
+            seatFound = FindSeat();
+            if (!seatFound || seat.y < back0.y + 0.1f || seat.y > back0.y + 0.7f || Mathf.Abs(seat.z - back0.z) > 0.6f) {
+                // over the middle of the body, between the hind legs and the forelegs (where a saddle is girthed)
+                float z = back0.z; var hind = Find(transform, "BackShoulder.L", "BackUpperLeg.L", "Thigh.L", "Hip.L"); var fore = Find(transform, "FrontShoulder.L", "FrontUpperLeg.L", "Shoulder.L");
+                if (hind != null && fore != null) z = (Local(hind.position).z + Local(fore.position).z) * 0.5f - 0.12f;   // a little behind the middle
+                seat = new Vector3(0f, back0.y + 0.28f * Mathf.Max(1f, transform.lossyScale.y * 0.8f), z); seatFound = true; seatNote += "from the back; ";
+            }
+        }
+        if (hips == null)
+        {
+            var link = p.GetComponentInChildren<AHVRoidLink>(); Animator an = null;
+            if (link != null && link.Body != null) an = link.Body.GetComponent<Animator>();
+            if (an == null || !an.isHuman) foreach (var a in p.GetComponentsInChildren<Animator>()) if (a.isHuman && !a.transform.IsChildOf(transform)) { an = a; break; }
+            if (an != null) hips = an.GetBoneTransform(HumanBodyBones.Hips);
+            if (hips == null) { seatPass = 99; return; }
+        }
+        // the hip joint sits a hand's width above the leather
+        Vector3 h = Local(hips.position); Vector3 want = seat + Vector3.up * 0.1f;
+        float dy = Mathf.Clamp(want.y - h.y, -0.6f, 0.6f), dz = Mathf.Clamp(want.z - h.z, -0.6f, 0.6f);
+        string line = p.mountSel + " pass " + seatPass + " [" + seatNote + "]: saddle " + seat.ToString("F2") + " hips " + h.ToString("F2") + " (" + hips.root.name + "/" + hips.name + ") seatY " + p.seatY.ToString("F2") + " seatDz " + seatDz.ToString("F2") + " back0 " + back0.ToString("F2") + " rig " + (rig != null ? rig.localPosition.ToString("F2") : "-");
+        if (Mathf.Abs(want.y - h.y) > 0.03f || Mathf.Abs(want.z - h.z) > 0.03f) { p.seatY += dy; seatDz += dz; line += " -> moved " + dy.ToString("F2") + " up, " + dz.ToString("F2") + " fwd"; }
+        Debug.Log("Ashen Hollow: saddle " + line);
+        try { System.IO.File.AppendAllText(System.IO.Path.Combine(Application.dataPath, "../HeroShots/seat_log.txt"), line + "\n"); } catch { }
+    }
+
     void Sway()
     {
         if (tail == null) return;
