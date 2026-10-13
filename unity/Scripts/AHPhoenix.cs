@@ -163,6 +163,7 @@ public class AHPhoenixRide : MonoBehaviour
         float dt = Time.deltaTime; t += dt; bool moving = p.Moving;
         // beating its wings while it moves, gliding on still wings while it waits
         if (anim != null && (moving != wasMoving || t < 0.05f)) { anim.Play(moving ? "Fly" : "Hover", true, moving ? 1.25f : 0.8f); wasMoving = moving; }
+        if (anim != null) anim.Tick(dt);   // (keeps the loop inside its part of the long take)
         // it flies low, just high enough that its wings clear the ground on the downbeat
         float hover = 0.55f + Mathf.Sin(t * 1.7f) * 0.08f;
         body.localPosition = new Vector3(0, hover, 0);

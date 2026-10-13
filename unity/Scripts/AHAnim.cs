@@ -54,8 +54,11 @@ public class AHAnim
             {
                 if (!c.legacy) continue;
                 if (legacy.GetClip(c.name) == null) legacy.AddClip(c, c.name);
-                clips.Add(c);
+                clips.Add(c); names.Add(c.name); t0s.Add(0f); t1s.Add(c.length);
             }
+            // named parts of one long take: the take plays and its time is kept inside the part's window (Tick)
+            for (int i = all.Count; i < segC.Count; i++)
+                if (segC[i].legacy) { clips.Add(segC[i]); names.Add(segN[i]); t0s.Add(segA[i]); t1s.Add(segB[i]); }
             return;
         }
         Animator animator = root.GetComponent<Animator>();
@@ -124,9 +127,11 @@ public class AHAnim
             string cn = clips[i].name;
             AnimationState st = legacy[cn];
             if (st == null) return false;
-            st.wrapMode = loop ? WrapMode.Loop : WrapMode.ClampForever;
+            bool part = i < t0s.Count && (t0s[i] > 0f || t1s[i] < clips[i].length - 0.01f);
+            st.wrapMode = part ? WrapMode.Loop : loop ? WrapMode.Loop : WrapMode.ClampForever;
             st.speed = speed;
-            if (restart || !legacy.IsPlaying(cn)) { st.time = 0f; legacy.CrossFade(cn, Fade); }
+            if (restart || !legacy.IsPlaying(cn) || i != cur) { st.time = i < t0s.Count ? t0s[i] : 0f; legacy.CrossFade(cn, Fade); }
+            cur = i; curLoop = loop;
             return true;
         }
         if (!graph.IsValid()) return false;
@@ -143,7 +148,20 @@ public class AHAnim
     // call once per frame
     public void Tick(float dt)
     {
-        if (legacy != null || !graph.IsValid() || cur < 0) return;
+        if (legacy != null)
+        {
+            // a named part of a long take: keep its time inside the part
+            if (cur < 0 || cur >= t0s.Count) return;
+            var st = legacy[clips[cur].name]; if (st == null) return;
+            float a0 = t0s[cur], b0 = t1s[cur], ln = b0 - a0;
+            if (ln > 0f && (st.time > b0 || st.time < a0))
+            {
+                if (curLoop) st.time = a0 + Mathf.Repeat(st.time - a0, ln);
+                else { st.time = Mathf.Max(a0, b0 - 1f / 60f); st.speed = 0f; }
+            }
+            return;
+        }
+        if (!graph.IsValid() || cur < 0) return;
         for (int i = 0; i < weights.Length; i++)
         {
             float target = i == cur ? 1f : 0f;
