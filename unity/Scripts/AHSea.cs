@@ -20,8 +20,11 @@ public static class AHSea
     static int[] nearest;              // for a deep cell: the walkable cell nearest it (index)
     static GameObject sheet;
     public static Texture2D DebugMask, DebugGround;   // (for the editor's edge tour)
+    public static float SeaY;          // the water's surface
+    public static Vector4 Sides;       // the open sea carries on past this side of the land: left (-x), right, bottom (-z), top
+    public static Rect Land;           // the ground's extent
 
-    public static void Clear() { On = false; deep = null; wet = null; nearest = null; if (sheet != null) Object.Destroy(sheet); sheet = null; }
+    public static void Clear() { Sides = Vector4.zero; On = false; deep = null; wet = null; nearest = null; if (sheet != null) Object.Destroy(sheet); sheet = null; }
 
     public static void Build(AHGame g, Transform world, Material waterMat, List<Vector4> lakes)
     {
@@ -178,7 +181,7 @@ public static class AHSea
         var mf = sheet.AddComponent<MeshFilter>(); var mr = sheet.AddComponent<MeshRenderer>();
         // reaching far past the ground (the mask's edge carries on), so the sea runs on unbroken to the horizon over the
         // old ocean
-        var mesh = new Mesh(); float w2 = nx * Cell, h2 = nz * Cell, M = 600f;
+        var mesh = new Mesh(); float w2 = nx * Cell, h2 = nz * Cell, M = 1500f;   // (to well past the far end of the camera)
         mesh.vertices = new[] { new Vector3(x0 - M, floor, z0 - M), new Vector3(x0 + w2 + M, floor, z0 - M), new Vector3(x0 - M, floor, z0 + h2 + M), new Vector3(x0 + w2 + M, floor, z0 + h2 + M) };
         float ux = M / w2, uz = M / h2;
         mesh.uv = new[] { new Vector2(-ux, -uz), new Vector2(1 + ux, -uz), new Vector2(-ux, 1 + uz), new Vector2(1 + ux, 1 + uz) };
@@ -195,7 +198,10 @@ public static class AHSea
         int sL = 0, sR = 0, sB = 0, sT = 0;
         for (int z = 0; z < nz; z++) { if (sea[z * nx] > 0f) sL++; if (sea[z * nx + nx - 1] > 0f) sR++; }
         for (int x = 0; x < nx; x++) { if (sea[x] > 0f) sB++; if (sea[(nz - 1) * nx + x] > 0f) sT++; }
-        mat.SetVector("_SeaSides", new Vector4(sL > nz * 0.45f ? 1 : 0, sR > nz * 0.45f ? 1 : 0, sB > nx * 0.45f ? 1 : 0, sT > nx * 0.45f ? 1 : 0));
+        Sides = new Vector4(sL > nz * 0.45f ? 1 : 0, sR > nz * 0.45f ? 1 : 0, sB > nx * 0.45f ? 1 : 0, sT > nx * 0.45f ? 1 : 0);
+        if (edgeS > edgeN * 0.6f) Sides = Vector4.one;
+        mat.SetVector("_SeaSides", Sides);
+        SeaY = floor; Land = new Rect(x0, z0, w2, h2);
         mr.sharedMaterial = mat; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; mr.receiveShadows = false;
         On = true;
         int deepN = 0; foreach (var d0 in deep) if (d0) deepN++;

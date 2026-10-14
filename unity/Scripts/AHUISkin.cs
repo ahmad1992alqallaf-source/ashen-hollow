@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 // Ashen Hollow: the HUD's look, in the style of the big Eastern mobile MMOs: gold-rimmed round buttons with a dark
 // lacquer face, a framed portrait with the health and mana bars beside it, ornate gold-edged panels for windows and
 // tags, a quest tracker on the left with an AUTO button, and a large round attack button ringed by the skills.
@@ -120,7 +121,11 @@ public partial class AHUI
         var mapB = Img("MapBtn", transform, circle, new Vector2(1, 1), Vector2.zero, new Vector2(64, 64), lacquer);
         Center(Label(mapB, "T", "MAP", 15, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(64, 30), Color.white));
         taps.Add(new TapBtn { rt = mapB, act = OpenMap });
-        string[] row = { "BagBtn", "PetsBtn", "MenuBtn", "MapBtn" };
+        // the STORE button takes the bag's old place in the row (the BAG goes down the side, under RIDE)
+        var storeB = Img("StoreBtn", transform, circle, new Vector2(1, 1), Vector2.zero, new Vector2(64, 64), lacquer);
+        Center(Label(storeB, "T", "STORE", 13, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(64, 30), new Color(1f, 0.88f, 0.5f)));
+        taps.Add(new TapBtn { rt = storeB, act = OpenStore });
+        string[] row = { "StoreBtn", "PetsBtn", "MenuBtn", "MapBtn" };
         for (int i = 0; i < row.Length; i++)
         {
             var b = FindUI(row[i]); if (b == null) continue;
@@ -138,6 +143,16 @@ public partial class AHUI
         SkinRound(FindUI("PotHeal"), 62f, new Color(0.75f, 0.12f, 0.12f));
         SkinRound(FindUI("PotMana"), 62f, new Color(0.18f, 0.3f, 0.8f));
         SkinRound(dodgeBtn, 86f, new Color(0.2f, 0.42f, 0.8f));
+        // the side column, bottom up: a small EMOTE just above DODGE, then HP, MP, BAG, RIDE, LEAP and the pet's skill
+        var bagB = FindUI("BagBtn");
+        if (bagB != null) { SkinRound(bagB, 64f, new Color(0.45f, 0.3f, 0.16f)); bagB.anchorMin = bagB.anchorMax = new Vector2(1, 0); foreach (var t in bagB.GetComponentsInChildren<Text>(true)) t.fontSize = 15; }
+        var emB = FindUI("EmoteBtn");
+        if (emB != null) { SkinRound(emB, 46f, new Color(0.36f, 0.22f, 0.38f)); foreach (var t in emB.GetComponentsInChildren<Text>(true)) t.fontSize = 10; }
+        foreach (var kv in new[] { new KeyValuePair<string, float>("EmoteBtn", 132f), new KeyValuePair<string, float>("PotHeal", 196f), new KeyValuePair<string, float>("PotMana", 272f), new KeyValuePair<string, float>("BagBtn", 348f), new KeyValuePair<string, float>("RideBtn", 424f), new KeyValuePair<string, float>("LeapBtn", 500f), new KeyValuePair<string, float>("PetSkillBtn", 576f) })
+        {
+            var b = FindUI(kv.Key); if (b == null) continue;
+            b.anchorMin = b.anchorMax = new Vector2(1, 0); b.anchoredPosition = new Vector2(kv.Key == "EmoteBtn" ? -62f : -58f, kv.Value);
+        }
         // smaller skills, ringed tight around the attack seal (no gap); the ultimate below-right of it
         for (int i = 0; i < 6; i++)
         {
@@ -231,7 +246,8 @@ public partial class AHUI
         RefreshAuto();
 
         // ---- the chips move to the right under the top buttons, as gold-edged tags ----
-        foreach (var n in new[] { "DailyChip", "EvChip", "StoreChip" })
+        var stC = FindUI("StoreChip"); if (stC != null) { stC.gameObject.SetActive(false); taps.RemoveAll(t => t.rt == stC); }   // (the store has its own button in the top row now)
+        foreach (var n in new[] { "DailyChip", "EvChip" })
         {
             var c = FindUI(n); if (c == null) continue;
             var im = c.GetComponent<Image>(); im.sprite = tag9; im.type = Image.Type.Sliced; im.color = n == "StoreChip" ? new Color(1f, 0.85f, 0.45f) : Color.white;

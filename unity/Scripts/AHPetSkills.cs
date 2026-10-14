@@ -102,7 +102,7 @@ public partial class AHUI
     RectTransform petBtn; Text petBtnT;
     void BuildPetHud()
     {
-        petBtn = Img("PetSkillBtn", transform, circle, new Vector2(1, 0), new Vector2(-58, 560), new Vector2(64, 64), new Color(0.38f, 0.24f, 0.12f, 0.92f));
+        petBtn = Img("PetSkillBtn", transform, circle, new Vector2(1, 0), new Vector2(-58, 576), new Vector2(64, 64), new Color(0.38f, 0.24f, 0.12f, 0.92f));
         Img("Rim", petBtn, ring, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(64, 64), new Color(1f, 0.82f, 0.5f, 1f));
         petBtnT = Center(Label(petBtn, "T", "PET", 14, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(64, 24), Color.white));
         taps.Add(new TapBtn { rt = petBtn, act = () => AHPetSkills.Use(g) });

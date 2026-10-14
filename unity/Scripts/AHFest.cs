@@ -242,6 +242,7 @@ public partial class AHUI
             foreach (var o in F.shop)
             {
                 string k = (string)o[0]; int cost = (int)o[1]; bool pet = k.StartsWith("pet:");
+                if (pet && AHComp.Retired.Contains(k.Substring(4))) continue;   // (a pet that is put away for now)
                 bool own = pet ? p.pets.Contains(k.Substring(4)) : (p.bag.Count(k) > 0 || p.bag.gear.ContainsValue(k));
                 string nm = pet ? AHComp.PetName(k.Substring(4)) + " (pet)" : (AHItems.Get(k) != null ? AHItems.Get(k).name : k);
                 rows.Add(s => Row(s, "Stall: " + nm, F.col, pet ? AHJson.S(AHJson.O(AHComp.Pets, k.Substring(4)), "blurb") : "Cosmetic · all classes", "",

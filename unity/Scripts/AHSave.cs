@@ -109,7 +109,7 @@ public static class AHSave
         Unpack(d.profXp, p.profXp);
         p.profSpec.Clear(); if (d.profSpec != null) foreach (var kv in d.profSpec) if (!string.IsNullOrEmpty(kv.k)) p.profSpec[kv.k] = kv.v;
         p.look = d.look ?? new AHLook();
-        p.pets.Clear(); if (d.pets != null) foreach (var k in d.pets) if (AHJson.Has(AHComp.Pets, k) && !p.pets.Contains(k)) p.pets.Add(k);
+        p.pets.Clear(); if (d.pets != null) foreach (var k in d.pets) if (AHJson.Has(AHComp.AllPets, k) && !p.pets.Contains(k)) p.pets.Add(k);
         p.mounts.Clear(); if (d.mounts != null) foreach (var k in d.mounts) if (AHJson.Has(AHComp.Mounts, k) && !p.mounts.Contains(k)) p.mounts.Add(k);
         p.party.Clear(); if (d.party != null) foreach (var k in d.party) if (AHJson.Has(AHComp.Mercs, k) && !p.party.Contains(k) && p.party.Count < AHComp.PartyMax) p.party.Add(k);
         p.pet = d.pet != null && p.pets.Contains(d.pet) ? d.pet : null;

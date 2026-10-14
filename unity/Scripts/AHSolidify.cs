@@ -16,7 +16,7 @@ public static class AHSolidify
     static readonly string[] Open = { "Bridge", "bridge", "Rug", "Carpet", "Arch", "arch", "Awning", "Gate", "Portal", "Door", "Path", "Road", "Plank", "Dock", "Pier", "Stairs", "Step", "Banner", "Flag", "Lamp", "Lantern", "Sign", "Fence", "Rope", "qd_wall", "qd_column", "qd_banner", "torch", "Torch", "web", "Web" };
     public static int Last;
 
-    public static IEnumerator Later(AHGame g) { yield return null; yield return null; Run(g); }
+    public static IEnumerator Later(AHGame g) { yield return null; yield return null; AHTownFill.Run(g); Run(g); }
 
     public static void Run(AHGame g)
     {
@@ -141,6 +141,7 @@ public static class AHSolidify
         if (longer > 0) Debug.Log("Ashen Hollow: " + longer + " things you use given a longer reach (no ground to stand on near them)");
         Last = n;
         if (n > 0) Debug.Log("Ashen Hollow: " + n + " solid things given blockers (you could walk through them)");
+        AHSolidGrid.Build(g);   // and everything else standing, from its own shape
     }
 
     static bool Standable(AHGame g, Vector3 at, float reach, float gy)

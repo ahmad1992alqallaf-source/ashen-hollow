@@ -70,6 +70,31 @@ public static class AHRange
         float s = (seed & 1023) * 0.173f;
         var v = new Vector3[(nu + 1) * (nv + 1)]; var c = new Color[v.Length]; var tri = new int[nu * nv * 6];
         float per = 2f * Mathf.PI * Mathf.Sqrt((ax * ax + az * az) * 0.5f);
+        // where the land meets the open sea there are no mountains: the range sinks into the water a little way either
+        // side, and the sea runs on to the horizon (a coast, not a wall)
+        var seaK = new float[nu + 1];
+        if (AHSea.On)
+        {
+            var raw = new float[nu + 1];
+            for (int i = 0; i <= nu; i++)
+            {
+                float th = i / (float)nu * Mathf.PI * 2f, cs = Mathf.Cos(th), sn = Mathf.Sin(th);
+                float ex = Mathf.Sign(cs) * Mathf.Pow(Mathf.Abs(cs), 0.4f), ez = Mathf.Sign(sn) * Mathf.Pow(Mathf.Abs(sn), 0.4f);
+                Vector3 rim = new Vector3(cx + ex * b.extents.x, y0, cz + ez * b.extents.z);
+                // the land's own edge here, and a little way in
+                int wet = 0; for (int k = 1; k <= 4; k++) { var qs = Vector3.Lerp(rim, new Vector3(cx, y0, cz), k * 0.03f); if (AHSea.Sea(qs, 2f)) wet++; }
+                // and the open sea past a side of the land
+                Vector4 sd = AHSea.Sides; float side = 0f;
+                if (ex < -0.85f) side = Mathf.Max(side, sd.x); if (ex > 0.85f) side = Mathf.Max(side, sd.y);
+                if (ez < -0.85f) side = Mathf.Max(side, sd.z); if (ez > 0.85f) side = Mathf.Max(side, sd.w);
+                raw[i] = Mathf.Max(wet / 4f, side);
+            }
+            for (int i = 0; i <= nu; i++)
+            {
+                float mk = 0f; for (int k = -7; k <= 7; k++) { int j = (i + k + nu) % nu; mk = Mathf.Max(mk, raw[j] * (1f - Mathf.Abs(k) / 8f)); }
+                seaK[i] = Mathf.SmoothStep(0f, 1f, mk);
+            }
+        }
         for (int i = 0; i <= nu; i++)
         {
             float th = i / (float)nu * Mathf.PI * 2f, cs = Mathf.Cos(th), sn = Mathf.Sin(th);
@@ -87,6 +112,7 @@ public static class AHRange
                 float side = 0.75f + 0.5f * Ridge(u * 3.1f + t * 2.3f, s + 9f);   // gullies and spurs down the faces
                 float gully = (Mathf.PerlinNoise(u * 14f + s, t * 5f) - 0.5f) * 0.22f + (Mathf.PerlinNoise(u * 33f, t * 11f + s) - 0.5f) * 0.08f;   // ribs and gullies down every face
                 float h = crest * prof * (j == 0 ? 0f : side + gully) - (j == 0 ? 4f : 0f);
+                if (seaK[i] > 0f) h = Mathf.Lerp(h, -12f, seaK[i]);   // (sunk under the sea)
                 // wobble the ridge in and out so it is not a perfect ring
                 float wob = (Mathf.PerlinNoise(u * 0.7f, s + 5f) - 0.5f) * 30f;
                 var p = edge + outw * (dd + wob * t) + Vector3.up * h;

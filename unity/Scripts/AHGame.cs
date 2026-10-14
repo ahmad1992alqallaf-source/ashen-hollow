@@ -106,6 +106,7 @@ public class AHGame : MonoBehaviour
         // which part of the world the hero is in (web: regions and the roads between them, exported to Resources/AH/Areas)
         AHPrefs.Locked = false;
         AreaId = AHPrefs.GetString("ah_area", "meadow");
+        AHSolidGrid.Clear();
         TextAsset ta = Resources.Load<TextAsset>(AreaPath + AreaId);
         if (ta == null && AreaId != "meadow") { Debug.LogWarning("Ashen Hollow: area " + AreaId + " is missing, back to the meadow"); AreaId = "meadow"; ta = Resources.Load<TextAsset>(AreaPath + AreaId); }
         if (ta == null) { AreaPath = "AH/"; ta = Resources.Load<TextAsset>("AH/meadow"); }   // the v0.3 meadow files
@@ -140,7 +141,14 @@ public class AHGame : MonoBehaviour
         foreach (var b in data.boxes)
         {
             var rr = MapRect(b.x, b.z, b.w, b.h);   // a wall or house keeps its own size when the land is spread
-            if (Spread != 1f) { var c = rr.center; rr.size /= Spread; rr.center = c; }
+            if (Spread != 1f)
+            {
+                // a house keeps its size; a wall keeps its thickness but runs on to meet the next (no gaps to slip through)
+                var c = rr.center; bool wall = Mathf.Min(b.w, b.h) < 2f && Mathf.Max(b.w, b.h) > 8f;
+                if (wall) { if (rr.width > rr.height) rr.height /= Spread; else rr.width /= Spread; }
+                else rr.size /= Spread;
+                rr.center = c;
+            }
             rects.Add(rr);
         }
         foreach (var w in data.water)
@@ -156,14 +164,16 @@ public class AHGame : MonoBehaviour
         AHGather.Build(this, world);
         AHVillage.Setup(this, world);  // a ring of buildings around the starter village's square (before the trees)
         AHForest.Setup(this, world);   // the new trees on the same spots
-        AHOre.Setup(this);             // boulders with ore crystals for the mining rocks
-        AHHerbs.Setup(this);           // each herb a little plant of its own kind
         AHStations.Setup(this, world);  // campfires, furnaces and anvils rebuilt
         AHMountains.Setup(this, world); // craggy rock mountains instead of the plain cones
-        AHRange.Build(this, world);     // great mountain ranges on the horizon, past the border crags
         AHTents.Setup(this, world);     // striped pavilions and ridge tents instead of the pyramids
         AHScenery.Setup(this, world);   // wooden footbridges and broken stone columns
         AHSea.Build(this, world, waterMat, lakes);   // a sea painted on the ground: real water over it, and no walking across it
+        AHRange.Build(this, world);     // great mountain ranges on the horizon, past the border crags (none over the open sea)
+        AHHorizon.Build(this);          // ships sailing far out on the open sea
+        AHWilds.Plan(this, world);     // the wide lands filled out: camps, ore veins, herb patches, outcrops and ruins
+        AHOre.Setup(this);             // boulders with ore crystals for the mining rocks
+        AHHerbs.Setup(this);           // each herb a little plant of its own kind
         AHMountains.Foothills(this);   // the open stretches of a land's border closed with crags (not over a sea or a road out)
         AHDreamScatter.Setup(this, world);  // Dreamscape bushes, flowers, grass and rocks (lands that use the pack)
 
@@ -190,6 +200,7 @@ public class AHGame : MonoBehaviour
             if (!types.TryGetValue(s.type, out t)) continue;
             mobs.Add(AHMob.Create(this, t, W(s.x, s.z)));
         }
+        AHWilds.Spawn(this);   // the new camps' beasts
         AHNpc.SpawnTown(this);
         AHNpc.HideOldFigures(this);   // the web version's box-built townsfolk still stood in the area models
         ui = AHUI.Create(this);
@@ -226,6 +237,7 @@ public class AHGame : MonoBehaviour
         AHSettings.Apply(this);
         AHWeather.Setup(this);
         StartCoroutine(AHSolidify.Later(this));   // whatever you could still walk through gets a blocker
+        AHCrownFade.Ensure(this);   // a tree crown the camera ends up in is not drawn
         if (saved == "") ui.OpenCreator();
         else if (SelectAtStart) ui.OpenSelect();
         else Welcome();
@@ -567,6 +579,7 @@ public class AHGame : MonoBehaviour
         foreach (var b in rects) if (p.x > b.xMin - r && p.x < b.xMax + r && p.z > b.yMin - r && p.z < b.yMax + r) return true;
         foreach (var b in doors) if (p.x > b.xMin - r && p.x < b.xMax + r && p.z > b.yMin - r && p.z < b.yMax + r) return true;
         if (!TilesOk(p, r)) return true;
+        if (AHSolidGrid.Blocked(p, r)) return true;
         if (floors.Count > 0) { bool on = false; foreach (var b in floors) if (p.x > b.xMin + r && p.x < b.xMax - r && p.z > b.yMin + r && p.z < b.yMax - r) { on = true; break; } if (!on) return true; }
         foreach (var l in lakes)
         {
@@ -657,10 +670,10 @@ public class AHGame : MonoBehaviour
         UpdateDay();
     }
 
-    // how much wider each area is laid out than the web game's map (1 = as drawn): sizes from about 100 to 180 metres
+    // how much wider each area is laid out than the web game's map (1 = as drawn): the wild lands about 200 to 280 metres
     public static float Spread = 1f;
     static readonly Dictionary<string, float> spreadK = new Dictionary<string, float> {
-        { "meadow", 1.5f }, { "silkwood", 1.3f }, { "frost", 1.2f }, { "mire", 1.1f }, { "vale", 1.15f }, { "sands", 1.3f }, { "isle", 1.4f } };
+        { "meadow", 2.0f }, { "silkwood", 1.8f }, { "frost", 1.7f }, { "mire", 1.6f }, { "vale", 1.6f }, { "sands", 2.0f }, { "isle", 1.8f } };   // (AHWilds fills the open ground)
     public static bool NoSpread;   // editor test: the areas as the web game drew them
     public static float SpreadOf(string id) { float k; return !NoSpread && spreadK.TryGetValue(id, out k) ? k : 1f; }
     // move every piece of the area's model out from the middle by k (pieces keep their size); ground, water and the
@@ -872,6 +885,7 @@ public class AHGame : MonoBehaviour
             if (d < 1f && d > 1e-4f) { p.x = l.x + u / d * lx; p.z = l.y + v / d * lz; }
         }
         p = TilesPush(p, r);
+        p = AHSolidGrid.Keep(p, r);   // crags, walls, houses: read from their own shapes
         if (floors.Count > 0)
         {
             // stay on the floor: inside one of the rooms (or back into the nearest)
@@ -1001,7 +1015,7 @@ public class AHGame : MonoBehaviour
         for (float pt = minPitch; pt <= 74f; pt += 6f)
         {
             Vector3 bk = -(Quaternion.Euler(pt, camYaw, 0) * Vector3.forward);
-            float cl = Mathf.Min(AHMountains.Clear(look, bk, distShown), OccClear(look, bk, distShown));
+            float cl = Mathf.Min(Mathf.Min(AHMountains.Clear(look, bk, distShown), OccClear(look, bk, distShown)), AHSolidGrid.Clear(look, bk, distShown));
             if (tiles != null) cl = Mathf.Min(cl, RockClear(look, bk, distShown));
             if (cl >= distShown * 0.9f) { wantPitch = pt; break; }
             if (firstOk < 0f && pt <= 50f && cl >= Mathf.Max(2.6f, distShown * 0.35f)) { firstOk = pt; firstCl = cl; }
@@ -1011,7 +1025,7 @@ public class AHGame : MonoBehaviour
         Quaternion q = Quaternion.Euler(pitchShown, camYaw, 0);
         Vector3 back = -(q * Vector3.forward);
         // come in quickly when a tree crown is in the way, ease back out once it is clear
-        float clear = Mathf.Min(ClearDistance(look, back, distShown), pull);
+        float clear = Mathf.Min(Mathf.Min(ClearDistance(look, back, distShown), pull), AHSolidGrid.Clear(look, back, distShown));
         if (camShown <= 0f || clear < camShown) camShown = clear;
         else camShown = Mathf.MoveTowards(camShown, clear, Time.deltaTime * 4f);
         cam.transform.position = look + back * camShown;

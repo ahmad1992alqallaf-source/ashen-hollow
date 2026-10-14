@@ -37,7 +37,7 @@ public static class AHPetBattle
         return new Unit { k = k, L = L, mine = mine, type = (string)s[0], mhp = Mathf.RoundToInt((int)s[1] * g), hp = Mathf.RoundToInt((int)s[1] * g), atk = (int)s[2] * g, spd = (int)s[3] + L * 0.2f, moves = new[] { (string)s[4], (string)s[5], (string)s[6] }, name = AHComp.PetName(k) };
     }
     public static string TypeOf(string k) { object[] s; return Stat.TryGetValue(k, out s) ? (string)s[0] : "?"; }
-    public static List<string> Team(AHPlayer p) { var o = new List<string>(); foreach (var k in p.pets) if (o.Count < 3 && Stat.ContainsKey(k)) o.Add(k); return o; }
+    public static List<string> Team(AHPlayer p) { var o = new List<string>(); foreach (var k in p.pets) if (o.Count < 3 && Stat.ContainsKey(k) && !AHComp.Retired.Contains(k)) o.Add(k); return o; }
 
     // the battle in progress
     public static List<Unit> A, B; public static int ai, bi, turn, tamer; public static bool over, won; public static List<string> log = new List<string>(); public static string label;

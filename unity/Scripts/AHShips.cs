@@ -192,6 +192,15 @@ public static class AHShips
     static float Top(float t, float H) { return H + 0.55f * Mathf.Pow(Mathf.Abs(t - 0.45f) * 1.8f, 2.2f); }
     static float Bottom(float t, float H) { return t > 0.72f ? H * 0.75f * Mathf.Pow((t - 0.72f) / 0.28f, 2f) : t < 0.06f ? 0.12f * (1f - t / 0.06f) : 0f; }
 
+    // a whole ship of length L, its keel at 'keel', bow toward fwd (the ships out at sea on the horizon)
+    public static Transform Make(Transform parent, Vector3 keel, Vector3 fwd, float L, bool twoMasts, Color sail, Color flag, int seed)
+    {
+        var ship = new GameObject("ship").transform; ship.SetParent(parent, false);
+        ship.position = keel; ship.rotation = Quaternion.LookRotation(fwd, Vector3.up);
+        Build(ship, L, L * 0.34f, L * 0.16f, L * (twoMasts ? 0.95f : 0.8f), twoMasts, sail, flag, new System.Random(seed));
+        return ship;
+    }
+
     static void Build(Transform ship, float L, float W, float H, float mastTop, bool twoMasts, Color sailCol, Color flagCol, System.Random rnd)
     {
         var wood = Mat("hull", new Color(0.42f, 0.28f, 0.17f), 0.15f, Planks);

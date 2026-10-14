@@ -21,7 +21,7 @@ public static class AHCity
 
     public static void Setup(AHGame g, Transform world)
     {
-        Swapped = 0;
+        Swapped = 0; AHTownFill.Towns.Clear();
         string col; if (world == null || !Colour.TryGetValue(AHGame.AreaId, out col)) return;
         Landmarks(g, world, col);
         Pools(g, world);
@@ -341,7 +341,7 @@ public static class AHCity
                     foreach (var cl in go.GetComponentsInChildren<Collider>(true)) Object.Destroy(cl);
                     go.transform.position = p + across * (face == 0 ? -half * 0.5f : half * 0.5f);
                     go.transform.rotation = Quaternion.Euler(0f, yaw + (1 - face) * 180f, 0f);   // battlements outward on both faces, the walkways meeting in the middle
-                    go.transform.localScale = new Vector3(s / 2f * 1.03f, 4.1f / 1.1f, half / 0.8f);
+                    go.transform.localScale = new Vector3(s * AHGame.Spread / 2f * 1.04f, 4.1f / 1.1f, half / 0.8f);   // (a spread land's wall stretches with it: no gaps)
                     AHModel.SetShadows(go); WallPieces++;
                 }
             }
@@ -396,6 +396,13 @@ public static class AHCity
                 AHModel.SetShadows(go); WallPieces++;
             }
         StoneTint(root);
+        if (town)
+        {
+            // the town inside these walls (filled with its houses later, once everything else is in place)
+            float tx0 = float.MaxValue, tz0 = float.MaxValue, tx1 = float.MinValue, tz1 = float.MinValue;
+            foreach (var w in walls) { tx0 = Mathf.Min(tx0, w.x); tz0 = Mathf.Min(tz0, w.z); tx1 = Mathf.Max(tx1, w.x + w.w); tz1 = Mathf.Max(tz1, w.z + w.h); }
+            AHTownFill.Towns.Add(new AHTownFill.Town { web = Rect.MinMaxRect(tx0, tz0, tx1, tz1), gates = gates, col = col });
+        }
         Debug.Log("Ashen Hollow: city walls rebuilt (" + WallPieces + " pieces, " + hid + " old parts hidden)");
         // once the mountains are in: the crags that stood in a ring hard against the walls are cleared, so the wall stands
         // clean on its own line
@@ -409,6 +416,9 @@ public static class AHCity
     {
         { "ss_city", new Color(1.45f, 1.15f, 0.78f) }, { "hc_city", new Color(1.2f, 1.22f, 1.26f) }, { "ch_city", new Color(0.62f, 0.56f, 0.55f) },
         { "mw_city", new Color(0.9f, 1.05f, 0.82f) }, { "co_city", new Color(1.12f, 1.1f, 1.0f) },
+        // the same towns seen from outside, in the wild lands
+        { "sands", new Color(1.45f, 1.15f, 0.78f) }, { "scorchwind", new Color(1.45f, 1.15f, 0.78f) }, { "frost", new Color(1.2f, 1.22f, 1.26f) },
+        { "ember", new Color(0.62f, 0.56f, 0.55f) }, { "mire", new Color(0.9f, 1.05f, 0.82f) }, { "tide", new Color(1.12f, 1.1f, 1.0f) },
     };
     static void StoneTint(Transform root)
     {

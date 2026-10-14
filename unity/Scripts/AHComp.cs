@@ -7,7 +7,20 @@ using UnityEngine;
 
 public static class AHComp
 {
-    public static Dictionary<string, object> Pets { get { return AHDB.Table("companions", "PETS"); } }
+    // the pets you can see and get: the shoulder riders (owls, parrot, drake) are put away until they have new models
+    // (anyone who has one keeps it in their save; it just does not come out)
+    public static readonly HashSet<string> Retired = new HashSet<string> { "parrot", "owl", "lantern_owl", "drake" };
+    static Dictionary<string, object> petsAll, petsShown;
+    public static Dictionary<string, object> AllPets { get { return AHDB.Table("companions", "PETS"); } }
+    public static Dictionary<string, object> Pets
+    {
+        get
+        {
+            var all = AllPets; if (all == null) return null;
+            if (!ReferenceEquals(all, petsAll)) { petsAll = all; petsShown = new Dictionary<string, object>(); foreach (var kv in all) if (!Retired.Contains(kv.Key)) petsShown[kv.Key] = kv.Value; }
+            return petsShown;
+        }
+    }
     public static Dictionary<string, object> Mounts { get { return AHDB.Table("companions", "MOUNTS"); } }
     public static Dictionary<string, object> Mercs { get { return AHDB.Table("companions", "MERCS"); } }
     public const int PetMax = 20, MountMax = 10, PartyMax = 2;
@@ -21,7 +34,7 @@ public static class AHComp
     public static float MountBonus(AHPlayer p, string k) { int L = MountLv(p, k); return 1f + 0.015f * (L - 1) + (L >= MountMax ? 0.05f : 0f); }
     public static float MountSpeed(AHPlayer p) { return p.mounted && p.mountSel != null ? (float)AHJson.N(AHJson.O(Mounts, p.mountSel), "speed", 1.5) * MountBonus(p, p.mountSel) : 1f; }
     public static float Seat(string k) { return (float)AHJson.N(AHDB.Table("companions", "SEAT"), k, 0.64); }
-    public static string PetName(string k) { return AHJson.S(AHJson.O(Pets, k), "name", k); }
+    public static string PetName(string k) { return AHJson.S(AHJson.O(AllPets, k), "name", k); }
     public static string MountName(string k) { return AHJson.S(AHJson.O(Mounts, k), "name", k); }
     public static string MercName(string k) { return AHJson.S(AHJson.O(Mercs, k), "name", k); }
     public static bool Flies(string k) { var l = AHDB.List("companions", "PET_FLY"); return l != null && l.Contains(k); }
@@ -136,7 +149,7 @@ public static class AHComp
     public static void SpawnPet(AHGame g)
     {
         var old = GameObject.Find("Pet"); if (old != null) Object.Destroy(old);
-        var p = g.player; if (p.pet == null) return;
+        var p = g.player; if (p.pet == null || Retired.Contains(p.pet)) return;
         var go = new GameObject("Pet");
         go.transform.position = p.transform.position - p.transform.forward * 1.2f;
         var f = go.AddComponent<AHPetFollow>(); f.Setup(g, p.pet);

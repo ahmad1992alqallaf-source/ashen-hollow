@@ -142,6 +142,7 @@ public partial class AHUI
                     string id = (string)o; long pr = AHShops.PriceBuy(id);
                     string name, l2; Color c = Color.white; bool owned = false;
                     if (id.StartsWith("mount:")) { string k = id.Substring(6); var m = AHJson.O(AHComp.Mounts, k); name = AHComp.MountName(k); c = new Color(1f, 0.62f, 0.24f); owned = p.mounts.Contains(k); l2 = AHJson.S(m, "blurb") + " +" + Mathf.RoundToInt(((float)AHJson.N(m, "speed", 1.5) - 1f) * 100f) + "% speed"; }
+                    else if (id.StartsWith("pet:") && AHComp.Retired.Contains(id.Substring(4))) continue;   // (put away for now)
                     else if (id.StartsWith("pet:")) { string k = id.Substring(4); name = AHComp.PetName(k); c = new Color(1f, 0.62f, 0.24f); owned = p.pets.Contains(k); l2 = AHJson.S(AHJson.O(AHComp.Pets, k), "blurb"); }
                     else if (id.StartsWith("merc:")) { string k = id.Substring(5); var m = AHJson.O(AHComp.Mercs, k); name = AHComp.MercName(k); c = new Color(0.62f, 0.85f, 1f); owned = p.party.Contains(k); l2 = AHJson.S(m, "role") + ". " + AHJson.S(m, "blurb"); }
                     else if (id == "svc:rest") { name = "Rest at the inn"; l2 = "A warm bed: full HP and hunger"; }
@@ -358,6 +359,7 @@ public partial class AHUI
                 new WkBtn { label = "Open", on = true, col = Go, act = () => { wkMode = "pettest"; wkPageI = 0; RenderWork(); } }));
         var skills = AHDB.List("companions", "PET_SKILLS");
         foreach (var k in p.pets)
+            if (!AHComp.Retired.Contains(k))
         {
             string kk = k; long done, need; int L; AHComp.Bar(p, k, false, out done, out need, out L);
             var sk = new List<string>();
