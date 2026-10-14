@@ -177,6 +177,7 @@ public partial class AHUI
         else if (wkMode == "comp") RenderComp(p);
         else if (wkMode == "petinfo") RenderPetInfo(p);
         else if (wkMode == "mounttest") RenderMountTest(p);
+        else if (wkMode == "pettest") RenderPetTest(p);
         else if (wkMode == "store") RenderStore(p);
         else if (wkMode == "storepacks") RenderStorePacks(p);
         else if (wkMode == "ah") RenderAH(p);

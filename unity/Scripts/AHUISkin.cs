@@ -235,7 +235,7 @@ public partial class AHUI
         {
             var c = FindUI(n); if (c == null) continue;
             var im = c.GetComponent<Image>(); im.sprite = tag9; im.type = Image.Type.Sliced; im.color = n == "StoreChip" ? new Color(1f, 0.85f, 0.45f) : Color.white;
-            c.anchorMin = c.anchorMax = new Vector2(1, 1); c.anchoredPosition = new Vector2(-130, n == "DailyChip" ? -100 : n == "EvChip" ? -134 : -168); c.sizeDelta = new Vector2(190, 28);
+            c.anchorMin = c.anchorMax = new Vector2(1, 1); c.anchoredPosition = new Vector2(n == "StoreChip" ? -150 : -130, n == "DailyChip" ? -100 : n == "EvChip" ? -134 : -168); c.sizeDelta = new Vector2(n == "StoreChip" ? 150 : 190, 28);   // (the store tag is shorter: the PET button sits at its right)
             foreach (var t in c.GetComponentsInChildren<Text>(true)) t.fontSize = 14;
             slide.Add(c);
         }

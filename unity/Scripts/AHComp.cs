@@ -274,7 +274,9 @@ public class AHPetFollow : MonoBehaviour
         else model = AHModel.Spawn(transform, "Comp/pet_" + k, 0f, false, 0f, out a);
         if (a != null && a.HasClips) anim = a; else if (a != null) a.Dispose();
         // flying only with real wingbeats; the still birds and the dragon ride on your shoulder
-        fly = fly && anim != null && anim.Has("Fly");
+        // the birds and the baby dragon ride on your shoulder (the parrot's model sits on its own branch, so it can't
+        // fly off); with wings that can beat they flap while you run
+        fly = fly && anim != null && anim.Has("Fly") && !Perchers.Contains(k);
         perch = !fly && Perchers.Contains(k) && model != null && !(k == "drake" && Resources.Load<GameObject>("AH/Models/Comp/pet_drake_hd") == null);
         AHModel.SetShadows(model);
         // evolved pets are bigger, and a Mythic one glows
@@ -351,7 +353,12 @@ public class AHPetFollow : MonoBehaviour
     {
         var p = g.player; if (p == null || model == null) return;
         float dt = Time.deltaTime;
-        if (perch) { PetJobs(p, dt); return; }   // (placed in LateUpdate, after the body has moved)
+        if (perch)
+        {
+            // looking about, ruffling its feathers; flapping to keep its balance while you run
+            if (anim != null) { if (!(p.Moving && anim.Play("Fly", true, 1.1f))) anim.Play("Idle", true); anim.Tick(dt); }
+            PetJobs(p, dt); return;   // (placed in LateUpdate, after the body has moved)
+        }
         Vector3 goal = p.transform.position - p.transform.forward * 0.3f + p.transform.right * 1.5f;   // at your side, out of the camera's line
         Vector3 d = goal - transform.position; d.y = 0;
         if (d.magnitude > 20f) { transform.position = goal; d = Vector3.zero; }
@@ -806,7 +813,7 @@ public class AHMountGait : MonoBehaviour
             // a reading that makes no sense (the seat below the back, or far above it) is replaced by a spot just above the
             // middle of the back (scaled-up mounts like the wolves read badly from their mesh)
             seatFound = FindSeat();
-            if (!seatFound || seat.y < back0.y + 0.1f || seat.y > back0.y + 0.7f || Mathf.Abs(seat.z - back0.z) > 0.6f) {
+            if (!seatFound || (!seatNote.Contains("socket; ") && (seat.y < back0.y + 0.1f || seat.y > back0.y + 0.7f || Mathf.Abs(seat.z - back0.z) > 0.6f))) {   // (a rig's own seat bone is trusted)
                 // over the middle of the body, between the hind legs and the forelegs (where a saddle is girthed)
                 float z = back0.z; var hind = Find(transform, "BackShoulder.L", "BackUpperLeg.L", "Thigh.L", "Hip.L"); var fore = Find(transform, "FrontShoulder.L", "FrontUpperLeg.L", "Shoulder.L");
                 if (hind != null && fore != null) z = (Local(hind.position).z + Local(fore.position).z) * 0.5f - 0.12f;   // a little behind the middle

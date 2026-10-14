@@ -26,6 +26,8 @@ eb = arm_d.edit_bones
 root = eb.new('Root'); root.head = (0, 0, 0); root.tail = (0, 0, 0.3)
 for n, y in CH:
     b = eb.new(n); b.head = (0, y, 0.4); b.tail = (0, y, 1.0); b.parent = root
+# the rider's seat: the dip of the saddle on top of the shell (the game seats the rider's hips just above it)
+sb = eb.new('Socket_Saddle'); sb.head = (0, 0.62, 2.62); sb.tail = (0, 0.62, 2.8); sb.parent = eb['Back']
 STALK = {'StalkL': -0.34, 'StalkR': 0.34}
 for n, x in STALK.items():
     b = eb.new(n); b.head = (x, -1.12, 2.0); b.tail = (x * 1.03, -1.2, 2.6); b.parent = eb['Head']

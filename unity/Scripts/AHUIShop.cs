@@ -84,8 +84,8 @@ public partial class AHUI
         Center(Label(petsBtn, "T", "PETS", 16, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(76, 30), Color.white));
         taps.Add(new TapBtn { rt = petsBtn, act = OpenComp });
         // the store's tag (moved under the Daily and event tags by the skin)
-        var storeChip = Img("StoreChip", transform, white, new Vector2(1, 1), new Vector2(-130, -168), new Vector2(190, 34), new Color(0.32f, 0.22f, 0.06f, 0.92f));
-        Center(Label(storeChip, "T", "STORE", 16, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(190, 30), new Color(1f, 0.85f, 0.4f)));
+        var storeChip = Img("StoreChip", transform, white, new Vector2(1, 1), new Vector2(-150, -168), new Vector2(150, 34), new Color(0.32f, 0.22f, 0.06f, 0.92f));
+        Center(Label(storeChip, "T", "STORE", 16, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(150, 30), new Color(1f, 0.85f, 0.4f)));
         taps.Add(new TapBtn { rt = storeChip, act = OpenStore });
         rideBtn = Img("RideBtn", transform, circle, new Vector2(1, 0), new Vector2(-58, 322), new Vector2(66, 66), new Color(0.45f, 0.32f, 0.16f, 0.92f));
         Img("Rim", rideBtn, ring, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(66, 66), new Color(1f, 0.8f, 0.45f, 1f));
@@ -295,6 +295,25 @@ public partial class AHUI
         for (int i = from; i < Mathf.Min(rows.Count, from + RowsPerPage); i++) rows[i](i - from);
     }
 
+    // TESTING: every pet in the game, each with a Call button (AHComp.TestMounts)
+    void RenderPetTest(AHPlayer p)
+    {
+        wkTitle.text = "All pets (testing)";
+        wkHint.text = "Tap Call to bring out any pet and watch it idle, walk, run and fly. Nothing is bought or learned.";
+        var rows = new List<Action<int>>();
+        rows.Add(slot => Row(slot, "Back to companions", Color.white, "", "", new WkBtn { label = "Back", on = true, col = Plain, act = () => { wkMode = "comp"; wkPageI = 0; RenderWork(); } }));
+        var all = AHComp.Pets;
+        if (all != null)
+            foreach (var kv in all)
+            {
+                string k = kv.Key; bool outNow = p.pet == k, own = p.pets.Contains(k);
+                rows.Add(slot => Row(slot, AHComp.PetName(k) + (outNow ? "  <color=#9be37a>out</color>" : own ? "  <color=#c8b89a>yours</color>" : ""), new Color(1f, 0.62f, 0.24f), k, AHJson.S(AHJson.O(all, k), "blurb"),
+                    new WkBtn { label = outNow ? "Put away" : "Call", on = true, col = outNow ? Plain : Go, act = () => { p.pet = outNow ? null : k; AHComp.SpawnPet(g); RenderWork(); } }));
+            }
+        int from = Paged(rows.Count);
+        for (int i = from; i < Mathf.Min(rows.Count, from + RowsPerPage); i++) rows[i](i - from);
+    }
+
     void RenderPetInfo(AHPlayer p)
     {
         string k = petInfo; if (k == null) { wkMode = "comp"; RenderComp(p); return; }
@@ -334,6 +353,9 @@ public partial class AHUI
         if (AHComp.TestMounts)
             rows.Add(slot => Row(slot, "All mounts (testing)", new Color(0.62f, 0.85f, 1f), "Ride any mount in the game to try it", "Nothing is bought or learned: getting off gives you back your own mount.",
                 new WkBtn { label = "Open", on = true, col = Go, act = () => { wkMode = "mounttest"; wkPageI = 0; RenderWork(); } }));
+        if (AHComp.TestMounts)
+            rows.Add(slot => Row(slot, "All pets (testing)", new Color(0.62f, 0.85f, 1f), "Call any pet in the game to see it move", "Nothing is bought or learned: a pet you don't own goes away when you log out.",
+                new WkBtn { label = "Open", on = true, col = Go, act = () => { wkMode = "pettest"; wkPageI = 0; RenderWork(); } }));
         var skills = AHDB.List("companions", "PET_SKILLS");
         foreach (var k in p.pets)
         {
