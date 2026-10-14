@@ -160,6 +160,7 @@ public partial class AHUI : MonoBehaviour
         Img("Inner", atkRim, white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(88, 88), new Color(0.22f, 0.15f, 0.1f, 1f));
         var atkLabel = Label(transform, "AttackLabel", "ATTACK", 22, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(140, 40), Color.white);
         Anchor(atkLabel.rectTransform, new Vector2(1, 0), AtkPos);
+        atkLabelText = atkLabel;
         for (int i = 0; i < 6; i++)
         {
             float a = (98f + i * 33f) * Mathf.Deg2Rad;   // far enough apart that a thumb never hits the neighbour
@@ -185,6 +186,7 @@ public partial class AHUI : MonoBehaviour
         }
         dodgeBtn = Img("Dodge", transform, circle, new Vector2(1, 0), new Vector2(-62, 62), new Vector2(88, 88), new Color(0.2f, 0.45f, 0.85f, 0.9f));
         Center(Label(dodgeBtn, "DodgeLabel", "DODGE", 17, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(88, 40), Color.white));
+        BuildModeSwitch();
 
         // banner and short messages, centre
         var ban = Box("Banner", transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 110), new Vector2(900, 140));
@@ -288,7 +290,7 @@ public partial class AHUI : MonoBehaviour
         if (p == null || p.cls == null) return;
         string ttl0 = AHEvo.Title(p);
         nameText.text = string.IsNullOrEmpty(p.heroName) ? ttl0 : p.heroName + "  ·  " + ttl0;
-        var sps0 = p.Spells; spellBtns[5].rt.gameObject.SetActive(sps0.Length > 5);
+        var sps0 = p.Spells; spellBtns[5].rt.gameObject.SetActive(sps0.Length > 5 && !skillMode);
         for (int i = 0; i < 6; i++)
         {
             if (i >= sps0.Length) continue;
@@ -501,7 +503,8 @@ public partial class AHUI : MonoBehaviour
                 }
             }
         }
-        atkImg.color = attackHeld ? new Color(0.5f, 0.3f, 0.15f, 0.95f) : new Color(0.2f, 0.14f, 0.1f, 0.85f);
+        atkImg.color = sealAct != null ? (skillMode ? new Color(0.16f, 0.46f, 0.22f, 0.95f) : new Color(0.16f, 0.32f, 0.55f, 0.95f))
+            : attackHeld ? new Color(0.5f, 0.3f, 0.15f, 0.95f) : skillMode ? new Color(0.14f, 0.24f, 0.16f, 0.85f) : new Color(0.2f, 0.14f, 0.1f, 0.85f);
 
         if (bannerT > 0f) { bannerT -= dt; bannerGroup.alpha = Mathf.Clamp01(bannerT / 0.6f) * Mathf.Clamp01((3.2f - bannerT) / 0.3f); }
         else bannerGroup.alpha = 0f;
@@ -565,6 +568,7 @@ public partial class AHUI : MonoBehaviour
         if (modal == 4 && crPanel != null && !Inside(crPanel, q.pos, 0f)) return Role.Cam;
         if (modal != 0) return Role.None;
         if (q.id == -2 || PhotoOn) return Role.Cam;
+        if (sealAct != null && Inside(atkBtn, q.pos, 24f * k)) { pt.tap = sealTap; return Role.Tap; }   // the seal is an action now (CHOP, TALK...): a tap, never an attack
         for (int i = 0; i < 6; i++)
             if (spellBtns[i].rt.gameObject.activeSelf && Inside(spellBtns[i].rt, q.pos, 4f * k)) { pt.index = i; spellPressed[i] = true; return Role.Spell; }
         if (Inside(atkBtn, q.pos, 24f * k)) return Role.Attack;
@@ -1197,8 +1201,8 @@ public partial class AHUI : MonoBehaviour
                 else { var gs = AHGather.Nearest(p.transform.position); if (gs != null) act = AHGather.Label(gs).ToUpperInvariant(); else if (AHGather.CanLight(p) && !AHInterior.Inside) act = "LIGHT FIRE"; }
             }
         }
-        talkBtn.gameObject.SetActive(Modal == 0 && act != null);
-        if (act != null) talkText.text = act;
+        talkBtn.gameObject.SetActive(false);   // the old green button in the middle of the screen: the seal does it now
+        UpdateSeal(p, act);
 
         // names and quest marks over the townsfolk
         string qn = log.Current != null ? log.NpcName : null;

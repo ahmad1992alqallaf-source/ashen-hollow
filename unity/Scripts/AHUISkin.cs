@@ -170,6 +170,9 @@ public partial class AHUI
             sb.rt.anchoredPosition = AtkPos + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 98f;
         }
 
+        // the FIGHT / SKILL swap beside the spells
+        if (modeBtn != null) { SkinRound(modeBtn, 56f, Color.white); if (modeGlow != null) modeGlow.sprite = glow; ShowMode(); }
+
         // ---- the attack button: a big round seal instead of the diamond ----
         atkBtn.localRotation = Quaternion.identity; atkBtn.sizeDelta = new Vector2(118, 118);
         atkImg.sprite = ornDisc; atkImg.color = new Color(0.62f, 0.12f, 0.1f);
