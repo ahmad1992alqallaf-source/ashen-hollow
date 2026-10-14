@@ -20,6 +20,23 @@ public static class AHBumpReel
         foreach (var d in Directory.GetDirectories(root)) Directory.Delete(d, true);
         var p = g.player; var rt = new RenderTexture(W, H, 24); var grab = new Texture2D(W, H, TextureFormat.RGB24, false);
         var targets = AHSolidGrid.Targets(6, 9f, AHGame.AreaId.GetHashCode());
+        // HeroShots/bump_wild.txt there: walk at the wild land's own rocks and broken pillars instead (AHWilds)
+        if (File.Exists(Path.Combine(Application.dataPath, "../HeroShots/bump_wild.txt")))
+        {
+            targets = new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<Vector3, Vector3>>();
+            var rnd = new System.Random(7);
+            foreach (var go in Object.FindObjectsByType<Transform>(FindObjectsSortMode.None))
+            {
+                if (targets.Count >= 6 || (go.name != "Wild ruin" && go.name != "Wild rock")) continue;
+                if (rnd.Next(3) != 0) continue;
+                var rs = go.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) continue;
+                Bounds bb = rs[0].bounds; foreach (var r in rs) bb.Encapsulate(r.bounds);
+                if (bb.size.y < 0.6f) continue;
+                float a = (float)rnd.NextDouble() * 6.28f; Vector3 c = bb.center; c.y = g.player.transform.position.y;
+                var from = c + new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * (Mathf.Max(bb.size.x, bb.size.z) * 0.5f + 5f);
+                targets.Add(new System.Collections.Generic.KeyValuePair<Vector3, Vector3>(g.Resolve(from, 0.4f), c));
+            }
+        }
         var log = new System.Text.StringBuilder(); int n = 0;
         foreach (var t in targets)
         {

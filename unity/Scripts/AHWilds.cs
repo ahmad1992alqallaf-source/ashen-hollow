@@ -22,7 +22,7 @@ public static class AHWilds
     // spots, rocks and herbs (before the ore and herb looks are built); the camps' beasts come later (Spawn)
     public static void Plan(AHGame g, Transform world)
     {
-        camps.Clear(); taken.Clear(); Camps = Mobs = Ore = Herbs = Props = 0;
+        camps.Clear(); taken.Clear(); Camps = Mobs = Ore = Herbs = Props = 0; G = g;
         string id = AHGame.AreaId;
         if (g == null || g.data == null || !Lands.Contains(id)) return;
         var R = g.WalkArea; if (R.width < 40f || R.height < 40f) return;
@@ -193,6 +193,7 @@ public static class AHWilds
             go.transform.localScale = new Vector3(s, s * (0.7f + (float)rnd.NextDouble() * 0.6f), s);
             b = Measure(go); go.transform.position += Vector3.up * (at.y - b.min.y - 0.15f);
             Tint(go); AHModel.SetShadows(go); Props++;
+            Solid(go, false);
         }
     }
 
@@ -243,11 +244,28 @@ public static class AHWilds
             float want = heap ? 2.6f : 2.2f + (float)rnd.NextDouble() * 2.4f;
             float s = want / Mathf.Max(0.1f, heap ? Mathf.Max(b.size.x, b.size.z) : b.size.y);
             go.transform.localScale = Vector3.one * s;
+            float dia = Mathf.Max(b.size.x, b.size.z) * s, len = b.size.y * s;
             // a fallen pillar lies right down on its side (never propped up in the air on a corner)
             go.transform.rotation = fallen ? Quaternion.Euler(0f, yaw, 0f) * Quaternion.Euler(90f, 0f, 0f) : Quaternion.Euler(0f, yaw, 0f);
             b = Measure(go); go.transform.position += Vector3.up * (at.y - b.min.y - (fallen ? 0.12f : 0.05f));
             Tint(go); AHModel.SetShadows(go); Props++;
+            Solid(go, fallen, dia, len);
         }
+    }
+
+    // you walk round a rock or a broken pillar, never through it: round blockers on its footprint (a fallen pillar,
+    // long and thin, gets a row of them along its length) that the camera keeps out of as well
+    static AHGame G;
+    static void Solid(GameObject go, bool fallen, float dia = 0f, float len = 0f)
+    {
+        if (G == null) return;
+        var b = Measure(go); if (b.size.y < 0.35f) return;   // a flat scatter of stones you just step over
+        if (!fallen) { G.AddBlocker(b.center, Mathf.Max(0.35f, Mathf.Min(b.size.x, b.size.z) * 0.45f)); return; }
+        // lying down: its own up is now flat, along the ground
+        Vector3 ax = go.transform.up; ax.y = 0f; if (ax.sqrMagnitude < 1e-4f) ax = Vector3.forward; ax.Normalize();
+        float r = Mathf.Max(0.35f, dia * 0.5f), span = Mathf.Max(0f, len * 0.5f - r);
+        int n = Mathf.Max(2, Mathf.CeilToInt(len / Mathf.Max(0.5f, r * 1.4f)));
+        for (int i = 0; i < n; i++) G.AddBlocker(b.center + ax * Mathf.Lerp(-span, span, i / (float)(n - 1)), r);
     }
 
     static Bounds Measure(GameObject go) { var rs = go.GetComponentsInChildren<Renderer>(true); Bounds b = rs.Length > 0 ? rs[0].bounds : new Bounds(go.transform.position, Vector3.zero); for (int i = 1; i < rs.Length; i++) b.Encapsulate(rs[i].bounds); return b; }
