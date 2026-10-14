@@ -49,7 +49,7 @@ public partial class AHUI
 
     public void ShowWork(bool on)
     {
-        if (!on) AHItemStudio.StopHero();
+        if (!on) { AHItemStudio.StopHero(); EndStorePreview(); }
         if (wkRoot == null) return;
         if (on) { ShowBag(false); ShowDialog(false); }
         wkRoot.gameObject.SetActive(on);
@@ -177,6 +177,8 @@ public partial class AHUI
         else if (wkMode == "comp") RenderComp(p);
         else if (wkMode == "petinfo") RenderPetInfo(p);
         else if (wkMode == "mounttest") RenderMountTest(p);
+        else if (wkMode == "store") RenderStore(p);
+        else if (wkMode == "storepacks") RenderStorePacks(p);
         else if (wkMode == "ah") RenderAH(p);
         else if (wkMode == "orders") RenderOrders(p);
         else if (wkMode == "farm") RenderFarm(p);

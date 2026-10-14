@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class ItemDef
 {
-    public string id, name, icon, slot, style, form, rarity, set, note, cls;   // cls: a collection piece made for one class
+    public string id, name, icon, slot, style, form, rarity, set, note, cls, tex;   // cls: a collection piece made for one class; tex: a picture the piece is drawn from (the store's feathered wings)
     public Color color = Color.white;
     public int atk, def, hp;
     public float dmg, cdr, heal;
@@ -85,6 +85,7 @@ public static class AHItems
             meal = AHJson.Has(raw, "meal"),
             reins = AHJson.S(raw, "reins"),
             cls = AHJson.S(raw, "cls", null),
+            tex = AHJson.S(raw, "tex", null),
         };
         var st = AHJson.O(raw, "stats");
         if (st != null)

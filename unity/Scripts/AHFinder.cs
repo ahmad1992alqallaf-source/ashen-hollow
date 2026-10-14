@@ -257,6 +257,8 @@ public partial class AHUI
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenCollection }));
         rows.Add(s => Row(s, "Pet battles", new Color(1f, 0.62f, 0.24f), "Turn-based battles with your pets · " + p.prog.pbTamers.Count + "/6 tamers beaten", "",
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenPetBattles }));
+        rows.Add(s => Row(s, "Store", new Color(1f, 0.85f, 0.4f), AHStore.Amount(p.prog.crowns) + " · mounts and wings, looks only", "",
+            new WkBtn { label = "Open", on = true, col = Go, act = OpenStore }));
         rows.Add(s => Row(s, "Wardrobe", new Color(0.85f, 0.55f, 1f), AHWardrobe.CosmeticCount(p) + " cosmetics · " + p.prog.coll.Count + " pieces collected · " + p.prog.outfits.Count + " outfits", "Choose what each slot shows. Stats stay with your gear.",
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenWardrobe }));
         rows.Add(s => Row(s, "Companions", new Color(1f, 0.62f, 0.24f), p.pets.Count + " pets · " + p.mounts.Count + " mounts · " + p.party.Count + " in your party", "",

@@ -83,6 +83,10 @@ public partial class AHUI
         Img("Rim", petsBtn, ring, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(76, 76), new Color(0.85f, 0.6f, 0.25f, 1f));
         Center(Label(petsBtn, "T", "PETS", 16, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(76, 30), Color.white));
         taps.Add(new TapBtn { rt = petsBtn, act = OpenComp });
+        // the store's tag (moved under the Daily and event tags by the skin)
+        var storeChip = Img("StoreChip", transform, white, new Vector2(1, 1), new Vector2(-130, -168), new Vector2(190, 34), new Color(0.32f, 0.22f, 0.06f, 0.92f));
+        Center(Label(storeChip, "T", "STORE", 16, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(190, 30), new Color(1f, 0.85f, 0.4f)));
+        taps.Add(new TapBtn { rt = storeChip, act = OpenStore });
         rideBtn = Img("RideBtn", transform, circle, new Vector2(1, 0), new Vector2(-58, 322), new Vector2(66, 66), new Color(0.45f, 0.32f, 0.16f, 0.92f));
         Img("Rim", rideBtn, ring, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(66, 66), new Color(1f, 0.8f, 0.45f, 1f));
         rideText = Center(Label(rideBtn, "T", "RIDE", 15, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(66, 26), Color.white));

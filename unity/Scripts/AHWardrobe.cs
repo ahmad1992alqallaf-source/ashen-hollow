@@ -37,9 +37,12 @@ public static class AHWardrobe
     }
 
     // web: shownItem
+    // wings being tried on in the store (AHStore): shown on the hero's back until the store closes, never saved
+    public static string Preview;
     public static string Shown(AHPlayer p, string slot)
     {
         if (p == null || p.prog == null) return null;
+        if (slot == "cape" && Preview != null && (g == null || p == g.player) && AHItems.Get(Preview) != null) return Preview;
         string c = Cos(p, slot); if (c == "none") return null;
         if (c != null) return c;
         return p.bag != null ? p.bag.Worn(slot) : null;
@@ -202,6 +205,48 @@ public static class AHWardrobe
         for (int s = 0; s < m.subMeshCount; s++) { var tr = m.GetTriangles(s); for (int i = 0; i < tr.Length; i += 3) { int x = tr[i]; tr[i] = tr[i + 1]; tr[i + 1] = x; } m.SetTriangles(tr, s); }
         m.RecalculateBounds(); mirrored[src] = m; return m;
     }
+    // the painted wing: one picture of a whole wing (shoulder at its left, wrist ~0.61 across, tip at the right edge,
+    // feathers hanging down) on a grid in the wing's plane, x out along the span as the jointed rig expects
+    static Mesh cardW; static readonly Dictionary<string, Material> cardMats = new Dictionary<string, Material>();
+    const float CardU0 = 30f / 2048f, CardV0 = 330f / 1024f, CardSpan = 1f / (1f - CardU0);   // one unit shoulder to tip, as the rig's joints expect (sized by the piece's scale)
+    public static Mesh CardWing
+    {
+        get
+        {
+            if (cardW != null) return cardW;
+            const int NX = 10, NY = 4; var v = new List<Vector3>(); var uv = new List<Vector2>(); var tr = new List<int>();
+            for (int y = 0; y <= NY; y++) for (int x = 0; x <= NX; x++)
+            {
+                float u = x / (float)NX, vu = y / (float)NY, vt = 1f - vu;
+                v.Add(new Vector3((u - CardU0) * CardSpan, (CardV0 - vt) * CardSpan * 0.5f, 0f)); uv.Add(new Vector2(u, vu));
+            }
+            for (int y = 0; y < NY; y++) for (int x = 0; x < NX; x++)
+            {
+                int a = y * (NX + 1) + x, b = a + 1, c = a + NX + 1, d = c + 1;
+                tr.AddRange(new[] { a, c, b, b, c, d });
+            }
+            var m = new Mesh { name = "CardWing" }; m.SetVertices(v); m.SetUVs(0, uv); m.SetTriangles(tr, 0); m.RecalculateNormals(); m.RecalculateBounds();
+            return cardW = m;
+        }
+    }
+    // its material: the picture (Resources/AH/Textures/Wings/<tex>), cut out where it is clear, both faces, a faint glow
+    public static Material CardMat(string tex)
+    {
+        if (string.IsNullOrEmpty(tex)) return null;
+        Material m; if (cardMats.TryGetValue(tex, out m)) return m;
+        var t = Resources.Load<Texture2D>("AH/Textures/Wings/" + tex);
+        if (t == null) { cardMats[tex] = null; return null; }
+        t.wrapMode = TextureWrapMode.Clamp;
+        if (lit == null) lit = Shader.Find("Universal Render Pipeline/Lit");
+        m = new Material(lit) { name = "CardWing " + tex };
+        m.SetColor("_BaseColor", Color.white); m.SetTexture("_BaseMap", t); m.SetFloat("_Smoothness", 0.3f);
+        m.SetFloat("_Cull", 0f); m.doubleSidedGI = true;
+        m.SetFloat("_AlphaClip", 1f); m.SetFloat("_Cutoff", 0.45f); m.EnableKeyword("_ALPHATEST_ON");
+        m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
+        m.EnableKeyword("_EMISSION"); m.SetTexture("_EmissionMap", t); m.SetColor("_EmissionColor", new Color(0.35f, 0.35f, 0.35f));
+        cardMats[tex] = m; return m;
+    }
+
     static Vector3 Lead(float t) { return new Vector3(t, 0.2f * Mathf.Sin(t * Mathf.PI * 0.75f) - 0.04f * t, 0f); }
     static void Quad2(List<Vector3> v, List<int> tr, Vector3 a, Vector3 b, Vector3 c, Vector3 d)
     {
@@ -890,6 +935,19 @@ public static class AHWardrobe
                 foreach (int sx in new[] { -1, 1 }) K.Prim(PrimitiveType.Cube, new Vector3(sx * 0.1f, -L * 0.62f, -0.2f - L * 0.08f), new Vector3(0.2f, L * 0.55f, 0.025f), new Vector3(9, 0, sx * 4));
             else if (f == "wings" && CrestWings.ContainsKey(kid) && AHTripo.Has(kid))
                 TripoWings(K, kid, k, moving, rig);
+            else if (f == "wings" && CardMat(kd.tex) != null)
+            {
+                // the store's feathered wings: a painted wing (tools/mounts/wing_tex.py) on a jointed card, mirrored for the left
+                var back = K.root; var cm = CardMat(kd.tex);
+                foreach (int sx in new[] { -1, 1 })
+                {
+                    var w = new GameObject("Wing").transform; w.SetParent(back, false);
+                    w.localPosition = new Vector3(sx * 0.05f, 0.08f, -0.17f) * k; w.localRotation = Quaternion.Euler(-8f, sx * 32f, sx * 16f); K.root = w;
+                    K.Mesh(CardWing, Vector3.zero, new Vector3(sx * 1.36f, 1.36f, 1.36f), Vector3.zero, cm);   // (as wide as the feathered wings: 1.6 × 0.85)
+                    w.gameObject.AddComponent<AHWingRig>().Setup(sx, moving, rig.transform, false);
+                    K.root = back;
+                }
+            }
             else if (f == "wings")
             {
                 var back = K.root;

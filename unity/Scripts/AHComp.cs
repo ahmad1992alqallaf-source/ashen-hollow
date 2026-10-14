@@ -730,6 +730,9 @@ public class AHMountGait : MonoBehaviour
     // blanket when the saddle is its own part), measured on the mesh as it stands now
     bool FindSeat()
     {
+        // a rig made for riding marks its seat with a bone (the Creatures beasts: Socket_Saddle)
+        var sock = Find(transform, "Socket_Saddle", "Saddle_Socket", "Seat");
+        if (sock != null) { seat = Local(sock.position); seatNote += "socket; "; return true; }
         var pts = new List<Vector3>(); var sad = new List<Vector3>(); var mesh = new Mesh();
         foreach (var smr in GetComponentsInChildren<SkinnedMeshRenderer>())
         {
@@ -771,7 +774,7 @@ public class AHMountGait : MonoBehaviour
         else
         {
             // between the hind legs and the forelegs
-            var hind = Find(transform, "BackShoulder.L", "BackUpperLeg.L", "Thigh.L", "Hip.L", "Pelvis.L", "BN_L_Calf_052", "Oberschenkel_L"); var fore = Find(transform, "FrontShoulder.L", "FrontUpperLeg.L", "Shoulder.L", "UpperArm.L", "BN_L_UpperArm_039", "Oberarm_L");
+            var hind = Find(transform, "BackShoulder.L", "BackUpperLeg.L", "Thigh.L", "Hip.L", "Pelvis.L", "BN_L_Calf_052", "Oberschenkel_L", "ThighL"); var fore = Find(transform, "FrontShoulder.L", "FrontUpperLeg.L", "Shoulder.L", "UpperArm.L", "BN_L_UpperArm_039", "Oberarm_L", "UpperArmL");
             if (hind == null || fore == null) return false;
             float a = Local(hind.position).z, b = Local(fore.position).z; if (a > b) { float t = a; a = b; b = t; }
             zMin = a + (b - a) * 0.25f; zMax = a + (b - a) * 0.8f;

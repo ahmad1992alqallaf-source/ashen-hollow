@@ -572,6 +572,7 @@ Played on a real Android phone (an Honor foldable). Fixed from that test:
   Industries (Unity Asset Store, free).
 - 'Horse' by henrysteve973 (Henry S, sketchfab.com/henrysteve973), CC-BY 4.0 (https://sketchfab.com/3d-models/horse-a6f860e43e364619bccb174a1ac7d0c9): all six horse mounts, recoloured, with a caparison, a horn or horns added for the destrier, the Goldhorn steed and the gladiator's warhorse.
 - 'Animated Wolf Scene' by Roo (sketchfab.com/roo3d), CC-BY 4.0 (https://sketchfab.com/3d-models/animated-wolf-scene-5d55506494e5460eaadf04370e07cd5c): the Frost dire wolf and the Glacier wolf (recoloured), with the horse's saddle added.
+- 'Fantasy Snail Mount' by reczek.przemyslaw (sketchfab.com/reczek.przemyslaw), CC-BY 4.0 (https://sketchfab.com/3d-models/fantasy-snail-mount-a9f1c9fb6f0a48a282d0f23047d58750): the Wandering snail (a store mount), given a skeleton and its crawl by tools/mounts/snail_rig.py.
 - The Voidwing's feathered wings are drawn by code (tools/mounts/wing_tex.py), nothing licensed.
 - 'Phoenix on fire update' by NORBERTO-3D (sketchfab.com/norberto3d), CC-BY 4.0. The scorpion, the pteranodon, the
   grim reaper and the skeleton mage are free downloads without licence notes in their files; check their pages

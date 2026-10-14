@@ -148,6 +148,27 @@
    "speed": 2.0,
    "rare": true,
    "blurb": "An old island raptor of bare bone, dug up in the Fossil Lands and walking again. One treasure dig in a hundred."
+  },
+  "snail": {
+   "name": "Wandering snail",
+   "price": 0,
+   "speed": 1.55,
+   "blurb": "A saddled giant snail, packs and bedroll and all. Slow and steady, they said. They were wrong.",
+   "store": true
+  },
+  "warg": {
+   "name": "Ashen warg",
+   "price": 0,
+   "speed": 1.55,
+   "blurb": "A shaggy war-wolf in a goblin saddle, tamed (mostly).",
+   "store": true
+  },
+  "mammoth": {
+   "name": "Tusked mammoth",
+   "price": 0,
+   "speed": 1.55,
+   "blurb": "A woolly giant with a saddle on its hump. You see the whole world from up there.",
+   "store": true
   }
  },
  "MERCS": {
@@ -219,7 +240,10 @@
   "voidwing": 0.64,
   "gladiator": 0.64,
   "phoenix": 1.05,
-  "fossilraptor": 0.52
+  "fossilraptor": 0.52,
+  "snail": 0.8,
+  "warg": 0.75,
+  "mammoth": 2.0
  },
  "PET_FLY": [
   "owl",

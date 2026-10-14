@@ -231,11 +231,11 @@ public partial class AHUI
         RefreshAuto();
 
         // ---- the chips move to the right under the top buttons, as gold-edged tags ----
-        foreach (var n in new[] { "DailyChip", "EvChip" })
+        foreach (var n in new[] { "DailyChip", "EvChip", "StoreChip" })
         {
             var c = FindUI(n); if (c == null) continue;
-            var im = c.GetComponent<Image>(); im.sprite = tag9; im.type = Image.Type.Sliced; im.color = Color.white;
-            c.anchorMin = c.anchorMax = new Vector2(1, 1); c.anchoredPosition = new Vector2(-130, n == "DailyChip" ? -100 : -134); c.sizeDelta = new Vector2(190, 28);
+            var im = c.GetComponent<Image>(); im.sprite = tag9; im.type = Image.Type.Sliced; im.color = n == "StoreChip" ? new Color(1f, 0.85f, 0.45f) : Color.white;
+            c.anchorMin = c.anchorMax = new Vector2(1, 1); c.anchoredPosition = new Vector2(-130, n == "DailyChip" ? -100 : n == "EvChip" ? -134 : -168); c.sizeDelta = new Vector2(190, 28);
             foreach (var t in c.GetComponentsInChildren<Text>(true)) t.fontSize = 14;
             slide.Add(c);
         }

@@ -1,7 +1,7 @@
 # Ashen Hollow: draws the Voidwing's wing (one wing, the right; the game mirrors it for the left) as a feathered
 # picture with see-through gaps: primaries fanned from the wrist, secondaries hanging from the arm, rows of coverts
 # over them and the leading edge on top. Made by code, so nothing licensed.
-#   python wing_tex.py <out.png> [palette: void|ember|frost]
+#   python wing_tex.py <out.png> [palette: void|ember|frost|gold|jade|blood]
 import sys, math, random
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
@@ -9,7 +9,10 @@ out = sys.argv[1]; pal = sys.argv[2] if len(sys.argv) > 2 else 'void'
 W, H = 2048, 1024; SS = 1     # drawn at this size, saved at half
 P = {'void': dict(root=(14, 8, 26), mid=(44, 24, 78), tip=(120, 70, 210), rim=(190, 140, 255), edge=(6, 3, 12), shaft=(110, 80, 160)),
      'ember': dict(root=(30, 8, 4), mid=(110, 30, 10), tip=(240, 120, 30), rim=(255, 210, 120), edge=(14, 4, 2), shaft=(200, 110, 60)),
-     'frost': dict(root=(60, 80, 110), mid=(140, 170, 205), tip=(220, 236, 255), rim=(255, 255, 255), edge=(40, 52, 72), shaft=(200, 220, 240))}[pal]
+     'frost': dict(root=(60, 80, 110), mid=(140, 170, 205), tip=(220, 236, 255), rim=(255, 255, 255), edge=(40, 52, 72), shaft=(200, 220, 240)),
+     'gold': dict(root=(120, 80, 20), mid=(220, 170, 60), tip=(255, 238, 170), rim=(255, 255, 230), edge=(70, 44, 10), shaft=(255, 230, 160)),
+     'jade': dict(root=(8, 40, 30), mid=(30, 130, 90), tip=(140, 240, 190), rim=(220, 255, 235), edge=(4, 22, 16), shaft=(120, 210, 170)),
+     'blood': dict(root=(30, 4, 8), mid=(120, 14, 26), tip=(230, 60, 60), rim=(255, 170, 150), edge=(14, 2, 4), shaft=(190, 70, 70))}[pal]
 rng = random.Random(7)
 rgb = np.zeros((H, W, 3), np.float32); alpha = np.zeros((H, W), np.float32)
 S, E, R = np.array([30., 330.]), np.array([760., 205.]), np.array([1250., 300.])   # shoulder, elbow, wrist (pixels)
