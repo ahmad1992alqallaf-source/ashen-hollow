@@ -70,7 +70,7 @@ public static class AHTourReel
                     break;
                 case "to":
                 {
-                    Vector3 to = new Vector3(float.Parse(w[1], ci), 0f, float.Parse(w[2], ci)); float stuck = 0f; Vector3 last = p.transform.position;
+                    Vector3 to = new Vector3(float.Parse(w[1], ci), 0f, float.Parse(w[2], ci)); float stuck = 0f, best = float.MaxValue;
                     for (int k = 0; k < Fps * 40; k++)
                     {
                         Vector3 d = to - p.transform.position; d.y = 0f; if (d.magnitude < 1.2f) break;
@@ -79,7 +79,9 @@ public static class AHTourReel
                         AHInput.TestMove = new Vector2(Vector3.Dot(want, cr), Vector3.Dot(want, cf));
                         yield return new WaitForEndOfFrame(); shoot();
                         // walked into something and not getting anywhere: on to the next stop
-                        if ((p.transform.position - last).magnitude < 0.02f) stuck += 1f / Fps; else stuck = 0f; last = p.transform.position;
+                        // (pressed against a wall it still shuffles a little: no closer to the stop in a second and a half)
+                        float dn = (to - p.transform.position).magnitude;
+                        if (dn > best - 0.3f) stuck += 1f / Fps; else { stuck = 0f; best = dn; }
                         if (stuck > 1.5f) break;
                     }
                     AHInput.TestMove = Vector2.zero;
