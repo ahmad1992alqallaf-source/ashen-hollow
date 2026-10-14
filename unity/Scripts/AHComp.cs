@@ -633,7 +633,7 @@ public class AHMountGait : MonoBehaviour
             {
                 string n = q.name.ToLowerInvariant();
                 if (n.Contains("tail") || n.Contains("wing") || n.Contains("arm") || n.Contains("hand") || n.Contains("finger") || n.Contains("pole") || n.EndsWith("ik") || n.Contains("ik.") || n.Contains("ik_")) break;
-                if (n.Contains("leg") || n.Contains("foot") || n.Contains("toe") || n.Contains("hoof") || n.Contains("ankle") || n.Contains("calf") || n.Contains("thigh") || n.Contains("shin") || n.Contains("pfote") || n.Contains("schenkel")) { l.Add(t); break; }   // (the wolf's rig names its paws in German)
+                if (n.Contains("leg") || n.Contains("foot") || n.Contains("toe") || n.Contains("hoof") || n.Contains("ankle") || n.Contains("calf") || n.Contains("thigh") || n.Contains("shin") || n.Contains("pfote") || n.Contains("schenkel") || n.Contains("tarsus") || n.Contains("tibia") || n.Contains("femur")) { l.Add(t); break; }   // (the wolf's rig names its paws in German; the spider's legs are named like an insect's)
             }
         }
         return l.ToArray();
@@ -648,7 +648,7 @@ public class AHMountGait : MonoBehaviour
     {
         measured = true;
         var feet = Feet(transform);
-        var body = Find(transform, "Root", "root", "Hips", "Pelvis", "Torso", "Body", "BN_Root_01", "BN_Pelvis_060");
+        var body = Find(transform, "Root", "root", "Hips", "body", "Pelvis", "Torso", "Body", "BN_Root_01", "BN_Pelvis_060");
         walkV = walk != null ? anim.StrideSpeed(walk, transform, feet, body) : 0f;
         runV = run != null ? anim.StrideSpeed(run, transform, feet, body) : 0f;
         trotV = trot != null ? anim.StrideSpeed(trot, transform, feet, body) : 0f;
@@ -662,7 +662,7 @@ public class AHMountGait : MonoBehaviour
         var tl = new List<Transform>(); var sp = new List<Transform>(); var nk = new List<Transform>();
         for (int i = 1; i <= 8; i++) { var t = Find(transform, "Tail_" + i); if (t != null) tl.Add(t); var q = Find(transform, "Spine_" + i); if (q != null) sp.Add(q); var n = Find(transform, "Neck_" + i); if (n != null) nk.Add(n); }
         if (tl.Count >= 3 && sp.Count >= 1) { tail = tl.ToArray(); spine = sp.ToArray(); neck = nk.ToArray(); }
-        back = Find(transform, "Torso2", "Back", "Torso", "Spine_2", "Spine_1", "B_Spine_02", "Spine", "spine", "Bauch.001", "Brust", "Hips", "Pelvis");
+        back = Find(transform, "Torso2", "Back", "Torso", "Spine_2", "Spine_1", "B_Spine_02", "Spine", "spine", "Bauch.001", "Brust", "Hips", "Pelvis", "body");   // (the spider: its carapace bone)
         if (back == null)
         {
             // other skeletons (BN_Spine_00_02 ...): the middle one of the bones named like a spine

@@ -4,6 +4,11 @@
  "TEST_GRANT": 1000,
  "ITEMS": [
   {
+   "id": "mount:spider",
+   "price": 1500,
+   "tag": "New"
+  },
+  {
    "id": "mount:snail",
    "price": 1200,
    "tag": "New"

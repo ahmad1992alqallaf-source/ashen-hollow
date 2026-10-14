@@ -169,6 +169,13 @@
    "speed": 1.55,
    "blurb": "A woolly giant with a saddle on its hump. You see the whole world from up there.",
    "store": true
+  },
+  "spider": {
+   "name": "Ashen widow",
+   "price": 0,
+   "speed": 1.55,
+   "blurb": "A giant cave spider under a red silk blanket and an ember-stone saddle. Eight legs never stumble.",
+   "store": true
   }
  },
  "MERCS": {
@@ -243,7 +250,8 @@
   "fossilraptor": 0.52,
   "snail": 0.8,
   "warg": 0.95,
-  "mammoth": 2.0
+  "mammoth": 2.0,
+  "spider": 1.35
  },
  "PET_FLY": [
   "owl",
