@@ -15,17 +15,33 @@ arm = [o for o in sc.objects if o.type == 'ARMATURE'][0]
 for o in list(sc.objects):
     if o.type == 'MESH' and any(h and o.name.startswith(h) for h in hide): bpy.data.objects.remove(o)
 for act in list(bpy.data.actions): bpy.data.actions.remove(act)
-# the clips
+# the clips. Each clip file keeps its own copy of the skeleton, posed at the clip's first frame, so its keys can't be
+# copied onto the model's bones as they are (they are relative to that other rest pose: limbs twisted and stretched).
+# Instead the clip's skeleton is loaded beside the model, every model bone is made to follow its twin in world space,
+# and the result is baked onto the model's own bones, frame by frame.
 for src, dstn in CLIPS.items():
     f = os.path.join(root, 'Models', 'Anims', name + '@' + src + '.fbx')
     if not os.path.exists(f): continue
-    before = set(bpy.data.actions)
+    before_o = set(sc.objects); before_a = set(bpy.data.actions)
     bpy.ops.import_scene.fbx(filepath=f)
-    new = [x for x in bpy.data.actions if x not in before]
-    for o in list(sc.objects):
-        if o != arm and (o.type == 'ARMATURE' or (o.parent is not None and o.parent.type == 'ARMATURE' and o.parent != arm)): bpy.data.objects.remove(o)
-    if new: new[0].name = dstn; new[0].use_fake_user = True
-    for x in new[1:]: bpy.data.actions.remove(x)
+    twin = [o for o in sc.objects if o not in before_o and o.type == 'ARMATURE'][0]
+    clip = [x for x in bpy.data.actions if x not in before_a][0]
+    f0, f1 = int(clip.frame_range[0]), int(clip.frame_range[1])
+    for pb in arm.pose.bones:
+        if pb.name in twin.pose.bones:
+            c = pb.constraints.new('COPY_TRANSFORMS'); c.target = twin; c.subtarget = pb.name; c.name = 'clip'
+    bpy.ops.object.select_all(action='DESELECT'); arm.select_set(True); bpy.context.view_layer.objects.active = arm
+    if arm.animation_data is None: arm.animation_data_create()
+    arm.animation_data.action = None
+    bpy.ops.object.mode_set(mode='POSE'); bpy.ops.pose.select_all(action='SELECT')
+    bpy.ops.nla.bake(frame_start=f0, frame_end=f1, only_selected=False, visual_keying=True, clear_constraints=True, use_current_action=False, bake_types={'POSE'})
+    bpy.ops.object.mode_set(mode='OBJECT')
+    baked = arm.animation_data.action; baked.name = dstn; baked.use_fake_user = True
+    arm.animation_data.action = None
+    for pb in arm.pose.bones:
+        pb.location = (0, 0, 0); pb.rotation_quaternion = (1, 0, 0, 0); pb.rotation_euler = (0, 0, 0); pb.scale = (1, 1, 1)
+    for o in [o for o in sc.objects if o not in before_o]: bpy.data.objects.remove(o)
+    bpy.data.actions.remove(clip)
 print('CLIPS', [(x.name, tuple(x.frame_range)) for x in bpy.data.actions])
 # textures: T_<material name without M_>, its _Normal map if there is one
 tex = os.path.join(root, 'Textures')
@@ -70,7 +86,7 @@ if want_saddle:
     R = mathutils.Matrix.Rotation(-math.atan2(fwd.x, -fwd.y), 4, 'Z'); cen = mathutils.Vector(((smn.x + smx.x) / 2, (smn.y + smx.y) / 2, smx.z))
     sme.transform(mathutils.Matrix.Translation(mathutils.Vector((mid.x, mid.y, topz))) @ R @ mathutils.Matrix.Scale(k_s, 4) @ mathutils.Matrix.Translation(-cen))
     zs = sorted(v.co.z for v in sme.vertices); under = zs[int(len(zs) * 0.35)]
-    sme.transform(mathutils.Matrix.Translation(mathutils.Vector((0, 0, topz - under - 0.22 * (smx.z - smn.z) * k_s))))
+    sme.transform(mathutils.Matrix.Translation(mathutils.Vector((0, 0, topz - under - 0.32 * (smx.z - smn.z) * k_s))))
     saddle = bpy.data.objects.new('Saddle', sme); sc.collection.objects.link(saddle); sme.materials.clear(); sme.materials.append(smat)
     best = min([n for n in ('Spine1', 'Spine2', 'Chest', 'Hips') if n in arm.data.bones], key=lambda n: (bp(n) - mid).length)
     saddle.parent = arm; saddle.matrix_parent_inverse = arm.matrix_world.inverted()
