@@ -3,20 +3,60 @@
  "TEST": true,
  "TEST_GRANT": 1000,
  "ITEMS": [
-  {"id": "mount:snail", "price": 1200, "tag": "New"},
-  {"id": "mount:warg", "price": 1400, "tag": "New"},
-  {"id": "mount:mammoth", "price": 1800, "tag": "New"},
-  {"id": "store_wings_void", "price": 800},
-  {"id": "store_wings_ember", "price": 700},
-  {"id": "store_wings_frost", "price": 700},
-  {"id": "store_wings_gold", "price": 900},
-  {"id": "store_wings_jade", "price": 700},
-  {"id": "store_wings_blood", "price": 700}
+  {
+   "id": "mount:snail",
+   "price": 1200,
+   "tag": "New"
+  },
+  {
+   "id": "mount:warg",
+   "price": 1400,
+   "tag": "New"
+  },
+  {
+   "id": "store_wings_void",
+   "price": 800
+  },
+  {
+   "id": "store_wings_ember",
+   "price": 700
+  },
+  {
+   "id": "store_wings_frost",
+   "price": 700
+  },
+  {
+   "id": "store_wings_gold",
+   "price": 900
+  },
+  {
+   "id": "store_wings_jade",
+   "price": 700
+  },
+  {
+   "id": "store_wings_blood",
+   "price": 700
+  }
  ],
  "PACKS": [
-  {"crowns": 500, "price": "$4.99"},
-  {"crowns": 1100, "price": "$9.99", "bonus": "+10%"},
-  {"crowns": 2400, "price": "$19.99", "bonus": "+20%"},
-  {"crowns": 6500, "price": "$49.99", "bonus": "+30%"}
+  {
+   "crowns": 500,
+   "price": "$4.99"
+  },
+  {
+   "crowns": 1100,
+   "price": "$9.99",
+   "bonus": "+10%"
+  },
+  {
+   "crowns": 2400,
+   "price": "$19.99",
+   "bonus": "+20%"
+  },
+  {
+   "crowns": 6500,
+   "price": "$49.99",
+   "bonus": "+30%"
+  }
  ]
 }

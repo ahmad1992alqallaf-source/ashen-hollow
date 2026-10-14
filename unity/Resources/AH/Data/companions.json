@@ -160,7 +160,7 @@
    "name": "Ashen warg",
    "price": 0,
    "speed": 1.55,
-   "blurb": "A shaggy war-wolf in a goblin saddle, tamed (mostly).",
+   "blurb": "A great black wolf with ember eyes and a spiked iron collar, broken to the saddle (mostly).",
    "store": true
   },
   "mammoth": {
@@ -242,7 +242,7 @@
   "phoenix": 1.05,
   "fossilraptor": 0.52,
   "snail": 0.8,
-  "warg": 0.75,
+  "warg": 0.95,
   "mammoth": 2.0
  },
  "PET_FLY": [
