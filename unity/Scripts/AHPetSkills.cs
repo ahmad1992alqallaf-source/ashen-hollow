@@ -46,6 +46,16 @@ public static class AHPetSkills
         return best;
     }
 
+    // the pet uses its knack by itself once it is ready and there is something to use it on (it has no button of its
+    // own any more: the PETS button at the top has the pet's page)
+    public static void Auto(AHGame g)
+    {
+        var p = g.player; if (p == null || p.dead || p.mounted || !Has(p) || Left > 0f) return;
+        bool worth = p.pet == "slime" ? p.hp < p.maxHp * 0.6f : false;
+        if (!worth) { var petGo = GameObject.Find("Pet"); Vector3 from = petGo != null ? petGo.transform.position : p.transform.position; foreach (var m in Hunting(g, from, 7f)) { worth = true; break; } }
+        if (worth) Use(g);
+    }
+
     public static void Use(AHGame g)
     {
         var p = g.player; if (!Has(p) || p.dead) return;
@@ -110,8 +120,9 @@ public partial class AHUI
     void PetHudTick()
     {
         var p = g.player; if (petBtn == null || p == null) return;
-        bool on = AHPetSkills.Has(p) && Modal == 0 && !PhotoOn && !p.mounted;
+        bool on = false;   // (no button: the pet acts on its own)
         if (petBtn.gameObject.activeSelf != on) petBtn.gameObject.SetActive(on);
+        if (Modal == 0) AHPetSkills.Auto(g);
         if (!on) return;
         float left = AHPetSkills.Left;
         petBtnT.text = left > 0f ? Mathf.CeilToInt(left).ToString() : "PET";

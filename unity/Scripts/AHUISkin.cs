@@ -148,11 +148,15 @@ public partial class AHUI
         if (bagB != null) { SkinRound(bagB, 64f, new Color(0.45f, 0.3f, 0.16f)); bagB.anchorMin = bagB.anchorMax = new Vector2(1, 0); foreach (var t in bagB.GetComponentsInChildren<Text>(true)) t.fontSize = 15; }
         var emB = FindUI("EmoteBtn");
         if (emB != null) { SkinRound(emB, 46f, new Color(0.36f, 0.22f, 0.38f)); foreach (var t in emB.GetComponentsInChildren<Text>(true)) t.fontSize = 10; }
-        foreach (var kv in new[] { new KeyValuePair<string, float>("EmoteBtn", 132f), new KeyValuePair<string, float>("PotHeal", 196f), new KeyValuePair<string, float>("PotMana", 272f), new KeyValuePair<string, float>("BagBtn", 348f), new KeyValuePair<string, float>("RideBtn", 424f), new KeyValuePair<string, float>("LeapBtn", 500f), new KeyValuePair<string, float>("PetSkillBtn", 576f) })
+        foreach (var kv in new[] { new KeyValuePair<string, float>("EmoteBtn", 132f), new KeyValuePair<string, float>("PotHeal", 196f), new KeyValuePair<string, float>("PotMana", 272f), new KeyValuePair<string, float>("BagBtn", 348f), new KeyValuePair<string, float>("LeapBtn", 424f) })
         {
             var b = FindUI(kv.Key); if (b == null) continue;
             b.anchorMin = b.anchorMax = new Vector2(1, 0); b.anchoredPosition = new Vector2(kv.Key == "EmoteBtn" ? -62f : -58f, kv.Value);
         }
+        // RIDE sits by the joystick, low down at its right, a little smaller than the other round buttons
+        var rideB = FindUI("RideBtn"); if (rideB != null) { rideB.anchorMin = rideB.anchorMax = new Vector2(0, 0); rideB.anchoredPosition = new Vector2(262f, 52f); rideB.localScale = Vector3.one * 0.82f; }
+        // the pet has its own button in the top row (PETS): the second one down the side is gone
+        var petB = FindUI("PetSkillBtn"); if (petB != null) { petB.gameObject.SetActive(false); taps.RemoveAll(t => t.rt == petB); }
         // smaller skills, ringed tight around the attack seal (no gap); the ultimate below-right of it
         for (int i = 0; i < 6; i++)
         {
@@ -255,6 +259,7 @@ public partial class AHUI
             foreach (var t in c.GetComponentsInChildren<Text>(true)) t.fontSize = 14;
             slide.Add(c);
         }
+        SkinGlass();   // the tracker, the tags and the lines under your name: sharp glass panels, a clear font
         foreach (var r in slide) slideHome[r] = r.anchoredPosition;
         SkinBag();
         var buffs = FindUI("Buffs"); if (buffs != null) buffs.anchoredPosition = new Vector2(22, -146);

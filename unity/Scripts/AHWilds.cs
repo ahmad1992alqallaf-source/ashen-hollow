@@ -179,7 +179,10 @@ public static class AHWilds
     {
         for (int k = 0; k < n; k++)
         {
-            var pf = AHScenery.RockPrefab(rnd.Next(1000)); if (pf == null) return;
+            int pick = rnd.Next(1000);
+            // (in the desert, snow and ash the plain rocks, which take the land's stone colour; the mossy ones elsewhere)
+            var pf = Stone.ContainsKey(AHGame.AreaId) ? Resources.Load<GameObject>("AH/Models/KK/kk_rock_single_" + "BCDE"[pick % 4]) : null;
+            if (pf == null) pf = AHScenery.RockPrefab(pick); if (pf == null) return;
             float a = (float)(rnd.NextDouble() * Mathf.PI * 2), d = r0 + (float)rnd.NextDouble() * (r1 - r0);
             var go = Object.Instantiate(pf, root, false); go.name = "Wild rock";
             foreach (var c in go.GetComponentsInChildren<Collider>(true)) Object.Destroy(c);
@@ -221,25 +224,28 @@ public static class AHWilds
         }
     }
 
-    static readonly string[] RuinParts = { "kk_dg_pillar", "kk_dg_column", "kk_dg_rubble_large", "kk_dg_rubble_half", "kk_dg_pillar_decorated" };
+    static readonly string[] Standing = { "kk_dg_pillar", "kk_dg_column" }, Heaps = { "kk_dg_rubble_large", "kk_dg_rubble_half" };
     static void Ruin(Transform root, Vector3 at, System.Random rnd)
     {
-        // a ring of broken pillars round a heap of rubble
+        // a ring of broken pillars round a heap of rubble: most still standing, the odd one fallen flat in the sand
         int n = 3 + rnd.Next(3); float rr = 3f + (float)rnd.NextDouble() * 2f, a0 = (float)(rnd.NextDouble() * Mathf.PI * 2);
         for (int k = 0; k <= n; k++)
         {
-            string part = k == n ? RuinParts[2 + rnd.Next(2)] : RuinParts[rnd.Next(2) == 0 ? 0 : rnd.Next(5)];
+            bool heap = k == n, fallen = !heap && rnd.Next(4) == 0;
+            string part = heap ? Heaps[rnd.Next(Heaps.Length)] : Standing[rnd.Next(Standing.Length)];
             var pf = Resources.Load<GameObject>("AH/Models/KK/" + part); if (pf == null) continue;
             var go = Object.Instantiate(pf, root, false); go.name = "Wild ruin";
             foreach (var c in go.GetComponentsInChildren<Collider>(true)) Object.Destroy(c);
-            float a = a0 + k * Mathf.PI * 2f / n;
-            go.transform.position = k == n ? at : at + new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * rr;
-            go.transform.rotation = Quaternion.Euler(0f, (float)rnd.NextDouble() * 360f, k < n && rnd.Next(4) == 0 ? 80f : 0f);
-            go.transform.localScale = Vector3.one;
-            var b = Measure(go); float want = k == n ? 2.6f : 2.2f + (float)rnd.NextDouble() * 2.4f;
-            float s = want / Mathf.Max(0.1f, k == n ? Mathf.Max(b.size.x, b.size.z) : b.size.y);
+            float a = a0 + k * Mathf.PI * 2f / n, yaw = (float)rnd.NextDouble() * 360f;
+            go.transform.position = heap ? at : at + new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * rr;
+            go.transform.rotation = Quaternion.identity; go.transform.localScale = Vector3.one;
+            var b = Measure(go);
+            float want = heap ? 2.6f : 2.2f + (float)rnd.NextDouble() * 2.4f;
+            float s = want / Mathf.Max(0.1f, heap ? Mathf.Max(b.size.x, b.size.z) : b.size.y);
             go.transform.localScale = Vector3.one * s;
-            b = Measure(go); go.transform.position += Vector3.up * (at.y - b.min.y - 0.05f);
+            // a fallen pillar lies right down on its side (never propped up in the air on a corner)
+            go.transform.rotation = fallen ? Quaternion.Euler(0f, yaw, 0f) * Quaternion.Euler(90f, 0f, 0f) : Quaternion.Euler(0f, yaw, 0f);
+            b = Measure(go); go.transform.position += Vector3.up * (at.y - b.min.y - (fallen ? 0.12f : 0.05f));
             Tint(go); AHModel.SetShadows(go); Props++;
         }
     }

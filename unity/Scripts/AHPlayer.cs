@@ -530,7 +530,7 @@ public class AHPlayer : MonoBehaviour
             pos += mv * step;
             AHComp.RideTick(g, step * mv.magnitude);
             // a mount at a gallop kicks up dust behind it
-            if (mounted && (dustT -= dt) <= 0f) { dustT = 0.11f; AHFx.Pop(transform.position - move.normalized * 1.1f + Vector3.up * 0.12f + transform.right * UnityEngine.Random.Range(-0.3f, 0.3f), 0.8f, new Color(0.78f, 0.7f, 0.56f, 0.4f), 0.55f); }
+            if (mounted && (dustT -= dt) <= 0f) { dustT = 0.09f; AHDust.Puff(transform.position - move.normalized * 1.1f + Vector3.up * 0.25f + transform.right * UnityEngine.Random.Range(-0.4f, 0.4f), -move.normalized, AHDustColour.Of(AHGame.AreaId), 1.1f); }
             transform.rotation = Quaternion.Slerp(transform.rotation, g.Face(move), 1f - Mathf.Exp(-dt * 14f));
             moving = true;
         }
