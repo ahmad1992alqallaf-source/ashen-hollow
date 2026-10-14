@@ -4,6 +4,7 @@
 # "Motion" bone, which the game ignores). Parts can be left off (the warg's war-mask).
 #   blender python: beast_conv.py -- <Beasts folder> <Name> <out.glb> <height m> [hide,parts] [saddle]
 # 'saddle' puts the horse's saddle on its back (beasts without tack of their own: the mammoth)
+# FUR=<n>,<length m> (environment) adds n shells of fur strands over the body (see fur_shells below)
 import bpy, sys, os, mathutils
 a = sys.argv[sys.argv.index('--') + 1:]
 root, name, dst, height = a[0], a[1], a[2], float(a[3]); hide = a[4].split(',') if len(a) > 4 and a[4] and a[4] != '-' else []; want_saddle = len(a) > 5 and a[5] == 'saddle'
@@ -60,6 +61,86 @@ for m in bpy.data.materials:
         nm = nt.nodes.new('ShaderNodeNormalMap'); nt.links.new(t.outputs['Color'], nm.inputs['Color']); nt.links.new(nm.outputs['Normal'], b.inputs['Normal'])
     b.inputs['Metallic'].default_value = 0.0; b.inputs['Roughness'].default_value = 0.75
 print('MATS', [m.name for m in bpy.data.materials])
+# fur: the body copied a few times, each copy pushed out along the skin a little further, drawn with the coat's own
+# colours but cut to fine strands (a noise of dots in the texture's alpha; each shell keeps only the taller strands,
+# so they taper). Eyes, nose, mouth, teeth, claws and tusks are left bare (picked out by their colour). The shells'
+# alpha cut is set in the exported file (fix_glb below).
+FUR = os.environ.get('FUR')
+fur_shells = []
+if FUR:
+    import numpy as np
+    n_sh, flen = int(FUR.split(',')[0]), float(FUR.split(',')[1])
+    FUR_ROOT = float(FUR.split(',')[2]) if len(FUR.split(',')) > 2 else 0.62   # how dark the innermost strands are
+    body = max((o for o in sc.objects if o.type == 'MESH'), key=lambda o: len(o.data.vertices))
+    bmat = body.data.materials[0]; base_img = next(n.image for n in bmat.node_tree.nodes if n.type == 'TEX_IMAGE' and n.image.colorspace_settings.name != 'Non-Color')
+    W_, H_ = base_img.size; px = np.array(base_img.pixels[:], dtype=np.float32).reshape(H_, W_, 4)
+    rgb = px[..., :3]; mx = rgb.max(-1); mn = rgb.min(-1); sat = (mx - mn) / np.maximum(mx, 1e-4)
+    r, g_, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    bare = (mx > 0.62) | (mx < 0.03) | ((sat > 0.55) & (r > g_ * 1.25))   # teeth/tusks/claws, holes, eyes/gums/nose
+    rng = np.random.default_rng(3)
+    strands = np.zeros((H_, W_), np.float32)
+    count = int(W_ * H_ * 0.22)
+    ys = rng.integers(0, H_, count); xs = rng.integers(0, W_, count); hs = rng.uniform(0.25, 1.0, count).astype(np.float32)
+    np.maximum.at(strands, (ys, xs), hs)
+    # a strand is two texels long (along v), so it reads as a hair rather than a dot
+    strands = np.maximum(strands, np.maximum(np.roll(strands, 1, 0) * 0.94, np.roll(strands, 2, 0) * 0.88))
+    strands[bare] = 0.0
+    # widen the bare areas a little (no stray strand on the edge of an eye)
+    for sh in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+        strands[np.roll(bare, sh, (0, 1))] = 0.0
+    # the strands' colour: the coat, with the dark gaps between the texture's pieces filled in from their edges (a
+    # strand sampled on the edge of a piece must not pick up the black gap: it drew a black outline round the beast)
+    valid = mx > 0.09; col = rgb.copy(); vm = valid.astype(np.float32)
+    for _ in range(12):
+        acc = np.zeros_like(col); wsum = np.zeros_like(vm)
+        for sh in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            acc += np.roll(col * vm[..., None], sh, (0, 1)); wsum += np.roll(vm, sh, (0, 1))
+        fill = (vm == 0) & (wsum > 0)
+        col[fill] = acc[fill] / wsum[fill][:, None]; vm[fill] = 1.0
+    gapw = ~valid
+    near = gapw.copy()
+    for sh in ((1, 0), (-1, 0), (0, 1), (0, -1), (2, 0), (-2, 0), (0, 2), (0, -2)): near |= np.roll(gapw, sh, (0, 1))
+    strands[near] = 0.0
+    out = np.concatenate([np.clip(col * 1.45 + 0.02, 0, 1), strands[..., None]], -1)   # lighter: each shell darkens it by its own factor (roots dark, tips light)
+    fur_img = bpy.data.images.new(name + '_Fur', W_, H_, alpha=True); fur_img.pixels.foreach_set(out.ravel()); fur_img.update()
+    for i in range(1, n_sh + 1):
+        sh = body.copy(); sh.data = body.data.copy(); sh.name = name + 'FurShell' + str(i); sc.collection.objects.link(sh)
+        d = flen * i / n_sh
+        for v in sh.data.vertices: v.co = v.co + v.normal * d
+        # where the skin is sharply curved (the spiky fringes, ear edges) pushing out blows a face up into a big
+        # flat patch, and its strands with it (solid dark blotches): those faces are left out of the shell
+        import bmesh
+        base_area = [f.area for f in body.data.polygons]
+        bm = bmesh.new(); bm.from_mesh(sh.data); bm.faces.ensure_lookup_table()
+        kill = [f for f in bm.faces if base_area[f.index] <= 1e-9 or f.calc_area() / base_area[f.index] > 1.5]
+        bmesh.ops.delete(bm, geom=kill, context='FACES'); bm.to_mesh(sh.data); bm.free()
+        m = bpy.data.materials.new('FurShell' + str(i)); m.use_nodes = True; nt = m.node_tree
+        pb = nt.nodes.get('Principled BSDF'); t = nt.nodes.new('ShaderNodeTexImage'); t.image = fur_img
+        nt.links.new(t.outputs['Color'], pb.inputs['Base Color']); nt.links.new(t.outputs['Alpha'], pb.inputs['Alpha'])
+        pb.inputs['Roughness'].default_value = 0.9
+        # the tips catch a little more light than the roots
+        pb.inputs['Base Color'].default_value = (1, 1, 1, 1)
+        sh.data.materials.clear(); sh.data.materials.append(m)
+        fur_shells.append(('FurShell' + str(i), 0.25 + 0.6 * i / n_sh, FUR_ROOT + (1 - FUR_ROOT) * i / n_sh))
+    print('FUR', n_sh, 'shells', flen)
+    # a fur bump for a coat that has no normal map of its own (the mammoth)
+    if not any(n.type == 'NORMAL_MAP' for n in bmat.node_tree.nodes):
+        lum = (0.3 * r + 0.59 * g_ + 0.11 * b)
+        lum = (lum + np.roll(lum, 1, 0) + np.roll(lum, -1, 0) + np.roll(lum, 1, 1) + np.roll(lum, -1, 1)) / 5.0
+        dx = (np.roll(lum, -1, 1) - np.roll(lum, 1, 1)) * 1.6; dy = (np.roll(lum, -1, 0) - np.roll(lum, 1, 0)) * 1.6
+        # no bump across the edge of a piece of the texture (the dark gaps between its islands)
+        gap = mx < 0.06
+        edge = gap | np.roll(gap, 1, 0) | np.roll(gap, -1, 0) | np.roll(gap, 1, 1) | np.roll(gap, -1, 1) | np.roll(gap, 2, 0) | np.roll(gap, -2, 0) | np.roll(gap, 2, 1) | np.roll(gap, -2, 1)
+        dx[edge] = 0.0; dy[edge] = 0.0
+        dx = np.clip(dx, -0.6, 0.6); dy = np.clip(dy, -0.6, 0.6)
+        nz = np.ones_like(lum); ln = np.sqrt(dx * dx + dy * dy + nz)
+        nm = np.stack([(-dx / ln) * 0.5 + 0.5, (-dy / ln) * 0.5 + 0.5, (nz / ln) * 0.5 + 0.5, np.ones_like(lum)], -1)
+        nimg = bpy.data.images.new(name + '_Normal', W_, H_); nimg.colorspace_settings.name = 'Non-Color'; nimg.pixels.foreach_set(nm.astype(np.float32).ravel()); nimg.update()
+        nt = bmat.node_tree; pb = next(n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED')
+        t = nt.nodes.new('ShaderNodeTexImage'); t.image = nimg; nmn = nt.nodes.new('ShaderNodeNormalMap'); nmn.inputs['Strength'].default_value = 1.0
+        nt.links.new(t.outputs['Color'], nmn.inputs['Color']); nt.links.new(nmn.outputs['Normal'], pb.inputs['Normal'])
+        print('NORMAL made')
+
 # the horse's saddle on the back, between the hind legs and the forelegs, bound to the nearest spine bone
 if want_saddle:
     import math
@@ -103,7 +184,7 @@ try: arm.animation_data.action_slot = idle.slots[0]
 except Exception: pass
 sc.frame_set(int(idle.frame_range[0])); bpy.context.view_layer.update(); dg = bpy.context.evaluated_depsgraph_get(); zz = []
 for o in sc.objects:
-    if o.type == 'MESH' and o.name != 'Saddle':   # (the beast's own height)
+    if o.type == 'MESH' and o.name != 'Saddle' and 'FurShell' not in o.name:   # (the beast's own height)
         e = o.evaluated_get(dg); mm = e.to_mesh(); zz += [(e.matrix_world @ v.co).z for v in mm.vertices]; e.to_mesh_clear()
 k = height / (max(zz) - min(zz))
 holder = bpy.data.objects.new(name + 'Root', None); sc.collection.objects.link(holder)
@@ -117,4 +198,17 @@ for im in bpy.data.images:
     try: im.pack()
     except Exception: pass
 bpy.ops.export_scene.gltf(filepath=dst, export_format='GLB', export_skins=True, export_animations=True, export_animation_mode='ACTIONS', export_force_sampling=True, export_morph=False, export_image_format='AUTO')
+# the fur shells: cut out (MASK) at their own height, both faces drawn
+if fur_shells:
+    import json, struct
+    data = open(dst, 'rb').read(); jl = struct.unpack('<I', data[12:16])[0]; js = json.loads(data[20:20 + jl]); rest = data[20 + jl:]
+    cuts = {n: (c, f) for n, c, f in fur_shells}
+    for m in js.get('materials', []):
+        if m.get('name') in cuts:
+            c, f = cuts[m['name']]
+            m['alphaMode'] = 'MASK'; m['alphaCutoff'] = c; m['doubleSided'] = True
+            m.setdefault('pbrMetallicRoughness', {})['baseColorFactor'] = [f, f, f, 1.0]
+    nj = json.dumps(js, separators=(',', ':')).encode(); nj += b' ' * ((4 - len(nj) % 4) % 4)
+    out = struct.pack('<III', 0x46546C67, 2, 12 + 8 + len(nj) + len(rest)) + struct.pack('<II', len(nj), 0x4E4F534A) + nj + rest
+    open(dst, 'wb').write(out); print('FIXED', len(fur_shells), 'fur materials')
 print('DONE', name, 'scale', round(k, 3))
