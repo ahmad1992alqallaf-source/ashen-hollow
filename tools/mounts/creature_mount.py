@@ -59,9 +59,12 @@ for game, s in C['anims'].items():
         news = [x for x in bpy.data.actions if x not in before_a]
         clip = [x for x in news if want and (x.name == want or x.name.startswith(want + '_'))][:1] or news[:1]; clip = clip[0]
         if twin.animation_data is None: twin.animation_data_create()
-        twin.animation_data.action = clip
-        try: twin.animation_data.action_slot = clip.slots[0]
-        except Exception: pass
+        if twin.animation_data.action != clip:
+            twin.animation_data.action = clip
+            # (one action shared by many objects, a slot each: the skeleton's own slot, not the first one - an .fbx
+            # converted by Assimp keys its helper empties first, and the skeleton then stood still)
+            try: twin.animation_data.action_slot = ([sl for sl in clip.slots if sl.name_display == twin.name] or list(clip.slots))[0]
+            except Exception: pass
         f0, f1 = int(clip.frame_range[0]), int(clip.frame_range[1])
         for pb in arm.pose.bones:
             if pb.name in twin.pose.bones:
@@ -325,7 +328,7 @@ def idle_pose():
         except Exception: pass
     sc.frame_set(int(pf0)); bpy.context.view_layer.update()
 for game, (users, f0, f1) in clips.items():
-    multi = len(users) > 1
+    multi = sum(1 for ob, _ in users if ob.type == 'ARMATURE') > 1   # (several skeletons; a mesh that carries the same clip doesn't count)
     for ob, act in users:
         if ob.type != 'ARMATURE': continue
         idle_pose()
@@ -344,7 +347,15 @@ for game, (users, f0, f1) in clips.items():
                     for attr in ('co', 'handle_left', 'handle_right'):
                         c = getattr(kp, attr); c[0] = f0 + (c[0] - f0) / k
             g1 = f0 + (f1 - f0) / k
-        a2.use_frame_range = True; a2.frame_start = f0; a2.frame_end = g1
+        # the part moved to start at frame 0: exported as it was, a clip cut from the middle of a long take began with
+        # seconds of the take's first pose held still (the bee's wings stood frozen for 2 s of every loop)
+        if f0 != 0:
+            for fc in fcurves(a2):
+                for kp in fc.keyframe_points:
+                    for attr in ('co', 'handle_left', 'handle_right'):
+                        c = getattr(kp, attr); c[0] = c[0] - f0
+            g1 = g1 - f0
+        a2.use_frame_range = True; a2.frame_start = 0; a2.frame_end = g1
         if multi:
             # several skeletons (the chariot's two horses): one NLA track of this name on each, merged into one clip
             ob.animation_data.action = None

@@ -288,7 +288,11 @@
   "face": [
    "Bone_027",
    "Bone_000"
-  ]
+  ],
+  "ik": true,
+  "stride": 0.42,
+  "lift": 0.12,
+  "run": 2.2
  },
  "voidmaw": {
   "src": "/tmp/claude-0/ck/in/maw_of_the_void_-_free_creature_asset.glb",

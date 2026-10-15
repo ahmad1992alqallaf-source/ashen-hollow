@@ -200,8 +200,9 @@
    "name": "Ashwing drake",
    "price": 0,
    "speed": 1.65,
-   "blurb": "A grey wyvern that walks on its wings. Roars when it is happy, which is rarely.",
-   "store": true
+   "blurb": "A grey wyvern that walks on its wings, and takes to the air when you ride it hard. Roars when it is happy, which is rarely.",
+   "store": true,
+   "flyRun": 2.2
   },
   "firebird": {
    "name": "Sunfire phoenix",
@@ -244,7 +245,9 @@
    "price": 0,
    "speed": 1.7,
    "blurb": "A rebuilt king of the old lizards, black and violet, with machine bones under its scales.",
-   "store": true
+   "store": true,
+   "walkV": 1.0,
+   "runV": 3.7
   }
  },
  "MERCS": {

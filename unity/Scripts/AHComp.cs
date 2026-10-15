@@ -648,7 +648,14 @@ public class AHMountGait : MonoBehaviour
         run = anim.Has("Gallop") ? "Gallop" : anim.Has("Run") ? "Run" : walk;
         if (walk == null) walk = run;
         trot = anim.Has("Trot") ? "Trot" : null;   // (the wolves: walk, trot, then run)
+        // a winged mount that walks on the ground and takes to the air when you go fast (the Ashwing drake): MOUNTS
+        // "flyRun": metres it rises; its Fly clip is its run
+        flyUp = (float)AHJson.N(AHJson.O(AHComp.Mounts, p.mountSel), "flyRun", 0);
+        if (flyUp > 0f && anim.Has("Fly")) run = "Fly"; else flyUp = 0f;
+        if (transform.childCount > 0) { body = transform.GetChild(0); body0 = body.localPosition; }
     }
+    float flyUp, lift; Transform body; Vector3 body0;
+    public float Lift { get { return lift; } }
 
     static Transform[] Feet(Transform root)
     {
@@ -683,6 +690,11 @@ public class AHMountGait : MonoBehaviour
         // nothing sensible measured: the old fixed rates (about 1.6 m/s walking, 6 galloping, for a horse)
         float size = 1f; foreach (var r in GetComponentsInChildren<Renderer>()) size = Mathf.Max(size, r.bounds.size.y);
         if (walkV < 0.3f || walkV > 6f) walkV = 0.7f * size;
+        if (flyUp > 0f) runV = Mathf.Max(walkV * 2.2f, 2.4f * size);   // (wings have no stride to measure)
+        // the pace a hand-keyed gait was made for (MOUNTS "walkV", "runV": m/s), where measuring its feet reads wrong
+        var md = AHJson.O(AHComp.Mounts, p.mountSel);
+        if (AHJson.N(md, "walkV", 0) > 0) walkV = (float)AHJson.N(md, "walkV", 0);
+        if (AHJson.N(md, "runV", 0) > 0) runV = (float)AHJson.N(md, "runV", 0);
         if (runV < 1f || runV > 20f) runV = 2.6f * size;
         if (runV < walkV * 1.3f) runV = walkV * 2.5f;
         if (trot != null && (trotV <= walkV * 1.1f || trotV >= runV)) trotV = (walkV + runV) * 0.5f;
@@ -697,6 +709,8 @@ public class AHMountGait : MonoBehaviour
             var sp2 = new List<Transform>(); foreach (var t in GetComponentsInChildren<Transform>()) if (t.name.ToLowerInvariant().Contains("spine") && !t.name.EndsWith("_end")) sp2.Add(t);
             if (sp2.Count > 0) back = sp2[sp2.Count / 2];
         }
+        // bones with no names to go by (the Tyrant's Bone_001...): the saddle's own bone, so the rider is still seated
+        if (back == null) back = Find(transform, "Socket_Saddle");
         Debug.Log("Ashen Hollow: mount " + p.mountSel + " walk " + walkV.ToString("F2") + " m/s, " + (trot != null ? "trot " + trotV.ToString("F2") + " m/s, " : "") + run + " " + runV.ToString("F2") + " m/s, " + feet.Length + " feet, back " + (back != null ? back.name : "-"));
     }
 
@@ -715,6 +729,7 @@ public class AHMountGait : MonoBehaviour
             // walk up to a brisk walk, then the run; a little either way of the change so it does not flicker
             // (a slowed-down gallop looks like hopping on the spot: below the change it walks, quickening into a trot)
             float change = trot != null ? Mathf.Max(trotV * 1.45f, runV * 0.8f) : Mathf.Max(walkV * 1.8f, runV * 0.8f);
+            if (flyUp > 0f) change = walkV * 1.4f;   // (a flier takes off as soon as you go faster than a walk)
             if (running && gs < change * 0.85f) running = false; else if (!running && gs > change * 1.05f) running = true;
             if (!running && trot != null)
             {
@@ -725,6 +740,7 @@ public class AHMountGait : MonoBehaviour
             else trotting = false;
             playing = running ? run : trotting ? trot : walk;
             playSpeed = running ? Mathf.Clamp(gs / runV, 1.0f, 1.9f) : trotting ? Mathf.Clamp(gs / trotV, 0.7f, 1.8f) : Mathf.Clamp(gs / walkV, 0.5f, 2.0f);
+            if (flyUp > 0f && running) playSpeed = 1f;   // (a wingbeat at its own pace)
             anim.Play(playing, true, playSpeed);
         }
         else
@@ -736,7 +752,16 @@ public class AHMountGait : MonoBehaviour
             if (!anim.Play(idle, true)) anim.Play("Idle", true);
         }
         anim.Tick(dt);
+        // up into the air while running, down to walk again (eased; the rider goes with it)
+        if (flyUp > 0f && body != null)
+        {
+            lift = Mathf.MoveTowards(lift, running ? flyUp : 0f, dt * (running ? 2.2f : 3f));
+            float e = lift <= 0f ? 0f : Mathf.SmoothStep(0f, flyUp, lift / flyUp) + (running ? Mathf.Sin(Time.time * 2.4f) * 0.08f * (lift / flyUp) : 0f);
+            body.localPosition = body0 + Vector3.up * e / Mathf.Max(1e-3f, transform.lossyScale.y);
+            lift = Mathf.Max(lift, 0f); flyE = e;
+        }
     }
+    float flyE;
 
     // after the clip has moved the bones: the rider goes up and down (and a little to and fro) with the mount's back
     void LateUpdate()
@@ -747,6 +772,7 @@ public class AHMountGait : MonoBehaviour
         Sway();
         if (back == null) return;
         Vector3 local = transform.InverseTransformPoint(back.position); local.Scale(transform.lossyScale);
+        local.y -= flyE;   // (the flight's rise is added on its own below)
         // where the back sits at rest: learned over the first half second standing still
         if (restN < 30 && gs < 0.3f) { back0 = restN == 0 ? local : Vector3.Lerp(back0, local, 1f / (restN + 1)); restN++; }
         if (restN == 0) return;
@@ -754,7 +780,7 @@ public class AHMountGait : MonoBehaviour
         float k = 1f - Mathf.Exp(-Time.deltaTime * 30f);
         bobY = Mathf.Lerp(bobY, Mathf.Clamp(local.y - back0.y, -0.35f, 0.3f), k);
         bobZ = Mathf.Lerp(bobZ, Mathf.Clamp(local.z - back0.z, -0.2f, 0.2f), k);
-        p.seatBob = bobY;
+        p.seatBob = bobY + flyE;   // (and up in the air with a flying mount)
         if (rig == null && p.Model != null) rig = p.Model.transform;
         if (rig != null) { if (float.IsNaN(rigZ0)) rigZ0 = rig.localPosition.z; var lp = rig.localPosition; lp.z = rigZ0 + seatDz + bobZ; rig.localPosition = lp; }
     }

@@ -89,10 +89,38 @@ reset()
 # the model's own axes, from where its head and tail are as it stands: forward, across, up
 def wpos(n): return arm.matrix_world @ P[n].head
 up = mathutils.Vector((0, 0, 1))
-fw = (wpos(C['face'][0]) - wpos(C['face'][1])) if 'face' in C else mathutils.Vector((0, -1, 0))   # face: [a bone at the front, one at the back]; fw.z = 0; fw.normalize()
+fw = (wpos(C['face'][0]) - wpos(C['face'][1])) if 'face' in C else mathutils.Vector((0, -1, 0))   # face: [a bone at the front, one at the back]
+fw.z = 0; fw.normalize()   # (level: a forward that pointed down made the planted feet sink as they slid back)
 lat = fw.cross(up).normalized()
 # (the numbers below were made for a model facing -y: x = -across, y = -forward)
 AX = {'x': -lat, 'y': -fw, 'z': up}
+# feet planted by IK ("ik": true): each foot follows a path (on the ground going back, lifted coming forward) and the
+# thigh and shin bend to reach it, so a stance foot stays put instead of swinging through the floor like a pendulum
+IKL = []
+if C.get('ik'):
+    bpy.context.view_layer.update()
+    for i, (th, sh, ft) in enumerate(C.get('legs', [])):
+        ank = arm.matrix_world @ P[sh].tail; knee = arm.matrix_world @ P[sh].head; hip = arm.matrix_world @ P[th].head
+        tg = bpy.data.objects.new('IKT%d' % i, None); sc.collection.objects.link(tg); tg.location = ank
+        # the pole: far out the way the knee already points from the hip-ankle line, so it bends the same way
+        mid = (hip + ank) * 0.5; out = (knee - mid); out = out - out.project(ank - hip)
+        if out.length < 1e-4: out = fw.copy()
+        pole = bpy.data.objects.new('IKP%d' % i, None); sc.collection.objects.link(pole); pole.location = knee + out.normalized() * 3.0
+        c = P[sh].constraints.new('IK'); c.target = tg; c.pole_target = pole; c.chain_count = 2; c.pole_angle = math.radians(C.get('pole_angle', -90))
+        IKL.append((th, sh, ft, tg, ank.copy(), pole))
+    GROUND = min(x[4].z for x in IKL)
+    FOOT0 = {ft: P[ft].matrix.to_quaternion() for th, sh, ft, tg, a0, pole in IKL if ft}
+
+def place_feet(ph, k):
+    # a foot spends 60% of the step on the ground sliding back, then lifts and swings forward
+    L = C.get('stride', 0.5) * k; H = C.get('lift', 0.14) * (0.7 + 0.3 * k); biped = C.get('biped', True)
+    for i, (th, sh, ft, tg, a0, pole) in enumerate(IKL):
+        u = ((ph / (2 * math.pi)) + (0.5 if (biped and i == 1) or (not biped and i in (1, 2)) else 0.0)) % 1.0
+        if u < 0.6: along = 0.5 - u / 0.6; up = 0.0
+        else: w = (u - 0.6) / 0.4; along = -0.5 + w; up = math.sin(w * math.pi)
+        tg.location = a0 + fw * (along * L) + up_v * (up * H)
+up_v = mathutils.Vector((0, 0, 1))
+
 def rot(bn, axis, deg, q=None):
     # a turn of the bone about one of the model's axes, made from where the bone is now (its parents already turned)
     bpy.context.view_layer.update(); pb = P[bn]
@@ -111,6 +139,17 @@ def clip(name, n, step):
     for f in range(n + 1):
         sc.frame_set(f); reset()
         step(2 * math.pi * f / n)
+        if IKL:
+            # the IK's bend written into the leg bones' own channels (the constraint itself is not exported)
+            bpy.context.view_layer.update()
+            for th, sh, ft, tg, a0, pole in IKL:
+                for bn in (th, sh):
+                    pb = P[bn]; pb.matrix = pb.matrix.copy()   # (setting the visual matrix stores it in the basis)
+                    bpy.context.view_layer.update()
+                if ft and C.get('level_feet', True):
+                    # the foot kept as it stands at rest (level on the ground, not hanging toes-down off the shin)
+                    pf = P[ft]; m = pf.matrix.copy(); r0 = FOOT0[ft]
+                    pf.matrix = mathutils.Matrix.LocRotScale(m.to_translation(), r0, m.to_scale()); bpy.context.view_layer.update()
         for pb in P:
             pb.keyframe_insert('rotation_quaternion'); pb.keyframe_insert('location'); pb.keyframe_insert('scale')
     arm.animation_data.action = None
@@ -119,7 +158,8 @@ def clip(name, n, step):
 def gait(ph, k):
     # k: 1 walk, ~1.6 run. A leg swings forward (a turn about -x brings a hanging leg forward, the model facing -y),
     # its knee folds as it comes through and the foot is kept near level
-    legs = C.get('legs', []); biped = C.get('biped', True)
+    legs = [] if IKL else C.get('legs', []); biped = C.get('biped', True)
+    if IKL: place_feet(ph, k)
     for i, (th, sh, ft) in enumerate(legs):
         p = ph + (math.pi if (biped and i == 1) or (not biped and i in (1, 2)) else 0.0)
         swing = -24 * k * math.sin(p); knee = 34 * k * max(0.0, math.sin(p + math.pi * 0.35)) ** 1.3
@@ -161,6 +201,10 @@ if not C.get('keep_clips'): clip('Idle', 120, idle)
 if C.get('attack'): clip('Attack', 40, slam)
 clip('Walk', C.get('walk_frames', 36), lambda ph: gait(ph, 1.0))
 clip('Gallop', C.get('run_frames', 22), lambda ph: gait(ph, C.get('run', 1.6)))
+for th, sh, ft, tg, a0, pole in IKL:
+    for c in list(P[sh].constraints):
+        if c.type == 'IK': P[sh].constraints.remove(c)
+    bpy.data.objects.remove(tg); bpy.data.objects.remove(pole)
 arm.animation_data.action = bpy.data.actions.get('Idle') or bpy.data.actions['Walk']
 bpy.ops.export_scene.gltf(filepath=dst, export_format='GLB', export_skins=True, export_animations=True, export_animation_mode='ACTIONS',
                           export_force_sampling=True, export_image_format='AUTO')

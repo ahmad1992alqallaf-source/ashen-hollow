@@ -139,8 +139,11 @@ public class AHAnim
         {
             plays[i].SetTime(t0s[i]);
             cur = i;
-            curLoop = loop;
         }
+        // (whether it loops is taken every time: a clip once played to its end, then asked for again as a loop, kept
+        // its old "stop at the end" and stood frozen - the bee's wings while it followed you)
+        if (loop && !curLoop && plays[i].GetTime() >= t1s[i] - 1.0 / 30.0) plays[i].SetTime(t0s[i]);
+        curLoop = loop;
         plays[i].SetSpeed(speed);
         return true;
     }
