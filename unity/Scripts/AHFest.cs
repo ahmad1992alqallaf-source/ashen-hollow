@@ -78,7 +78,7 @@ public static class AHFest
         var F = Now(); if (F == null) return; var S = State(g.player, F); var p = g.player;
         object[] it = null; foreach (var o in F.shop) if ((string)o[0] == k) it = o; if (it == null || S.tok < (int)it[1]) return;
         if (k.StartsWith("pet:")) { string pk = k.Substring(4); if (p.pets.Contains(pk)) return; p.pets.Add(pk); g.ui.Banner(AHComp.PetName(pk), "A festival companion! Choose it in your pets"); }
-        else { var kd = AHItems.Get(k); if (kd == null) return; if (kd.slot != null && (p.bag.Count(k) > 0 || p.bag.gear.ContainsValue(k))) return;   // (dyes, patterns and scrolls stack) if (!p.bag.Add(k)) { g.ui.Toast(p.bag.lastWarn ?? "Your bag is full."); return; } g.ui.Toast(AHItems.Get(k).name + " is in your bag. Wear it from the bag.", 3f); }
+        else { var kd = AHItems.Get(k); if (kd == null) return; if (kd.slot != null && (p.bag.Count(k) > 0 || p.bag.gear.ContainsValue(k))) return;   /* (dyes, patterns and scrolls stack) */ if (!p.bag.Add(k)) { g.ui.Toast(p.bag.lastWarn ?? "Your bag is full."); return; } g.ui.Toast(AHItems.Get(k).name + " is in your bag. Wear it from the bag.", 3f); }
         S.tok -= (int)it[1]; g.SaveProgress();
     }
     // web festAct: pumpkins, lanterns and the gift tree
