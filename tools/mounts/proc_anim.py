@@ -67,6 +67,18 @@ if 'build' in C:
                     ds.append(((h + ab * u - p).length, n))
                 ds.sort(); best = ds[:2]; w = [1.0 / max(1e-4, d) ** 4 for d, _ in best]; sw = sum(w)
                 for (d, n), wi in zip(best, w): groups[n].add([v.index], wi / sw, 'REPLACE')
+    if C.get('rigid'):
+        # "rigid": every vertex to its one nearest bone (stiff parts like a book's covers turn whole, without bending)
+        segs = [(b.name, arm.matrix_world @ b.head_local, arm.matrix_world @ b.tail_local) for b in ad.bones]
+        for o in meshes:
+            for vg in list(o.vertex_groups): o.vertex_groups.remove(vg)
+            groups = {n: o.vertex_groups.new(name=n) for n, _, _ in segs}
+            for v in o.data.vertices:
+                p = o.matrix_world @ v.co; best = None
+                for n, h, t in segs:
+                    ab = t - h; u = max(0.0, min(1.0, (p - h).dot(ab) / max(1e-9, ab.length_squared))); d = (h + ab * u - p).length
+                    if best is None or d < best[0]: best = (d, n)
+                groups[best[1]].add([v.index], 1.0, 'REPLACE')
     for o in meshes:
         n = sum(1 for v in o.data.vertices if len(v.groups) == 0)
         print('WEIGHTS', o.name, 'unweighted vertices', n, 'of', len(o.data.vertices))
@@ -314,6 +326,26 @@ if kind == 'bird':
     clip('Fly', C.get('fly_frames', 12), lambda ph: (flap(ph, C.get('flap', 55)), tuck(), hover(ph, 1.0, 8), sway(ph, 1.5)))
     clip('Attack', 30, peck)
     clip('Sit', 90, lambda ph: rest(ph, 0)); clip('Sleep', 120, lambda ph: rest(ph, 1))
+elif kind == 'book':
+    # Spellbook: an open book flying, its covers beating like wings and its pages riffling; it snaps shut to bite,
+    # and closes to sleep
+    def riffle(ph, k):
+        for i, b in enumerate(C.get('pages', [])):
+            sg = 1 if i == 0 else -1
+            setq(b, rot(b, 'y', sg * k * (0.5 + 0.5 * math.sin(3 * ph + i * 1.7))))
+    clip('Idle', 90, lambda ph: (hover(ph, 1.0), flap(ph, 8), riffle(ph, 6), sway(ph, 0.6)))
+    clip('Fly', 24, lambda ph: (hover(ph, 1.2, 8), flap(ph, C.get('flap', 40)), riffle(ph * 2, 14), sway(ph, 1.6)))
+    clip('Walk', 36, lambda ph: (hover(ph, 1.2, 6), flap(ph, C.get('flap', 40) * 0.6), riffle(ph, 10), sway(ph, 1.2)))
+    def bite(ph):
+        u = ph / (2 * math.pi); d = math.sin(min(1.0, u / 0.6) * math.pi)
+        hover(ph, 1.5, 14 * d); flap(0.0, 0, C.get('shut', -70) * d); riffle(ph * 3, 20 * d)
+        for i, b in enumerate(C.get('pages', [])): setq(b, rot(b, 'y', (-1 if i == 0 else 1) * C.get('shut', -70) * 0.9 * d))
+    clip('Attack', 30, bite)
+    def doze(ph):
+        bob(C['root'], -HIP * 0.5 + 0.01 * math.sin(ph)); flap(0.0, 0, C.get('shut', -70) * 0.95)
+        for i, b in enumerate(C.get('pages', [])): setq(b, rot(b, 'y', (-1 if i == 0 else 1) * C.get('shut', -70) * 0.85))
+        sway(ph, 0.3)
+    clip('Sleep', 120, doze)
 elif kind == 'float':
     # Spirit Wisp: no legs, it floats; its tendrils and flame never stop moving
     clip('Idle', 90, lambda ph: (hover(ph, 1.0), sway(ph, 1.0)))

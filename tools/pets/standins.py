@@ -79,4 +79,15 @@ seg((0, 0, 0.58), (0, 0.04, 0.75), 0.07, wi); seg((0, 0.04, 0.75), (0, 0.09, 0.9
 for ax, ay in ((1, 0), (-1, 0), (0, 1), (0, -1)):
     seg((ax * 0.12, ay * 0.12, 0.38), (ax * 0.22, ay * 0.22, 0.22), 0.03, wi); seg((ax * 0.22, ay * 0.22, 0.22), (ax * 0.25, ay * 0.25, 0.04), 0.02, wi)
 save('standin_wisp')
+
+# Spellbook (the mage's pet, about 1 unit wide): an open book flying with its covers spread like wings, a block of
+# pages in the middle, the spine running front to back, and two ribbon bookmarks hanging below
+clear(); lea = mat('leather', (0.35, 0.12, 0.45)); pg = mat('pages', (0.92, 0.88, 0.75)); rib = mat('ribbon', (0.85, 0.65, 0.15))
+for sx in (1, -1):
+    part('cube', (sx * 0.24, 0, 0.62), (0.22, 0.3, 0.015), (0, sx * math.radians(-12), 0), m=lea, cuts=4)
+    part('cube', (sx * 0.21, 0, 0.645), (0.19, 0.27, 0.02), (0, sx * math.radians(-12), 0), m=pg, cuts=3)
+part('cyl', (0, 0, 0.6), (0.03, 0.03, 0.3), (math.radians(90), 0, 0), m=lea)
+for x in (0.04, -0.04):
+    seg((x, 0.22, 0.58), (x, 0.24, 0.3), 0.012, rib); seg((x, 0.24, 0.3), (x, 0.25, 0.05), 0.012, rib)
+save('standin_book')
 print('STANDINS DONE')

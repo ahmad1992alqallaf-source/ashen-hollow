@@ -33,6 +33,7 @@ public static class AHPetSkills
             case "shadow_cat": return "Shadowstep";
             case "spirit_wisp": return "Mana spring";
             case "phoenix_chick": return "Ember burst";
+            case "spell_book": return "Arcane volley";
             default: return "Rally";
         }
     }
@@ -117,6 +118,19 @@ public static class AHPetSkills
                     did = true;
                 }
                 fx = new Color(1f, 0.55f, 0.15f); if (did) AHSpark.Ring(from + Vector3.up * 0.3f, fx, 30, 5f);
+                break;
+            case "spell_book":
+                // Arcane volley: its pages fly out as glowing bolts at up to three foes hunting you
+                {
+                    var hl = Hunting(g, from, 10f); int shots = 0;
+                    foreach (var m in hl)
+                    {
+                        if (shots++ >= 3) break;
+                        m.Hurt(Mathf.RoundToInt(p.Damage() * 0.7f * k), p);
+                        AHFx.Pop(m.transform.position + Vector3.up, 1.2f, new Color(0.7f, 0.5f, 1f)); did = true;
+                    }
+                    fx = new Color(0.7f, 0.5f, 1f); if (did) AHSpark.Ring(from + Vector3.up * 0.5f, fx, 18, 3f);
+                }
                 break;
             case "toad": case "pumpkin_slime":
                 foreach (var m in Hunting(g, from, 7f)) { m.AddStatus(AHStatus.Stun, 2.5f, 0f, p); did = true; }

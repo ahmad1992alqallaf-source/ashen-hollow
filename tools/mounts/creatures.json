@@ -441,5 +441,23 @@
   "tail": "core",
   "seat": "core",
   "height": 0.5
+ },
+ "pet_book": {
+  "root": "/tmp/claude-0/ck/in",
+  "saddle": 0,
+  "tris": 9000,
+  "texsize": 1024,
+  "src": "/tmp/claude-0/petz/anim_book.glb",
+  "anims": {
+   "Idle": "Idle",
+   "Fly": "Fly",
+   "Walk": "Walk",
+   "Attack": "Attack",
+   "Sleep": "Sleep"
+  },
+  "head": "spine_b",
+  "tail": "spine_b",
+  "seat": "spine_b",
+  "height": 0.45
  }
 }

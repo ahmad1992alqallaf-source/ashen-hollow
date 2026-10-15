@@ -7,6 +7,7 @@ Four pets from the concept sheets (Ashen_Hollow_Pet_4_View_References):
 | rock_golem | Rock golem | two legs, long arms | Idle, Walk, Gallop, Attack (slam), Sit, Sleep | Stoneskin: a stone shell soaks up blows for 8 s | common |
 | shadow_cat | Night prowler | four legs, tail | Idle, Walk, Gallop, Attack (pounce), Sit, Sleep | Shadowstep: vanishes, strikes the nearest foe from behind, slows it | epic |
 | spirit_wisp | Spirit wisp | floats, 6 tendrils, 2 upper wisps, a flame | Idle, Fly, Walk, Attack, Sleep (rest) | Mana spring: heals you and fills your mana | rare |
+| spell_book | Spellbook (the mage's world pet) | an open book: covers as wings, pages, 2 ribbons | Idle, Fly, Walk (covers beat, pages riffle), Attack (snaps shut), Sleep (closed) | Arcane volley: bolts at up to 3 foes hunting you | world pet (Void and Ember eggs), rare |
 | phoenix_chick | Flame hatchling | two legs, wings, tail, crest | Idle, Walk, Fly (wingbeat, legs tucked), Attack (peck), Sit, Sleep | Ember burst: a ring of fire burns what hunts you | legendary |
 
 These four are store pets: found only in the Mystic egg (eggs.json MYSTIC.pets), never in world eggs. Pets are looks
@@ -14,6 +15,10 @@ only (eggs.json STATS false). The data is already in the game (companions.json P
 stays out of every list, and the Mystic egg stays "coming soon", until a model file is in Resources/AH/Models/Comp
 (pet_<id>_hd.glb). Feet are planted with IK ("ik", "rel"): they don't slide, and sitting folds the legs. A pet left
 standing sits down after 14 s and sleeps after 35 s.
+
+The Spellbook uses `"rigid": true` (each vertex follows one bone) so its covers turn whole instead of bending. For
+Tripo: an open book seen from the front, covers spread flat like wings, pages in the middle, spine front to back,
+nothing below it but two ribbon bookmarks. Its procanim entry is pet_book.
 
 ## When a Tripo model arrives
 

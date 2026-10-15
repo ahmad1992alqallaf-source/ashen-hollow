@@ -15,7 +15,8 @@
         "fox",
         "pumpkin_slime",
         "slime",
-        "toad"
+        "toad",
+        "spell_book"
       ]
     },
     "tide": {
@@ -78,7 +79,8 @@
         "fox",
         "bee",
         "slime",
-        "toad"
+        "toad",
+        "spell_book"
       ]
     }
   },
@@ -104,7 +106,8 @@
     "bee": "rare",
     "fox": "rare",
     "snow_fox": "epic",
-    "pumpkin_slime": "epic"
+    "pumpkin_slime": "epic",
+    "spell_book": "rare"
   },
   "ODDS_EGG": {
     "common": 64,
@@ -188,6 +191,12 @@
     "phoenix_chick": [
       2,
       2,
+      2,
+      2
+    ],
+    "spell_book": [
+      2,
+      1,
       2,
       2
     ]

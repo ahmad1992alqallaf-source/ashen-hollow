@@ -69,6 +69,11 @@
    "name": "Flame hatchling",
    "price": 0,
    "blurb": "A phoenix chick with a flaming crest. Too small to be reborn yet, but it is working on it."
+  },
+  "spell_book": {
+   "name": "Spellbook",
+   "price": 0,
+   "blurb": "A living spellbook that flies on its covers, pages riffling. A mage's companion: it snaps shut on anything that comes too close."
   }
  },
  "MOUNTS": {
@@ -361,7 +366,8 @@
   "lantern_owl",
   "bee",
   "spirit_wisp",
-  "phoenix_chick"
+  "phoenix_chick",
+  "spell_book"
  ],
  "PET_SKILLS": [
   [
