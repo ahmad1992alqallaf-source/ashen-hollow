@@ -184,6 +184,7 @@ public partial class AHUI
         else if (wkMode == "looks") RenderLooks(p);
         else if (wkMode == "requests") RenderRequests(p);
         else if (wkMode == "exped") RenderExpeditions(p);
+        else if (wkMode == "town") RenderTown(p);
         else if (wkMode == "ah") RenderAH(p);
         else if (wkMode == "orders") RenderOrders(p);
         else if (wkMode == "farm") RenderFarm(p);

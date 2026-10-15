@@ -1170,7 +1170,7 @@ public class AHPlayer : MonoBehaviour
         // web: professions you practise learn 25% faster, earn mastery, and an Artisan's class grows from the work
         List<string> pk; bool profSkill = IsProfSkill(skill, out pk);
         bool mine = false; foreach (var k in pk) if (profs.Contains(k)) mine = true;
-        int add = Mathf.Max(1, Mathf.RoundToInt(amount * 0.6f * (1f + AHMeal.Fx(this, "xp")) * AHFriends.DayXp(skill) * (mine ? 1.25f : 1f)));
+        int add = Mathf.Max(1, Mathf.RoundToInt(amount * 0.6f * (1f + AHMeal.Fx(this, "xp")) * AHFriends.DayXp(skill) * (mine ? 1.25f : 1f) * AHTown.XpK(this, skill)));
         skillXp[skill] = SkillXp(skill) + add;
         foreach (var k in pk) if (profs.Contains(k)) AddMastery(k, amount);
         if (profSkill && path == "artisan" && amount > 0) GainClassXp(Mathf.RoundToInt(amount * 1.6f + 4f), false);
@@ -1198,7 +1198,7 @@ public class AHPlayer : MonoBehaviour
     void GainClassXp(int n, bool fromKill)
     {
         int before = level;
-        n = Mathf.RoundToInt(n * (1f + AHMeal.Fx(this, "xp")));
+        n = Mathf.RoundToInt(n * (1f + AHMeal.Fx(this, "xp")) * (fromKill ? AHTown.ClassXpK(this) : 1f));
         if (fromKill && rested > 0) { long rb = System.Math.Min(rested, n); rested -= rb; n += (int)rb; }
         if (fromKill && g.ui != null) g.ui.Float(transform.position + Vector3.up * 2.3f, "+" + n + " XP", new Color(0.79f, 0.91f, 0.66f));
         var t = AHDB.ClAt;

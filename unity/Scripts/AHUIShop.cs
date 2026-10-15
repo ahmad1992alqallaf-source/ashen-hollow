@@ -67,7 +67,7 @@ public static class AHShops
         float k = Sold(id) ? Markup * Resale : it != null && it.rarity == "crafted" ? 0.22f : 0.4f;
         var prem = AHJson.A(AHJson.O(Shops, shop), "premium");
         if (prem != null && prem.Contains(id)) k = Mathf.Max(k, 0.8f);
-        if (AHGame.I != null && AHGame.I.player != null) k *= AHArtisan.SellBonus(AHGame.I.player);   // the workshop's shop counter
+        if (AHGame.I != null && AHGame.I.player != null) k *= AHArtisan.SellBonus(AHGame.I.player) * AHTown.SellK(AHGame.I.player);   // the workshop's shop counter
         return Math.Max(1, (long)Math.Floor(AHComp.Value(id) * AHDB.CU * k));
     }
 }
