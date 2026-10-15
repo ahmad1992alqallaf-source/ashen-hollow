@@ -79,6 +79,8 @@ public partial class AHUI
         var rows = new List<Action<int>>();
         rows.Add(s => Row(s, "Your " + cur + ": " + p.prog.crowns.ToString("#,0"), new Color(1f, 0.85f, 0.4f), "Get more " + cur + " to spend in the store", "",
             new WkBtn { label = "Get " + cur, on = true, col = Go, act = () => { EndStorePreview(); wkMode = "storepacks"; wkPageI = 0; RenderWork(); } }));
+        rows.Add(s => Row(s, "Looks  <color=#9be37a>New</color>", new Color(1f, 0.62f, 0.85f), "Weapon skins, hit effects, footstep trails and name colours", "Some are earned in the world, some are here. Try them on first.",
+            new WkBtn { label = "Open", on = true, col = Go, act = () => { EndStorePreview(); OpenLooks(); } }));
         // the Mystic egg: hatches at once, from any pet
         {
             var es = AHEggs.S(p); long p1 = AHEggs.MysticPrice(1), p10 = AHEggs.MysticPrice(10);

@@ -1232,7 +1232,7 @@ public partial class AHUI : MonoBehaviour
         if (p != null && g.cam != null && Modal == 0 && !string.IsNullOrEmpty(p.heroName))
         {
             Vector3 sp = g.cam.WorldToScreenPoint(p.transform.position + Vector3.up * 2.2f);
-            if (sp.z > 0f) { hs = true; heroPlate.position = sp; heroPlateText.text = p.heroName + (AHAch.Title(p) != null ? "\n<size=13><color=#ffd27a>“" + AHAch.Title(p) + "”</color></size>" : ""); heroPlateText.verticalOverflow = VerticalWrapMode.Overflow; }
+            if (sp.z > 0f) { hs = true; heroPlate.position = sp; AHLooks.Ensure(p); heroPlateText.text = AHLooks.NameRich(p, p.heroName) + (AHAch.Title(p) != null ? "\n<size=13><color=#ffd27a>“" + AHAch.Title(p) + "”</color></size>" : ""); heroPlateText.verticalOverflow = VerticalWrapMode.Overflow; }
         }
         if (heroPlate.gameObject.activeSelf != hs) heroPlate.gameObject.SetActive(hs);
 

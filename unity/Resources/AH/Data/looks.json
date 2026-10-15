@@ -1,0 +1,40 @@
+{
+  "_about": "Looks (AHLooks.cs): weapon skins, hit effects, footstep trails and name colours. Looks only: none gives stats. kind: skin | hit | trail | name. col: the colour; amt: how far a skin tints the weapon (0-1); glow: the weapon glows; fx: ember, frost, void, storm, holy, nature, runes, sand, prism (skins); sparks, coins, petals, ink, frost, stars, ember (hits); dust, ember, leaf, petal, star, shadow, frost (trails); shimmer (names). how: free | skill (skill, lvl) | level (lvl) | kills (n, with your class's weapon) | trophy (id: a boss beaten) | trophies (n) | store (price in Crowns).",
+  "LOOKS": [
+    { "id": "skin_copper",   "kind": "skin", "name": "Copper Edge",    "col": "#d0804c", "amt": 0.55, "how": "skill", "skill": "smithing", "lvl": 5,  "desc": "A smith's first work: warm copper." },
+    { "id": "skin_iron",     "kind": "skin", "name": "Iron Edge",      "col": "#9aa4ad", "amt": 0.6,  "how": "skill", "skill": "smithing", "lvl": 20, "desc": "Plain, dark, honest iron." },
+    { "id": "skin_steel",    "kind": "skin", "name": "Steel Edge",     "col": "#e4ecf4", "amt": 0.6,  "how": "skill", "skill": "smithing", "lvl": 40, "desc": "Bright folded steel." },
+    { "id": "skin_mithril",  "kind": "skin", "name": "Mithril Edge",   "col": "#9ad8ff", "amt": 0.6,  "glow": true, "how": "skill", "skill": "smithing", "lvl": 60, "desc": "Pale silver-blue that holds a faint light." },
+    { "id": "skin_runes",    "kind": "skin", "name": "Runebound",      "col": "#5ac8ff", "amt": 0.25, "glow": true, "fx": "runes", "how": "kills", "n": 1000, "desc": "Runes wake along the weapon after a thousand kills with it." },
+    { "id": "skin_dune",     "kind": "skin", "name": "Dunebreaker's Fist", "col": "#d8b070", "amt": 0.6, "fx": "sand", "how": "trophy", "trophy": "sandgolem", "desc": "Sand-worn gold, from beating Dunebreaker in the Sunscar Wastes." },
+    { "id": "skin_champion", "kind": "skin", "name": "Champion's Gilt", "col": "#ffcc55", "amt": 0.65, "glow": true, "how": "trophies", "n": 10, "desc": "Gilded for one who has beaten ten great foes." },
+    { "id": "skin_ember",    "kind": "skin", "name": "Emberforged",    "col": "#ff6a20", "amt": 0.55, "glow": true, "fx": "ember",  "how": "store", "price": 800,  "desc": "Never quite cools: sparks drip from the edge." },
+    { "id": "skin_frost",    "kind": "skin", "name": "Frostbite",      "col": "#a8e4ff", "amt": 0.6,  "glow": true, "fx": "frost",  "how": "store", "price": 800,  "desc": "Rimed with frost that sheds a little snow." },
+    { "id": "skin_verdant",  "kind": "skin", "name": "Verdant",        "col": "#74e070", "amt": 0.5,  "glow": true, "fx": "nature", "how": "store", "price": 800,  "desc": "Living wood and leaves that drift away." },
+    { "id": "skin_void",     "kind": "skin", "name": "Voidtouched",    "col": "#8a50ff", "amt": 0.65, "glow": true, "fx": "void",   "how": "store", "price": 1000, "desc": "It pulls the light in: violet smoke curls off it." },
+    { "id": "skin_storm",    "kind": "skin", "name": "Stormcaller",    "col": "#a8c8ff", "amt": 0.5,  "glow": true, "fx": "storm",  "how": "store", "price": 1000, "desc": "Crackling with little sparks of lightning." },
+    { "id": "skin_dawn",     "kind": "skin", "name": "Dawnblessed",    "col": "#ffd870", "amt": 0.6,  "glow": true, "fx": "holy",   "how": "store", "price": 1200, "desc": "Golden motes rise from it like morning light." },
+    { "id": "skin_prism",    "kind": "skin", "name": "Prismatic",      "col": "#ff60c0", "amt": 0.5,  "glow": true, "fx": "prism",  "how": "store", "price": 1500, "desc": "Its glow runs slowly through every colour." },
+
+    { "id": "hit_sparks", "kind": "hit", "name": "Bright sparks",  "col": "#ffd890", "fx": "sparks", "how": "free",  "desc": "A spray of sparks on every hit." },
+    { "id": "hit_ember",  "kind": "hit", "name": "Embers",         "col": "#ff7a30", "fx": "ember",  "how": "skill", "skill": "cooking", "lvl": 30, "desc": "Hot embers burst from each blow." },
+    { "id": "hit_stars",  "kind": "hit", "name": "Starfall",       "col": "#c8d8ff", "fx": "stars",  "how": "trophies", "n": 5, "desc": "Little stars, for one who has beaten five great foes." },
+    { "id": "hit_coins",  "kind": "hit", "name": "Gold coins",     "col": "#ffcc40", "fx": "coins",  "how": "store", "price": 400, "desc": "Every hit rings out a shower of gold." },
+    { "id": "hit_petals", "kind": "hit", "name": "Cherry petals",  "col": "#ffa8c8", "fx": "petals", "how": "store", "price": 400, "desc": "Pink petals scatter from each blow." },
+    { "id": "hit_ink",    "kind": "hit", "name": "Ink splash",     "col": "#2a2440", "fx": "ink",    "how": "store", "price": 400, "desc": "A splash of black ink, like a brush stroke." },
+    { "id": "hit_frost",  "kind": "hit", "name": "Frost shards",   "col": "#b8ecff", "fx": "frost",  "how": "store", "price": 400, "desc": "Shards of ice fly from each hit." },
+
+    { "id": "trail_ember",  "kind": "trail", "name": "Ember steps",   "col": "#ff7a30", "fx": "ember",  "how": "skill", "skill": "smithing", "lvl": 30, "desc": "Your footsteps smoulder." },
+    { "id": "trail_leaf",   "kind": "trail", "name": "Leafy steps",   "col": "#7ad04a", "fx": "leaf",   "how": "skill", "skill": "farming", "lvl": 20, "desc": "Leaves follow where you walk." },
+    { "id": "trail_frost",  "kind": "trail", "name": "Frost steps",   "col": "#c8f0ff", "fx": "frost",  "how": "level", "lvl": 40, "desc": "Rime where your feet have been." },
+    { "id": "trail_petal",  "kind": "trail", "name": "Petal steps",   "col": "#ffa8c8", "fx": "petal",  "how": "store", "price": 500, "desc": "Cherry petals drift behind you." },
+    { "id": "trail_shadow", "kind": "trail", "name": "Shadow steps",  "col": "#7a50c8", "fx": "shadow", "how": "store", "price": 600, "desc": "Violet smoke curls up from each step." },
+    { "id": "trail_star",   "kind": "trail", "name": "Starlight",     "col": "#fff0b0", "fx": "star",   "how": "store", "price": 700, "desc": "A sparkle of starlight wherever you go." },
+
+    { "id": "name_green",  "kind": "name", "name": "Seasoned green",  "col": "#9be37a", "how": "level", "lvl": 30, "desc": "Your name in green above you." },
+    { "id": "name_purple", "kind": "name", "name": "Veteran violet",  "col": "#c07aff", "how": "level", "lvl": 50, "desc": "Your name in violet above you." },
+    { "id": "name_red",    "kind": "name", "name": "Ember red",       "col": "#ff7a50", "how": "store", "price": 500, "desc": "Your name in ember red." },
+    { "id": "name_blue",   "kind": "name", "name": "Frost blue",      "col": "#7ad0ff", "how": "store", "price": 500, "desc": "Your name in frost blue." },
+    { "id": "name_gold",   "kind": "name", "name": "Royal gold",      "col": "#ffcc40", "fx": "shimmer", "how": "store", "price": 900, "desc": "Your name in gold that shimmers." }
+  ]
+}

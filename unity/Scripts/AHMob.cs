@@ -288,7 +288,7 @@ public class AHMob : MonoBehaviour
         if (by != null && !quiet && (stunT > 0f || rootT > 0f) && AHEvo.Pass(by, "frozen") > 0f) dmg = Mathf.RoundToInt(dmg * (1f + AHEvo.Pass(by, "frozen")));
         if (by != null && !quiet) { dmg = Mathf.RoundToInt(dmg * AHJuice.ComboK); AHJuice.OnHit(g, this, dmg); }   // combo bonus, hit-stop and shake
         hp -= dmg;
-        if (by != null) { AHEvo.Leech(by, dmg); if (!quiet) { AHSound.Play("hit"); Voice("hurt", 0.5f); AHSpark.Burst(transform.position + Vector3.up * Mathf.Max(0.6f, type.radius * 0.8f), new Color(1f, 0.75f, 0.4f), 7, 3.2f, 0.35f, 0.1f, 0.8f); } }
+        if (by != null) { AHEvo.Leech(by, dmg); if (!quiet) { AHSound.Play("hit"); Voice("hurt", 0.5f); AHSpark.Burst(transform.position + Vector3.up * Mathf.Max(0.6f, type.radius * 0.8f), new Color(1f, 0.75f, 0.4f), 7, 3.2f, 0.35f, 0.1f, 0.8f); AHLooks.OnHit(by, transform.position + Vector3.up * Mathf.Max(0.6f, type.radius * 0.8f)); } }
         if (g.ui != null) g.ui.Float(transform.position + Vector3.up * 1.6f, dmg.ToString(), quiet ? new Color(1f, 0.6f, 0.3f) : new Color(1f, 0.92f, 0.5f));
         if (hp <= 0f) { Die(by); return; }
         if (type.flee) { state = State.Flee; fleeT = 3f; }
