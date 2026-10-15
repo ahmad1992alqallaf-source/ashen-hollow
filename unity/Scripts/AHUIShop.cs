@@ -370,6 +370,10 @@ public partial class AHUI
                 new WkBtn { label = "Egg", on = es.eggs.Count < AHEggs.Satchel, col = Go, act = () => { AHEggs.Add(g, AHEggs.LandEgg(AHGame.AreaId)); RenderWork(); } }));
         rows.Add(slot => Row(slot, "Egg satchel · " + es.eggs.Count + " / " + AHEggs.Satchel + (es.essence > 0 ? "  <color=#c07aff>" + es.essence.ToString("#,0") + " Essence</color>" : ""), new Color(1f, 0.85f, 0.4f),
             "Beasts and gathering drop the egg of the land you are in; beasts slain after dark, a Void egg.", "Each egg grows from the work that matches it. A grown egg hatches a pet: a new one, or Essence for one you have."));
+        int awayN = AHExpeditions.L(p).Count, homeN = AHExpeditions.L(p).FindAll(x => AHExpeditions.Back(x)).Count;
+        rows.Add(slot => Row(slot, "Pet expeditions" + (homeN > 0 ? "  <color=#9be37a>" + homeN + " back home</color>" : ""), new Color(1f, 0.85f, 0.4f),
+            "Send a pet on a trip for materials, pet XP and rare finds · " + awayN + " / " + AHExpeditions.Slots(p) + " away", "",
+            new WkBtn { label = "Open", on = true, col = homeN > 0 ? Go : Plain, act = OpenExpeditions }));
         for (int ei = 0; ei < es.eggs.Count; ei++)
         {
             int ii = ei; var e = es.eggs[ei]; bool ready = AHEggs.Ready(e); long wc = AHEggs.WarmCost(e);
@@ -393,7 +397,8 @@ public partial class AHUI
                 (need > 0 ? done.ToString("#,0") + " / " + need.ToString("#,0") + " XP" : "Max level") + (AHEggs.StatsOn ? " · " + AHEggs.StatsLine(p, kk) : (AHEggs.StoreOnly(kk) ? " · store pet" : "")), string.Join(" · ", sk.ToArray()),
                 new WkBtn { label = "Skills", on = true, col = Plain, act = () => { petInfo = kk; wkMode = "petinfo"; wkPageI = 0; RenderWork(); } },
                 outNow ? new WkBtn { label = "Feed", on = true, col = Plain, act = () => { AHComp.Treat(g); RenderWork(); } } : null,
-                new WkBtn { label = outNow ? "Put away" : "Call", on = true, col = outNow ? Plain : Go, act = () => { p.pet = outNow ? null : kk; AHComp.SpawnPet(g); g.MarkDirty(); RenderWork(); } }));
+                AHExpeditions.Away(p, kk) != null ? new WkBtn { label = "Away", on = false, col = Plain, act = () => { } }
+                    : new WkBtn { label = outNow ? "Put away" : "Call", on = true, col = outNow ? Plain : Go, act = () => { p.pet = outNow ? null : kk; AHComp.SpawnPet(g); g.MarkDirty(); RenderWork(); } }));
         }
         foreach (var k in p.mounts)
         {

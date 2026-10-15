@@ -150,7 +150,7 @@ public static class AHComp
     public static void SpawnPet(AHGame g)
     {
         var old = GameObject.Find("Pet"); if (old != null) Object.Destroy(old);
-        var p = g.player; if (p.pet == null || Retired.Contains(p.pet)) return;
+        var p = g.player; if (p.pet == null || Retired.Contains(p.pet) || AHExpeditions.Away(p, p.pet) != null) return;   // (a pet on an expedition is away)
         var go = new GameObject("Pet");
         go.transform.position = p.transform.position - p.transform.forward * 1.2f;
         var f = go.AddComponent<AHPetFollow>(); f.Setup(g, p.pet);
