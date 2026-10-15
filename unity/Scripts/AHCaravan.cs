@@ -156,13 +156,15 @@ public partial class AHUI
         wkHint.text = cvTab == "send"
             ? "Load up to three kinds of goods you gathered or made and send them where they are wanted. Bandits may strike: hire a guard" + (p.path == "artisan" ? " (half price for Artisans)" : "") + ", or clear " + AHCaravan.ClearKills + " monsters while it travels."
             : "Other heroes' caravans need guards. Defeat the monsters before the caravan arrives to be paid" + (p.path == "adventurer" ? " (Adventurers get 25% more)." : ".");
-        rows.Add(r => Row(r, "", Color.white, "", "",
+        bool loading = cvTab == "send" && cvTown != null;
+        if (!loading) rows.Add(r => Row(r, "", Color.white, "", "",
             new WkBtn { label = "Send goods", on = true, col = cvTab == "send" ? Go : Plain, act = () => { cvTab = "send"; cvTown = null; wkPageI = 0; RenderWork(); } },
             new WkBtn { label = "Guard", on = true, col = cvTab == "guard" ? Go : Plain, act = () => { cvTab = "guard"; wkPageI = 0; RenderWork(); } }));
         if (cvTab == "send")
         {
             foreach (var run in s.runs)
             {
+                if (loading) break;
                 var rr = run; var t = AHCaravan.TownOf(run.town);
                 rows.Add(r => Row(r, "On the road to " + (t != null ? t.name : rr.town), new Color(1f, 0.8f, 0.45f),
                     "Arrives in " + AHExpeditions.LeftText(Math.Max(0, rr.end - now)) + " · worth " + AHItems.MoneyText(rr.worth * AHDB.CU) + " · pays about " + AHItems.MoneyText((long)(rr.worth * rr.mult) * AHDB.CU),
@@ -182,15 +184,19 @@ public partial class AHUI
             {
                 long worth = AHCaravan.Worth(s.load); long gc = AHCaravan.GuardCost(p, worth) * AHDB.CU;
                 var names = new List<string>(); foreach (var x in s.load) names.Add(x.n + "× " + AHRequests.ItemName(x.id));
-                rows.Add(r => Row(r, "To " + cv.name + " · short of " + AHCaravan.WantName(cv), new Color(1f, 0.8f, 0.45f), names.Count > 0 ? string.Join(", ", names.ToArray()) : "Load goods below", "Worth " + AHItems.MoneyText(worth * AHDB.CU),
+                Action<int> head = r => Row(r, "To " + cv.name + " · short of " + AHCaravan.WantName(cv), new Color(1f, 0.8f, 0.45f), names.Count > 0 ? string.Join(", ", names.ToArray()) : "Load goods below", "Worth " + AHItems.MoneyText(worth * AHDB.CU),
                     new WkBtn { label = "Send", on = s.load.Count > 0, col = Go, act = () => { AHCaravan.Send(g, cv, false); cvTown = null; RenderWork(); } },
                     new WkBtn { label = "+ guard " + AHItems.MoneyText(gc, 1), on = s.load.Count > 0 && p.bag.money >= gc, col = Plain, act = () => { AHCaravan.Send(g, cv, true); cvTown = null; RenderWork(); } },
-                    new WkBtn { label = "Back", on = true, col = Plain, act = () => { cvTown = null; wkPageI = 0; RenderWork(); } }));
+                    new WkBtn { label = "Back", on = true, col = Plain, act = () => { cvTown = null; wkPageI = 0; RenderWork(); } });
                 // goods you can load: what you gathered or made yourself, most valuable first
-                var ids = new List<string>(); foreach (var kv in p.bag.inv) if (kv.Value > 0 && p.OwnOf(kv.Key) > 0 && AHItems.Get(kv.Key) != null && !AHItems.Get(kv.Key).cosmetic) ids.Add(kv.Key);
+                var ids = new List<string>(); foreach (var kv in p.bag.inv) if (kv.Value > 0 && p.OwnOf(kv.Key) > 0 && AHItems.Get(kv.Key) != null && !AHItems.Get(kv.Key).cosmetic && AHAuction.Allowed(kv.Key) && !p.bag.gear.ContainsValue(kv.Key)) ids.Add(kv.Key);   // trade goods only (what the auction takes): no scrolls, maps or keys
                 ids.Sort((a, b) => (AHComp.Value(b) * p.OwnOf(b)).CompareTo(AHComp.Value(a) * p.OwnOf(a)));
+                // the Send row heads every page, so the cart can be sent from any page of goods
+                int gi = 0;
+                if (ids.Count == 0) rows.Add(head);
                 foreach (var id in ids)
                 {
+                    if (gi++ % (RowsPerPage - 1) == 0) rows.Add(head);
                     string ii = id; bool on = s.load.Exists(x => x.id == ii); bool want = AHCaravan.Wanted(cv, ii);
                     rows.Add(r => Row(r, AHRequests.ItemName(ii) + (want ? "  <color=#9be37a>wanted</color>" : "") + (on ? "  <color=#ffd86a>loaded</color>" : ""), Color.white,
                         p.OwnOf(ii) + " yours · worth " + AHItems.MoneyText(AHComp.Value(ii) * p.OwnOf(ii) * AHDB.CU), "",
