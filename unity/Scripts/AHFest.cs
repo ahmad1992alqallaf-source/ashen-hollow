@@ -266,9 +266,10 @@ public partial class AHUI
             {
                 string k = (string)o[0]; int cost = (int)o[1]; bool pet = k.StartsWith("pet:");
                 if (pet && AHComp.Retired.Contains(k.Substring(4))) continue;   // (a pet that is put away for now)
-                bool own = pet ? p.pets.Contains(k.Substring(4)) : (p.bag.Count(k) > 0 || p.bag.gear.ContainsValue(k));
+                var kd = pet ? null : AHItems.Get(k); bool stacks = kd != null && kd.slot == null;   // dyes, patterns and scrolls can be bought again
+                bool own = pet ? p.pets.Contains(k.Substring(4)) : !stacks && (p.bag.Count(k) > 0 || p.bag.gear.ContainsValue(k));
                 string nm = pet ? AHComp.PetName(k.Substring(4)) + " (pet)" : (AHItems.Get(k) != null ? AHItems.Get(k).name : k);
-                rows.Add(s => Row(s, "Stall: " + nm, F.col, pet ? AHJson.S(AHJson.O(AHComp.Pets, k.Substring(4)), "blurb") : "Cosmetic · all classes", "",
+                rows.Add(s => Row(s, "Stall: " + nm, F.col, pet ? AHJson.S(AHJson.O(AHComp.Pets, k.Substring(4)), "blurb") : stacks ? (k == AHRareRecipes.ScrollId ? "Teaches a rare recipe · you have " + p.bag.Count(k) : "Crafting material · you have " + p.bag.Count(k)) : "Cosmetic · all classes", "",
                     own ? new WkBtn { label = "Owned", on = false, col = Plain } : new WkBtn { label = cost + " tokens", on = S.tok >= cost, col = Go, act = () => { AHFest.Buy(g, k); RenderWork(); } }));
             }
         }
