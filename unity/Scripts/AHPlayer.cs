@@ -249,6 +249,7 @@ public class AHPlayer : MonoBehaviour
         stat.dmg += AHEvo.Pass(this, "dmg"); stat.hp += Mathf.RoundToInt(AHEvo.Pass(this, "hp")); stat.heal += AHEvo.Pass(this, "heal");
         stat.crit += AHEvo.Pass(this, "crit"); stat.evade += AHEvo.Pass(this, "evade"); stat.aspd += AHEvo.Pass(this, "atkspd");
         if (cls != null && cls.id == "shaman") stat.evade += 0.08f;   // agility, not shields: the shaman's defence
+        stat.hpK += AHEggs.HpK(this);   // the pet out: its Vitality
         ApplyCaps(stat);
         RebuildRing();
         maxHp = MaxHpFor(level);
@@ -1176,6 +1177,7 @@ public class AHPlayer : MonoBehaviour
         int after = Skill(skill);
         if (after > before && g.ui != null) g.ui.Banner(AHDB.SkillName(skill) + " " + after, "Level up");
         if (skill == "attack") GainClassXp(amount, fromKill);
+        AHEggs.OnXp(g, skill, amount);   // the work warms the eggs that grow from it
         g.MarkDirty();
     }
 

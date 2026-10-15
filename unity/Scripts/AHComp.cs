@@ -57,9 +57,9 @@ public static class AHComp
         string ks = kind != null && kind.Count > 0 ? (string)kind[0] : null;
         return (L >= 20 ? 1.5f : 1f) * (ks == skill ? 1.5f : ks == "all" ? 1.25f : 1f);
     }
-    public static float Fetch(AHPlayer p) { float k = PetK(p, "fetch"); return 1f + (k > 0f ? (0.05f + PetLv(p, p.pet) * 0.0075f) * k : 0f); }
+    public static float Fetch(AHPlayer p) { float k = PetK(p, "fetch"); return 1f + (k > 0f ? (0.05f + PetLv(p, p.pet) * 0.0075f) * k * AHEggs.LuckK(p) : 0f); }
     // Lucky: rare drops (a chance under 10%) turn up more often
-    public static float Lucky(AHPlayer p) { float k = PetK(p, "lucky"); return 1f + (k > 0f ? (0.1f + PetLv(p, p.pet) * 0.01f) * k : 0f); }
+    public static float Lucky(AHPlayer p) { float k = PetK(p, "lucky"); return 1f + (k > 0f ? (0.1f + PetLv(p, p.pet) * 0.01f) * k * AHEggs.LuckK(p) : 0f); }
 
     // what a pet does for you, skill by skill, in numbers (the pet window's details page): name, level it comes at,
     // learnt yet, and what it does at the pet's level now
@@ -115,6 +115,7 @@ public static class AHComp
     // web petForage: now and then an extra material when you gather
     public static void Forage(AHGame g, string id)
     {
+        AHEggs.OnGather(g);   // now and then an egg
         var p = g.player; float k = PetK(p, "forage"); if (k <= 0f || AHItems.Get(id) == null) return;
         if (Random.value < (0.05f + PetLv(p, p.pet) * 0.008f) * k && p.bag.Add(id) && g.ui != null)
             g.ui.Float(p.transform.position + Vector3.up * 2.4f, "+1 " + AHItems.Get(id).name + " (pet)", new Color(0.79f, 0.9f, 0.66f));
@@ -153,6 +154,7 @@ public static class AHComp
         var go = new GameObject("Pet");
         go.transform.position = p.transform.position - p.transform.forward * 1.2f;
         var f = go.AddComponent<AHPetFollow>(); f.Setup(g, p.pet);
+        p.Recalc();   // the pet's Vitality counts to your health
     }
 
     // ---------- riding (web mountUp / dismount) ----------
@@ -316,6 +318,17 @@ public class AHPetFollow : MonoBehaviour
             }
         }
         showOffAt = Time.time + 20f;
+        // a Gilded pet (a legendary egg): golden, and it shines
+        if (model != null && AHEggs.Gilded(g.player, k))
+        {
+            foreach (var r in model.GetComponentsInChildren<Renderer>(true))
+            {
+                var mats = r.materials;
+                foreach (var m in mats) foreach (var pr in new[] { "baseColorFactor", "_BaseColor", "_Color" }) if (m.HasProperty(pr)) { var c0 = m.GetColor(pr); float l = c0.r * 0.3f + c0.g * 0.59f + c0.b * 0.11f; m.SetColor(pr, Color.Lerp(c0, new Color(1f, 0.78f, 0.3f) * (0.55f + l * 0.9f), 0.7f)); }
+                r.materials = mats;
+            }
+            if (stage < 3) { var gg = new GameObject("GildedGlow"); gg.transform.SetParent(model.transform, false); gg.transform.localPosition = Vector3.up * 0.3f; gg.AddComponent<AHWeaponGlow>().col = new Color(1f, 0.82f, 0.35f); }
+        }
         if (stage >= 3 && model != null) { var gl = new GameObject("MythicGlow"); gl.transform.SetParent(model.transform, false); gl.transform.localPosition = Vector3.up * 0.4f; gl.AddComponent<AHWeaponGlow>().col = new Color(1f, 0.8f, 0.35f); }
     }
     void OnDestroy() { if (anim != null) anim.Dispose(); }

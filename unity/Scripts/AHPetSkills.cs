@@ -3,6 +3,7 @@
 //   toad / pumpkin slime: Croak (stuns what hunts you nearby)      slime: Jelly mend (heals you)
 //   fox: Pounce (a big bite)       snow fox: Frost pounce (a bite that chills)       owl / lantern owl: Dive (hits and dazes)
 //   parrot: Squawk (slows everything hunting you)                    drake: Fire breath (burns everything in front)
+//   bee: Pollinate (heals you and slows what hunts you)
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,11 +28,12 @@ public static class AHPetSkills
             case "owl": case "lantern_owl": return "Dive";
             case "parrot": return "Squawk";
             case "drake": return "Fire breath";
+            case "bee": return "Pollinate";
             default: return "Rally";
         }
     }
 
-    static float Power(AHPlayer p) { return 1f + AHComp.PetLv(p, p.pet) * 0.03f + AHComp.EvoStage(p, p.pet) * 0.15f; }
+    static float Power(AHPlayer p) { return (1f + AHComp.PetLv(p, p.pet) * 0.03f + AHComp.EvoStage(p, p.pet) * 0.15f) * AHEggs.PowK(p); }   // (and its Power stat)
 
     static List<AHMob> Hunting(AHGame g, Vector3 at, float r)
     {
@@ -51,7 +53,7 @@ public static class AHPetSkills
     public static void Auto(AHGame g)
     {
         var p = g.player; if (p == null || p.dead || p.mounted || !Has(p) || Left > 0f) return;
-        bool worth = p.pet == "slime" ? p.hp < p.maxHp * 0.6f : false;
+        bool worth = p.pet == "slime" || p.pet == "bee" ? p.hp < p.maxHp * 0.6f : false;
         if (!worth) { var petGo = GameObject.Find("Pet"); Vector3 from = petGo != null ? petGo.transform.position : p.transform.position; foreach (var m in Hunting(g, from, 7f)) { worth = true; break; } }
         if (worth) Use(g);
     }
@@ -68,6 +70,13 @@ public static class AHPetSkills
             case "slime":
                 if (p.hp < p.maxHp) { p.Heal(p.maxHp * 0.2f * k); did = true; fx = new Color(0.5f, 1f, 0.6f); AHFx.Pop(p.transform.position + Vector3.up, 2f, fx, 0.6f); }
                 else if (g.ui != null) g.ui.Toast("You are already at full health");
+                break;
+            case "bee":
+                // Pollinate: a cloud of pollen that heals you now and slows everything hunting you
+                if (p.hp < p.maxHp) { p.Heal(p.maxHp * 0.12f * k); did = true; }
+                foreach (var m in Hunting(g, from, 7f)) { m.AddStatus(AHStatus.Slow, 3f, 0f, p); did = true; }
+                fx = new Color(1f, 0.85f, 0.25f); if (did) AHFx.Pop(p.transform.position + Vector3.up, 2.2f, fx, 0.7f);
+                if (!did && g.ui != null) g.ui.Toast("You are already at full health");
                 break;
             case "toad": case "pumpkin_slime":
                 foreach (var m in Hunting(g, from, 7f)) { m.AddStatus(AHStatus.Stun, 2.5f, 0f, p); did = true; }
@@ -99,8 +108,8 @@ public static class AHPetSkills
                     break;
                 }
         }
-        if (!did) { if (g.ui != null && kind != "slime") g.ui.Toast("Nothing is hunting you"); return; }
-        readyAt = Time.time + Cooldown;
+        if (!did) { if (g.ui != null && kind != "slime" && kind != "bee") g.ui.Toast("Nothing is hunting you"); return; }
+        readyAt = Time.time + Cooldown * AHEggs.CdK(p);   // (sooner with its Spirit)
         AHFx.Pop(from + Vector3.up * 0.6f, 1.8f, fx, 0.5f);
         AHSound.Play("swing");
         if (g.ui != null) g.ui.Toast(AHComp.PetName(kind) + ": " + SkillName(kind) + "!", 1.6f);

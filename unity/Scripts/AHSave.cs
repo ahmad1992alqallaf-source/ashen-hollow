@@ -115,6 +115,7 @@ public static class AHSave
         p.pet = d.pet != null && p.pets.Contains(d.pet) ? d.pet : null;
         p.mountSel = d.mountSel != null && p.mounts.Contains(d.mountSel) ? d.mountSel : (p.mounts.Count > 0 ? p.mounts[0] : null);
         Unpack(d.petXp, p.petXp); Unpack(d.mountXp, p.mountXp);
+        if (d.prog != null) { p.prog = d.prog; AHEggs.EnsureStars(p); }   // (pets from before the eggs: their starting stars)
         p.orders = d.orders ?? new List<AHOrder>(); p.orders.RemoveAll(o => o == null || o.items == null || o.items.Count == 0);
         p.guildRep = Mathf.Max(0, d.guildRep); p.ordersDone = d.ordersDone; Unpack(d.bought, p.bought);
         p.home = d.hasHome && d.home != null ? d.home : null; p.rested = Math.Max(0, d.rested); p.meal = d.hasMeal && d.meal != null && d.meal.until > AHMeal.Now ? d.meal : null; p.prog = d.prog ?? new AHProgress(); p.bag.extra = p.prog.bagRows * 9;

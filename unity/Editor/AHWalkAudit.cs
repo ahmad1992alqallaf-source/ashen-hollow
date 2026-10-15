@@ -13,7 +13,7 @@ public static class AHWalkAudit
 {
     static readonly string[] Areas = { "meadow", "mill", "silkwood", "mire", "vale", "city", "frost", "hc_city", "sands", "ss_city", "mw_city", "isle", "tide", "co_city", "ember", "ch_city", "fossil", "ashfall", "causeway", "fenwick", "kingsroad", "scorchwind", "whitepine", "homestead" };
     static string Dir { get { var d = Path.Combine(Application.dataPath, "../HeroShots/walkaudit"); Directory.CreateDirectory(d); return d; } }
-    static readonly string[] Skip = { "grass", "flower", "leaf", "leaves", "canopy", "crown", "foliage", "water", "ground", "sea", "sky", "range", "horizon", "cloud", "fog", "dust", "spark", "fx", "shadow", "decal", "road", "path", "rug", "carpet", "banner", "flag", "lamp", "torch", "light", "hero", "mount", "pet", "npc", "mob", "ship", "bird", "butterfly", "glow", "beam", "web", "vine", "ivy", "rope", "sign", "gate", "bridge", "door", "arch", "awning", "roof" };
+    static readonly string[] Skip = { "grass", "flower", "leaf", "leaves", "canopy", "crown", "foliage", "water", "ground", "sea", "sky", "range", "horizon", "cloud", "fog", "dust", "spark", "fx", "shadow", "decal", "road", "path", "rug", "carpet", "banner", "flag", "lamp", "torch", "light", "hero", "mount", "pet", "npc", "mob", "ship", "bird", "butterfly", "glow", "beam", "web", "vine", "ivy", "rope", "sign", "gate", "bridge", "door", "arch", "awning", "roof", "beasts/", "rig/", "demon/", "qoutfit", "pier" };   // (beasts and people move: not scenery)
 
     [MenuItem("Ashen Hollow/Test: Walk-Through Audit %#&w")]
     static void Run()
@@ -59,6 +59,7 @@ public static class AHWalkAudit
             var rs = top.GetComponentsInChildren<Renderer>(); Bounds b = r.bounds; foreach (var q in rs) if (!(q is ParticleSystemRenderer)) b.Encapsulate(q.bounds);
             if (b.size.y < 1.2f || Mathf.Min(b.size.x, b.size.z) < 0.5f || Mathf.Max(b.size.x, b.size.z) > 30f) continue;
             Vector3 c = b.center; c.y = g.player.transform.position.y;
+            if (path.Contains("palms/") || path.Contains("forest/")) { c = top.position; c.y = g.player.transform.position.y; }   // a tree: its trunk, not its crown (you walk under a leaning palm's leaves)
             if (!g.InArea(c)) continue;
             // standing on the ground (not a branch, a sign high on a wall)
             if (b.min.y > g.player.transform.position.y + 1.0f) continue;

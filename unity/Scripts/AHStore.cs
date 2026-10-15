@@ -75,10 +75,19 @@ public partial class AHUI
     {
         string cur = AHStore.Currency;
         wkTitle.text = "Store · " + AHStore.Amount(p.prog.crowns);
-        wkHint.text = "Looks only: nothing here makes you stronger or faster. Store mounts run at a riding horse’s pace. Try anything before you buy it.";
+        wkHint.text = "Mounts and wings are looks only: store mounts run at a riding horse’s pace. Mystic eggs hatch the same pets you can find as eggs in the world.";
         var rows = new List<Action<int>>();
         rows.Add(s => Row(s, "Your " + cur + ": " + p.prog.crowns.ToString("#,0"), new Color(1f, 0.85f, 0.4f), "Get more " + cur + " to spend in the store", "",
             new WkBtn { label = "Get " + cur, on = true, col = Go, act = () => { EndStorePreview(); wkMode = "storepacks"; wkPageI = 0; RenderWork(); } }));
+        // the Mystic egg: hatches at once, from any pet
+        {
+            var es = AHEggs.S(p); long p1 = AHEggs.MysticPrice(1), p10 = AHEggs.MysticPrice(10);
+            int pe = (int)AHJson.N(AHEggs.Mystic, "pity_epic", 30), pl = (int)AHJson.N(AHEggs.Mystic, "pity_legendary", 90);
+            rows.Add(s => Row(s, AHJson.S(AHEggs.Mystic, "name", "Mystic egg") + "  <color=#9be37a>New</color>", new Color(0.75f, 0.55f, 1f),
+                AHEggs.OddsLine(), "Epic or better within " + (pe - es.pityEpic) + " · legendary (Gilded) within " + (pl - es.pityLeg) + " · ten for " + AHStore.Amount(p10),
+                new WkBtn { label = "1 · " + p1.ToString("#,0"), on = p.prog.crowns >= p1, col = Go, act = () => MysticBuy(1) },
+                new WkBtn { label = "10 · " + p10.ToString("#,0"), on = p.prog.crowns >= p10, col = Go, act = () => MysticBuy(10) }));
+        }
         foreach (var o in AHStore.Items)
         {
             var r = o as Dictionary<string, object>; if (r == null) continue;
@@ -112,6 +121,25 @@ public partial class AHUI
         for (int i = from; i < Mathf.Min(rows.Count, from + RowsPerPage); i++) rows[i](i - from);
     }
 
+    List<string> mysticLines = new List<string>();
+    void MysticBuy(int n)
+    {
+        EndStorePreview();
+        var l = AHEggs.BuyMystic(g, n); if (l.Count == 0) return;
+        mysticLines = l; wkMode = "mystic"; wkPageI = 0; RenderWork();
+    }
+    void RenderMystic(AHPlayer p)
+    {
+        wkTitle.text = "Your Mystic egg" + (mysticLines.Count > 1 ? "s" : "");
+        wkHint.text = "The new pets wait on the Companions page. A pet you had already gained a star (Essence at five stars).";
+        var rows = new List<Action<int>>();
+        rows.Add(s => Row(s, "Back to the store", Color.white, "", "", new WkBtn { label = "Back", on = true, col = Plain, act = () => { wkMode = "store"; wkPageI = 0; RenderWork(); } },
+            new WkBtn { label = "Companions", on = true, col = Go, act = () => { wkMode = "comp"; wkPageI = 0; RenderWork(); } }));
+        foreach (var line in mysticLines) { string ln = line; int cut = ln.IndexOf(" — "); rows.Add(s => Row(s, cut > 0 ? ln.Substring(0, cut) : ln, ln.StartsWith("Gilded") ? new Color(1f, 0.78f, 0.3f) : new Color(1f, 0.62f, 0.24f), cut > 0 ? ln.Substring(cut + 3) : "", "")); }
+        int from = Paged(rows.Count);
+        for (int i = from; i < Mathf.Min(rows.Count, from + RowsPerPage); i++) rows[i](i - from);
+    }
+
     void StoreBuy(string id, long price)
     {
         var p = g.player;
@@ -128,7 +156,7 @@ public partial class AHUI
     {
         string cur = AHStore.Currency;
         wkTitle.text = "Get " + cur + " · you have " + p.prog.crowns.ToString("#,0");
-        wkHint.text = cur + " are spent in the store on mounts and wings, looks only. Buying them with real money comes soon.";
+        wkHint.text = cur + " are spent in the store on mounts, wings and Mystic eggs. Buying them with real money comes soon.";
         var rows = new List<Action<int>>();
         rows.Add(s => Row(s, "Back to the store", Color.white, "", "", new WkBtn { label = "Back", on = true, col = Plain, act = () => { wkMode = "store"; wkPageI = 0; RenderWork(); } }));
         if (AHStore.Test)

@@ -180,6 +180,7 @@ public partial class AHUI
         else if (wkMode == "pettest") RenderPetTest(p);
         else if (wkMode == "store") RenderStore(p);
         else if (wkMode == "storepacks") RenderStorePacks(p);
+        else if (wkMode == "mystic") RenderMystic(p);
         else if (wkMode == "ah") RenderAH(p);
         else if (wkMode == "orders") RenderOrders(p);
         else if (wkMode == "farm") RenderFarm(p);

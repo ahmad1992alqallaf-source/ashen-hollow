@@ -75,6 +75,7 @@ public static class AHLoot
         long cu = AHDB.CU;
         long b = (long)System.Math.Round(((t.gold + t.lvl * 2 + Mathf.Floor(Random.value * t.lvl * 2)) * (double)cu + Mathf.Floor(Random.value * cu)) * AHComp.Fetch(p));
         AHComp.OnKill(g, m);
+        AHEggs.OnKill(g, m);
         AHRep.OnKill(g, m);
         AHEnh.OnKill(g, m);
         AHPower.OnKill(g, m);
