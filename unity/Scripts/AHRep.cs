@@ -46,6 +46,7 @@ public class AHProgress
     public List<string> looks = new List<string>(); public List<AHKS> lookOn = new List<AHKS>();   // Looks bought, and the one worn of each kind (AHLooks)
     public AHReqState req = new AHReqState();
     public AHTownState town = new AHTownState();
+    public AHCaravanState caravan = new AHCaravanState();       // caravans and guard contracts (AHCaravan)
     public AHKitchenState kitchen = new AHKitchenState();       // the Test kitchen's signature recipes (AHKitchen)                // town projects (AHTown)
     public List<AHExped> exped = new List<AHExped>();             // pets away on expeditions (AHExpeditions)                   // the Requests board (AHRequests)
     public AHEggState eggs = new AHEggState();                 // pet eggs, stars and Essence (AHEggs)

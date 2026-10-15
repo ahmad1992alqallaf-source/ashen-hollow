@@ -210,6 +210,8 @@ public partial class AHUI
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenEmotes }));
         rows.Add(s => Row(s, "Looks", new Color(1f, 0.62f, 0.85f), "Weapon skins, hit effects, footstep trails, name colours · looks only", "",
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenLooks }));
+        rows.Add(s => Row(s, "Caravans", new Color(1f, 0.8f, 0.45f), "Send your goods to towns that want them, or guard other heroes' caravans", "",
+            new WkBtn { label = "Open", on = true, col = Plain, act = OpenCaravans }));
         rows.Add(s => Row(s, "Test kitchen", new Color(1f, 0.7f, 0.4f), "Invent your own recipes: the right mix carries your name", AHKitchen.S(p).found.Count + " / " + AHKitchen.Sigs.Length + " found",
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenKitchen }));
         rows.Add(s => Row(s, "Town projects", new Color(0.6f, 0.9f, 0.5f), "Help rebuild Ashen Hollow: finished projects help everyone", "",
