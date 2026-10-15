@@ -394,7 +394,7 @@ public partial class AHUI
             var kind = AHJson.A(AHDB.Table("companions", "PET_KIND"), k);
             bool outNow = p.pet == k;
             rows.Add(slot => Row(slot, (AHEggs.Gilded(p, kk) ? "<color=#ffc040>Gilded</color> " : "") + AHComp.PetName(kk) + " · Lv " + L + (AHEggs.StatsOn ? "  " + AHEggs.StarsText(AHEggs.Stars(p, kk)) : "") + (outNow ? "  <color=#9be37a>out</color>" : ""), new Color(1f, 0.62f, 0.24f),
-                (need > 0 ? done.ToString("#,0") + " / " + need.ToString("#,0") + " XP" : "Max level") + (AHEggs.StatsOn ? " · " + AHEggs.StatsLine(p, kk) : (AHEggs.StoreOnly(kk) ? " · store pet" : "")), string.Join(" · ", sk.ToArray()),
+                (need > 0 ? done.ToString("#,0") + " / " + need.ToString("#,0") + " XP" : "Max level") + (AHEggs.StatsOn ? " · " + AHEggs.StatsLine(p, kk) : (AHEggs.StoreOnly(kk) ? " · store pet" : "")), (AHPetPassive.Of(kk) != null ? AHPetPassive.Line(p, kk) + " · " : "") + string.Join(" · ", sk.ToArray()),
                 new WkBtn { label = "Skills", on = true, col = Plain, act = () => { petInfo = kk; wkMode = "petinfo"; wkPageI = 0; RenderWork(); } },
                 outNow ? new WkBtn { label = "Feed", on = true, col = Plain, act = () => { AHComp.Treat(g); RenderWork(); } } : null,
                 AHExpeditions.Away(p, kk) != null ? new WkBtn { label = "Away", on = false, col = Plain, act = () => { } }

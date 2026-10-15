@@ -99,6 +99,7 @@ public static class AHComp
             string sk = null; var sks = AHDB.List("companions", "PET_SKILLS");
             if (sks != null) foreach (var o in sks) { var r = o as List<object>; int l = (int)(double)r[0]; if (l > b && l <= a) { sk = (string)r[1]; break; } }
             g.ui.Banner(PetName(k) + " is level " + a, sk != null ? "New pet skill: " + sk : "Pet level up");
+            p.Recalc();   // its class bonus grows with it
             int eb = 0, ea = 0; foreach (var at in EvoAt) { if (b >= at) eb++; if (a >= at) ea++; }
             if (ea > eb) { g.ui.Banner(PetName(k) + " evolved!", EvoName[ea - 1] + " " + PetName(k).ToLowerInvariant()); AHSound.Play("level"); SpawnPet(g); }
         }

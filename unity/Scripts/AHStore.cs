@@ -75,7 +75,7 @@ public partial class AHUI
     {
         string cur = AHStore.Currency;
         wkTitle.text = "Store · " + AHStore.Amount(p.prog.crowns);
-        wkHint.text = "Everything here is looks only: store mounts run at a riding horse’s pace, and pets don’t change your stats. Mystic egg pets are found only in the Mystic egg.";
+        wkHint.text = "Everything here is looks only: store mounts run at a riding horse’s pace, and a store pet’s class bonus is exactly what a world pet of the same kind gives (never more). Mystic egg pets are found only in the Mystic egg.";
         var rows = new List<Action<int>>();
         rows.Add(s => Row(s, "Your " + cur + ": " + p.prog.crowns.ToString("#,0"), new Color(1f, 0.85f, 0.4f), "Get more " + cur + " to spend in the store", "",
             new WkBtn { label = "Get " + cur, on = true, col = Go, act = () => { EndStorePreview(); wkMode = "storepacks"; wkPageI = 0; RenderWork(); } }));

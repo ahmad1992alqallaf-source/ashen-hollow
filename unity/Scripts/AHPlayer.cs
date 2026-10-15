@@ -250,6 +250,7 @@ public class AHPlayer : MonoBehaviour
         stat.crit += AHEvo.Pass(this, "crit"); stat.evade += AHEvo.Pass(this, "evade"); stat.aspd += AHEvo.Pass(this, "atkspd");
         if (cls != null && cls.id == "shaman") stat.evade += 0.08f;   // agility, not shields: the shaman's defence
         stat.hpK += AHEggs.HpK(this);   // the pet out: its Vitality
+        AHPetPassive.Apply(this, stat);   // a class pet out: its small passive bonus (from level 45)
         ApplyCaps(stat);
         RebuildRing();
         maxHp = MaxHpFor(level);
