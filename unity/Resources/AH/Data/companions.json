@@ -202,7 +202,7 @@
    "speed": 1.65,
    "blurb": "A grey wyvern that walks on its wings, and takes to the air when you ride it hard. Roars when it is happy, which is rarely.",
    "store": true,
-   "flyRun": 2.2
+   "flyRun": 1.8
   },
   "firebird": {
    "name": "Sunfire phoenix",
@@ -326,7 +326,7 @@
   "spider": 1.35,
   "timberwolf": 1.6,
   "magmahound": 1.62,
-  "ashwing": 3.87,
+  "ashwing": 2.59,
   "firebird": 2.26,
   "souleater_red": 2.42,
   "souleater_green": 2.42,
