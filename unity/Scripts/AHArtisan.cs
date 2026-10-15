@@ -154,7 +154,7 @@ public static class AHArtisan
 
     // the best potions in the realm are an Artisan's secret: raid supplies and the Titan's elixir
     public static readonly string[] OnlyIds = { "titan_elixir", "raid_flask" };
-    public static bool Only(string id) { return Array.IndexOf(OnlyIds, id) >= 0; }
+    public static bool Only(string id) { return Array.IndexOf(OnlyIds, id) >= 0 || Array.IndexOf(AHBags.ArtisanOnly, id) >= 0; }
 
     // ---------- crafting: the maker's mark and the workshop ----------
     public static void OnCraft(AHPlayer p, string outId, int n)

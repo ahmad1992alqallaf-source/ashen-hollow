@@ -13,7 +13,15 @@
     "trout",
     "meat",
     "logs",
-    "bronze_bar"
+    "bronze_bar",
+    "bag_pouch",
+    "bag_satchel",
+    "bag_pack",
+    "tool_pick_bronze",
+    "tool_axe_bronze",
+    "tool_sickle_bronze",
+    "tool_knife_bronze",
+    "tool_rod_bronze"
    ]
   },
   "anvil": {
@@ -30,7 +38,11 @@
     "iron_staff",
     "iron_mace",
     "iron_bar",
-    "enh_stone"
+    "enh_stone",
+    "tool_pick_bronze",
+    "tool_axe_bronze",
+    "tool_pick_iron",
+    "tool_axe_iron"
    ]
   },
   "outfit": {
@@ -50,7 +62,10 @@
     "silk_mantle",
     "silk_robe",
     "silk_gloves",
-    "silk_boots"
+    "silk_boots",
+    "bag_pouch",
+    "bag_satchel",
+    "bag_pack"
    ]
   },
   "cauldron": {
@@ -437,7 +452,9 @@
     "stew",
     "merc:knight",
     "merc:ranger",
-    "merc:cleric"
+    "merc:cleric",
+    "bag_satchel",
+    "bag_pack"
    ]
   },
   "spicemarket": {

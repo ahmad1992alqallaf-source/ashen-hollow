@@ -671,6 +671,61 @@ public partial class AHUI : MonoBehaviour
     Text bagGold, bagInfo, bagInfoSub, gearStats, bagActText, bagDropText; RectTransform bagAct, bagDrop; bool dropAsk;
     string bagSel, gearSel;
     const float WinW = 860f, WinH = 540f;
+    // bag slots and the tool belt (AHBags): the grid shows one page at a time: the backpack, each bag, or the belt
+    const int GridN = 45;
+    class BagPage { public string label; public int start, count, box; }   // box: -1 the backpack, 0..4 a bag slot, 9 the tool belt
+    int bagPageI, boxSel = -1; string toolSel;
+    readonly List<RectTransform> boxBtns = new List<RectTransform>(); readonly List<Text> boxTexts = new List<Text>();
+
+    List<BagPage> BagPages(AHPlayer p)
+    {
+        var l = new List<BagPage>(); int at = 0;
+        Action<int, int, string> add = (box, n, label) => { for (int s = 0; s < n; s += GridN) l.Add(new BagPage { label = label, start = at + s, count = Mathf.Min(GridN, n - s), box = box }); at += n; };
+        add(-1, AHBags.Backpack(p), "Backpack");
+        for (int i = 0; i < AHBags.Boxes; i++) { var id = AHBags.In(p, i); if (id != null) add(i, AHBags.Size(id), AHItems.Get(id) != null ? AHItems.Get(id).name : id); }
+        l.Add(new BagPage { label = "Tool belt", box = 9, start = 0, count = AHBags.ToolKinds.Length });
+        return l;
+    }
+    BagPage CurPage(AHPlayer p) { var l = BagPages(p); bagPageI = Mathf.Clamp(bagPageI, 0, l.Count - 1); return l[bagPageI]; }
+
+    void OnGridCell(int idx)
+    {
+        var p = g.player; var pg = CurPage(p);
+        if (pg.box == 9) { if (idx < AHBags.ToolKinds.Length) OnToolCell(idx); return; }
+        if (idx < pg.count) OnBagSlot(pg.start + idx);
+    }
+
+    void OnToolCell(int i)
+    {
+        string kind = AHBags.ToolKinds[i]; var p = g.player;
+        bagSel = null; gearSel = null; boxSel = -1; dropAsk = false;
+        if (AHBags.Tool(p, kind) == null) { toolSel = null; Toast("No " + AHBags.ToolNames[i].ToLowerInvariant() + " on your belt. Tap a tool in your backpack, then Put on belt."); }
+        else if (toolSel == kind) { string msg = AHBags.UnequipTool(g, kind); if (msg != null) Toast(msg); toolSel = null; }
+        else toolSel = kind;
+        RefreshBag();
+    }
+
+    // the column of bag buttons: the backpack, the five bag slots, the tool belt
+    void OnBoxBtn(int b)
+    {
+        var p = g.player; var pages = BagPages(p);
+        bagSel = null; gearSel = null; toolSel = null; dropAsk = false; boxSel = b >= 0 && b < AHBags.Boxes ? b : -1;
+        int first = pages.FindIndex(x => x.box == b);
+        if (first >= 0)
+        {
+            // tapped again: the next page of the same bag (a big backpack fills two)
+            int cur = Mathf.Clamp(bagPageI, 0, pages.Count - 1);
+            bagPageI = pages[cur].box == b && cur + 1 < pages.Count && pages[cur + 1].box == b ? cur + 1 : first;
+        }
+        RefreshBag();
+    }
+    void BoxAction()
+    {
+        var p = g.player; if (boxSel < 0) return;
+        if (boxSel >= AHBags.Opened(p)) { if (AHBags.OpenBox(g, boxSel)) { } }
+        else if (AHBags.In(p, boxSel) != null) { string msg = AHBags.Unequip(g, boxSel); if (msg != null) Toast(msg); else bagPageI = 0; }
+        RefreshBag();
+    }
 
     BagSlot MakeSlot(string name, Vector2 pos, float size, int layer, Action act)
     {
@@ -721,7 +776,7 @@ public partial class AHUI : MonoBehaviour
         gearStats.horizontalOverflow = HorizontalWrapMode.Wrap;
 
         // the bag: 7 x 4 slots, or 9 x 5 (and more rows, smaller) as it grows
-        int n = AHDB.Slots;
+        int n = GridN;
         bagSlots = new BagSlot[n];
         int bcols = n <= 28 ? 7 : 9, brows = (n + bcols - 1) / bcols;
         float step = Mathf.Min(n <= 28 ? 76f : 60f, 320f / brows), size = step - 6f;
@@ -729,7 +784,16 @@ public partial class AHUI : MonoBehaviour
         for (int i = 0; i < n; i++)
         {
             int col = i % bcols, row = i / bcols, idx = i;
-            bagSlots[i] = MakeSlot("Slot" + i, new Vector2(bx0 + col * step, by0 - row * step), size, 2, () => OnBagSlot(idx));
+            bagSlots[i] = MakeSlot("Slot" + i, new Vector2(bx0 + col * step, by0 - row * step), size, 2, () => OnGridCell(idx));
+        }
+        // the bag column on the right: backpack, five bag slots, tool belt
+        for (int k = 0; k < AHBags.Boxes + 2; k++)
+        {
+            int b = k == 0 ? -1 : k <= AHBags.Boxes ? k - 1 : 9;
+            var bt = Img("Box" + k, bagWin, white, new Vector2(0.5f, 0.5f), new Vector2(372, 180 - k * 46), new Vector2(76, 42), new Color(0.22f, 0.16f, 0.11f, 1f));
+            var tx = Center(Label(bt, "T", "", 13, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(76, 40), Color.white));
+            boxBtns.Add(bt); boxTexts.Add(tx);
+            taps.Add(new TapBtn { rt = bt, layer = 2, act = () => OnBoxBtn(b) });
         }
         bagInfo = Label(bagWin, "Info", "", 21, TextAnchor.UpperLeft, new Vector2(200, -396), new Vector2(420, 30), Color.white);
         bagInfo.fontStyle = FontStyle.Bold;
@@ -760,7 +824,7 @@ public partial class AHUI : MonoBehaviour
     {
         var p = g.player; var bag = p.bag;
         string id = i < bag.order.Count ? bag.order[i] : null;
-        gearSel = null; dropAsk = false;
+        gearSel = null; dropAsk = false; boxSel = -1; toolSel = null;
         if (id == null) { bagSel = null; RefreshBag(); return; }
         var d = AHItems.Get(id);
         if (bagSel == id && d != null)
@@ -773,6 +837,8 @@ public partial class AHUI : MonoBehaviour
             else if (AHTreasure.IsMap(id)) { AHTreasure.Read(g, id); bagSel = bag.Count(id) > 0 ? id : null; }
             else if (d.reins != null) { if (p.mounts.Contains(d.reins)) Toast("You already know that mount. Sell the reins to someone who wants it."); else if (bag.Take(id)) { p.mounts.Add(d.reins); p.mountSel = d.reins; RefreshRide(); Banner(AHComp.MountName(d.reins), "Mount learned! Tap RIDE"); AHSound.Play("level"); g.MarkDirty(); } bagSel = bag.Count(id) > 0 ? id : null; }
             else if (id.StartsWith("card_")) { if (!AHPower.AddCard(g, id)) Toast("That card is already in your collection. Sell or trade the spare."); bagSel = bag.Count(id) > 0 ? id : null; }
+            else if (AHBags.IsBag(id)) { string msg = AHBags.Equip(g, id); if (msg != null) Toast(msg); bagSel = null; }
+            else if (AHBags.IsTool(id)) { string msg = AHBags.EquipTool(g, id); if (msg != null) Toast(msg); else Toast(d.name + " is on your tool belt."); bagSel = null; }
             else if (d.IsGear) { string msg = bag.Equip(id, p.cls.id); if (msg != null) Toast(msg); bagSel = null; }
         }
         else bagSel = id;
@@ -783,7 +849,7 @@ public partial class AHUI : MonoBehaviour
     void OnGearSlot(string slot)
     {
         var bag = g.player.bag;
-        bagSel = null;
+        bagSel = null; boxSel = -1; toolSel = null;
         if (bag.Worn(slot) == null) { gearSel = null; RefreshBag(); return; }
         if (gearSel == slot) { string msg = bag.Unequip(slot); if (msg != null) Toast(msg); gearSel = null; }
         else gearSel = slot;
@@ -796,6 +862,8 @@ public partial class AHUI : MonoBehaviour
         var bag = g.player.bag;
         if (bagSel != null) { int i = bag.order.IndexOf(bagSel); if (i >= 0) OnBagSlot(i); }
         else if (gearSel != null) OnGearSlot(gearSel);
+        else if (toolSel != null) OnToolCell(Array.IndexOf(AHBags.ToolKinds, toolSel));
+        else if (boxSel >= 0) BoxAction();
     }
 
     // Drop asks once ("Drop 1?"), then throws one away
@@ -858,10 +926,34 @@ public partial class AHUI : MonoBehaviour
         var p = g.player;
         var bag = p.bag;
         bagGold.text = AHItems.MoneyText(bag.money, 3);
+        var pages = BagPages(p); bagPageI = Mathf.Clamp(bagPageI, 0, pages.Count - 1); var pg = pages[bagPageI];
         for (int i = 0; i < bagSlots.Length; i++)
         {
-            string id = i < bag.order.Count ? bag.order[i] : null;
+            bool show = i < pg.count; bagSlots[i].rt.gameObject.SetActive(show); if (!show) continue;
+            if (pg.box == 9)
+            {
+                string kind = AHBags.ToolKinds[i], tid = AHBags.Tool(p, kind);
+                bagSlots[i].hint.text = AHBags.ToolNames[i];
+                PaintSlot(bagSlots[i], AHItems.Get(tid), 1, tid != null && kind == toolSel);
+                continue;
+            }
+            bagSlots[i].hint.text = "";
+            int oi = pg.start + i;
+            string id = oi < bag.order.Count ? bag.order[oi] : null;
             PaintSlot(bagSlots[i], AHItems.Get(id), bag.Count(id), id != null && id == bagSel);
+        }
+        // the bag column: which page shows, what each slot holds, which are locked
+        for (int k = 0; k < boxBtns.Count; k++)
+        {
+            int b = k == 0 ? -1 : k <= AHBags.Boxes ? k - 1 : 9;
+            bool here = pg.box == b, sel = b >= 0 && b < AHBags.Boxes && b == boxSel;
+            string t; Color c = new Color(0.22f, 0.16f, 0.11f, 1f);
+            if (b == -1) t = "Backpack\n" + AHBags.Backpack(p);
+            else if (b == 9) t = "Tool belt";
+            else if (b >= AHBags.Opened(p)) { t = "Locked"; c = new Color(0.12f, 0.1f, 0.09f, 1f); }
+            else { var bid = AHBags.In(p, b); t = bid != null ? "Bag\n" + AHBags.Size(bid) : "Empty"; if (bid != null) c = Color.Lerp(c, AHItems.Quality(AHItems.Get(bid)), 0.25f); }
+            if (here || sel) c = new Color(0.55f, 0.38f, 0.18f, 1f);
+            boxTexts[k].text = t; boxBtns[k].GetComponent<Image>().color = c;
         }
         foreach (var kv in gearSlots) PaintSlot(kv.Value, AHItems.Get(bag.Worn(kv.Key)), 1, kv.Key == gearSel);
         var s = p.stat;
@@ -890,6 +982,7 @@ public partial class AHUI : MonoBehaviour
             else if (sd.id == AHRareRecipes.ScrollId) { text = (sd.note ?? "") + " You know " + AHRareRecipes.KnownCount(p) + " of " + AHRareRecipes.Total + "."; act = "Read"; }
             else if (AHTreasure.IsMap(sd.id)) { text = sd.note ?? "A treasure map."; act = "Read"; }
             else if (sd.reins != null) { text = sd.note ?? "Reins: learn this mount."; act = "Learn"; }
+            else if (AHBags.Describe(sd.id) != null) { text = AHBags.Describe(sd.id); act = AHBags.IsBag(sd.id) ? "Equip bag" : "Put on belt"; }
             else text = sd.note ?? "";
         }
         else if (gearSel != null && bag.Worn(gearSel) != null)
@@ -897,14 +990,32 @@ public partial class AHUI : MonoBehaviour
             sd = AHItems.Get(bag.Worn(gearSel)); n = 1;
             text = AHItems.SlotName(gearSel) + " · worn\n" + AHItems.StatLine(sd) + SetLine(sd, bag); act = "Take off";
         }
+        else if (toolSel != null && AHBags.Tool(p, toolSel) != null)
+        {
+            sd = AHItems.Get(AHBags.Tool(p, toolSel)); n = 1; text = AHBags.Describe(sd.id); act = "Take off";
+        }
+        string boxTitle = null;
+        if (sd == null && boxSel >= 0)
+        {
+            var bid = AHBags.In(p, boxSel);
+            if (boxSel >= AHBags.Opened(p))
+            {
+                boxTitle = "Locked bag slot";
+                text = boxSel == AHBags.Opened(p) ? "Open this bag slot for " + AHItems.MoneyText(AHBags.Cost(boxSel)) + " (coin, not Crowns). You have " + AHItems.MoneyText(bag.money) + "." : "Open the slots before it first.";
+                act = boxSel == AHBags.Opened(p) ? "Open slot" : null;
+            }
+            else if (bid != null) { sd = AHItems.Get(bid); n = 1; text = AHBags.Describe(bid) + "\nTake it off to swap it (it must be empty enough to fit your things)."; act = "Take off"; }
+            else { boxTitle = "Empty bag slot"; text = "Tap a bag in your backpack, then Equip bag. Shops sell bags up to 16 slots; Artisans make bigger ones, up to 36, and the mythical 44."; }
+        }
         if (sd != null && AHArtisan.Made(p, sd.id) > 0) text += "\n<color=#c9e0a0>Maker's mark: " + (string.IsNullOrEmpty(p.heroName) ? "you" : p.heroName) + " (" + AHArtisan.Made(p, sd.id) + " made)</color>";
-        bagAct.gameObject.SetActive(sd != null && act != null);
+        bagAct.gameObject.SetActive((sd != null || boxTitle != null) && act != null);
         if (act != null) bagActText.text = act;
         bagDrop.gameObject.SetActive(bagSel != null && sd != null);
         if (bagSel == null) dropAsk = false;
         bagDropText.text = dropAsk ? "Drop 1? Tap again" : "Drop";
         RefreshPreview(sd);
-        if (sd == null) { bagInfo.text = "Tap an item"; bagInfo.color = Color.white; bagInfoSub.text = bag.UsedSlots + " of " + bag.SlotsMax + " slots used. Tap an item to see what it does."; }
+        if (sd == null && boxTitle != null) { bagInfo.text = boxTitle; bagInfo.color = Color.white; bagInfoSub.text = text; }
+        else if (sd == null) { bagInfo.text = pg.label + (pages.FindAll(x => x.box == pg.box).Count > 1 ? " (" + (bagPageI - pages.FindIndex(x => x.box == pg.box) + 1) + ")" : ""); bagInfo.color = Color.white; bagInfoSub.text = bag.UsedSlots + " of " + bag.SlotsMax + " slots used. " + (pg.box == 9 ? "Tools on the belt don't take bag space." : "Tap an item to see what it does."); }
         else
         {
             bagInfo.text = sd.name + (n > 1 ? "  ×" + n : "");

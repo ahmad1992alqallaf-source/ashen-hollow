@@ -379,6 +379,7 @@ public static class AHGather
     {
         float m = kind == "chop" || kind == "mine" || kind == "fish" || kind == "herb" || kind == "skin" ? 1f + AHMeal.Fx(p, "gather") : 1f;
         m *= AHWeather.GatherK(kind);   // rain: the fish bite and the herbs open
+        m *= AHBags.SpeedK(p, kind);    // the tool on your belt
         if (kind == "mine") return m * (p.Perk("miner", 5) ? 1.15f : 1f) * (p.Perk("miner", 40) ? 1.2f : 1f);
         if (kind == "fish") return m * (p.Perk("fisher", 5) ? 1.15f : 1f) * (p.Perk("fisher", 40) ? 1.2f : 1f);
         return m;

@@ -201,6 +201,17 @@ public static class AHRequests
             int n = pool[i].Value;
             s.asks.Add(new AHReq { kind = "ask", id = pool[i].Key, n = n, pay = (long)Math.Round(AHComp.Value(pool[i].Key) * n * 1.5 + 10) });
         }
+        // an Adventurer can commission a bigger bag from the realm's Artisans (the next size up from their biggest)
+        if (p.path != "artisan")
+        {
+            int best = 0; for (int i = 0; i < AHBags.Boxes; i++) best = Mathf.Max(best, AHBags.Size(AHBags.In(p, i)));
+            foreach (var bid in new[] { "bag_wool", "bag_hide", "bag_silk", "bag_rune", "bag_master" })
+            {
+                int sz = AHBags.Size(bid); if (sz <= best || sz > 16 + p.level / 2) continue;
+                s.asks.Add(new AHReq { kind = "ask", id = bid, n = 1, pay = (long)Math.Round(AHComp.Value(bid) * 1.3) });
+                break;
+            }
+        }
         return s.asks;
     }
 

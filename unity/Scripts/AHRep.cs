@@ -35,6 +35,8 @@ public class AHProgress
     public AHArtisanState art = new AHArtisanState();
     public AHWorldState world = new AHWorldState();
     public int bagRows;                                          // extra bag rows bought (9 slots each)
+    public List<string> bags = new List<string>(); public int bagOpen = 2;   // the five bag slots and how many are open (AHBags)
+    public List<AHKS> tools = new List<AHKS>();                  // the tool belt: kind -> tool (AHBags)
     public List<AHLoadout> loadouts = new List<AHLoadout>();     // saved gear sets
     public string seasonKey = ""; public int seasonXp, seasonClaimed;   // the season track
     public List<AHKV> weaponKills = new List<AHKV>();            // kills by weapon kind (weapon mastery)

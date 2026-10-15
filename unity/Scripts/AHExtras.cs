@@ -21,7 +21,7 @@ public static class AHExtras
     {
         var p = g.player; if (p.prog.bagRows >= MaxRows) return false;
         int c = RowCost(p); if (p.prog.daily.marks < c) return false;
-        p.prog.daily.marks -= c; p.prog.bagRows++; p.bag.extra = p.prog.bagRows * 9;
+        p.prog.daily.marks -= c; p.prog.bagRows++; AHBags.Apply(p);
         g.SaveProgress();
         return true;
     }
