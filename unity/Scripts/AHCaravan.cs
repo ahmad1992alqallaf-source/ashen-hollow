@@ -185,8 +185,8 @@ public partial class AHUI
                 long worth = AHCaravan.Worth(s.load); long gc = AHCaravan.GuardCost(p, worth) * AHDB.CU;
                 var names = new List<string>(); foreach (var x in s.load) names.Add(x.n + "× " + AHRequests.ItemName(x.id));
                 Action<int> head = r => Row(r, "To " + cv.name + " · short of " + AHCaravan.WantName(cv), new Color(1f, 0.8f, 0.45f), names.Count > 0 ? string.Join(", ", names.ToArray()) : "Load goods below", "Worth " + AHItems.MoneyText(worth * AHDB.CU),
-                    new WkBtn { label = "Send", on = s.load.Count > 0, col = Go, act = () => { AHCaravan.Send(g, cv, false); cvTown = null; RenderWork(); } },
-                    new WkBtn { label = "+ guard " + AHItems.MoneyText(gc, 1), on = s.load.Count > 0 && p.bag.money >= gc, col = Plain, act = () => { AHCaravan.Send(g, cv, true); cvTown = null; RenderWork(); } },
+                    new WkBtn { label = "Send", on = s.load.Count > 0, col = Go, act = () => { AHCaravan.Send(g, cv, false); cvTown = null; wkPageI = 0; RenderWork(); } },
+                    new WkBtn { label = "+ guard " + AHItems.MoneyText(gc, 1), on = s.load.Count > 0 && p.bag.money >= gc, col = Plain, act = () => { AHCaravan.Send(g, cv, true); cvTown = null; wkPageI = 0; RenderWork(); } },
                     new WkBtn { label = "Back", on = true, col = Plain, act = () => { cvTown = null; wkPageI = 0; RenderWork(); } });
                 // goods you can load: what you gathered or made yourself, most valuable first
                 var ids = new List<string>(); foreach (var kv in p.bag.inv) if (kv.Value > 0 && p.OwnOf(kv.Key) > 0 && AHItems.Get(kv.Key) != null && !AHItems.Get(kv.Key).cosmetic && AHAuction.Allowed(kv.Key) && !p.bag.gear.ContainsValue(kv.Key)) ids.Add(kv.Key);   // trade goods only (what the auction takes): no scrolls, maps or keys
