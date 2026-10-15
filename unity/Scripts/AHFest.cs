@@ -39,6 +39,12 @@ public static class AHFest
             return new Fest { id = "winter", name = "Winter Feast", icon = "gift", col = AHGame.Hex(0x9fd4ff), blurb = "Snow-dusted pines, a gift tree in the square and warm stew for everyone.", act = "Open a gift", actN = 1,
                 tasks = new[] { new[] { "kill", "25", "Defeat 25 monsters" }, new[] { "gather", "15", "Gather 15 materials" }, new[] { "fest", "1", "Open your gift under the tree" } },
                 shop = new[] { new object[] { "winter_hat", 30 }, new object[] { "snow_cape", 40 }, new object[] { "pet:snow_fox", 80 } }, title = "the Merry" };
+        // the Makers' Fair, the Artisans' own festival: the 20th to the 26th of every month (when no other festival is on).
+        // Anyone can join; its tasks are making and gathering, and its stall sells dyes, costume patterns and a recipe scroll.
+        if (day >= 20 && day <= 26)
+            return new Fest { id = "makers", name = "Makers' Fair", icon = "hammer", col = AHGame.Hex(0x8fd46a), blurb = "The Artisans' week: tables of fine work in the square, and the whole town comes to look.", act = "Show your work", actN = 3,
+                tasks = new[] { new[] { "craft", "10", "Make 10 things" }, new[] { "gather", "30", "Gather 30 materials" }, new[] { "fest", "3", "Show your work at 3 fair tables" } },
+                shop = new[] { new object[] { "dye_gold", 10 }, new object[] { "dye_violet", 10 }, new object[] { "dye_shadow", 15 }, new object[] { "pattern_sage", 35 }, new object[] { "pattern_duelist", 45 }, new object[] { "recipe_scroll", 60 } }, title = "the Master Maker" };
         return null;
     }
     static string Day { get { return DateTime.Now.ToString("yyyy-MM-dd"); } }
@@ -72,7 +78,7 @@ public static class AHFest
         var F = Now(); if (F == null) return; var S = State(g.player, F); var p = g.player;
         object[] it = null; foreach (var o in F.shop) if ((string)o[0] == k) it = o; if (it == null || S.tok < (int)it[1]) return;
         if (k.StartsWith("pet:")) { string pk = k.Substring(4); if (p.pets.Contains(pk)) return; p.pets.Add(pk); g.ui.Banner(AHComp.PetName(pk), "A festival companion! Choose it in your pets"); }
-        else { if (p.bag.Count(k) > 0 || p.bag.gear.ContainsValue(k)) return; if (!p.bag.Add(k)) { g.ui.Toast(p.bag.lastWarn ?? "Your bag is full."); return; } g.ui.Toast(AHItems.Get(k).name + " is in your bag. Wear it from the bag.", 3f); }
+        else { var kd = AHItems.Get(k); if (kd == null) return; if (kd.slot != null && (p.bag.Count(k) > 0 || p.bag.gear.ContainsValue(k))) return;   // (dyes, patterns and scrolls stack) if (!p.bag.Add(k)) { g.ui.Toast(p.bag.lastWarn ?? "Your bag is full."); return; } g.ui.Toast(AHItems.Get(k).name + " is in your bag. Wear it from the bag.", 3f); }
         S.tok -= (int)it[1]; g.SaveProgress();
     }
     // web festAct: pumpkins, lanterns and the gift tree
@@ -83,6 +89,12 @@ public static class AHFest
         if (S.acts >= F.actN) { g.ui.Toast("That’s enough for today. Come back tomorrow!"); return; }
         S.acts++; Event(g, "fest", 1);
         if (F.id == "winter") { long c = (long)Mathf.Round(p.level * 30) * AHDB.CU; p.AddMoney(c, at); string[] gs = { "ruby", "sapphire", "emerald" }; p.bag.Add(gs[UnityEngine.Random.Range(0, 3)]); g.ui.Banner("A gift for you!", AHItems.MoneyText(c) + " and a gem"); }
+        else if (F.id == "makers")
+        {
+            // townsfolk admire your work; an Artisan's draws a bigger crowd
+            long c = (long)Mathf.Round(p.level * (p.path == "artisan" ? 14 : 8)) * AHDB.CU; p.AddMoney(c, at);
+            g.ui.Float(at + Vector3.up * 2f, "Admired!", F.col); AHFx.Ring(at, 0.3f, 1.6f, F.col, 0.8f);
+        }
         else { g.ui.Float(at + Vector3.up * 2f, F.id == "harvest" ? "Carved!" : "Lit!", F.col); AHFx.Ring(at, 0.3f, 1.6f, F.col, 0.8f); }
         g.MarkDirty();
     }
@@ -126,7 +138,7 @@ public static class AHFest
         {
             var root = new GameObject("FestStall").transform; root.position = g.Resolve(stallAt.Value, 1f); root.rotation = g.Face(c - root.position);
             // a KayKit market stall in the festival's colour (yellow for the Harvest Fair, blue for Winter, red for Lanterns)
-            string sc = F.id == "harvest" ? "yellow" : F.id == "winter" ? "blue" : "red";
+            string sc = F.id == "harvest" || F.id == "makers" ? "yellow" : F.id == "winter" ? "blue" : "red";
             var spf = Resources.Load<GameObject>("AH/Models/KK/kk_building_market_" + sc);
             if (spf != null) { var st = UnityEngine.Object.Instantiate(spf, root, false); foreach (var cl in st.GetComponentsInChildren<Collider>(true)) UnityEngine.Object.Destroy(cl); st.transform.localScale = Vector3.one * 2.0f; st.transform.localPosition = Vector3.zero; }
             else
@@ -151,6 +163,17 @@ public static class AHFest
                 Prop(root, "sack", new Vector3(0.55f, 0, -0.65f), 2.6f, (float)rnd.NextDouble() * 360f);
             }
             else if (F.id == "lantern") { part(root, PrimitiveType.Cube, new Vector3(0, 1.3f, 0), new Vector3(0.1f, 2.6f, 0.1f), M(0x3a2a1a, false)); part(root, PrimitiveType.Cube, new Vector3(0.3f, 2.55f, 0), new Vector3(0.7f, 0.08f, 0.08f), M(0x3a2a1a, false)); part(root, PrimitiveType.Cube, new Vector3(0.6f, 2.2f, 0), new Vector3(0.32f, 0.45f, 0.32f), M(0xffd27a, true)); var lg = new GameObject("L"); lg.transform.SetParent(root, false); lg.transform.localPosition = new Vector3(0.6f, 2.2f, 0); var li = lg.AddComponent<Light>(); li.type = LightType.Point; li.color = new Color(1f, 0.75f, 0.35f); li.range = 6f; li.intensity = 1.4f; li.shadows = LightShadows.None; }
+            else if (F.id == "makers")
+            {
+                // a fair table under a cloth in the fair's green, with crates and a sack of goods beside it
+                Material wood = M(0x8a5a32, false), cloth = M(0x5aa04a, false), ware = M(0xc9a060, false);
+                part(root, PrimitiveType.Cube, new Vector3(0, 0.42f, 0), new Vector3(1.6f, 0.84f, 0.8f), wood);
+                part(root, PrimitiveType.Cube, new Vector3(0, 0.86f, 0), new Vector3(1.7f, 0.04f, 0.9f), cloth);
+                part(root, PrimitiveType.Cube, new Vector3(-0.45f, 1.0f, 0), new Vector3(0.3f, 0.24f, 0.3f), ware);
+                part(root, PrimitiveType.Cylinder, new Vector3(0.4f, 1.02f, 0.05f), new Vector3(0.22f, 0.14f, 0.22f), M(0x9aa4b0, false));
+                Prop(root, "crate_A_big", new Vector3(1.15f, 0, 0.3f), 2.4f, (float)rnd.NextDouble() * 360f);
+                Prop(root, "sack", new Vector3(-1.1f, 0, -0.4f), 2.4f, (float)rnd.NextDouble() * 360f);
+            }
             else
             {
                 // a little snowy pine with gifts under it
@@ -226,7 +249,7 @@ public partial class AHUI
         var F = AHFest.Now(); var rows = new List<Action<int>>();
         if (F == null)
         {
-            wkTitle.text = "Festivals"; wkHint.text = "No festival right now. The Harvest Fair runs mid-September to mid-October, Lantern Nights during Ramadan, and the Winter Feast from mid-December.";
+            wkTitle.text = "Festivals"; wkHint.text = "No festival right now. The Harvest Fair runs mid-September to mid-October, Lantern Nights during Ramadan, the Winter Feast from mid-December, and the Makers' Fair, the Artisans' week, from the 20th to the 26th of every month.";
         }
         else
         {
