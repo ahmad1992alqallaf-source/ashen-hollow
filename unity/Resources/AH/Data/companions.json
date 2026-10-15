@@ -44,6 +44,11 @@
    "name": "Snow fox kit",
    "price": 0,
    "blurb": "A Winter Feast fox, white as fresh snow."
+  },
+  "bee": {
+   "name": "Honey bee",
+   "price": 0,
+   "blurb": "A bee the size of a cat. It buzzes round your head and never stings you."
   }
  },
  "MOUNTS": {
@@ -176,6 +181,70 @@
    "speed": 1.55,
    "blurb": "A giant cave spider under a red silk blanket and an ember-stone saddle. Eight legs never stumble.",
    "store": true
+  },
+  "timberwolf": {
+   "name": "Timber dire wolf",
+   "price": 0,
+   "speed": 1.6,
+   "blurb": "A huge grey wolf with a night-blue saddle. Runs all day and howls at the moon.",
+   "store": true
+  },
+  "magmahound": {
+   "name": "Magma hound",
+   "price": 0,
+   "speed": 1.6,
+   "blurb": "A hound of cooling lava, cracked with fire. Its saddle smokes a little.",
+   "store": true
+  },
+  "ashwing": {
+   "name": "Ashwing drake",
+   "price": 0,
+   "speed": 1.65,
+   "blurb": "A grey wyvern that walks on its wings. Roars when it is happy, which is rarely.",
+   "store": true
+  },
+  "firebird": {
+   "name": "Sunfire phoenix",
+   "price": 0,
+   "speed": 1.7,
+   "blurb": "A great bird of flame-red feathers that carries you just above the ground.",
+   "store": true,
+   "hover": 1.0
+  },
+  "souleater_red": {
+   "name": "Crimson soul-eater",
+   "price": 0,
+   "speed": 1.65,
+   "blurb": "A squat red dragon with a mouth full of teeth and a saddle between its wings.",
+   "store": true
+  },
+  "souleater_green": {
+   "name": "Moss soul-eater",
+   "price": 0,
+   "speed": 1.65,
+   "blurb": "A squat green dragon from the deep marsh, saddled for war.",
+   "store": true
+  },
+  "souleater_blue": {
+   "name": "Azure soul-eater",
+   "price": 0,
+   "speed": 1.65,
+   "blurb": "A squat blue dragon that smells of rain and lightning.",
+   "store": true
+  },
+  "souleater_black": {
+   "name": "Onyx soul-eater",
+   "price": 0,
+   "speed": 1.65,
+   "blurb": "A squat black dragon with a red saddle. Nobody argues with you.",
+   "store": true
+  },
+  "tyrant": {
+   "name": "Tyrant Alpha",
+   "price": 0,
+   "speed": 1.7,
+   "blurb": "A rebuilt king of the old lizards, black and violet, with machine bones under its scales.",
+   "store": true
   }
  },
  "MERCS": {
@@ -251,13 +320,23 @@
   "snail": 0.8,
   "warg": 0.95,
   "mammoth": 2.0,
-  "spider": 1.35
+  "spider": 1.35,
+  "timberwolf": 1.6,
+  "magmahound": 1.62,
+  "ashwing": 3.87,
+  "firebird": 2.26,
+  "souleater_red": 2.42,
+  "souleater_green": 2.42,
+  "souleater_blue": 2.42,
+  "souleater_black": 2.42,
+  "tyrant": 2.48
  },
  "PET_FLY": [
   "owl",
   "drake",
   "parrot",
-  "lantern_owl"
+  "lantern_owl",
+  "bee"
  ],
  "PET_SKILLS": [
   [

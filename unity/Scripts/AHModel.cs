@@ -31,26 +31,58 @@ public static class AHModel
         foreach (var smr in inst.GetComponentsInChildren<SkinnedMeshRenderer>(true)) smr.updateWhenOffscreen = true;
         foreach (var c in inst.GetComponentsInChildren<Collider>(true)) Object.Destroy(c);
 
-        // measure, scale, and put the feet on the ground
-        Bounds b = Measure(inst);
+        // measure, scale, and put the feet on the ground, as it stands in its idle: some rigs (Sketchfab's) lie on their side
+        // at rest and only stand up in their clips, so their skins' own boxes say nothing about where their feet are
+        var clipsAll = Resources.LoadAll<AnimationClip>(path);
+        AnimationClip pose = null; foreach (var c in clipsAll) if (c != null && c.name == "Idle") { pose = c; break; }
+        if (pose == null && clipsAll.Length > 0) pose = clipsAll[0];
+        bool posed = false;
+        Bounds b = Measure(inst, false);
+        if (pose != null)
+        {
+            try { pose.SampleAnimation(inst, 0f); } catch { }
+            // only where the skin's box is far off (other models keep the measure their feet were set by, AH/Data/mob_feet)
+            Bounds bp = Measure(inst, true);
+            if (Mathf.Abs(bp.size.y - b.size.y) > 0.25f * Mathf.Max(b.size.y, 0.01f) || Mathf.Abs(bp.min.y - b.min.y) > 0.25f * Mathf.Max(b.size.y, 0.01f)) { b = bp; posed = true; }
+        }
         float have = byLength ? Mathf.Max(b.size.x, b.size.z) : b.size.y;
         if (size > 0f && have > 1e-3f) inst.transform.localScale = Vector3.one * (size / have);
-        b = Measure(inst);
+        b = Measure(inst, posed);
         inst.transform.position += Vector3.up * (holder.position.y - b.min.y);
         LastHeight = b.size.y;
 
-        anim = new AHAnim(inst, Resources.LoadAll<AnimationClip>(path), split);
+        anim = new AHAnim(inst, clipsAll, split);
         return inst;
     }
 
     public static float LastHeight;   // how tall the last model came out (metres)
 
-    static Bounds Measure(GameObject go)
+    static Mesh baked;
+    static Bounds Measure(GameObject go) { return Measure(go, false); }
+    static Bounds Measure(GameObject go, bool posed)
     {
         var rs = go.GetComponentsInChildren<Renderer>(true);
         if (rs.Length == 0) return new Bounds(go.transform.position, Vector3.one);
-        Bounds b = rs[0].bounds;
-        for (int i = 1; i < rs.Length; i++) b.Encapsulate(rs[i].bounds);
+        bool any = false; Bounds b = new Bounds();
+        foreach (var r in rs)
+        {
+            Bounds rb = r.bounds;
+            var smr = r as SkinnedMeshRenderer;
+            if (posed && smr != null && smr.sharedMesh != null)
+            {
+                // a skin as it is posed now (its own box is the rest pose's)
+                if (baked == null) baked = new Mesh();
+                smr.BakeMesh(baked, true);
+                var vs = baked.vertices; var m = smr.transform.localToWorldMatrix;
+                if (vs.Length > 0)
+                {
+                    rb = new Bounds(m.MultiplyPoint3x4(vs[0]), Vector3.zero);
+                    int step = Mathf.Max(1, vs.Length / 4000);
+                    for (int i = step; i < vs.Length; i += step) rb.Encapsulate(m.MultiplyPoint3x4(vs[i]));
+                }
+            }
+            if (!any) { b = rb; any = true; } else b.Encapsulate(rb);
+        }
         return b;
     }
 

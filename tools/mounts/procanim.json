@@ -1,0 +1,341 @@
+{
+ "golem": {
+  "src": "/tmp/claude-0/ck/in/sand_golem.glb",
+  "build": [
+   [
+    "Hips",
+    [
+     0,
+     0.02,
+     0.4
+    ],
+    [
+     0,
+     0.02,
+     0.5
+    ],
+    null
+   ],
+   [
+    "Spine",
+    [
+     0,
+     0.02,
+     0.5
+    ],
+    [
+     0,
+     0.02,
+     0.62
+    ],
+    "Hips"
+   ],
+   [
+    "Chest",
+    [
+     0,
+     0.02,
+     0.62
+    ],
+    [
+     0,
+     0.02,
+     0.8
+    ],
+    "Spine"
+   ],
+   [
+    "Head",
+    [
+     0,
+     0.0,
+     0.8
+    ],
+    [
+     0,
+     0.0,
+     1.0
+    ],
+    "Chest"
+   ],
+   [
+    "UpperArm.L",
+    [
+     0.2,
+     0.02,
+     0.72
+    ],
+    [
+     0.31,
+     0.02,
+     0.47
+    ],
+    "Chest"
+   ],
+   [
+    "LowerArm.L",
+    [
+     0.31,
+     0.02,
+     0.47
+    ],
+    [
+     0.41,
+     0.0,
+     0.18
+    ],
+    "UpperArm.L"
+   ],
+   [
+    "Thigh.L",
+    [
+     0.092,
+     0.02,
+     0.4
+    ],
+    [
+     0.09,
+     0.02,
+     0.21
+    ],
+    "Hips"
+   ],
+   [
+    "Shin.L",
+    [
+     0.09,
+     0.02,
+     0.21
+    ],
+    [
+     0.088,
+     0.02,
+     0.05
+    ],
+    "Thigh.L"
+   ],
+   [
+    "Foot.L",
+    [
+     0.088,
+     0.02,
+     0.05
+    ],
+    [
+     0.088,
+     -0.07,
+     0.01
+    ],
+    "Shin.L"
+   ],
+   [
+    "UpperArm.R",
+    [
+     -0.2,
+     0.02,
+     0.72
+    ],
+    [
+     -0.31,
+     0.02,
+     0.47
+    ],
+    "Chest"
+   ],
+   [
+    "LowerArm.R",
+    [
+     -0.31,
+     0.02,
+     0.47
+    ],
+    [
+     -0.41,
+     0.0,
+     0.18
+    ],
+    "UpperArm.R"
+   ],
+   [
+    "Thigh.R",
+    [
+     -0.092,
+     0.02,
+     0.4
+    ],
+    [
+     -0.09,
+     0.02,
+     0.21
+    ],
+    "Hips"
+   ],
+   [
+    "Shin.R",
+    [
+     -0.09,
+     0.02,
+     0.21
+    ],
+    [
+     -0.088,
+     0.02,
+     0.05
+    ],
+    "Thigh.R"
+   ],
+   [
+    "Foot.R",
+    [
+     -0.088,
+     0.02,
+     0.05
+    ],
+    [
+     -0.088,
+     -0.07,
+     0.01
+    ],
+    "Shin.R"
+   ]
+  ],
+  "root": "Hips",
+  "spine": [
+   "Spine",
+   "Chest"
+  ],
+  "neck": [
+   "Head"
+  ],
+  "legs": [
+   [
+    "Thigh.L",
+    "Shin.L",
+    "Foot.L"
+   ],
+   [
+    "Thigh.R",
+    "Shin.R",
+    "Foot.R"
+   ]
+  ],
+  "arms": [
+   [
+    "UpperArm.L",
+    "LowerArm.L"
+   ],
+   [
+    "UpperArm.R",
+    "LowerArm.R"
+   ]
+  ],
+  "biped": true,
+  "amp": 0.9,
+  "bob": 0.12,
+  "walk_frames": 44,
+  "run_frames": 30,
+  "run": 1.35,
+  "arm": 1.4,
+  "attack": true
+ },
+ "tyrant": {
+  "src": "/tmp/claude-0/ck/in/Tyrant/SIN_AI_Tyrant_Alpha_Asset_Pack/SIN_AI_Tyrant_Alpha/Tyrant_Alpha_1_GLB_BLEND/SIN_AI_Tyrant-Alpha_1.glb",
+  "root": "Bone_000",
+  "spine": [
+   "Bone_001",
+   "Bone_003"
+  ],
+  "neck": [
+   "Bone_013",
+   "Bone_012",
+   "Bone_011"
+  ],
+  "tail": [
+   "Bone_010",
+   "Bone_009",
+   "Bone_008",
+   "Bone_007",
+   "Bone_006",
+   "Bone_005"
+  ],
+  "legs": [
+   [
+    "Bone_019",
+    "Bone_018",
+    "Bone_017"
+   ],
+   [
+    "Bone_025",
+    "Bone_024",
+    "Bone_023"
+   ]
+  ],
+  "arms": [
+   [
+    "Bone_034",
+    "Bone_033"
+   ],
+   [
+    "Bone_039",
+    "Bone_038"
+   ]
+  ],
+  "biped": true,
+  "amp": 1.5,
+  "bob": 0.03,
+  "knee": 0.9,
+  "arm": 0.5,
+  "face": [
+   "Bone_027",
+   "Bone_000"
+  ]
+ },
+ "voidmaw": {
+  "src": "/tmp/claude-0/ck/in/maw_of_the_void_-_free_creature_asset.glb",
+  "base": [
+   "rigAction",
+   10
+  ],
+  "keep_clips": true,
+  "root": "DEF-spine",
+  "spine": [
+   "DEF-spine.002",
+   "DEF-spine.003"
+  ],
+  "neck": [
+   "DEF-spine.005"
+  ],
+  "legs": [
+   [
+    "DEF-thigh.L",
+    "DEF-shin.L",
+    "DEF-foot.L"
+   ],
+   [
+    "DEF-thigh.R",
+    "DEF-shin.R",
+    "DEF-foot.R"
+   ]
+  ],
+  "arms": [
+   [
+    "DEF-upper_arm.L",
+    "DEF-forearm.L"
+   ],
+   [
+    "DEF-upper_arm.R",
+    "DEF-forearm.R"
+   ]
+  ],
+  "biped": true,
+  "amp": 1.1,
+  "bob": 0.04,
+  "arm": 1.2,
+  "walk_frames": 40,
+  "run_frames": 26,
+  "face": [
+   "DEF-spine.005",
+   "DEF-spine"
+  ]
+ }
+}

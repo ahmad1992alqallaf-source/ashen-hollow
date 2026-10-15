@@ -4,6 +4,56 @@
  "TEST_GRANT": 1000,
  "ITEMS": [
   {
+   "id": "mount:timberwolf",
+   "price": 1200,
+   "tag": "New"
+  },
+  {
+   "id": "mount:magmahound",
+   "price": 1600,
+   "tag": "New"
+  },
+  {
+   "id": "mount:ashwing",
+   "price": 2400,
+   "tag": "New"
+  },
+  {
+   "id": "mount:firebird",
+   "price": 2200,
+   "tag": "New"
+  },
+  {
+   "id": "mount:souleater_red",
+   "price": 2000,
+   "tag": "New"
+  },
+  {
+   "id": "mount:souleater_green",
+   "price": 2000,
+   "tag": "New"
+  },
+  {
+   "id": "mount:souleater_blue",
+   "price": 2000,
+   "tag": "New"
+  },
+  {
+   "id": "mount:souleater_black",
+   "price": 2400,
+   "tag": "New"
+  },
+  {
+   "id": "mount:tyrant",
+   "price": 2800,
+   "tag": "New"
+  },
+  {
+   "id": "pet:bee",
+   "price": 600,
+   "tag": "New"
+  },
+  {
    "id": "mount:spider",
    "price": 1500,
    "tag": "New"

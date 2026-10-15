@@ -192,6 +192,8 @@ public static class AHComp
         else { AHAnim a; AHModel.Spawn(holder.transform, "Comp/mount_" + p.mountSel, 0f, false, 0f, out a); if (a != null && a.HasClips) holder.AddComponent<AHMountGait>().Setup(a, p); else if (a != null) a.Dispose(); }
         // some mounts are made small (the wolves): grown to a riding size
         float msc = (float)AHJson.N(AHJson.O(Mounts, p.mountSel), "scale", 1); if (msc != 1f) holder.transform.localScale = Vector3.one * msc;
+        // a flier carries you a little above the ground (the Sunfire phoenix)
+        float hov = (float)AHJson.N(AHJson.O(Mounts, p.mountSel), "hover", 0); if (hov > 0f && holder.transform.childCount > 0) holder.transform.GetChild(0).position += Vector3.up * hov;
         // the Voidwing: a black horse with great dark feathered wings on its shoulders
         if (p.mountSel == "voidwing") holder.AddComponent<AHMountWings>();
         foreach (var c in holder.GetComponentsInChildren<Collider>()) Object.Destroy(c);

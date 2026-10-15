@@ -1,0 +1,370 @@
+{
+ "direwolf2": {
+  "src": "Dire_Wolf_Lite_v1.0.0/Dire_Wolf_Lite/Dire_Wolf_Lite.glb",
+  "anims": {
+   "Idle": "idle_loop",
+   "Walk": "walk_loop",
+   "Gallop": "run_loop",
+   "Bite": "bite"
+  },
+  "head": "head",
+  "tail": "pelvis",
+  "length": 2.0,
+  "seat": "spine_02",
+  "seat_at": [
+   0,
+   0.05
+  ],
+  "saddle": [
+   0.5,
+   0.6
+  ],
+  "colour": [
+   0.1,
+   0.12,
+   0.2
+  ],
+  "root": "/tmp/claude-0/ck/in"
+ },
+ "ashwing": {
+  "src": "Ashwing_Drake_Lite_v1.0.0/Ashwing_Drake_Lite/Ashwing_Drake_Lite.glb",
+  "anims": {
+   "Idle": "idle_loop",
+   "Walk": "walk_loop",
+   "Fly": "fly_loop",
+   "Roar": "roar",
+   "Bite": "bite"
+  },
+  "head": "head",
+  "tail": "pelvis",
+  "length": 4.2,
+  "seat": "spine_02",
+  "saddle": [
+   0.6,
+   0.7
+  ],
+  "colour": [
+   0.25,
+   0.05,
+   0.03
+  ],
+  "root": "/tmp/claude-0/ck/in"
+ },
+ "magmahound": {
+  "src": "infernal_magma_hound_-_free_lava_creature_asset.glb",
+  "anims": {
+   "Idle": "Idle",
+   "Walk": "Walk"
+  },
+  "head": "DEF-spine.011",
+  "tail": "DEF-spine.004",
+  "length": 2.3,
+  "seat": "DEF-spine.007",
+  "saddle": [
+   0.5,
+   0.6
+  ],
+  "colour": [
+   0.08,
+   0.06,
+   0.06
+  ],
+  "root": "/tmp/claude-0/ck/in"
+ },
+ "phoenix2": {
+  "src": "phoenix_bird.glb",
+  "anims": {
+   "Idle": "Take 001",
+   "Walk": "Take 001",
+   "Gallop": "Take 001",
+   "Fly": "Take 001"
+  },
+  "head": "b_Head",
+  "tail": "B_Tail_2",
+  "length": 2.4,
+  "seat": "B_Spine_02",
+  "saddle": [
+   0.5,
+   0.6
+  ],
+  "lift": 0.0,
+  "colour": [
+   0.5,
+   0.08,
+   0.02
+  ],
+  "root": "/tmp/claude-0/ck/in",
+  "seat_at": [
+   0,
+   0.45
+  ]
+ },
+ "souleater_red": {
+  "src": "/tmp/claude-0/ck/conv/soul_idle.glb",
+  "anims": {
+   "Idle": "Take 001",
+   "Walk": "file:/tmp/claude-0/ck/conv/soul_walk.glb",
+   "Gallop": "file:/tmp/claude-0/ck/conv/soul_run.glb",
+   "Fly": "file:/tmp/claude-0/ck/conv/soul_fly_forward.glb",
+   "Bite": "file:/tmp/claude-0/ck/conv/soul_basic_attack.glb",
+   "Roar": "file:/tmp/claude-0/ck/conv/soul_scream.glb"
+  },
+  "head": "Head",
+  "tail": "Root_Pelvis",
+  "length": 2.6,
+  "seat": "Spine",
+  "seat_at": [
+   0,
+   -0.1
+  ],
+  "saddle": [
+   0.6,
+   0.7
+  ],
+  "tex": {
+   "*": "Dragon_SoulEater/Dragon SoulEater/Dragon SoulEater/Texture/RedHP.png"
+  },
+  "colour": [
+   0.12,
+   0.03,
+   0.02
+  ],
+  "root": "/tmp/claude-0/ck/in"
+ },
+ "souleater_green": {
+  "src": "/tmp/claude-0/ck/conv/soul_idle.glb",
+  "anims": {
+   "Idle": "Take 001",
+   "Walk": "file:/tmp/claude-0/ck/conv/soul_walk.glb",
+   "Gallop": "file:/tmp/claude-0/ck/conv/soul_run.glb",
+   "Fly": "file:/tmp/claude-0/ck/conv/soul_fly_forward.glb",
+   "Bite": "file:/tmp/claude-0/ck/conv/soul_basic_attack.glb",
+   "Roar": "file:/tmp/claude-0/ck/conv/soul_scream.glb"
+  },
+  "head": "Head",
+  "tail": "Root_Pelvis",
+  "length": 2.6,
+  "seat": "Spine",
+  "seat_at": [
+   0,
+   -0.1
+  ],
+  "saddle": [
+   0.6,
+   0.7
+  ],
+  "tex": {
+   "*": "Dragon_SoulEater/Dragon SoulEater/Dragon SoulEater/Texture/GreenHP.png"
+  },
+  "colour": [
+   0.06,
+   0.09,
+   0.04
+  ],
+  "root": "/tmp/claude-0/ck/in"
+ },
+ "souleater_blue": {
+  "src": "/tmp/claude-0/ck/conv/soul_idle.glb",
+  "anims": {
+   "Idle": "Take 001",
+   "Walk": "file:/tmp/claude-0/ck/conv/soul_walk.glb",
+   "Gallop": "file:/tmp/claude-0/ck/conv/soul_run.glb",
+   "Fly": "file:/tmp/claude-0/ck/conv/soul_fly_forward.glb",
+   "Bite": "file:/tmp/claude-0/ck/conv/soul_basic_attack.glb",
+   "Roar": "file:/tmp/claude-0/ck/conv/soul_scream.glb"
+  },
+  "head": "Head",
+  "tail": "Root_Pelvis",
+  "length": 2.6,
+  "seat": "Spine",
+  "seat_at": [
+   0,
+   -0.1
+  ],
+  "saddle": [
+   0.6,
+   0.7
+  ],
+  "tex": {
+   "*": "Dragon_SoulEater/Dragon SoulEater/Dragon SoulEater/Texture/BlueHP.png"
+  },
+  "colour": [
+   0.04,
+   0.06,
+   0.14
+  ],
+  "root": "/tmp/claude-0/ck/in"
+ },
+ "souleater_black": {
+  "src": "/tmp/claude-0/ck/conv/soul_idle.glb",
+  "anims": {
+   "Idle": "Take 001",
+   "Walk": "file:/tmp/claude-0/ck/conv/soul_walk.glb",
+   "Gallop": "file:/tmp/claude-0/ck/conv/soul_run.glb",
+   "Fly": "file:/tmp/claude-0/ck/conv/soul_fly_forward.glb",
+   "Bite": "file:/tmp/claude-0/ck/conv/soul_basic_attack.glb",
+   "Roar": "file:/tmp/claude-0/ck/conv/soul_scream.glb"
+  },
+  "head": "Head",
+  "tail": "Root_Pelvis",
+  "length": 2.6,
+  "seat": "Spine",
+  "seat_at": [
+   0,
+   -0.1
+  ],
+  "saddle": [
+   0.6,
+   0.7
+  ],
+  "tex": {
+   "*": "Dragon_SoulEater/Dragon SoulEater/Dragon SoulEater/Texture/GreyHP.png"
+  },
+  "colour": [
+   0.25,
+   0.05,
+   0.03
+  ],
+  "root": "/tmp/claude-0/ck/in"
+ },
+ "tyrant": {
+  "src": "/tmp/claude-0/ck/conv/tyrant_anim.glb",
+  "anims": {
+   "Idle": "Idle",
+   "Walk": "Walk",
+   "Gallop": "Gallop"
+  },
+  "head": "Bone_027",
+  "tail": "Bone_000",
+  "height": 3.0,
+  "seat": "Bone_003",
+  "saddle": [
+   0.55,
+   0.65
+  ],
+  "tris": 18000,
+  "colour": [
+   0.18,
+   0.02,
+   0.2
+  ],
+  "root": "/tmp/claude-0/ck/in"
+ },
+ "chariot": {
+  "src": "ancient_horse_chariot_mauryan_era.glb",
+  "anims": {
+   "Idle": [
+    "Scene",
+    1,
+    2
+   ],
+   "Walk": [
+    "Scene",
+    1,
+    13
+   ],
+   "Gallop": [
+    "Scene",
+    1,
+    13
+   ]
+  },
+  "head": "Head_013",
+  "tail": "ChariotBaody",
+  "length": 4.6,
+  "seat": "ChariotBaody",
+  "seat_z": 0.25,
+  "saddle": 0,
+  "cut": {
+   "Object_227": "^Bone\\."
+  },
+  "root": "/tmp/claude-0/ck/in",
+  "cut_cards": [
+   "Object_227"
+  ]
+ },
+ "bee": {
+  "root": "/tmp/claude-0/ck/in",
+  "src": "animated_bee_flying_landing_loop.glb",
+  "anims": {
+   "Idle": [
+    "Animation",
+    62,
+    140
+   ],
+   "Walk": [
+    "Animation",
+    62,
+    140
+   ],
+   "Fly": [
+    "Animation",
+    62,
+    140
+   ]
+  },
+  "head": "head_Jnt",
+  "tail": "abdomen_jnt04",
+  "length": 0.55,
+  "seat": "thorax_jnt",
+  "saddle": 0,
+  "seat_z": 0.1,
+  "tris": 7000,
+  "texsize": 512,
+  "still_root": [
+   "root_jnt.2_1",
+   "body_jnt.3_2"
+  ]
+ },
+ "voidmaw": {
+  "root": "/tmp/claude-0/ck/in",
+  "src": "maw_of_the_void_-_free_creature_asset.glb",
+  "anims": {
+   "Idle": [
+    "rigAction",
+    0,
+    60
+   ],
+   "Attack": [
+    "rigAction",
+    62,
+    135
+   ],
+   "Walk": "file:/tmp/claude-0/ck/conv/voidmaw_anim.glb#Walk",
+   "Gallop": "file:/tmp/claude-0/ck/conv/voidmaw_anim.glb#Gallop"
+  },
+  "head": "DEF-spine.005",
+  "tail": "DEF-spine",
+  "height": 2.0,
+  "seat": "DEF-spine.003",
+  "saddle": 0,
+  "seat_z": 0.0,
+  "texsize": 1024
+ },
+ "sandgolem": {
+  "src": "/tmp/claude-0/ck/conv/golem_anim.glb",
+  "anims": {
+   "Idle": "Idle",
+   "Walk": "Walk",
+   "Gallop": "Gallop",
+   "Attack": "Attack"
+  },
+  "head": "Head",
+  "tail": "Hips",
+  "yaw": 0,
+  "height": 3.0,
+  "seat": "Chest",
+  "seat_at": [
+   0,
+   0
+  ],
+  "saddle": 0,
+  "colour": [
+   0.35,
+   0.18,
+   0.05
+  ],
+  "root": "/tmp/claude-0/ck/in",
+  "seat_z": 0.0
+ }
+}
