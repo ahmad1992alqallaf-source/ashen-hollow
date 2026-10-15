@@ -210,6 +210,9 @@ public partial class AHUI
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenEmotes }));
         rows.Add(s => Row(s, "Looks", new Color(1f, 0.62f, 0.85f), "Weapon skins, hit effects, footstep trails, name colours · looks only", "",
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenLooks }));
+        if (AHComp.TestMounts)
+            rows.Add(s => Row(s, "Bags and tools (testing)", new Color(0.62f, 0.85f, 1f), "Puts one of every bag and tool in your bag, to try the bag slots and the tool belt", "This row goes away before release.",
+                new WkBtn { label = "Give", on = true, col = Go, act = () => { foreach (var id in new[] { "bag_pouch", "bag_pack", "bag_master", "bag_mythic", "tool_pick_iron", "tool_axe_guild", "tool_rod_bronze" }) p.bag.Add(id, 1); Toast("Test bags and tools are in your bag."); g.MarkDirty(); } }));
         rows.Add(s => Row(s, "Caravans", new Color(1f, 0.8f, 0.45f), "Send your goods to towns that want them, or guard other heroes' caravans", "",
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenCaravans }));
         rows.Add(s => Row(s, "Test kitchen", new Color(1f, 0.7f, 0.4f), "Invent your own recipes: the right mix carries your name", AHKitchen.S(p).found.Count + " / " + AHKitchen.Sigs.Length + " found",

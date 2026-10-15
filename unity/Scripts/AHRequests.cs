@@ -265,7 +265,7 @@ public partial class AHUI
                 var rr = r; bool fav = AHRequests.Favours(r.kind) == p.path;
                 long pay = AHRequests.PayFor(p, r);
                 int have = AHRequests.Progress(p, r);
-                string what = r.kind == "slay" ? "Clear " + r.n + " " + AHJson.S(AHJson.O(AHDB.Mobs, r.id), "name", r.id).ToLowerInvariant() + " near their camp"
+                string what = r.kind == "slay" ? "Clear the beasts near their camp: " + r.n + " × " + AHJson.S(AHJson.O(AHDB.Mobs, r.id), "name", r.id).ToLowerInvariant()
                     : r.n + " " + AHRequests.ItemName(r.id).ToLowerInvariant();
                 string who = r.from + " (" + (r.fromPath == "artisan" ? "Artisan" : "Adventurer") + ")";
                 string prog = r.kind == "slay" && !r.taken ? "" : Bad(have + " / " + r.n, have >= r.n);

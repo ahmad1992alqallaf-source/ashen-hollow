@@ -85,7 +85,7 @@ public static class AHTown
         long total = 0; for (int i = 0; i < d.mats.Length; i++) total += AHComp.Value(d.mats[i]) * d.need[i];
         var rnd = new System.Random(d.id.GetHashCode());
         float realmK = (float)Math.Min(1.0, Math.Max(0, NowS - t.start) / 86400.0 / RealmDays);
-        foreach (var nm in Givers) l.Add(new KeyValuePair<string, long>(nm, (long)(total * (0.03 + rnd.NextDouble() * 0.09) * realmK)));
+        foreach (var nm in Givers) { long v = (long)(total * (0.03 + rnd.NextDouble() * 0.09) * realmK); if (v > 0) l.Add(new KeyValuePair<string, long>(nm, v)); }
         long mine = 0; for (int i = 0; i < d.mats.Length; i++) mine += AHComp.Value(d.mats[i]) * Mine(t, d.mats[i]);
         if (mine > 0) l.Add(new KeyValuePair<string, long>(string.IsNullOrEmpty(p.heroName) ? "You" : p.heroName, mine));
         l.Sort((a, b) => b.Value.CompareTo(a.Value));
@@ -139,8 +139,9 @@ public partial class AHUI
                         left > 0 ? new WkBtn { label = "Give 10", on = own > 0, col = Plain, act = () => { AHTown.Give(g, d, ii, 10); RenderWork(); } } : null,
                         left > 0 ? new WkBtn { label = "Give all", on = own > 0, col = Go, act = () => { AHTown.Give(g, d, ii, 99999); RenderWork(); } } : null));
                 }
-            int rank = 0;
-            foreach (var kv in AHTown.Plaque(p, d))
+            int rank = 0; var plaque = AHTown.Plaque(p, d);
+            if (plaque.Count == 0) rows.Add(s => Row(s, "The plaque is still blank", new Color(1f, 1f, 1f, 0.7f), "Be the first name on it.", ""));
+            foreach (var kv in plaque)
             {
                 if (++rank > 5) break;
                 int rk = rank; var e = kv; bool me = e.Key == (string.IsNullOrEmpty(p.heroName) ? "You" : p.heroName);
