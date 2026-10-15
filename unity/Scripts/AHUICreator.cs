@@ -1,5 +1,7 @@
-// Ashen Hollow: making your hero, as in the web game's creator: class, body, face, hair, "How do you want to play?"
-// (Adventurer or Artisan, with professions) and a name. Built in code like the rest of the HUD; works by touch and keyboard.
+// Ashen Hollow: making your hero. A new hero is made one page at a time (Back / Next): first the two paths (Adventurer
+// or Artisan) explained side by side, then professions, class, body, face, hair and a name, with a step bar on top.
+// The barber's chair and the home mirror keep the tab row (hair, face, body, name). Built in code like the rest of the
+// HUD; works by touch and keyboard.
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -42,6 +44,12 @@ public partial class AHUI
 
     static readonly string[] CrTabs = { "class", "body", "face", "hair", "path", "name" };
     static readonly string[] CrTabNames = { "Class", "Body", "Face", "Hair", "Path", "Name" };
+    // the new-hero wizard: its pages in order, each with a title and a line under it
+    static readonly string[] CrPages = { "path", "profs", "class", "body", "face", "hair", "name" };
+    static readonly string[] CrPageNames = { "Your path", "Professions", "Class", "Body", "Face", "Hair", "Name" };
+    static readonly string[] CrPageTitles = { "Choose your path", "Your professions", "Choose your class", "Shape your body", "Your face", "Your hair", "Name your hero" };
+    RectTransform crSteps, crBack; Text crStepText; readonly List<Image> crStepBars = new List<Image>(); bool crCanCancel;
+    bool CrWizard { get { return crMode == "new"; } }
     const float CrW = 600f, CrH = 600f;
 
     // web CR_TABS: [key, label, kind, list]
@@ -75,6 +83,12 @@ public partial class AHUI
             crTabImgs[k] = tab.GetComponent<Image>();
             taps.Add(new TapBtn { rt = tab, layer = 4, act = () => { crTab = k; crTyping = false; crScroll = 0f; RenderCreator(); } });
         }
+        // the wizard's step bar, where the tabs are for the barber
+        crSteps = Box("Steps", crPanel, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(20, -82), new Vector2(560, 36));
+        float bw = (560f - (CrPages.Length - 1) * 6f) / CrPages.Length;
+        for (int i = 0; i < CrPages.Length; i++)
+            crStepBars.Add(Img("Bar", crSteps, white, new Vector2(0f, 1f), new Vector2(i * (bw + 6f) + bw / 2f, -3f), new Vector2(bw, 6f), new Color(0.24f, 0.18f, 0.13f, 1f)).GetComponent<Image>());
+        crStepText = Label(crSteps, "S", "", 14, TextAnchor.UpperLeft, new Vector2(0, -12), new Vector2(560, 22), new Color(1f, 0.85f, 0.55f, 0.8f));
         crBody = Box("Body", crPanel, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(20, -124), new Vector2(560, 400));
         // the choices scroll inside the body: drag them up and down (or use the mouse wheel)
         crBody.gameObject.AddComponent<RectMask2D>();
@@ -84,12 +98,16 @@ public partial class AHUI
         crHint = Label(crPanel, "Hint", "", 14, TextAnchor.UpperLeft, new Vector2(20, -528), new Vector2(380, 60), new Color(1f, 1f, 1f, 0.6f));
         crHint.horizontalOverflow = HorizontalWrapMode.Wrap;
         var begin = Img("Begin", crPanel, white, new Vector2(1f, 0f), new Vector2(-90, 40), new Vector2(160, 54), new Color(0.22f, 0.5f, 0.26f, 1f));
-        var bt = Center(Label(begin, "T", "Begin", 24, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(160, 40), Color.white)); bt.fontStyle = FontStyle.Bold; crBeginText = bt;
+        var bt = Center(Label(begin, "T", "Next", 24, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(160, 40), Color.white)); bt.fontStyle = FontStyle.Bold; crBeginText = bt;
         crCancel = Img("Cancel", crPanel, white, new Vector2(1f, 0f), new Vector2(-260, 40), new Vector2(150, 54), new Color(0.45f, 0.22f, 0.17f, 1f));
         Center(Label(crCancel, "T", "Cancel", 22, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(150, 40), Color.white));
         taps.Add(new TapBtn { rt = crCancel, layer = 4, act = CancelCreator });
         crCancel.gameObject.SetActive(false);
-        taps.Add(new TapBtn { rt = begin, layer = 4, act = FinishCreator });
+        taps.Add(new TapBtn { rt = begin, layer = 4, act = () => { if (CrWizard) CrStep(1); else FinishCreator(); } });
+        crBack = Img("Back", crPanel, white, new Vector2(1f, 0f), new Vector2(-260, 40), new Vector2(150, 54), new Color(0.26f, 0.2f, 0.14f, 1f));
+        Center(Label(crBack, "T", "Back", 22, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(150, 40), Color.white));
+        taps.Add(new TapBtn { rt = crBack, layer = 4, act = () => CrStep(-1) });
+        crBack.gameObject.SetActive(false);
         // under the hero: try the class's starting gear on, or take it off again (the hero is made plain, in the body's
         // own clothes, which fit it as they were made for it)
         crGearBtn = Img("TryGear", crRoot, white, new Vector2(0f, 0f), new Vector2(150, 64), new Vector2(240, 58), new Color(0.3f, 0.22f, 0.12f, 0.95f));
@@ -113,14 +131,30 @@ public partial class AHUI
         if (mode == "new") { AHHeroHall.Open(g, crRoot); AHHeroHall.Shift = 1f; }   // a new hero is made by the campfire, the game put away
         crGear = false; crGearBtn.gameObject.SetActive(mode == "new");
         ptrs.Clear();
-        crTab = paid ? "hair" : "class";
-        foreach (var kv in crTabImgs) kv.Value.gameObject.SetActive(!paid || (kv.Key != "class" && kv.Key != "path"));
-        crCancel.gameObject.SetActive(paid || (mode == "new" && AHPrefs.Slots().Count > 0 && !AHPrefs.Slots().Contains(AHPrefs.Slot)));
+        crTab = paid ? "hair" : CrPages[0];
+        // a new hero: one page at a time, no tabs; the barber and mirror: the tab row, no class or path
+        foreach (var kv in crTabImgs) kv.Value.gameObject.SetActive(paid && kv.Key != "class" && kv.Key != "path");
+        crSteps.gameObject.SetActive(!paid);
+        crCanCancel = paid || (mode == "new" && AHPrefs.Slots().Count > 0 && !AHPrefs.Slots().Contains(AHPrefs.Slot));
+        crCancel.gameObject.SetActive(crCanCancel);
         crTitle.text = paid ? (mode == "mirror" ? "Your mirror" : "The barber’s chair") : "Create your hero";
-        crBeginText.text = paid ? "Done" : "Begin";
-        // the hint keeps clear of the Cancel button when it shows
-        var hr = crHint.rectTransform; hr.sizeDelta = new Vector2(crCancel.gameObject.activeSelf ? 236f : 380f, 60f);
+        crBeginText.text = paid ? "Done" : "Next";
+        // the hint keeps clear of the Cancel / Back button when one shows
+        var hr = crHint.rectTransform; hr.sizeDelta = new Vector2(crCanCancel || !paid ? 236f : 380f, 60f);
         RenderCreator();
+    }
+
+    // the wizard's Back and Next; Next on the last page makes the hero
+    void CrStep(int d)
+    {
+        int i = Array.IndexOf(CrPages, crTab); if (i < 0) i = 0;
+        var p = g.player;
+        if (d > 0 && crTab == "profs" && p.path == "artisan" && p.profs.Count == 0) { Toast("An Artisan needs at least one profession."); return; }
+        if (d > 0 && i >= CrPages.Length - 1) { FinishCreator(); return; }
+        int j = Mathf.Clamp(i + d, 0, CrPages.Length - 1);
+        if (j == i) return;
+        crTab = CrPages[j]; crTyping = false; if (crKb != null) { crKb.active = false; crKb = null; }
+        crScroll = 0f; RenderCreator();
     }
 
     void CancelCreator()
@@ -256,6 +290,29 @@ public partial class AHUI
         crSub.text = p.cls.name + ". Make them yours.";
         if (crMode == "barber" || crMode == "mirror") { string lines; long c = CrCost(out lines); crSub.text = lines.Length > 0 ? lines + (c > 0 ? " · you have " + AHItems.MoneyText(p.bag.money) : "") : (crMode == "mirror" ? "Hair and face are free here; body, name and gender cost as at a barber." : "Hair 300 copper · face 400 · body 900 · name 1,500 · gender 5 gold."); }
         crHint.text = "";
+        if (CrWizard)
+        {
+            int pi0 = Mathf.Max(0, Array.IndexOf(CrPages, crTab));
+            crTitle.text = CrPageTitles[pi0];
+            crStepText.text = "Step " + (pi0 + 1) + " of " + CrPages.Length + "  ·  " + CrPageNames[pi0];
+            for (int i = 0; i < crStepBars.Count; i++)
+                crStepBars[i].color = i < pi0 ? new Color(0.62f, 0.42f, 0.18f, 1f) : i == pi0 ? new Color(1f, 0.75f, 0.35f, 1f) : new Color(0.24f, 0.18f, 0.13f, 1f);
+            bool last = pi0 >= CrPages.Length - 1;
+            crBeginText.text = last ? "Begin" : "Next";
+            // Back on every page but the first; there, Cancel (when there is a hero to go back to)
+            crBack.gameObject.SetActive(pi0 > 0);
+            crCancel.gameObject.SetActive(pi0 == 0 && crCanCancel);
+            var pathName = AHJson.A(AHDB.Table("paths", "PATHS_LIFE"), p.path);
+            string pn = pathName != null && pathName.Count > 0 ? (string)pathName[0] : p.path;
+            switch (crTab)
+            {
+                case "path": crSub.text = "Two ways to live in Ashen Hollow. Pick the one that sounds like you."; break;
+                case "profs": crSub.text = p.path == "artisan" ? "Your crafts are how an Artisan grows. Pick at least one." : "A trade on the side, if you like. You can skip this."; break;
+                case "class": crSub.text = p.path == "artisan" ? "Even an Artisan carries a weapon. How do you fight when you must?" : "How you fight: up close, from range, or healing your friends."; break;
+                case "name": crSub.text = pn + " · " + p.cls.name + ". The last step."; break;
+                default: crSub.text = pn + " · " + p.cls.name + ". Make them yours."; break;
+            }
+        }
 
         if (crTab == "class")
         {
@@ -274,18 +331,48 @@ public partial class AHUI
         }
         else if (crTab == "path")
         {
+            // the two paths side by side, as big cards: tap one to choose it
             var pl = AHDB.Table("paths", "PATHS_LIFE");
-            CrLabel("How do you want to play?", 19, new Color(1f, 0.85f, 0.55f));
-            var items = new List<KeyValuePair<string, string>>();
-            foreach (var kv in pl) { var row = kv.Value as List<object>; items.Add(new KeyValuePair<string, string>(kv.Key, (string)row[0])); }
-            CrChips(items, v => v == p.path, v =>
+            const float cw = 272f, ch = 272f;
+            string[] keys = { "adventurer", "artisan" };
+            string[] tags = { "Sword, spell and story", "Craft, gather and trade" };
+            string[] pts =
             {
-                p.path = v; p.peace = -1;
-                if (v == "artisan" && p.profs.Count == 0) { p.profs.Add("smith"); p.profs.Add("fisher"); }
-            });
+                "•  Fight monsters and mighty bosses\n•  Clear dungeons and raids with friends\n•  Follow the main story\n•  Professions on the side, if you like",
+                "•  Level up through your work\n•  Monsters leave you alone unless you strike first\n•  Make the gear and food others need\n•  The Artisan’s Road guides you",
+            };
+            for (int i = 0; i < keys.Length; i++)
+            {
+                string k = keys[i];
+                var row = AHJson.A(pl, k); if (row == null || row.Count == 0) continue;
+                bool sel = p.path == k;
+                var card = Img("Card_" + k, crContent, white, new Vector2(0f, 1f), new Vector2(i * (cw + 16f) + cw / 2f, -crY - ch / 2f), new Vector2(cw, ch),
+                    sel ? new Color(0.3f, 0.21f, 0.12f, 1f) : new Color(0.17f, 0.13f, 0.1f, 1f));
+                Img("Top", card, white, new Vector2(0.5f, 1f), new Vector2(0, -3), new Vector2(cw, 6), sel ? new Color(1f, 0.75f, 0.35f, 1f) : new Color(0.4f, 0.3f, 0.2f, 1f));
+                if (sel) Img("Low", card, white, new Vector2(0.5f, 0f), new Vector2(0, 2), new Vector2(cw, 4), new Color(1f, 0.75f, 0.35f, 1f));
+                var tt = Label(card, "Name", (string)row[0], 26, TextAnchor.UpperLeft, new Vector2(16, -18), new Vector2(cw - 32, 34), sel ? new Color(1f, 0.8f, 0.4f) : new Color(1f, 0.85f, 0.6f, 0.85f));
+                tt.fontStyle = FontStyle.Bold;
+                var tg = Label(card, "Tag", tags[i], 15, TextAnchor.UpperLeft, new Vector2(16, -54), new Vector2(cw - 32, 22), new Color(1f, 1f, 1f, 0.6f));
+                tg.fontStyle = FontStyle.Italic;
+                var bl = Label(card, "Points", pts[i], 15, TextAnchor.UpperLeft, new Vector2(16, -86), new Vector2(cw - 32, 140), new Color(1f, 1f, 1f, sel ? 0.95f : 0.75f));
+                bl.horizontalOverflow = HorizontalWrapMode.Wrap; bl.lineSpacing = 1.15f;
+                var pick = Img("Pick", card, white, new Vector2(0.5f, 0f), new Vector2(0, 26), new Vector2(cw - 32, 34), sel ? new Color(0.22f, 0.5f, 0.26f, 1f) : new Color(0.26f, 0.2f, 0.14f, 1f));
+                Center(Label(pick, "T", sel ? "Your choice" : "Choose " + (string)row[0], 17, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(cw - 32, 28), Color.white)).fontStyle = FontStyle.Bold;
+                crItems.Add(card.gameObject);
+                taps.Add(new TapBtn { rt = card, layer = 4, group = "cr", act = () =>
+                {
+                    p.path = k; p.peace = -1;
+                    if (k == "artisan" && p.profs.Count == 0) { p.profs.Add("smith"); p.profs.Add("fisher"); }
+                    RenderCreator();
+                } });
+            }
+            crY += ch + 14f;
             var desc = AHJson.A(pl, p.path);
-            CrLabel(desc != null && desc.Count > 1 ? (string)desc[1] : "", 15, Color.white, 46f);
-            CrY(6);
+            CrLabel(desc != null && desc.Count > 1 ? (string)desc[1] : "", 15, new Color(1f, 0.9f, 0.75f, 0.85f), 64f);
+            crHint.text = "Both paths share one world, and you can trade and team up with anyone. Tap Next when you are ready.";
+        }
+        else if (crTab == "profs")
+        {
             var profs = AHDB.Table("paths", "PROFS");
             var chosen = new List<string>(); foreach (var k in p.profs) chosen.Add(AHJson.S(AHJson.O(profs, k), "name", k));
             CrLabel("Your professions:  " + (chosen.Count > 0 ? string.Join(", ", chosen.ToArray()) : "none yet"), 18, new Color(1f, 0.85f, 0.55f));
@@ -351,6 +438,7 @@ public partial class AHUI
             }
             crHint.text = "Drag your hero to turn them. Pinch or scroll to zoom.";
         }
+        if (!CrWizard && crBack != null) crBack.gameObject.SetActive(false);
         CrScrollBy(0f);
         // on the hair and face pages the hood, hat or helm comes off, so the hair being chosen shows
         bool bare = crTab == "hair" || crTab == "face";
