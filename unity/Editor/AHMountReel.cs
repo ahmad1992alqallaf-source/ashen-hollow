@@ -51,18 +51,23 @@ public static class AHMountReel
                 cam.targetTexture = rt; cam.Render(); RenderTexture.active = rt; grab.ReadPixels(new Rect(0, 0, W, H), 0, 0); grab.Apply(false); RenderTexture.active = null;
                 File.WriteAllBytes(Path.Combine(sd, "front.jpg"), grab.EncodeToJPG(90));
             }
-            Time.captureFramerate = Fps; int frames = 130;
+            Time.captureFramerate = Fps; int frames = 190; Vector3 sc = Vector3.zero; float sd2 = 0f;
             for (int f = 0; f < frames; f++)
             {
                 p.hp = p.maxHp;
                 // a slow walk first, then full speed
-                Vector3 want = fwd * (f < 45 ? 0.22f : 1f); Vector3 cf = g.CamForward(), cr = g.CamRight();
+                Vector3 want = fwd * (f < 80 ? 0.22f : 1f); Vector3 cf = g.CamForward(), cr = g.CamRight();
                 AHInput.TestMove = new Vector2(Vector3.Dot(want, cr), Vector3.Dot(want, cf));
                 yield return new WaitForEndOfFrame();
-                if (f == 35 || f == 110) { var gt = p.GetComponentInChildren<AHMountGait>(); if (gt != null) Debug.Log("Ashen Hollow: mount gait " + k + " frame " + f + ": " + gt.State); }
+                if (f == 60 || f == 170) { var gt = p.GetComponentInChildren<AHMountGait>(); if (gt != null) Debug.Log("Ashen Hollow: mount gait " + k + " frame " + f + ": " + gt.State); }
                 Vector3 h = p.transform.position;
                 if (g.cam != null) { cam.CopyFrom(g.cam); cam.fieldOfView = 40f; }
-                cam.transform.position = h + side * back + Vector3.up * (big ? 2.6f : 1.9f) + fwd * 1.2f; cam.transform.LookAt(h + Vector3.up * (big ? 1.6f : 1.2f) + fwd * 0.6f);
+                // framed on the mount and rider as they are now (a flier up in the air included), eased so it doesn't jump
+                Bounds bb = new Bounds(h + Vector3.up, Vector3.one); foreach (var r in p.GetComponentsInChildren<Renderer>()) if (r.enabled && !(r is ParticleSystemRenderer)) bb.Encapsulate(r.bounds);
+                float want2 = Mathf.Max(bb.size.y, Mathf.Max(bb.size.x, bb.size.z) * 0.8f) * 1.35f + 2.2f; Vector3 wc = bb.center - h;
+                if (f == 0) { sc = wc; sd2 = want2; } else { sc = Vector3.Lerp(sc, wc, 0.12f); sd2 = Mathf.Lerp(sd2, want2, 0.08f); }
+                cam.transform.position = h + sc + side * sd2 + Vector3.up * sd2 * 0.18f; cam.transform.LookAt(h + sc);
+                cam.nearClipPlane = sd2 * 0.55f;   // (a wall, rock or tree between the camera and the mount is cut away)
                 cam.targetTexture = rt; cam.Render();
                 RenderTexture.active = rt; grab.ReadPixels(new Rect(0, 0, W, H), 0, 0); grab.Apply(false); RenderTexture.active = null;
                 File.WriteAllBytes(Path.Combine(sd, "f_" + f.ToString("00000") + ".jpg"), grab.EncodeToJPG(88));
