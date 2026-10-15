@@ -19,6 +19,7 @@ public class AHArtisanState
     public string contestMonth = ""; public int contestScore, contestRank; public string contestItem = ""; public bool contestClaimed;
     public int forge, loom, kitchen, counter;   // workshop upgrade levels (0..3)
     public List<AHKV> made = new List<AHKV>();  // what you have made, by item (your maker's mark)
+    public int abroad;                           // pieces bearing your mark sold or given to other heroes
 }
 
 public static class AHArtisan
@@ -162,6 +163,43 @@ public static class AHArtisan
         AHProgress.Add(St(p).made, outId, n);
     }
     public static long Made(AHPlayer p, string id) { return p == null || id == null ? 0 : AHProgress.Get(St(p).made, id); }
+
+    // ---------- maker's names: crafted goods carry who made them ----------
+    static Dictionary<string, string> stationOf;
+    public static string StationOf(string id)
+    {
+        if (id == null) return null;
+        if (stationOf == null)
+        {
+            stationOf = new Dictionary<string, string>();
+            var R = AHJson.O(AHDB.Rules, "RECIPES") as Dictionary<string, object>;
+            if (R != null) foreach (var kv in R) { var l = kv.Value as List<object>; if (l != null) foreach (var r in l) { string o = AHJson.S(r, "out"); if (o != null && !stationOf.ContainsKey(o)) stationOf[o] = kv.Key; } }
+        }
+        string st;
+        if (stationOf.TryGetValue(id, out st)) return st;
+        foreach (var suf in new[] { "_mw", "_fine", "_master" }) if (id.EndsWith(suf) && stationOf.TryGetValue(id.Substring(0, id.Length - suf.Length), out st)) return st;
+        return null;
+    }
+    static readonly string[] MakerRanks = { "journeyman", "expert", "master" };
+    // "Kaelen, master smith" for a trader's crafted goods at the auction (the same trader always has the same rank)
+    public static string MakerOf(string seller, string id)
+    {
+        if (string.IsNullOrEmpty(seller)) return null;
+        string st = StationOf(id);
+        string job = st == "anvil" ? "smith" : st == "loom" || st == "spin" ? "tailor" : st == "jewel" ? "jeweler" : st == "brew" ? "alchemist" : st == "oven" || st == "dairy" ? "chef" : null;
+        if (job == null) return null;
+        int h = 17; foreach (char c in seller) h = unchecked(h * 31 + c);
+        return seller + ", " + MakerRanks[(h & 0x7fffffff) % MakerRanks.Length] + " " + job;
+    }
+    // something you made went to another hero: your name travels with it
+    public static void OnSoldAbroad(AHGame g, string id, int n)
+    {
+        var p = g.player; if (p == null || n <= 0 || Made(p, id) <= 0 || StationOf(id) == null) return;
+        var s = St(p); s.abroad += n;
+        var it = AHItems.Get(id);
+        g.ui.Toast("Your mark travels: " + (it != null ? it.name : id) + " made by " + (string.IsNullOrEmpty(p.heroName) ? "you" : p.heroName) + " is out in the realm. " + s.abroad + " pieces bear your mark.", 4f);
+        g.MarkDirty();
+    }
     // the forge, loom and kitchen raise the chance of a masterwork / a double batch; the counter pays more at shops
     public static float MwBonus(AHPlayer p, string kind)
     {
@@ -302,7 +340,7 @@ public partial class AHUI
     {
         var st = AHArtisan.St(p); AHArtisan.RefreshCommission(p); AHArtisan.RefreshContest(p);
         wkTitle.text = "Artisans' Guild";
-        wkHint.text = "Rank: " + AHArtisan.Rank(p) + " · best mastery " + p.BestMastery() + " · guild hall " + st.hall + "/4 rebuilt" + (p.path != "artisan" ? " · <color=#ffb070>the Saga is for Artisans (change path at a Guild Registrar)</color>" : "");
+        wkHint.text = "Rank: " + AHArtisan.Rank(p) + " · best mastery " + p.BestMastery() + " · guild hall " + st.hall + "/4 rebuilt" + (st.abroad > 0 ? " · " + st.abroad + " pieces bear your mark" : "") + (p.path != "artisan" ? " · <color=#ffb070>the Saga is for Artisans (change path at a Guild Registrar)</color>" : "");
         var rows = new List<Action<int>>();
         Color cA = new Color(1f, 0.8f, 0.45f);
         rows.Add(s => Row(s, "Guild", cA, "", "",

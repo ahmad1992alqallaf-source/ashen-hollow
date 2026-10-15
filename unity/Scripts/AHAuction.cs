@@ -181,6 +181,7 @@ public static class AHAuction
                         long got = (long)JsRound(m.unit * m.n * (1 - Cut)); m.done = "sold"; S.mailCoins += got; S.sold++; S.earned += got;
                         g.ui.Banner("Auction sold", m.n + "× " + nm);
                         g.ui.Toast("Sold " + m.n + "× " + nm + " for " + AHItems.MoneyText(got * AHDB.CU) + " (after the 8% house cut). Collect it from an Auctioneer.", 4f);
+                        AHArtisan.OnSoldAbroad(g, m.id, m.n);
                     }
                 }
             }
@@ -232,7 +233,8 @@ public partial class AHUI
                 var it = AHItems.Get(L.id); if (it == null) continue;
                 var LL = L; long mp = AHAuction.MktPrice(L.id) * L.n;
                 string nm = (L.n > 1 ? L.n + "× " : "") + it.name;
-                string sub = L.seller + " · " + (L.auction ? "ends in " : "") + Mins(L.end - t) + (L.auction ? "" : " left") + " · market " + AHItems.MoneyText(mp * CU, 2) + TrendMark(L.id);
+                string mk = AHArtisan.MakerOf(L.seller, L.id);
+                string sub = (mk != null ? "Made by " + mk : L.seller) + " · " + (L.auction ? "ends in " : "") + Mins(L.end - t) + (L.auction ? "" : " left") + " · market " + AHItems.MoneyText(mp * CU, 2) + TrendMark(L.id);
                 string st = it.slot != null ? AHItems.StatLine(it) : "";
                 if (!L.auction)
                 {

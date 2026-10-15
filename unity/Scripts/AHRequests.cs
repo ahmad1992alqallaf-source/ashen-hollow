@@ -173,7 +173,7 @@ public static class AHRequests
     {
         var p = g.player; var s = S(p);
         if (!s.open.Contains(r) || !Ready(p, r)) return;
-        if (r.kind != "slay") p.bag.Take(r.id, r.n);
+        if (r.kind != "slay") { p.bag.Take(r.id, r.n); if (r.kind == "make") AHArtisan.OnSoldAbroad(g, r.id, r.n); }
         long pay = PayFor(p, r);
         p.AddMoney(pay * AHDB.CU, p.transform.position);
         int ren = Favours(r.kind) == p.path ? 2 : 1;
