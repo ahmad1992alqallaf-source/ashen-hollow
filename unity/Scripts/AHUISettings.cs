@@ -93,6 +93,10 @@ public partial class AHUI
         rows.Add(s => Row(s, "Language", cS, AHLoc.Arabic ? AHLoc.Shape("العربية: الكلام والأصوات بالعربية") : "English", "",
             new WkBtn { label = "English", on = true, col = !AHLoc.Arabic ? Go : Plain, act = () => { AHLoc.Lang = "en"; RenderWork(); } },
             new WkBtn { label = AHLoc.Shape("العربية"), on = true, col = AHLoc.Arabic ? Go : Plain, act = () => { AHLoc.Lang = "ar"; RenderWork(); } }));
+        // rest reminders: a gentle note every so often to drink water, rest your eyes and stretch
+        rows.Add(s => Row(s, AHLoc.T("Rest reminders", "تذكير الراحة"), cA, AHWellbeing.On ? AHLoc.T("A note every " + AHWellbeing.Hours.ToString("0") + " hours: drink water, rest your eyes, stretch", "تذكير كل " + AHWellbeing.Hours.ToString("0") + " ساعات: اشرب الماء، أرح عينيك، تمدد") : AHLoc.T("Off", "متوقف"), "",
+            Opt(AHLoc.T("Off", "إيقاف"), !AHWellbeing.On, () => AHWellbeing.Hours = 0f), Opt("1h", AHWellbeing.Hours == 1f, () => AHWellbeing.Hours = 1f),
+            Opt("2h", AHWellbeing.Hours == 2f, () => AHWellbeing.Hours = 2f), Opt("3h", AHWellbeing.Hours == 3f, () => AHWellbeing.Hours = 3f)));
         // graphics
         int q = AHSettings.Quality;
         rows.Add(s => Row(s, "Graphics", cG, q == 3 ? "Custom (your own mix below)" : "Low runs best on older phones; High looks best.", "",

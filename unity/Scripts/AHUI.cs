@@ -462,6 +462,7 @@ public partial class AHUI : MonoBehaviour
         ReadPointers();
         TickSkin();
         float dt = Time.unscaledDeltaTime;
+        AHWellbeing.Tick(this, dt);   // rest reminders
         var p = g.player;
         if (p != null && p.cls != null)
         {
