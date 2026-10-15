@@ -17,7 +17,7 @@ public static class AHComp
         get
         {
             var all = AllPets; if (all == null) return null;
-            if (!ReferenceEquals(all, petsAll)) { petsAll = all; petsShown = new Dictionary<string, object>(); foreach (var kv in all) if (!Retired.Contains(kv.Key)) petsShown[kv.Key] = kv.Value; }
+            if (!ReferenceEquals(all, petsAll)) { petsAll = all; petsShown = new Dictionary<string, object>(); foreach (var kv in all) if (!Retired.Contains(kv.Key) && (Resources.Load<GameObject>("AH/Models/Comp/pet_" + kv.Key + "_hd") != null || Resources.Load<GameObject>("AH/Models/Comp/pet_" + kv.Key) != null)) petsShown[kv.Key] = kv.Value; }   // (a pet whose model isn't made yet stays out)
             return petsShown;
         }
     }

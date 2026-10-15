@@ -1,31 +1,226 @@
 {
-  "_about": "Pet eggs (AHEggs.cs). ELEMENTS: each egg's name, colour, the points it needs to hatch, the skills whose XP warms it (or night kills), and the pets it can hatch. AREA: which egg a land's beasts and gathering drop (grove where a land is not named). RARITY: each pet's rarity; a legendary roll hatches a Gilded pet (a golden one, five stars). STARS: the stars a fresh pet hatches with by rarity. LEAN: how a pet's stat points split (power, vitality, spirit, luck). DROP: the chance of an egg from a kill or a gather. MYSTIC: the store's Mystic egg (Crowns), its odds and pity.",
+  "_about": "Pet eggs (AHEggs.cs). ELEMENTS: each egg's name, colour, the points it needs to hatch, the skills whose XP warms it (or night kills), and the pets it can hatch. AREA: which egg a land's beasts and gathering drop (grove where a land is not named). RARITY: each pet's rarity; a legendary roll hatches a legendary pet (the Flame hatchling) when the egg can hold one, else a Gilded pet (a golden one, five stars). STARS: the stars a fresh pet hatches with by rarity. LEAN: how a pet's stat points split (power, vitality, spirit, luck). DROP: the chance of an egg from a kill or a gather. MYSTIC: the store's Mystic egg (Crowns), its odds and pity.",
   "SATCHEL": 3,
   "ELEMENTS": {
-    "ember": { "name": "Ember egg", "hex": "#ff7a3a", "need": 600, "grows": "cooking and smithing", "skills": ["cooking", "smithing"], "pets": ["fox", "pumpkin_slime", "slime", "toad"] },
-    "tide":  { "name": "Tide egg",  "hex": "#3ab4e8", "need": 600, "grows": "fishing", "skills": ["fishing"], "pets": ["toad", "slime", "snow_fox", "bee"] },
-    "grove": { "name": "Grove egg", "hex": "#7ad04a", "need": 600, "grows": "woodcutting, herbs and farming", "skills": ["woodcutting", "herblore", "farming"], "pets": ["bee", "toad", "slime", "fox"] },
-    "stone": { "name": "Stone egg", "hex": "#b8a888", "need": 600, "grows": "mining and skinning", "skills": ["mining", "skinning"], "pets": ["snow_fox", "slime", "toad", "fox"] },
-    "void":  { "name": "Void egg",  "hex": "#a070ff", "need": 600, "grows": "beasts slain after dark", "night_kill": 45, "pets": ["pumpkin_slime", "snow_fox", "fox", "bee", "slime", "toad"] }
+    "ember": {
+      "name": "Ember egg",
+      "hex": "#ff7a3a",
+      "need": 600,
+      "grows": "cooking and smithing",
+      "skills": [
+        "cooking",
+        "smithing"
+      ],
+      "pets": [
+        "fox",
+        "pumpkin_slime",
+        "slime",
+        "toad",
+        "phoenix_chick"
+      ]
+    },
+    "tide": {
+      "name": "Tide egg",
+      "hex": "#3ab4e8",
+      "need": 600,
+      "grows": "fishing",
+      "skills": [
+        "fishing"
+      ],
+      "pets": [
+        "toad",
+        "slime",
+        "snow_fox",
+        "bee",
+        "spirit_wisp"
+      ]
+    },
+    "grove": {
+      "name": "Grove egg",
+      "hex": "#7ad04a",
+      "need": 600,
+      "grows": "woodcutting, herbs and farming",
+      "skills": [
+        "woodcutting",
+        "herblore",
+        "farming"
+      ],
+      "pets": [
+        "bee",
+        "toad",
+        "slime",
+        "fox",
+        "rock_golem"
+      ]
+    },
+    "stone": {
+      "name": "Stone egg",
+      "hex": "#b8a888",
+      "need": 600,
+      "grows": "mining and skinning",
+      "skills": [
+        "mining",
+        "skinning"
+      ],
+      "pets": [
+        "snow_fox",
+        "slime",
+        "toad",
+        "fox",
+        "rock_golem"
+      ]
+    },
+    "void": {
+      "name": "Void egg",
+      "hex": "#a070ff",
+      "need": 600,
+      "grows": "beasts slain after dark",
+      "night_kill": 45,
+      "pets": [
+        "pumpkin_slime",
+        "snow_fox",
+        "fox",
+        "bee",
+        "slime",
+        "toad",
+        "shadow_cat",
+        "spirit_wisp"
+      ]
+    }
   },
   "AREA": {
-    "sands": "ember", "ss_city": "ember", "ember": "ember", "ch_city": "ember", "ashfall": "ember", "scorchwind": "ember",
-    "tide": "tide", "isle": "tide", "co_city": "tide", "causeway": "tide",
-    "frost": "stone", "hc_city": "stone", "fossil": "stone", "whitepine": "stone"
+    "sands": "ember",
+    "ss_city": "ember",
+    "ember": "ember",
+    "ch_city": "ember",
+    "ashfall": "ember",
+    "scorchwind": "ember",
+    "tide": "tide",
+    "isle": "tide",
+    "co_city": "tide",
+    "causeway": "tide",
+    "frost": "stone",
+    "hc_city": "stone",
+    "fossil": "stone",
+    "whitepine": "stone"
   },
-  "RARITY": { "toad": "common", "slime": "common", "bee": "rare", "fox": "rare", "snow_fox": "epic", "pumpkin_slime": "epic" },
-  "ODDS_EGG": { "common": 64, "rare": 27, "epic": 8, "legendary": 1 },
-  "STARS": { "common": [1, 2], "rare": [2, 3], "epic": [3, 4], "legendary": [5, 5] },
+  "RARITY": {
+    "toad": "common",
+    "slime": "common",
+    "bee": "rare",
+    "fox": "rare",
+    "snow_fox": "epic",
+    "pumpkin_slime": "epic",
+    "rock_golem": "rare",
+    "shadow_cat": "epic",
+    "spirit_wisp": "epic",
+    "phoenix_chick": "legendary"
+  },
+  "ODDS_EGG": {
+    "common": 64,
+    "rare": 27,
+    "epic": 8,
+    "legendary": 1
+  },
+  "STARS": {
+    "common": [
+      1,
+      2
+    ],
+    "rare": [
+      2,
+      3
+    ],
+    "epic": [
+      3,
+      4
+    ],
+    "legendary": [
+      5,
+      5
+    ]
+  },
   "LEAN": {
-    "toad": [1, 3, 1, 1], "slime": [1, 2, 3, 1], "bee": [1, 1, 2, 3], "fox": [3, 1, 1, 1],
-    "snow_fox": [3, 1, 2, 1], "pumpkin_slime": [1, 2, 2, 2]
+    "toad": [
+      1,
+      3,
+      1,
+      1
+    ],
+    "slime": [
+      1,
+      2,
+      3,
+      1
+    ],
+    "bee": [
+      1,
+      1,
+      2,
+      3
+    ],
+    "fox": [
+      3,
+      1,
+      1,
+      1
+    ],
+    "snow_fox": [
+      3,
+      1,
+      2,
+      1
+    ],
+    "pumpkin_slime": [
+      1,
+      2,
+      2,
+      2
+    ],
+    "rock_golem": [
+      1,
+      3,
+      1,
+      1
+    ],
+    "shadow_cat": [
+      3,
+      1,
+      1,
+      2
+    ],
+    "spirit_wisp": [
+      1,
+      1,
+      3,
+      2
+    ],
+    "phoenix_chick": [
+      2,
+      2,
+      2,
+      2
+    ]
   },
-  "DROP": { "mob": 0.006, "elite": 0.05, "rare": 0.35, "gather": 0.0025 },
+  "DROP": {
+    "mob": 0.006,
+    "elite": 0.05,
+    "rare": 0.35,
+    "gather": 0.0025
+  },
   "DUP_ESSENCE": 150,
   "WARM_POINTS_PER_CROWN": 4,
   "MYSTIC": {
-    "name": "Mystic egg", "price": 300, "price10": 2700,
-    "odds": { "common": 60, "rare": 28, "epic": 10, "legendary": 2 },
-    "pity_epic": 30, "pity_legendary": 90
+    "name": "Mystic egg",
+    "price": 300,
+    "price10": 2700,
+    "odds": {
+      "common": 60,
+      "rare": 28,
+      "epic": 10,
+      "legendary": 2
+    },
+    "pity_epic": 30,
+    "pity_legendary": 90
   }
 }

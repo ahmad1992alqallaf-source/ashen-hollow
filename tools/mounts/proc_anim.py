@@ -19,6 +19,19 @@ for o in list(sc.objects):
     if o.name.startswith('Icosphere') or o.type in ('LIGHT', 'CAMERA'): bpy.data.objects.remove(o)
 meshes = [o for o in sc.objects if o.type == 'MESH']
 bpy.context.view_layer.update()
+if 'build' in C:
+    # a model straight from Tripo or Meshy: turned to face -y ("yaw" degrees about up), stood on the ground at the
+    # middle (x, y), so the skeleton's fractions land on it
+    tops = [o for o in sc.objects if o.parent is None]
+    if C.get('yaw'):
+        R = mathutils.Matrix.Rotation(math.radians(C['yaw']), 4, 'Z')
+        for o in tops: o.matrix_world = R @ o.matrix_world
+    bpy.context.view_layer.update()
+    dg0 = bpy.context.evaluated_depsgraph_get(); q = []
+    for o in meshes: q += [o.matrix_world @ v.co for v in o.evaluated_get(dg0).to_mesh().vertices]
+    off = mathutils.Vector(((min(v.x for v in q) + max(v.x for v in q)) * -0.5, (min(v.y for v in q) + max(v.y for v in q)) * -0.5, -min(v.z for v in q)))
+    for o in tops: o.matrix_world = mathutils.Matrix.Translation(off) @ o.matrix_world
+    bpy.context.view_layer.update()
 
 if 'build' in C:
     # a skeleton for a model that has none, weighted to the skin by bone heat
@@ -27,8 +40,12 @@ if 'build' in C:
     z0 = min(p.z for p in pts); H = max(p.z for p in pts) - z0
     ad = bpy.data.armatures.new('Rig'); arm = bpy.data.objects.new('Rig', ad); sc.collection.objects.link(arm)
     bpy.context.view_layer.objects.active = arm; arm.select_set(True); bpy.ops.object.mode_set(mode='EDIT')
+    # "fit": "box": x and y as fractions of the model's half width and half length (it is centred), z of its height,
+    # so one skeleton fits a fat golem and a thin one alike; else every number is a fraction of the height
+    hw = (max(p.x for p in pts) - min(p.x for p in pts)) * 0.5; hl = (max(p.y for p in pts) - min(p.y for p in pts)) * 0.5
+    kx, ky = (hw, hl) if C.get('fit') == 'box' else (H, H)
     for name, h, t, par in C['build']:
-        b = ad.edit_bones.new(name); b.head = (h[0] * H, h[1] * H, z0 + h[2] * H); b.tail = (t[0] * H, t[1] * H, z0 + t[2] * H)
+        b = ad.edit_bones.new(name); b.head = (h[0] * kx, h[1] * ky, z0 + h[2] * H); b.tail = (t[0] * kx, t[1] * ky, z0 + t[2] * H)
         if par: b.parent = ad.edit_bones[par]
     bpy.ops.object.mode_set(mode='OBJECT')
     for o in meshes:
@@ -38,11 +55,12 @@ if 'build' in C:
     arm.select_set(True); bpy.context.view_layer.objects.active = arm
     bpy.ops.object.parent_set(type='ARMATURE_AUTO')
     for o in meshes:
-        if all(len(v.groups) == 0 for v in o.data.vertices):
+        if any(len(v.groups) == 0 for v in o.data.vertices):
             # bone heat failed (a mesh of many loose pieces): each vertex to its nearest bones by distance
             segs = [(b.name, arm.matrix_world @ b.head_local, arm.matrix_world @ b.tail_local) for b in ad.bones]
             groups = {n: (o.vertex_groups.get(n) or o.vertex_groups.new(name=n)) for n, _, _ in segs}
             for v in o.data.vertices:
+                if len(v.groups) > 0: continue   # (bone heat reached it)
                 p = o.matrix_world @ v.co; ds = []
                 for n, h, t in segs:
                     ab = t - h; u = max(0.0, min(1.0, (p - h).dot(ab) / max(1e-9, ab.length_squared)))
@@ -197,15 +215,71 @@ def slam(ph):
     for b in C.get('spine', []): setq(b, rot(b, 'x', (-8 * lift + 14 * down) / max(1, len(C.get('spine', [])))))
     if C.get('root'): bob(C['root'], -0.06 * down)
 
-if not C.get('keep_clips'): clip('Idle', 120, idle)
-if C.get('attack'): clip('Attack', 40, slam)
-clip('Walk', C.get('walk_frames', 36), lambda ph: gait(ph, 1.0))
-clip('Gallop', C.get('run_frames', 22), lambda ph: gait(ph, C.get('run', 1.6)))
+# ---- wings, tendrils, a flame and floating (the pets: Flame Hatchling, Spirit Wisp) ----
+def flap(ph, deg, fold=0.0):
+    # wings: [[upper, lower], ...] left then right; a beat turns them about the body's long axis, the outer bone a
+    # little behind the inner one; fold > 0 tucks them against the body
+    for i, (w1, w2) in enumerate(C.get('wings', [])):
+        sg = 1 if i == 0 else -1
+        setq(w1, rot(w1, 'y', sg * (deg * math.sin(ph) - fold)))
+        if w2: setq(w2, rot(w2, 'y', sg * (deg * 0.6 * math.sin(ph - 0.7) - fold * 0.6)))
+def sway(ph, k):
+    # loose chains (tendrils, tail feathers, the wisp's flame) waving, each bone a little later than the one before
+    for ci, ch in enumerate(C.get('tendrils', [])):
+        for j, b in enumerate(ch):
+            setq(b, rot(b, 'x', 9 * k * math.sin(ph - 0.7 * j + ci * 1.3), rot(b, 'z', 7 * k * math.sin(0.5 * ph - 0.6 * j + ci))))
+    for j, b in enumerate(C.get('flame', [])):
+        setq(b, rot(b, 'z', 6 * k * math.sin(2 * ph - 0.8 * j), rot(b, 'x', 5 * k * math.sin(3 * ph - 0.9 * j))))
+def hover(ph, k, lean=0.0):
+    if C.get('root'):
+        bob(C['root'], C.get('float', 0.04) * math.sin(ph))
+        if lean: setq(C['root'], rot(C['root'], 'x', lean))
+def tuck():
+    # legs drawn up in flight
+    for th, sh, ft in C.get('legs', []):
+        setq(th, rot(th, 'x', -35));
+        if sh: setq(sh, rot(sh, 'x', 50))
+def pounce(ph):
+    # a cat's pounce: crouch, spring forward with the forelegs reaching, land
+    u = ph / (2 * math.pi)
+    def ease(t): t = max(0.0, min(1.0, t)); return t * t * (3 - 2 * t)
+    crouch = ease(u / 0.35) * (1 - ease((u - 0.35) / 0.15)); leap = ease((u - 0.35) / 0.15) * (1 - ease((u - 0.65) / 0.35))
+    sp = C.get('spine', [])
+    for b in sp: setq(b, rot(b, 'x', (6 * crouch - 10 * leap) / max(1, len(sp))))
+    for i, (th, sh, ft) in enumerate(C.get('legs', [])):
+        front = i < 2
+        setq(th, rot(th, 'x', (-40 * leap if front else 25 * leap) + 15 * crouch))
+        if sh: setq(sh, rot(sh, 'x', 30 * crouch))
+    if C.get('root'): bob(C['root'], -0.05 * crouch + 0.08 * leap)
+def peck(ph):
+    u = ph / (2 * math.pi); d = math.sin(min(1.0, u / 0.5) * math.pi)
+    for b in C.get('neck', []): setq(b, rot(b, 'x', 35 * d / max(1, len(C.get('neck', [])))))
+    flap(ph * 2, 25)
+
+kind = C.get('kind', 'beast')
+if kind == 'bird':
+    # Flame Hatchling: waddles on the ground, flies with its wings beating fast and its legs tucked up
+    clip('Idle', 90, lambda ph: (idle(ph), flap(ph * 2, 4, 5), sway(ph, 0.6)))
+    clip('Walk', C.get('walk_frames', 24), lambda ph: (gait(ph, 1.0), flap(ph * 2, 8, 5), sway(ph, 1.0)))
+    clip('Fly', C.get('fly_frames', 12), lambda ph: (flap(ph, C.get('flap', 55)), tuck(), hover(ph, 1.0, 8), sway(ph, 1.5)))
+    clip('Attack', 30, peck)
+elif kind == 'float':
+    # Spirit Wisp: no legs, it floats; its tendrils and flame never stop moving
+    clip('Idle', 90, lambda ph: (hover(ph, 1.0), sway(ph, 1.0)))
+    clip('Fly', 60, lambda ph: (hover(ph, 1.4, 10), sway(ph, 1.8)))
+    clip('Walk', 60, lambda ph: (hover(ph, 1.4, 10), sway(ph, 1.8)))
+    clip('Attack', 30, lambda ph: (hover(ph, 2.5), sway(ph, 3.0)))
+else:
+    if not C.get('keep_clips'): clip('Idle', 120, lambda ph: (idle(ph), sway(ph, 0.5)))
+    if C.get('attack') == 'pounce': clip('Attack', 36, pounce)
+    elif C.get('attack'): clip('Attack', 40, slam)
+    clip('Walk', C.get('walk_frames', 36), lambda ph: (gait(ph, 1.0), sway(ph, 1.0)))
+    clip('Gallop', C.get('run_frames', 22), lambda ph: (gait(ph, C.get('run', 1.6)), sway(ph, 1.6)))
 for th, sh, ft, tg, a0, pole in IKL:
     for c in list(P[sh].constraints):
         if c.type == 'IK': P[sh].constraints.remove(c)
     bpy.data.objects.remove(tg); bpy.data.objects.remove(pole)
-arm.animation_data.action = bpy.data.actions.get('Idle') or bpy.data.actions['Walk']
+arm.animation_data.action = bpy.data.actions.get('Idle') or bpy.data.actions.get('Walk') or bpy.data.actions[0]
 bpy.ops.export_scene.gltf(filepath=dst, export_format='GLB', export_skins=True, export_animations=True, export_animation_mode='ACTIONS',
                           export_force_sampling=True, export_image_format='AUTO')
 print('DONE', dst)

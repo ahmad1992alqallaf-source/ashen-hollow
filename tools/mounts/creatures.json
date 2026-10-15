@@ -366,5 +366,73 @@
   ],
   "root": "/tmp/claude-0/ck/in",
   "seat_z": 0.0
+ },
+ "pet_golem": {
+  "root": "/tmp/claude-0/ck/in",
+  "saddle": 0,
+  "tris": 9000,
+  "texsize": 1024,
+  "src": "/tmp/claude-0/petz/anim_golem.glb",
+  "anims": {
+   "Idle": "Idle",
+   "Walk": "Walk",
+   "Gallop": "Gallop",
+   "Attack": "Attack"
+  },
+  "head": "head",
+  "tail": "hips",
+  "seat": "chest",
+  "height": 0.85
+ },
+ "pet_cat": {
+  "root": "/tmp/claude-0/ck/in",
+  "saddle": 0,
+  "tris": 9000,
+  "texsize": 1024,
+  "src": "/tmp/claude-0/petz/anim_cat.glb",
+  "anims": {
+   "Idle": "Idle",
+   "Walk": "Walk",
+   "Gallop": "Gallop",
+   "Attack": "Attack"
+  },
+  "head": "head",
+  "tail": "pelvis",
+  "seat": "spine1",
+  "height": 0.55
+ },
+ "pet_chick": {
+  "root": "/tmp/claude-0/ck/in",
+  "saddle": 0,
+  "tris": 9000,
+  "texsize": 1024,
+  "src": "/tmp/claude-0/petz/anim_chick.glb",
+  "anims": {
+   "Idle": "Idle",
+   "Walk": "Walk",
+   "Fly": "Fly",
+   "Attack": "Attack"
+  },
+  "head": "head",
+  "tail": "body",
+  "seat": "body",
+  "height": 0.42
+ },
+ "pet_wisp": {
+  "root": "/tmp/claude-0/ck/in",
+  "saddle": 0,
+  "tris": 9000,
+  "texsize": 1024,
+  "src": "/tmp/claude-0/petz/anim_wisp.glb",
+  "anims": {
+   "Idle": "Idle",
+   "Fly": "Fly",
+   "Walk": "Walk",
+   "Attack": "Attack"
+  },
+  "head": "flame1",
+  "tail": "core",
+  "seat": "core",
+  "height": 0.5
  }
 }

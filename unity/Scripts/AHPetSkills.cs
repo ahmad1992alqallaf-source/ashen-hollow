@@ -29,6 +29,10 @@ public static class AHPetSkills
             case "parrot": return "Squawk";
             case "drake": return "Fire breath";
             case "bee": return "Pollinate";
+            case "rock_golem": return "Stoneskin";
+            case "shadow_cat": return "Shadowstep";
+            case "spirit_wisp": return "Mana spring";
+            case "phoenix_chick": return "Ember burst";
             default: return "Rally";
         }
     }
@@ -53,7 +57,7 @@ public static class AHPetSkills
     public static void Auto(AHGame g)
     {
         var p = g.player; if (p == null || p.dead || p.mounted || !Has(p) || Left > 0f) return;
-        bool worth = p.pet == "slime" || p.pet == "bee" ? p.hp < p.maxHp * 0.6f : false;
+        bool worth = p.pet == "slime" || p.pet == "bee" || p.pet == "spirit_wisp" ? p.hp < p.maxHp * 0.6f || (p.pet == "spirit_wisp" && p.maxMana > 0f && p.mana < p.maxMana * 0.3f) : false;
         if (!worth) { var petGo = GameObject.Find("Pet"); Vector3 from = petGo != null ? petGo.transform.position : p.transform.position; foreach (var m in Hunting(g, from, 7f)) { worth = true; break; } }
         if (worth) Use(g);
     }
@@ -77,6 +81,42 @@ public static class AHPetSkills
                 foreach (var m in Hunting(g, from, 7f)) { m.AddStatus(AHStatus.Slow, 3f, 0f, p); did = true; }
                 fx = new Color(1f, 0.85f, 0.25f); if (did) AHFx.Pop(p.transform.position + Vector3.up, 2.2f, fx, 0.7f);
                 if (!did && g.ui != null) g.ui.Toast("You are already at full health");
+                break;
+            case "rock_golem":
+                // Stoneskin: a shell of stone over you that soaks up blows for 8 seconds
+                foreach (var m in Hunting(g, from, 8f)) { did = true; break; }
+                if (did) { p.shield = Mathf.Max(p.shield, p.maxHp * 0.18f * k); p.shieldT = 8f; fx = new Color(0.55f, 0.75f, 1f); AHFx.Ring(p.transform.position, 0.3f, 1.4f, fx, 0.6f); }
+                break;
+            case "shadow_cat":
+                {
+                    // Shadowstep: it vanishes and strikes the nearest foe from behind, a heavy blow that slows
+                    var m = Nearest(g, from, 12f);
+                    if (m != null)
+                    {
+                        m.Hurt(Mathf.RoundToInt(p.Damage() * 1.8f * k), p); if (!m.dead) m.AddStatus(AHStatus.Slow, 3f, 0f, p);
+                        if (petGo != null) { AHSpark.Burst(petGo.transform.position + Vector3.up * 0.3f, new Color(0.5f, 0.2f, 0.9f), 14, 2.5f, 0.5f, 0.14f); petGo.transform.position = m.transform.position + m.transform.forward * -1.1f; }
+                        fx = new Color(0.6f, 0.25f, 1f); AHFx.Pop(m.transform.position + Vector3.up, 1.6f, fx); did = true;
+                    }
+                    break;
+                }
+            case "spirit_wisp":
+                // Mana spring: spirit-fire that heals you and fills your mana
+                if (p.hp < p.maxHp || (p.maxMana > 0f && p.mana < p.maxMana))
+                {
+                    p.Heal(p.maxHp * 0.1f * k); if (p.maxMana > 0f) p.mana = Mathf.Min(p.maxMana, p.mana + p.maxMana * 0.25f * k);
+                    did = true; fx = new Color(0.4f, 0.6f, 1f); AHFx.Pop(p.transform.position + Vector3.up, 2.2f, fx, 0.7f);
+                }
+                else if (g.ui != null) g.ui.Toast("You are already at full health and mana");
+                break;
+            case "phoenix_chick":
+                // Ember burst: a ring of fire round it that burns everything hunting you
+                foreach (var m in Hunting(g, from, 6f))
+                {
+                    m.Hurt(Mathf.RoundToInt(p.Damage() * 0.6f * k), p);
+                    if (!m.dead) m.AddStatus(AHStatus.Burn, 4f, p.Damage() * 0.06f * k, p);
+                    did = true;
+                }
+                fx = new Color(1f, 0.55f, 0.15f); if (did) AHSpark.Ring(from + Vector3.up * 0.3f, fx, 30, 5f);
                 break;
             case "toad": case "pumpkin_slime":
                 foreach (var m in Hunting(g, from, 7f)) { m.AddStatus(AHStatus.Stun, 2.5f, 0f, p); did = true; }
@@ -108,7 +148,7 @@ public static class AHPetSkills
                     break;
                 }
         }
-        if (!did) { if (g.ui != null && kind != "slime" && kind != "bee") g.ui.Toast("Nothing is hunting you"); return; }
+        if (!did) { if (g.ui != null && kind != "slime" && kind != "bee" && kind != "spirit_wisp") g.ui.Toast("Nothing is hunting you"); return; }
         readyAt = Time.time + Cooldown * AHEggs.CdK(p);   // (sooner with its Spirit)
         AHFx.Pop(from + Vector3.up * 0.6f, 1.8f, fx, 0.5f);
         AHSound.Play("swing");

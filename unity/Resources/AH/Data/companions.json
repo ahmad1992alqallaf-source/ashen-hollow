@@ -49,6 +49,26 @@
    "name": "Honey bee",
    "price": 0,
    "blurb": "A bee the size of a cat. It buzzes round your head and never stings you."
+  },
+  "rock_golem": {
+   "name": "Rock golem",
+   "price": 0,
+   "blurb": "A little golem of mossy stone with blue crystals on its shoulders. Slow, steady, and very hard to hurt."
+  },
+  "shadow_cat": {
+   "name": "Night prowler",
+   "price": 0,
+   "blurb": "A black cat with violet runes in its fur. It steps through shadows and is at your enemy's throat before they see it."
+  },
+  "spirit_wisp": {
+   "name": "Spirit wisp",
+   "price": 0,
+   "blurb": "A glowing ball of blue spirit-fire with trailing tendrils. It hums when you are hurt."
+  },
+  "phoenix_chick": {
+   "name": "Flame hatchling",
+   "price": 0,
+   "blurb": "A phoenix chick with a flaming crest. Too small to be reborn yet, but it is working on it."
   }
  },
  "MOUNTS": {
@@ -339,7 +359,9 @@
   "drake",
   "parrot",
   "lantern_owl",
-  "bee"
+  "bee",
+  "spirit_wisp",
+  "phoenix_chick"
  ],
  "PET_SKILLS": [
   [

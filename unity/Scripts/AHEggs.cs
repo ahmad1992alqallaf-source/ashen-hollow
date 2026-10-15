@@ -181,14 +181,16 @@ public static class AHEggs
     // a pet of the rarity from the pool (the nearest rarity below when there is none of it); a legendary is gilded
     static string Pick(List<string> pool, string rar, out bool gilded)
     {
+        // a legendary: a legendary pet when the egg holds one (the Flame hatchling), else a golden (Gilded) epic one
+        if (rar == "legendary") { var lg = pool.FindAll(k => Rarity(k) == "legendary"); if (lg.Count > 0) { gilded = false; return lg[Random.Range(0, lg.Count)]; } }
         gilded = rar == "legendary";
-        int want = gilded ? 2 : RarityI(rar);
+        int want = gilded ? 2 : Mathf.Min(2, RarityI(rar));
         for (int r = want; r >= 0; r--)
         {
-            var l = pool.FindAll(k => RarityI(Rarity(k)) == r);
+            var l = pool.FindAll(k => RarityI(Rarity(k)) == r && Rarity(k) != "legendary");
             if (l.Count > 0) return l[Random.Range(0, l.Count)];
         }
-        return pool[Random.Range(0, pool.Count)];
+        var any = pool.FindAll(k => Rarity(k) != "legendary"); return (any.Count > 0 ? any : pool)[Random.Range(0, (any.Count > 0 ? any : pool).Count)];
     }
 
     // hand the pet over; the line that says what happened
