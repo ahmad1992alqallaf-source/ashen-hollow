@@ -41,7 +41,7 @@ public static class AHEggs
     public static string Grows(string el) { return AHJson.S(AHJson.O(Elements, el), "grows", ""); }
     public static int Need(string el) { return (int)AHJson.N(AHJson.O(Elements, el), "need", 600); }
     public static string LandEgg(string area) { return AHJson.S(AHJson.O(D, "AREA"), area ?? "", "grove"); }
-    public static string Rarity(string pet) { return AHJson.S(AHJson.O(D, "RARITY"), pet, "common"); }
+    public static string Rarity(string pet) { var sp = AHJson.O(AHJson.O(D, "MYSTIC"), "pets"); return sp != null && sp.ContainsKey(pet) ? AHJson.S(sp, pet, "common") : AHJson.S(AHJson.O(D, "RARITY"), pet, "common"); }
     public static int RarityI(string r) { return Mathf.Max(0, System.Array.IndexOf(Rarities, r)); }
     public static string RarityTag(string r) { int i = RarityI(r); return "<color=" + RarityHex[i] + ">" + char.ToUpperInvariant(r[0]) + r.Substring(1) + "</color>"; }
 
@@ -54,10 +54,17 @@ public static class AHEggs
     static List<string> Pool(string el)
     {
         var l = new List<string>(); var src = el == null ? null : AHJson.A(AHJson.O(Elements, el), "pets");
-        if (src != null) foreach (var o in src) { var k = o as string; if (k != null && Hatchable(k)) l.Add(k); }
-        if (l.Count == 0) foreach (var kv in AHJson.O(D, "RARITY")) if (Hatchable(kv.Key)) l.Add(kv.Key);
+        if (src != null) foreach (var o in src) { var k = o as string; if (k != null && Hatchable(k) && !StoreOnly(k)) l.Add(k); }
+        if (l.Count == 0) foreach (var kv in AHJson.O(D, "RARITY")) if (Hatchable(kv.Key) && !StoreOnly(kv.Key)) l.Add(kv.Key);
         return l;
     }
+    // the store's pets: only ever from the Mystic egg, with a rarity of their own there
+    static Dictionary<string, object> StorePets { get { return AHJson.O(Mystic, "pets"); } }
+    public static bool StoreOnly(string k) { return StorePets != null && StorePets.ContainsKey(k); }
+    static List<string> StorePool() { var l = new List<string>(); if (StorePets != null) foreach (var kv in StorePets) if (Hatchable(kv.Key)) l.Add(kv.Key); return l; }
+    public static bool MysticReady { get { return StorePool().Count > 0; } }
+    // pet stats (Power, Vitality, Spirit, Luck) and stars: off while pets are looks only
+    public static bool StatsOn { get { return AHJson.B(D, "STATS"); } }
 
     // ---------- stars and stats ----------
     public static int Stars(AHPlayer p, string k) { return (int)AHProgress.Get(S(p).stars, k ?? ""); }
@@ -82,7 +89,7 @@ public static class AHEggs
         for (int i = 0; i < 4; i++) r[i] = Mathf.RoundToInt(pts * w[i] / sw);
         return r;
     }
-    static int Out(AHPlayer p, int i) { return p == null || p.pet == null ? 0 : Stats(p, p.pet)[i]; }
+    static int Out(AHPlayer p, int i) { return p == null || p.pet == null || !StatsOn ? 0 : Stats(p, p.pet)[i]; }
     public static float PowK(AHPlayer p) { return 1f + Out(p, 0) * 0.01f; }                              // the knack's damage and healing
     public static float HpK(AHPlayer p) { return Out(p, 1) * 0.0025f; }                                  // your health
     public static float CdK(AHPlayer p) { return 1f - Mathf.Min(0.3f, Out(p, 2) * 0.008f); }            // the knack's rest
@@ -198,7 +205,14 @@ public static class AHEggs
     {
         var p = g.player; var s = S(p); string name = (gilded ? "Gilded " : "") + AHComp.PetName(k);
         string what;
-        if (!p.pets.Contains(k))
+        if (!StatsOn)
+        {
+            // looks only: a new pet, a golden one, or Essence for one you have
+            if (!p.pets.Contains(k)) { p.pets.Add(k); if (gilded && !s.gilded.Contains(k)) s.gilded.Add(k); what = "New pet"; }
+            else if (gilded && !s.gilded.Contains(k)) { s.gilded.Add(k); what = "Your " + AHComp.PetName(k).ToLowerInvariant() + " turns to gold"; }
+            else { long es = (long)AHJson.N(D, "DUP_ESSENCE", 150); s.essence += es; what = "Already yours · +" + es + " Essence"; }
+        }
+        else if (!p.pets.Contains(k))
         {
             p.pets.Add(k);
             var rg = StarRange(gilded ? "legendary" : Rarity(k)); int st = Random.Range(rg[0], rg[1] + 1);
@@ -232,15 +246,19 @@ public static class AHEggs
         var p = g.player; var s = S(p); long c = MysticPrice(n); var lines = new List<string>();
         if (p.prog.crowns < c) { g.ui.Toast("Not enough " + AHStore.Currency + "."); return lines; }
         p.prog.crowns -= c;
-        var pool = Pool(null); int pe = (int)AHJson.N(Mystic, "pity_epic", 30), pl = (int)AHJson.N(Mystic, "pity_legendary", 90);
+        var pool = StorePool(); if (pool.Count == 0) { g.ui.Toast("The Mystic egg's pets are not here yet."); p.prog.crowns += c; return lines; }
+        int pe = (int)AHJson.N(Mystic, "pity_epic", 30), pl = (int)AHJson.N(Mystic, "pity_legendary", 90);
         for (int j = 0; j < n; j++)
         {
             s.pityEpic++; s.pityLeg++; s.mystic++;
             string rar = Roll(AHJson.O(Mystic, "odds"));
             if (s.pityLeg >= pl) rar = "legendary"; else if (s.pityEpic >= pe && RarityI(rar) < 2) rar = "epic";
             if (rar == "legendary") { s.pityLeg = 0; s.pityEpic = 0; } else if (rar == "epic") s.pityEpic = 0;
-            bool gl; string k = Pick(pool, rar, out gl);
-            lines.Add(Give(g, k, gl, rar));
+            // the store pet of the rolled rarity (the nearest below it when there is none yet)
+            string k = null;
+            for (int r = RarityI(rar); r >= 0 && k == null; r--) { var l = pool.FindAll(x => AHJson.S(StorePets, x) == Rarities[r]); if (l.Count > 0) k = l[Random.Range(0, l.Count)]; }
+            if (k == null) k = pool[Random.Range(0, pool.Count)];
+            lines.Add(Give(g, k, false, AHJson.S(StorePets, k, rar)));
         }
         AHSound.Play("level"); g.SaveProgress();
         return lines;

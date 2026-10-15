@@ -427,6 +427,9 @@ public class AHPetFollow : MonoBehaviour
             if (fly) { if (!anim.Play("Fly", true, sp > 0f ? 1.2f : 0.8f)) anim.Play("Idle", true); }
             else if (sp > 4.5f) { float r = Mathf.Clamp(sp / 6f, 0.8f, 1.5f); if (!anim.Play("Gallop", true, r) && !anim.Play("Run", true, r)) anim.Play("Walk", true); }
             else if (sp > 0f) anim.Play("Walk", true, Mathf.Clamp(sp / 2.2f, 0.7f, 1.6f));
+            // left standing about, a pet that knows how sits down, then curls up asleep (the new pets: Sit, Sleep)
+            else if (trick == null && stillT > 35f && anim.Has("Sleep")) anim.Play("Sleep", true);
+            else if (trick == null && stillT > 14f && anim.Has("Sit")) anim.Play("Sit", true);
             else anim.Play("Idle", true);
             anim.Tick(dt);
         }

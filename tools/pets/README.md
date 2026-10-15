@@ -2,15 +2,18 @@
 
 Four pets from the concept sheets (Ashen_Hollow_Pet_4_View_References):
 
-| Game id | Name | Body | Moves | Knack | Egg / rarity |
+| Game id | Name | Body | Moves | Knack | Mystic egg rarity |
 |---|---|---|---|---|---|
-| rock_golem | Rock golem | two legs, long arms | Idle, Walk, Gallop, Attack (slam) | Stoneskin: a stone shell soaks up blows for 8 s | Stone, Grove · rare |
-| shadow_cat | Night prowler | four legs, tail | Idle, Walk, Gallop, Attack (pounce) | Shadowstep: vanishes, strikes the nearest foe from behind, slows it | Void · epic |
-| spirit_wisp | Spirit wisp | floats, 4 tendrils, a flame | Idle, Fly, Walk, Attack | Mana spring: heals you and fills your mana | Void, Tide · epic |
-| phoenix_chick | Flame hatchling | two legs, wings, tail, crest | Idle, Walk, Fly (wingbeat, legs tucked), Attack (peck) | Ember burst: a ring of fire burns what hunts you | Ember · legendary |
+| rock_golem | Rock golem | two legs, long arms | Idle, Walk, Gallop, Attack (slam), Sit, Sleep | Stoneskin: a stone shell soaks up blows for 8 s | common |
+| shadow_cat | Night prowler | four legs, tail | Idle, Walk, Gallop, Attack (pounce), Sit, Sleep | Shadowstep: vanishes, strikes the nearest foe from behind, slows it | epic |
+| spirit_wisp | Spirit wisp | floats, 6 tendrils, 2 upper wisps, a flame | Idle, Fly, Walk, Attack, Sleep (rest) | Mana spring: heals you and fills your mana | rare |
+| phoenix_chick | Flame hatchling | two legs, wings, tail, crest | Idle, Walk, Fly (wingbeat, legs tucked), Attack (peck), Sit, Sleep | Ember burst: a ring of fire burns what hunts you | legendary |
 
-The data is already in the game (companions.json PETS, eggs.json, AHPetSkills); a pet stays out of every list until
-its model file is in Resources/AH/Models/Comp (pet_<id>_hd.glb).
+These four are store pets: found only in the Mystic egg (eggs.json MYSTIC.pets), never in world eggs. Pets are looks
+only (eggs.json STATS false). The data is already in the game (companions.json PETS, eggs.json, AHPetSkills); a pet
+stays out of every list, and the Mystic egg stays "coming soon", until a model file is in Resources/AH/Models/Comp
+(pet_<id>_hd.glb). Feet are planted with IK ("ik", "rel"): they don't slide, and sitting folds the legs. A pet left
+standing sits down after 14 s and sleeps after 35 s.
 
 ## When a Tripo model arrives
 
@@ -24,6 +27,12 @@ its model file is in Resources/AH/Models/Comp (pet_<id>_hd.glb).
 4. Copy to Resources/AH/Models/Comp on the PC (model files stay on the PC; they are not pushed).
 
 `standins.py` makes the rough stand-in shapes these were tested on.
+
+## Pictures for Tripo
+
+Clean views cut from the full-size sheets, enlarged to 1024 px with the titles and panel edges taken out, are in
+Tripo_Inputs (front, left, back, right for each pet). For the Night prowler use Front and Right: its Left and Back
+views on the sheet have smoke and pieces of other drawings in them.
 
 ## Tips for Tripo
 

@@ -112,26 +112,11 @@ fw.z = 0; fw.normalize()   # (level: a forward that pointed down made the plante
 lat = fw.cross(up).normalized()
 # (the numbers below were made for a model facing -y: x = -across, y = -forward)
 AX = {'x': -lat, 'y': -fw, 'z': up}
-# feet planted by IK ("ik": true): each foot follows a path (on the ground going back, lifted coming forward) and the
-# thigh and shin bend to reach it, so a stance foot stays put instead of swinging through the floor like a pendulum
-IKL = []
-if C.get('ik'):
-    bpy.context.view_layer.update()
-    for i, (th, sh, ft) in enumerate(C.get('legs', [])):
-        ank = arm.matrix_world @ P[sh].tail; knee = arm.matrix_world @ P[sh].head; hip = arm.matrix_world @ P[th].head
-        tg = bpy.data.objects.new('IKT%d' % i, None); sc.collection.objects.link(tg); tg.location = ank
-        # the pole: far out the way the knee already points from the hip-ankle line, so it bends the same way
-        mid = (hip + ank) * 0.5; out = (knee - mid); out = out - out.project(ank - hip)
-        if out.length < 1e-4: out = fw.copy()
-        pole = bpy.data.objects.new('IKP%d' % i, None); sc.collection.objects.link(pole); pole.location = knee + out.normalized() * 3.0
-        c = P[sh].constraints.new('IK'); c.target = tg; c.pole_target = pole; c.chain_count = 2; c.pole_angle = math.radians(C.get('pole_angle', -90))
-        IKL.append((th, sh, ft, tg, ank.copy(), pole))
-    GROUND = min(x[4].z for x in IKL)
-    FOOT0 = {ft: P[ft].matrix.to_quaternion() for th, sh, ft, tg, a0, pole in IKL if ft}
-
 def place_feet(ph, k):
     # a foot spends 60% of the step on the ground sliding back, then lifts and swings forward
-    L = C.get('stride', 0.5) * k; H = C.get('lift', 0.14) * (0.7 + 0.3 * k); biped = C.get('biped', True)
+    # ("rel": stride and lift as fractions of the hip height, so one set of numbers fits a model of any size)
+    sc_ = HIP if C.get('rel') else 1.0
+    L = C.get('stride', 0.5) * k * sc_; H = C.get('lift', 0.14) * (0.7 + 0.3 * k) * sc_; biped = C.get('biped', True)
     for i, (th, sh, ft, tg, a0, pole) in enumerate(IKL):
         u = ((ph / (2 * math.pi)) + (0.5 if (biped and i == 1) or (not biped and i in (1, 2)) else 0.0)) % 1.0
         if u < 0.6: along = 0.5 - u / 0.6; up = 0.0
@@ -150,12 +135,47 @@ def bob(bn, dz):
     bpy.context.view_layer.update(); pb = P[bn]; m = (arm.matrix_world.to_3x3() @ pb.matrix.to_3x3()).inverted()
     pb.location = pb.location + m @ mathutils.Vector((0, 0, dz))
 
+# feet planted by IK ("ik": true): each foot follows a path (on the ground going back, lifted coming forward) and the
+# thigh and shin bend to reach it, so a stance foot stays put instead of swinging through the floor like a pendulum
+IKL = []
+if C.get('ik'):
+    bpy.context.view_layer.update()
+    biped0 = C.get('biped', True)
+    for i, (th, sh, ft) in enumerate(C.get('legs', [])):
+        # a leg built dead straight can't be folded by the IK (it doesn't know which way the knee goes): a small bend
+        # first, the knee forward (a quadruped's front legs: the elbow back)
+        hip = arm.matrix_world @ P[th].head; ank = arm.matrix_world @ P[sh].tail; knee = arm.matrix_world @ P[sh].head
+        o0 = knee - (hip + ank) * 0.5; o0 = o0 - o0.project(ank - hip)
+        if o0.length < 0.02 * (hip - ank).length:
+            want = fw if (biped0 or i >= 2) else -fw
+            for sg in (1, -1):
+                q0t, q0s = P[th].rotation_quaternion.copy(), P[sh].rotation_quaternion.copy()
+                setq(th, rot(th, 'x', sg * 10)); setq(sh, rot(sh, 'x', -sg * 20)); bpy.context.view_layer.update()
+                h2 = arm.matrix_world @ P[th].head; a2 = arm.matrix_world @ P[sh].tail; k2 = arm.matrix_world @ P[sh].head
+                o2 = k2 - (h2 + a2) * 0.5
+                if o2.dot(want) > 0: break
+                P[th].rotation_quaternion = q0t; P[sh].rotation_quaternion = q0s; bpy.context.view_layer.update()
+            for bn in (th, sh):
+                l_, q_, s_ = base[bn]; base[bn] = (l_, P[bn].rotation_quaternion.copy(), s_)
+        ank = arm.matrix_world @ P[sh].tail; knee = arm.matrix_world @ P[sh].head; hip = arm.matrix_world @ P[th].head
+        tg = bpy.data.objects.new('IKT%d' % i, None); sc.collection.objects.link(tg); tg.location = ank
+        # the pole: far out the way the knee already points from the hip-ankle line, so it bends the same way
+        mid = (hip + ank) * 0.5; out = (knee - mid); out = out - out.project(ank - hip)
+        if out.length < 1e-4: out = fw.copy()
+        pole = bpy.data.objects.new('IKP%d' % i, None); sc.collection.objects.link(pole); pole.location = knee + out.normalized() * 3.0
+        c = P[sh].constraints.new('IK'); c.target = tg; c.pole_target = pole; c.chain_count = 2; c.pole_angle = math.radians(C.get('pole_angle', -90))
+        IKL.append((th, sh, ft, tg, ank.copy(), pole))
+    GROUND = min(x[4].z for x in IKL)
+    FOOT0 = {ft: P[ft].matrix.to_quaternion() for th, sh, ft, tg, a0, pole in IKL if ft}
+
+def feet_down():
+    for th, sh, ft, tg, a0, pole in IKL: tg.location = a0.copy()
 def clip(name, n, step):
     act = bpy.data.actions.new(name); act.use_fake_user = True
     if arm.animation_data is None: arm.animation_data_create()
     arm.animation_data.action = act
     for f in range(n + 1):
-        sc.frame_set(f); reset()
+        sc.frame_set(f); reset(); feet_down()
         step(2 * math.pi * f / n)
         if IKL:
             # the IK's bend written into the leg bones' own channels (the constraint itself is not exported)
@@ -236,6 +256,9 @@ def hover(ph, k, lean=0.0):
         if lean: setq(C['root'], rot(C['root'], 'x', lean))
 def tuck():
     # legs drawn up in flight
+    if IKL:
+        for th, sh, ft, tg, a0, pole in IKL: tg.location = a0 + up_v * (0.45 * HIP) - fw * (0.15 * HIP)
+        return
     for th, sh, ft in C.get('legs', []):
         setq(th, rot(th, 'x', -35));
         if sh: setq(sh, rot(sh, 'x', 50))
@@ -246,7 +269,11 @@ def pounce(ph):
     crouch = ease(u / 0.35) * (1 - ease((u - 0.35) / 0.15)); leap = ease((u - 0.35) / 0.15) * (1 - ease((u - 0.65) / 0.35))
     sp = C.get('spine', [])
     for b in sp: setq(b, rot(b, 'x', (6 * crouch - 10 * leap) / max(1, len(sp))))
-    for i, (th, sh, ft) in enumerate(C.get('legs', [])):
+    if IKL:
+        for i, (th, sh, ft, tg, a0, pole) in enumerate(IKL):
+            front = i < 2
+            tg.location = a0 + fw * (HIP * (0.9 if front else 0.35) * leap) + up_v * (HIP * (0.45 if front else 0.2) * leap)
+    for i, (th, sh, ft) in enumerate([] if IKL else C.get('legs', [])):
         front = i < 2
         setq(th, rot(th, 'x', (-40 * leap if front else 25 * leap) + 15 * crouch))
         if sh: setq(sh, rot(sh, 'x', 30 * crouch))
@@ -256,6 +283,29 @@ def peck(ph):
     for b in C.get('neck', []): setq(b, rot(b, 'x', 35 * d / max(1, len(C.get('neck', [])))))
     flap(ph * 2, 25)
 
+# ---- resting: sitting down, and lying asleep (played by the game when a pet has stood about a while) ----
+bpy.context.view_layer.update()
+HIP = (arm.matrix_world @ P[C['root']].head).z if C.get('root') else 0.3
+def rest(ph, deep):
+    # deep 0: sitting, 1: lying down asleep
+    biped = C.get('biped', True); legs = C.get('legs', [])
+    if C.get('root'): bob(C['root'], -HIP * (0.3 + 0.32 * deep) + 0.006 * math.sin(ph))
+    if IKL:
+        # feet held where they stand by the IK: lowering the body folds the legs
+        for th, sh, ft, tg, a0, pole in IKL: tg.location = a0 + (fw * (0.25 * HIP * deep) if not biped else mathutils.Vector())
+        legs = []
+    for i, (th, sh, ft) in enumerate(legs):
+        hind = biped or i >= 2
+        if hind or deep:
+            setq(th, rot(th, 'x', (-55 if biped else 50) * (0.8 + 0.4 * deep) if hind else 70 * deep))
+            if sh: setq(sh, rot(sh, 'x', (95 if biped else -90) * (0.8 + 0.3 * deep) if hind else -110 * deep))
+    sp = C.get('spine', [])
+    for b in sp: setq(b, rot(b, 'x', (C.get('sit_pitch', -35) * (1 - deep) if not biped else 4) / max(1, len(sp)) + 1.5 * math.sin(ph)))   # (a cat sits up: its chest raised on straight forelegs)
+    nk = C.get('neck', [])
+    for b in nk: setq(b, rot(b, 'x', (18 * deep + 3 * math.sin(ph) * (1 - deep)) / max(1, len(nk))))
+    for j, b in enumerate(C.get('tail', [])): setq(b, rot(b, 'z', (25 + 4 * math.sin(ph * 0.5 - 0.4 * j)) * deep))
+    flap(ph, 0, 12 * deep)
+
 kind = C.get('kind', 'beast')
 if kind == 'bird':
     # Flame Hatchling: waddles on the ground, flies with its wings beating fast and its legs tucked up
@@ -263,18 +313,22 @@ if kind == 'bird':
     clip('Walk', C.get('walk_frames', 24), lambda ph: (gait(ph, 1.0), flap(ph * 2, 8, 5), sway(ph, 1.0)))
     clip('Fly', C.get('fly_frames', 12), lambda ph: (flap(ph, C.get('flap', 55)), tuck(), hover(ph, 1.0, 8), sway(ph, 1.5)))
     clip('Attack', 30, peck)
+    clip('Sit', 90, lambda ph: rest(ph, 0)); clip('Sleep', 120, lambda ph: rest(ph, 1))
 elif kind == 'float':
     # Spirit Wisp: no legs, it floats; its tendrils and flame never stop moving
     clip('Idle', 90, lambda ph: (hover(ph, 1.0), sway(ph, 1.0)))
     clip('Fly', 60, lambda ph: (hover(ph, 1.4, 10), sway(ph, 1.8)))
     clip('Walk', 60, lambda ph: (hover(ph, 1.4, 10), sway(ph, 1.8)))
     clip('Attack', 30, lambda ph: (hover(ph, 2.5), sway(ph, 3.0)))
+    # resting: sunk low, its tendrils drifting slowly
+    clip('Sleep', 120, lambda ph: (bob(C['root'], -HIP * 0.55), sway(ph, 0.35)))
 else:
     if not C.get('keep_clips'): clip('Idle', 120, lambda ph: (idle(ph), sway(ph, 0.5)))
     if C.get('attack') == 'pounce': clip('Attack', 36, pounce)
     elif C.get('attack'): clip('Attack', 40, slam)
     clip('Walk', C.get('walk_frames', 36), lambda ph: (gait(ph, 1.0), sway(ph, 1.0)))
     clip('Gallop', C.get('run_frames', 22), lambda ph: (gait(ph, C.get('run', 1.6)), sway(ph, 1.6)))
+    if C.get('rest'): clip('Sit', 90, lambda ph: rest(ph, 0)); clip('Sleep', 120, lambda ph: rest(ph, 1))
 for th, sh, ft, tg, a0, pole in IKL:
     for c in list(P[sh].constraints):
         if c.type == 'IK': P[sh].constraints.remove(c)

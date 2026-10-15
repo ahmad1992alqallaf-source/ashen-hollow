@@ -377,12 +377,14 @@
    "Idle": "Idle",
    "Walk": "Walk",
    "Gallop": "Gallop",
-   "Attack": "Attack"
+   "Attack": "Attack",
+   "Sit": "Sit",
+   "Sleep": "Sleep"
   },
   "head": "head",
   "tail": "hips",
   "seat": "chest",
-  "height": 0.85
+  "height": 0.7
  },
  "pet_cat": {
   "root": "/tmp/claude-0/ck/in",
@@ -394,7 +396,9 @@
    "Idle": "Idle",
    "Walk": "Walk",
    "Gallop": "Gallop",
-   "Attack": "Attack"
+   "Attack": "Attack",
+   "Sit": "Sit",
+   "Sleep": "Sleep"
   },
   "head": "head",
   "tail": "pelvis",
@@ -411,7 +415,9 @@
    "Idle": "Idle",
    "Walk": "Walk",
    "Fly": "Fly",
-   "Attack": "Attack"
+   "Attack": "Attack",
+   "Sit": "Sit",
+   "Sleep": "Sleep"
   },
   "head": "head",
   "tail": "body",
@@ -428,7 +434,8 @@
    "Idle": "Idle",
    "Fly": "Fly",
    "Walk": "Walk",
-   "Attack": "Attack"
+   "Attack": "Attack",
+   "Sleep": "Sleep"
   },
   "head": "flame1",
   "tail": "core",

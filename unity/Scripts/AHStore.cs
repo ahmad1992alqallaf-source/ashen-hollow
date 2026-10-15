@@ -75,13 +75,15 @@ public partial class AHUI
     {
         string cur = AHStore.Currency;
         wkTitle.text = "Store · " + AHStore.Amount(p.prog.crowns);
-        wkHint.text = "Mounts and wings are looks only: store mounts run at a riding horse’s pace. Mystic eggs hatch the same pets you can find as eggs in the world.";
+        wkHint.text = "Everything here is looks only: store mounts run at a riding horse’s pace, and pets don’t change your stats. Mystic egg pets are found only in the Mystic egg.";
         var rows = new List<Action<int>>();
         rows.Add(s => Row(s, "Your " + cur + ": " + p.prog.crowns.ToString("#,0"), new Color(1f, 0.85f, 0.4f), "Get more " + cur + " to spend in the store", "",
             new WkBtn { label = "Get " + cur, on = true, col = Go, act = () => { EndStorePreview(); wkMode = "storepacks"; wkPageI = 0; RenderWork(); } }));
         rows.Add(s => Row(s, "Looks  <color=#9be37a>New</color>", new Color(1f, 0.62f, 0.85f), "Weapon skins, hit effects, footstep trails and name colours", "Some are earned in the world, some are here. Try them on first.",
             new WkBtn { label = "Open", on = true, col = Go, act = () => { EndStorePreview(); OpenLooks(); } }));
-        // the Mystic egg: hatches at once, from any pet
+        // the Mystic egg: hatches at once, one of the store's own pets (found nowhere else); shown once one is in the game
+        if (!AHEggs.MysticReady) rows.Add(s => Row(s, AHJson.S(AHEggs.Mystic, "name", "Mystic egg") + "  <color=#c8b89a>coming soon</color>", new Color(0.75f, 0.55f, 1f), "Store-only pets: Rock golem, Spirit wisp, Night prowler, Flame hatchling", "Looks only, like every pet."));
+        else
         {
             var es = AHEggs.S(p); long p1 = AHEggs.MysticPrice(1), p10 = AHEggs.MysticPrice(10);
             int pe = (int)AHJson.N(AHEggs.Mystic, "pity_epic", 30), pl = (int)AHJson.N(AHEggs.Mystic, "pity_legendary", 90);

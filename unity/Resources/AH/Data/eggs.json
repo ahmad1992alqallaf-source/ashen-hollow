@@ -1,5 +1,5 @@
 {
-  "_about": "Pet eggs (AHEggs.cs). ELEMENTS: each egg's name, colour, the points it needs to hatch, the skills whose XP warms it (or night kills), and the pets it can hatch. AREA: which egg a land's beasts and gathering drop (grove where a land is not named). RARITY: each pet's rarity; a legendary roll hatches a legendary pet (the Flame hatchling) when the egg can hold one, else a Gilded pet (a golden one, five stars). STARS: the stars a fresh pet hatches with by rarity. LEAN: how a pet's stat points split (power, vitality, spirit, luck). DROP: the chance of an egg from a kill or a gather. MYSTIC: the store's Mystic egg (Crowns), its odds and pity.",
+  "_about": "Pet eggs (AHEggs.cs). Pets are looks only for now (STATS false: no Power, Vitality, Spirit or Luck, no stars; set it true to bring them back). ELEMENTS: each egg's name, colour, the points it needs to hatch, the skills whose XP warms it (or night kills), and the pets it can hatch. AREA: which egg a land's beasts and gathering drop (grove where a land is not named). RARITY: each world pet's rarity; a legendary roll from a world egg hatches a Gilded pet (a golden one). STARS / LEAN: stars and stat split, used only when STATS is true. DROP: the chance of an egg from a kill or a gather. MYSTIC: the store's Mystic egg (Crowns), its odds and pity; MYSTIC.pets are the store pets with their rarity, found ONLY in the Mystic egg (never in world eggs). The Mystic egg is shown in the store once at least one of its pets has its model in the game. A pet you have already gives Essence instead.",
   "SATCHEL": 3,
   "ELEMENTS": {
     "ember": {
@@ -15,8 +15,7 @@
         "fox",
         "pumpkin_slime",
         "slime",
-        "toad",
-        "phoenix_chick"
+        "toad"
       ]
     },
     "tide": {
@@ -31,8 +30,7 @@
         "toad",
         "slime",
         "snow_fox",
-        "bee",
-        "spirit_wisp"
+        "bee"
       ]
     },
     "grove": {
@@ -49,8 +47,7 @@
         "bee",
         "toad",
         "slime",
-        "fox",
-        "rock_golem"
+        "fox"
       ]
     },
     "stone": {
@@ -66,8 +63,7 @@
         "snow_fox",
         "slime",
         "toad",
-        "fox",
-        "rock_golem"
+        "fox"
       ]
     },
     "void": {
@@ -82,9 +78,7 @@
         "fox",
         "bee",
         "slime",
-        "toad",
-        "shadow_cat",
-        "spirit_wisp"
+        "toad"
       ]
     }
   },
@@ -110,11 +104,7 @@
     "bee": "rare",
     "fox": "rare",
     "snow_fox": "epic",
-    "pumpkin_slime": "epic",
-    "rock_golem": "rare",
-    "shadow_cat": "epic",
-    "spirit_wisp": "epic",
-    "phoenix_chick": "legendary"
+    "pumpkin_slime": "epic"
   },
   "ODDS_EGG": {
     "common": 64,
@@ -221,6 +211,13 @@
       "legendary": 2
     },
     "pity_epic": 30,
-    "pity_legendary": 90
-  }
+    "pity_legendary": 90,
+    "pets": {
+      "rock_golem": "common",
+      "spirit_wisp": "rare",
+      "shadow_cat": "epic",
+      "phoenix_chick": "legendary"
+    }
+  },
+  "STATS": false
 }

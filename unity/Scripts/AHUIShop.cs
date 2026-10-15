@@ -322,16 +322,17 @@ public partial class AHUI
         var kind = AHJson.A(AHDB.Table("companions", "PET_KIND"), k);
         int stage = AHComp.EvoStage(p, k);
         wkTitle.text = AHComp.PetName(k) + " · Lv " + L;
-        wkHint.text = "A pet helps with skills learnt as it levels, its own knack, and its stats (more with every star and level; only the pet that is out counts). " + (kind != null && kind.Count > 1 ? "This one’s gift: " + kind[1] + ". " : "") + "At level 20 every skill is 50% stronger.";
+        wkHint.text = (AHEggs.StatsOn ? "A pet helps with skills learnt as it levels, its own knack, and its stats (more with every star and level; only the pet that is out counts). " : "A pet helps with skills learnt as it levels and its own knack. ") + (kind != null && kind.Count > 1 ? "This one’s gift: " + kind[1] + ". " : "") + "At level 20 every skill is 50% stronger.";
         var rows = new List<Action<int>>();
         rows.Add(slot => Row(slot, AHComp.PetName(k), new Color(1f, 0.62f, 0.24f),
             "Level " + L + " · " + (need > 0 ? done.ToString("#,0") + " / " + need.ToString("#,0") + " XP to the next" : "max level") + (stage > 0 ? " · " + AHComp.EvoName[stage - 1] : ""),
             AHJson.S(AHJson.O(AHComp.Pets, k), "blurb"),
             new WkBtn { label = "Back", on = true, col = Plain, act = () => { wkMode = "comp"; wkPageI = 0; RenderWork(); } }));
         string rar = AHEggs.Gilded(p, k) ? "legendary" : AHEggs.Rarity(k);
-        rows.Add(slot => Row(slot, AHEggs.StarsText(AHEggs.Stars(p, k)) + "  " + AHEggs.RarityTag(rar) + (AHEggs.Gilded(p, k) ? " · Gilded" : ""), Color.white,
+        if (AHEggs.StatsOn) rows.Add(slot => Row(slot, AHEggs.StarsText(AHEggs.Stars(p, k)) + "  " + AHEggs.RarityTag(rar) + (AHEggs.Gilded(p, k) ? " · Gilded" : ""), Color.white,
             AHEggs.StatsLine(p, k), AHEggs.StatsHelp(p, k)));
-        rows.Add(slot => Row(slot, "Knack: " + AHPetSkills.SkillName(k), new Color(0.62f, 0.85f, 1f), "Used by itself in a fight when it is ready", "More stars come from hatching this pet again; at five, Essence instead."));
+        else rows.Add(slot => Row(slot, AHEggs.RarityTag(rar) + (AHEggs.Gilded(p, k) ? " · Gilded" : "") + (AHEggs.StoreOnly(k) ? " · from the Mystic egg" : ""), Color.white, "A companion: it doesn't change your stats", ""));
+        rows.Add(slot => Row(slot, "Knack: " + AHPetSkills.SkillName(k), new Color(0.62f, 0.85f, 1f), "Used by itself in a fight when it is ready", AHEggs.StatsOn ? "More stars come from hatching this pet again; at five, Essence instead." : ""));
         foreach (var d in AHComp.PetDetails(p, k))
         {
             var dd = d; bool got = dd[2] == "1";
@@ -368,7 +369,7 @@ public partial class AHUI
             rows.Add(slot => Row(slot, "Test egg (testing)", new Color(0.62f, 0.85f, 1f), "Puts this land's egg in your satchel, to try hatching", "This row goes away before release.",
                 new WkBtn { label = "Egg", on = es.eggs.Count < AHEggs.Satchel, col = Go, act = () => { AHEggs.Add(g, AHEggs.LandEgg(AHGame.AreaId)); RenderWork(); } }));
         rows.Add(slot => Row(slot, "Egg satchel · " + es.eggs.Count + " / " + AHEggs.Satchel + (es.essence > 0 ? "  <color=#c07aff>" + es.essence.ToString("#,0") + " Essence</color>" : ""), new Color(1f, 0.85f, 0.4f),
-            "Beasts and gathering drop the egg of the land you are in; beasts slain after dark, a Void egg.", "Each egg grows from the work that matches it. A grown egg hatches a pet: a new one, or a star for one you have."));
+            "Beasts and gathering drop the egg of the land you are in; beasts slain after dark, a Void egg.", "Each egg grows from the work that matches it. A grown egg hatches a pet: a new one, or Essence for one you have."));
         for (int ei = 0; ei < es.eggs.Count; ei++)
         {
             int ii = ei; var e = es.eggs[ei]; bool ready = AHEggs.Ready(e); long wc = AHEggs.WarmCost(e);
@@ -388,8 +389,8 @@ public partial class AHUI
             if (skills != null) foreach (var o in skills) { var r = o as List<object>; int l = (int)(double)r[0]; sk.Add(L >= l ? (string)r[1] : "<color=#7a7068>" + r[1] + "</color>"); }
             var kind = AHJson.A(AHDB.Table("companions", "PET_KIND"), k);
             bool outNow = p.pet == k;
-            rows.Add(slot => Row(slot, (AHEggs.Gilded(p, kk) ? "<color=#ffc040>Gilded</color> " : "") + AHComp.PetName(kk) + " · Lv " + L + "  " + AHEggs.StarsText(AHEggs.Stars(p, kk)) + (outNow ? "  <color=#9be37a>out</color>" : ""), new Color(1f, 0.62f, 0.24f),
-                (need > 0 ? done.ToString("#,0") + " / " + need.ToString("#,0") + " XP" : "Max level") + " · " + AHEggs.StatsLine(p, kk), string.Join(" · ", sk.ToArray()),
+            rows.Add(slot => Row(slot, (AHEggs.Gilded(p, kk) ? "<color=#ffc040>Gilded</color> " : "") + AHComp.PetName(kk) + " · Lv " + L + (AHEggs.StatsOn ? "  " + AHEggs.StarsText(AHEggs.Stars(p, kk)) : "") + (outNow ? "  <color=#9be37a>out</color>" : ""), new Color(1f, 0.62f, 0.24f),
+                (need > 0 ? done.ToString("#,0") + " / " + need.ToString("#,0") + " XP" : "Max level") + (AHEggs.StatsOn ? " · " + AHEggs.StatsLine(p, kk) : (AHEggs.StoreOnly(kk) ? " · store pet" : "")), string.Join(" · ", sk.ToArray()),
                 new WkBtn { label = "Skills", on = true, col = Plain, act = () => { petInfo = kk; wkMode = "petinfo"; wkPageI = 0; RenderWork(); } },
                 outNow ? new WkBtn { label = "Feed", on = true, col = Plain, act = () => { AHComp.Treat(g); RenderWork(); } } : null,
                 new WkBtn { label = outNow ? "Put away" : "Call", on = true, col = outNow ? Plain : Go, act = () => { p.pet = outNow ? null : kk; AHComp.SpawnPet(g); g.MarkDirty(); RenderWork(); } }));
