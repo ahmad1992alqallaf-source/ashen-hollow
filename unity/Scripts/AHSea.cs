@@ -204,6 +204,18 @@ public static class AHSea
         SeaY = floor; Land = new Rect(x0, z0, w2, h2);
         mr.sharedMaterial = mat; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; mr.receiveShadows = false;
         On = true;
+        // the plain land-coloured plain laid out past the land (AHCity.Outskirts) must stay under the sea: over an island's
+        // corner it showed as a flat blue sheet with a hard edge where the sea should run on
+        // (an island has no land past it at all: the plain went, it showed through the water as a hard-edged dark square)
+        var outs = GameObject.Find("Outskirts");
+        if (outs != null && edgeS > edgeN * 0.6f) outs.SetActive(false);
+        else if (outs != null && outs.transform.position.y > floor - 0.3f) { var op = outs.transform.position; op.y = floor - 0.6f; outs.transform.position = op; }
+        // the map's own flat ocean plane under the sheet: around an island the sheet is open sea all round, and the old
+        // plane (no depth, no shore) drew over it wherever no ground hid it: the pale water round the isle with a hard-edged
+        // square of the real sea in the middle
+        if (Sides == Vector4.one)
+            foreach (var r in world.GetComponentsInChildren<Renderer>())
+                if (r.name.StartsWith("AH_WATER") && r.bounds.max.y <= floor + 0.05f && r.bounds.size.y < 1f && Mathf.Max(r.bounds.size.x, r.bounds.size.z) > 150f) r.enabled = false;
         int deepN = 0; foreach (var d0 in deep) if (d0) deepN++;
         Debug.Log("Ashen Hollow: painted sea found (" + (seaN * Cell * Cell).ToString("F0") + " m², " + (deepN * Cell * Cell).ToString("F0") + " m² too deep to walk); water laid over it");
     }

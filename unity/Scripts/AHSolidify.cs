@@ -18,6 +18,38 @@ public static class AHSolidify
 
     public static IEnumerator Later(AHGame g) { yield return null; yield return null; AHTownFill.Run(g); Run(g); }
 
+    // the walk-through audit (Test: Walk-Through Audit) found palms, big bones, a few trees and the tall bushes and
+    // stones scattered over the lands still walked through: palms and trees by the trunk at their foot (not the middle
+    // of the crown, which leans off over the sand), bones, bushes and stones by a little of their own footprint
+    public static int TrunkN;
+    static void Trunks(AHGame g, float gy)
+    {
+        TrunkN = 0;
+        foreach (var rn in new[] { "Palms", "Bones", "Forest", "DreamScatter" })
+        {
+            var pr = GameObject.Find(rn); if (pr == null) continue;
+            foreach (Transform t in pr.transform)
+            {
+                if (!t.gameObject.activeInHierarchy) continue;
+                var rs = t.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) continue;
+                Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+                if (b.min.y > gy + 1.0f) continue;
+                string n = t.name.ToLowerInvariant(); Vector3 at; float rad;
+                if (rn == "Palms" || rn == "Forest") { if (b.size.y < 2.5f) continue; at = new Vector3(t.position.x, gy, t.position.z); rad = rn == "Palms" ? 0.42f : 0.38f; }
+                else if (rn == "Bones") { if (b.size.y < 1.2f) continue; at = new Vector3(b.center.x, gy, b.center.z); rad = Mathf.Min(b.size.x, b.size.z) * 0.36f; }
+                else
+                {
+                    // the scattered dressing: only the bushes and stones that stand above the knee (low ones are stepped through)
+                    if (!(n.Contains("bush") || n.Contains("stone") || n.Contains("rock")) || b.size.y < 1.5f) continue;
+                    at = new Vector3(b.center.x, gy, b.center.z); rad = Mathf.Min(b.size.x, b.size.z) * (n.Contains("bush") ? 0.3f : 0.4f);
+                }
+                if (!g.InArea(at) || g.Blocked(at, 0.05f)) continue;
+                g.AddBlocker(at, Mathf.Clamp(rad, 0.3f, 2.2f)); TrunkN++;
+            }
+        }
+        if (TrunkN > 0) Debug.Log("Ashen Hollow: " + TrunkN + " trunks, bones, bushes and stones made solid");
+    }
+
     public static void Run(AHGame g)
     {
         if (g == null || AHGame.AreaId == "abyss") { Last = 0; return; }
@@ -141,6 +173,7 @@ public static class AHSolidify
         if (longer > 0) Debug.Log("Ashen Hollow: " + longer + " things you use given a longer reach (no ground to stand on near them)");
         Last = n;
         if (n > 0) Debug.Log("Ashen Hollow: " + n + " solid things given blockers (you could walk through them)");
+        Trunks(g, gy);
         AHSolidGrid.Build(g);   // and everything else standing, from its own shape
     }
 

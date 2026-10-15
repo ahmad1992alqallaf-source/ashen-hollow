@@ -112,6 +112,9 @@ public static class AHRange
                 float side = 0.75f + 0.5f * Ridge(u * 3.1f + t * 2.3f, s + 9f);   // gullies and spurs down the faces
                 float gully = (Mathf.PerlinNoise(u * 14f + s, t * 5f) - 0.5f) * 0.22f + (Mathf.PerlinNoise(u * 33f, t * 11f + s) - 0.5f) * 0.08f;   // ribs and gullies down every face
                 float h = crest * prof * (j == 0 ? 0f : side + gully) - (j == 0 ? 4f : 0f);
+                // a saddle where a road goes out of the land (AHPass): the near range drops low, the far one a little
+                float passK = AHPass.RangeK(new Vector3(cx + ex * b.extents.x, y0, cz + ez * b.extents.z));
+                if (passK < 1f) h *= alpha > 0.5f ? passK : Mathf.Lerp(0.6f, 1f, passK);
                 if (seaK[i] > 0f) h = Mathf.Lerp(h, -12f, seaK[i]);   // (sunk under the sea)
                 // wobble the ridge in and out so it is not a perfect ring
                 float wob = (Mathf.PerlinNoise(u * 0.7f, s + 5f) - 0.5f) * 30f;

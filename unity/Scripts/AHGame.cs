@@ -116,7 +116,7 @@ public class AHGame : MonoBehaviour
         if (data.dayLength > 0) dayLength = data.dayLength;
 
         // the area itself: ground, trees, mountains, houses and water
-        Spread = 1f;
+        Spread = 1f; SpreadX = 1f; SpreadZ = 1f;
         GameObject wp = Resources.Load<GameObject>(AreaPath + AreaId + "_world_kk");   // a city with its old houses cut out for the detailed buildings
         if (wp == null) wp = Resources.Load<GameObject>(AreaPath + AreaId + "_world");
         if (wp == null && (AreaId == AHDeep.Area || AreaId == AHAbyss.Area)) { }   // the Ashen Deep and the Abyssal Realm are built in code
@@ -128,8 +128,8 @@ public class AHGame : MonoBehaviour
             Transform mx = FindDeep(world, "AH_MARK_X"), mz = FindDeep(world, "AH_MARK_Z");
             if (mx != null && mz != null) { ax = (mx.position - world.position) / 100f; az = (mz.position - world.position) / 100f; }
             // the wild lands are laid out wider than the web game drew them (everything keeps its size, the gaps grow)
-            Spread = SpreadOf(AreaId);
-            if (Spread != 1f) { ax *= Spread; az *= Spread; SpreadWorld(Spread); }
+            var kk = SpreadXZ(AreaId); SpreadX = kk.x; SpreadZ = kk.y; Spread = Mathf.Max(kk.x, kk.y);
+            if (Spread != 1f) { Vector3 ux = ax.normalized, uz = az.normalized; ax *= kk.x; az *= kk.y; SpreadWorld(ux, uz, kk.x, kk.y); }
             modelYaw = -Mathf.Atan2(az.x, az.z) * Mathf.Rad2Deg;
             SetupWorldRenderers();
             AHCity.Outskirts(this, world);   // land beyond a city's walls, so gates don't open onto nothing
@@ -145,8 +145,9 @@ public class AHGame : MonoBehaviour
             {
                 // a house keeps its size; a wall keeps its thickness but runs on to meet the next (no gaps to slip through)
                 var c = rr.center; bool wall = Mathf.Min(b.w, b.h) < 2f && Mathf.Max(b.w, b.h) > 8f;
-                if (wall) { if (rr.width > rr.height) rr.height /= Spread; else rr.width /= Spread; }
-                else rr.size /= Spread;
+                float fx = WorldSpread(true), fz = WorldSpread(false);   // the stretch along the world's x and z
+                if (wall) { if (rr.width > rr.height) rr.height /= fz; else rr.width /= fx; }
+                else { rr.width /= fx; rr.height /= fz; }
                 rr.center = c;
             }
             rects.Add(rr);
@@ -169,8 +170,10 @@ public class AHGame : MonoBehaviour
         AHTents.Setup(this, world);     // striped pavilions and ridge tents instead of the pyramids
         AHScenery.Setup(this, world);   // wooden footbridges and broken stone columns
         AHSea.Build(this, world, waterMat, lakes);   // a sea painted on the ground: real water over it, and no walking across it
+        AHPass.Plan(this);             // where the roads leave the land: the ranges open a saddle there
         AHRange.Build(this, world);     // great mountain ranges on the horizon, past the border crags (none over the open sea)
         AHHorizon.Build(this);          // ships sailing far out on the open sea
+        AHPass.Build(this);            // the passes out: a gorge, stone pillars with banners and a signpost (as World of Warcraft does it)
         AHWilds.Plan(this, world);     // the wide lands filled out: camps, ore veins, herb patches, outcrops and ruins
         AHOre.Setup(this);             // boulders with ore crystals for the mining rocks
         AHHerbs.Setup(this);           // each herb a little plant of its own kind
@@ -672,14 +675,29 @@ public class AHGame : MonoBehaviour
 
     // how much wider each area is laid out than the web game's map (1 = as drawn): the wild lands about 200 to 280 metres
     public static float Spread = 1f;
-    static readonly Dictionary<string, float> spreadK = new Dictionary<string, float> {
-        { "meadow", 2.0f }, { "silkwood", 1.8f }, { "frost", 1.7f }, { "mire", 1.6f }, { "vale", 1.6f }, { "sands", 2.0f }, { "isle", 1.8f } };   // (AHWilds fills the open ground)
+    // SpreadX, SpreadZ: along the map's own x and z (the long passes between lands, 72 m across, are mostly widened
+    // across: a road through a wide valley instead of a corridor). Spread: the larger, for things that only need one
+    public static float SpreadX = 1f, SpreadZ = 1f;
+    static readonly Dictionary<string, Vector2> spreadK = new Dictionary<string, Vector2> {
+        { "meadow", new Vector2(2.0f, 2.0f) }, { "silkwood", new Vector2(1.8f, 1.8f) }, { "frost", new Vector2(1.7f, 1.7f) }, { "mire", new Vector2(1.6f, 1.6f) },
+        { "vale", new Vector2(1.6f, 1.6f) }, { "sands", new Vector2(2.0f, 2.0f) }, { "isle", new Vector2(1.8f, 1.8f) },
+        { "ember", new Vector2(1.25f, 1.25f) }, { "fossil", new Vector2(1.25f, 1.25f) },
+        { "mill", new Vector2(1.2f, 2.6f) }, { "fenwick", new Vector2(1.2f, 2.6f) }, { "kingsroad", new Vector2(1.15f, 2.6f) }, { "whitepine", new Vector2(1.15f, 2.6f) },
+        { "causeway", new Vector2(1.15f, 2.6f) }, { "scorchwind", new Vector2(1.15f, 2.6f) }, { "ashfall", new Vector2(1.15f, 2.6f) } };   // (AHWilds fills the open ground)
     public static bool NoSpread;   // editor test: the areas as the web game drew them
-    public static float SpreadOf(string id) { float k; return !NoSpread && spreadK.TryGetValue(id, out k) ? k : 1f; }
+    public static Vector2 SpreadXZ(string id) { Vector2 k; return !NoSpread && spreadK.TryGetValue(id, out k) ? k : Vector2.one; }
+    public static float SpreadOf(string id) { var k = SpreadXZ(id); return Mathf.Max(k.x, k.y); }
     // move every piece of the area's model out from the middle by k (pieces keep their size); ground, water and the
     // batched border peaks stretch with it
-    void SpreadWorld(float k)
+    // how much the land is stretched along the world's x (or z) axis
+    public float WorldSpread(bool worldX)
     {
+        Vector3 ux = ax.normalized, uz = az.normalized;
+        return worldX ? Mathf.Abs(ux.x) * SpreadX + Mathf.Abs(uz.x) * SpreadZ : Mathf.Abs(ux.z) * SpreadX + Mathf.Abs(uz.z) * SpreadZ;
+    }
+    void SpreadWorld(Vector3 ux, Vector3 uz, float kx, float kz)
+    {
+        float k = Mathf.Max(kx, kz);
         Vector3 wp = world.position; int moved = 0;
         System.Action<Transform> visit = null;
         visit = c =>
@@ -690,8 +708,9 @@ public class AHGame : MonoBehaviour
             {
                 // stretch along the world's own axes (the ground is drawn lying in its node's x-y plane, turned flat)
                 var hold = new GameObject(n + " (spread)").transform; hold.SetParent(world, false);
-                hold.position = wp; hold.rotation = Quaternion.identity; hold.localScale = Vector3.one;
-                c.SetParent(hold, true); hold.localScale = new Vector3(k, 1f, k);
+                hold.position = wp; hold.rotation = Quaternion.LookRotation(new Vector3(uz.x, 0f, uz.z), Vector3.up); hold.localScale = Vector3.one;
+                // the holder's z runs along the map's z, its x along the map's x (or against it: the scale is the same)
+                c.SetParent(hold, true); hold.localScale = new Vector3(kx, 1f, kz);
                 var gr = c.GetComponent<Renderer>(); Debug.Log("Ashen Hollow: stretched " + n + (gr != null ? " to " + gr.bounds.size.ToString("0") : "") + " parent " + (c.parent != null ? c.parent.name : "-") + " static " + c.gameObject.isStatic);
                 return;
             }
@@ -704,10 +723,11 @@ public class AHGame : MonoBehaviour
                 foreach (var cc in kids) visit(cc);
                 return;
             }
-            Vector3 d = b.center - wp; d.y = 0f; c.position += d * (k - 1f); moved++;
+            Vector3 d = b.center - wp; d.y = 0f; float dx = Vector3.Dot(d, ux), dz = Vector3.Dot(d, uz);
+            c.position += ux * dx * (kx - 1f) + uz * dz * (kz - 1f); moved++;
         };
         visit(world);
-        Debug.Log("Ashen Hollow: " + AreaId + " laid out " + k.ToString("0.00") + "x wider (" + moved + " pieces moved)");
+        Debug.Log("Ashen Hollow: " + AreaId + " laid out " + kx.ToString("0.00") + " x " + kz.ToString("0.00") + " wider (" + moved + " pieces moved)");
     }
 
     public Rect MapRect(float x, float z, float w, float h)
@@ -735,6 +755,7 @@ public class AHGame : MonoBehaviour
     void SetupWorldRenderers()
     {
         waterMat = LoadMat("AH/Materials/Water", "AshenHollow/Water");
+        AHWaterTex.Ensure();   // the water's wave, caustic and foam maps
         var groundMat = LoadMat("AH/Materials/Ground", "AshenHollow/Ground");
         foreach (var r in world.GetComponentsInChildren<Renderer>(true))
         {

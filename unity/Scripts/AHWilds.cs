@@ -204,6 +204,7 @@ public static class AHWilds
         { "frost", new Color(1.15f, 1.2f, 1.3f) }, { "whitepine", new Color(1.1f, 1.15f, 1.25f) }, { "ember", new Color(0.6f, 0.52f, 0.5f) }, { "ashfall", new Color(0.65f, 0.58f, 0.55f) },
     };
     static readonly Dictionary<Material, Material> tinted = new Dictionary<Material, Material>();
+    public static void TintStone(GameObject go) { Tint(go); }   // (the passes out of a land: AHPass)
     static void Tint(GameObject go)
     {
         Color k; if (!Stone.TryGetValue(AHGame.AreaId, out k)) return;

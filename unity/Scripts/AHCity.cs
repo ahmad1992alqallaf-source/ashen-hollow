@@ -341,7 +341,7 @@ public static class AHCity
                     foreach (var cl in go.GetComponentsInChildren<Collider>(true)) Object.Destroy(cl);
                     go.transform.position = p + across * (face == 0 ? -half * 0.5f : half * 0.5f);
                     go.transform.rotation = Quaternion.Euler(0f, yaw + (1 - face) * 180f, 0f);   // battlements outward on both faces, the walkways meeting in the middle
-                    go.transform.localScale = new Vector3(s * AHGame.Spread / 2f * 1.04f, 4.1f / 1.1f, half / 0.8f);   // (a spread land's wall stretches with it: no gaps)
+                    go.transform.localScale = new Vector3(s * (alongX ? AHGame.SpreadX : AHGame.SpreadZ) / 2f * 1.04f, 4.1f / 1.1f, half / 0.8f);   // (a spread land's wall stretches with it: no gaps)
                     AHModel.SetShadows(go); WallPieces++;
                 }
             }
