@@ -210,6 +210,8 @@ public partial class AHUI
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenEmotes }));
         rows.Add(s => Row(s, "Looks", new Color(1f, 0.62f, 0.85f), "Weapon skins, hit effects, footstep trails, name colours · looks only", "",
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenLooks }));
+        rows.Add(s => Row(s, "Requests board", new Color(1f, 0.8f, 0.45f), "Heroes ask each other for goods and help · ask the realm yourself", "Renown " + AHRequests.State(p).renown,
+            new WkBtn { label = "Open", on = true, col = Plain, act = OpenRequests }));
         rows.Add(s => Row(s, "Artisans' Guild", new Color(0.6f, 0.9f, 0.5f), p.path == "artisan" ? AHArtisan.Rank(p) + " · the Saga, commissions, the Masterwork Contest, your workshop" : "Commissions, the Masterwork Contest and workshop upgrades", "",
             new WkBtn { label = "Open", on = true, col = p.path == "artisan" ? Go : Plain, act = () => OpenArtisan() }));
         rows.Add(s => Row(s, "Library, tournament, helpers", new Color(0.56f, 0.85f, 1f), "Lore pages · the weekend tournament · helpers who work while you are away", "",

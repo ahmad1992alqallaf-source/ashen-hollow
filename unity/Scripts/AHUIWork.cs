@@ -182,6 +182,7 @@ public partial class AHUI
         else if (wkMode == "storepacks") RenderStorePacks(p);
         else if (wkMode == "mystic") RenderMystic(p);
         else if (wkMode == "looks") RenderLooks(p);
+        else if (wkMode == "requests") RenderRequests(p);
         else if (wkMode == "ah") RenderAH(p);
         else if (wkMode == "orders") RenderOrders(p);
         else if (wkMode == "farm") RenderFarm(p);
