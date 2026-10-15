@@ -45,7 +45,8 @@ public class AHProgress
     public int storyCh, storyState, storyN;   // the Ashen King story: chapter, 0 offered / 1 under way / 2 done (go back), progress (AHStory)   // costumes bought, and the one shown ("" shows gear)
     public List<string> looks = new List<string>(); public List<AHKS> lookOn = new List<AHKS>();   // Looks bought, and the one worn of each kind (AHLooks)
     public AHReqState req = new AHReqState();
-    public AHTownState town = new AHTownState();                // town projects (AHTown)
+    public AHTownState town = new AHTownState();
+    public AHKitchenState kitchen = new AHKitchenState();       // the Test kitchen's signature recipes (AHKitchen)                // town projects (AHTown)
     public List<AHExped> exped = new List<AHExped>();             // pets away on expeditions (AHExpeditions)                   // the Requests board (AHRequests)
     public AHEggState eggs = new AHEggState();                 // pet eggs, stars and Essence (AHEggs)
     public List<string> recipes = new List<string>();            // rare recipes learned (AHRareRecipes)               // bosses, elites and rare beasts beaten (id, name|model)
