@@ -463,6 +463,9 @@ public partial class AHUI : MonoBehaviour
         TickSkin();
         float dt = Time.unscaledDeltaTime;
         AHWellbeing.Tick(this, dt);   // rest reminders
+        // windows with timers (expeditions, caravans, requests, town projects) refresh by themselves every few seconds
+        wkLiveT -= dt;
+        if (wkLiveT <= 0f) { wkLiveT = 5f; if (WorkOpen && (wkMode == "exped" || wkMode == "caravan" || wkMode == "requests" || wkMode == "town")) RenderWork(); }
         var p = g.player;
         if (p != null && p.cls != null)
         {
@@ -673,6 +676,7 @@ public partial class AHUI : MonoBehaviour
     const float WinW = 860f, WinH = 540f;
     // bag slots and the tool belt (AHBags): the grid shows one page at a time: the backpack, each bag, or the belt
     const int GridN = 45;
+    float wkLiveT;
     class BagPage { public string label; public int start, count, box; }   // box: -1 the backpack, 0..4 a bag slot, 9 the tool belt
     int bagPageI, boxSel = -1; string toolSel;
     readonly List<RectTransform> boxBtns = new List<RectTransform>(); readonly List<Text> boxTexts = new List<Text>();
