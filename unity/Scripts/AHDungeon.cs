@@ -413,11 +413,13 @@ public class AHDungeon : MonoBehaviour
             g.ui.Toast("A chest appeared where Grull fell. Open it for your loot.", 4f);
             return;
         }
+        AHLooters.OnKill(g, id, m.type.id == Col(def, 0) ? 2 : (m.type.id == Col(def, 1) || m.type.elite) ? 1 : 0);   // a hired looter's share
         string[] gems = { "sapphire", "ruby", "emerald" };
         var sets = AHJson.A(AHJson.O(def, "sets"), p.cls.id);
         if (m.type.id == Col(def, 0))
         {
             g.quests.Event("dclear", id, 1, g);
+            AHChallenge.OnBoss(g);
             Chest(m.transform.position, sets, gems[Random.Range(0, 3)], 1 + Mathf.FloorToInt(tier));
             int clears; long at; Rec(id, out clears, out at);
             clears++; AHPrefs.SetString(Key(id), clears + "|" + NowMs);

@@ -88,6 +88,9 @@ public class AHQuestLog
     public bool Event(string t, string id, int n, AHGame g)
     {
         AHDaily.Event(g, t, id, n);
+        AHTwoPart.Event(g, t, id, n);
+        AHApprentice.Event(g, t, id, n);
+        if (t == "kill") AHMonsterBook.OnKill(g, id);
         RoadEvent(t, id, n, g);
         var q = Current;
         if (q == null || state != "active") return false;

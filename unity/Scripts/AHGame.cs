@@ -946,7 +946,7 @@ public class AHGame : MonoBehaviour
         dayT = (dayT + Time.deltaTime) % dayLength;
         UpdateDay();
         AHGather.Tick(this);
-        ahT -= Time.unscaledDeltaTime; if (ahT <= 0f) { ahT = 5f; AHAuction.Tick(this); AHOrders.Tick(this); AHRequests.Tick(this); AHExpeditions.Tick(this); AHCaravan.Tick(this); AHKitchen.Names(player); AHHome.Tick(this); AHMarket.Tick(this); }
+        ahT -= Time.unscaledDeltaTime; if (ahT <= 0f) { ahT = 5f; AHAuction.Tick(this); AHOrders.Tick(this); AHRequests.Tick(this); AHExpeditions.Tick(this); AHProfPets.Tick(this); AHLooters.Tick(this); AHTwoPart.Tick(this); AHCaravan.Tick(this); AHKitchen.Names(player); AHHome.Tick(this); AHMarket.Tick(this); }
         AHHome.RestTick(this, Time.deltaTime);
         AHFinder.Tick(this, Time.deltaTime);
         if (player != null) AHMeal.Tick(this, player, Time.deltaTime);

@@ -74,6 +74,36 @@
    "name": "Spellbook",
    "price": 0,
    "blurb": "A living spellbook that flies on its covers, pages riffling. A mage's companion: it snaps shut on anything that comes too close."
+  },
+  "mole": {
+   "name": "Drill mole",
+   "price": 0,
+   "prof": "mining",
+   "blurb": "A velvet-nosed digger in a tiny brass miner's helmet. Found by those who mine."
+  },
+  "drill_python": {
+   "name": "Drill python",
+   "price": 0,
+   "prof": "mining",
+   "blurb": "A gentle green python whose tail ends in a brass drill. Very rare; only deep miners ever meet one."
+  },
+  "beaver": {
+   "name": "Lumber beaver",
+   "price": 0,
+   "prof": "woodcutting",
+   "blurb": "Big teeth, a flat tail and a little axe on its belt. Found by those who fell trees."
+  },
+  "otter": {
+   "name": "River otter",
+   "price": 0,
+   "prof": "fishing",
+   "blurb": "Wears a knitted cap and never lets go of its fish. Found by those who fish."
+  },
+  "hedgehog": {
+   "name": "Herb hedgehog",
+   "price": 0,
+   "prof": "herblore",
+   "blurb": "Carries sprigs and flowers on its spines. Found by those who pick herbs."
   }
  },
  "MOUNTS": {

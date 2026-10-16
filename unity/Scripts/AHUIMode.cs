@@ -122,7 +122,8 @@ public partial class AHUI
 
     void PressSeal()
     {
-        var p = g.player; if (p == null || p.Busy) return;
+        var p = g.player; if (p == null) return;
+        if (p.Busy) { AHGather.Strike(p); return; }   // the gathering knack: a tap in the gold
         if (skillMode) { OnAction(); return; }
         // FIGHT mode: only people, doors and stations come here
         var n = PersonOrThing(NearNpc(), AHGather.Nearest(p.transform.position));

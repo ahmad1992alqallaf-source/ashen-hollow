@@ -184,6 +184,13 @@ public partial class AHUI
         else if (wkMode == "looks") RenderLooks(p);
         else if (wkMode == "requests") RenderRequests(p);
         else if (wkMode == "exped") RenderExpeditions(p);
+        else if (wkMode == "profpets") RenderProfPets(p);
+        else if (wkMode == "looters") RenderLooters(p);
+        else if (wkMode == "twopart") RenderTwoPart(p);
+        else if (wkMode == "challenge") RenderChallenge(p);
+        else if (wkMode == "repairs") RenderRepairs(p);
+        else if (wkMode == "book") RenderMonsterBook(p);
+        else if (wkMode == "appr") RenderApprentice(p);
         else if (wkMode == "town") RenderTown(p);
         else if (wkMode == "caravan") RenderCaravans(p);
         else if (wkMode == "kitchen") RenderKitchen(p);

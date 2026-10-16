@@ -374,6 +374,36 @@ public static class AHGather
     public static float Frac { get { return actSpot != null && actDur > 0f ? Mathf.Clamp01(actT / actDur) : 0f; } }
     public static void Cancel() { actSpot = null; actRecipe = null; }
 
+    // ---------- the gathering knack (a timing mini-game) ----------
+    // While you chop, mine, fish or pick herbs, a gold mark sits somewhere on the work bar. Tap the action button as the
+    // bar crosses it: a perfect strike finishes the work at once and brings one more of what you gather (the gold
+    // mark is a little wider for the skilled). One try per swing; a miss just carries on as usual.
+    public static float knackAt, knackW; public static bool knackTried, knackHit, perfect;
+    public static string knackSay; public static float knackSayT;
+    public static bool KnackOn { get { return actSpot != null && actRecipe == null && IsGather(actSpot.kind); } }
+    public static bool IsGather(string kind) { return kind == "chop" || kind == "mine" || kind == "fish" || kind == "herb"; }
+    static string SkillOf(string kind) { return kind == "chop" ? "woodcutting" : kind == "mine" ? "mining" : kind == "fish" ? "fishing" : "herblore"; }
+    static void NewKnack(AHPlayer p)
+    {
+        knackTried = false; knackHit = false;
+        if (actSpot == null || !IsGather(actSpot.kind)) return;
+        knackW = 0.12f + 0.004f * p.Skill(SkillOf(actSpot.kind));
+        knackAt = Random.Range(0.42f, 0.86f - knackW * 0.5f);
+    }
+    public static void Strike(AHPlayer p)
+    {
+        if (!KnackOn || knackTried) return;
+        knackTried = true; float f = Frac;
+        if (Mathf.Abs(f - knackAt) <= knackW * 0.5f)
+        {
+            knackHit = true; perfect = true; actT = actDur;   // done at once
+            knackSay = "Perfect!"; knackSayT = 1.2f; AHSound.Play("coin");
+        }
+        else { knackSay = f < knackAt ? "Too soon" : "Too late"; knackSayT = 0.9f; }
+    }
+    // a perfect strike's extra (AHComp.Forage, for the thing just gathered)
+    public static bool TakePerfect() { bool b = perfect; perfect = false; return b; }
+
     // web profSpeed
     static float Speed(AHPlayer p, string kind)
     {
@@ -395,6 +425,7 @@ public static class AHGather
         if (r == null && !CanDo(p, s, true)) return;
         actSpot = s; actRecipe = r; actT = 0f;
         actDur = (r != null ? 2.2f : Dur(s.kind)) / Speed(p, s.kind);
+        NewKnack(p);
         // the woodcutter and the miner swing their tools; the herbalist kneels to pick; the angler casts a line
         if (r != null) p.BeginWork(s.pos, s.kind == "anvil" || s.kind == "furnace" || s.kind == "jewel" ? "Work_Hammer|Interact" : "Interact");
         else p.BeginWork(s.pos, s.kind == "chop" ? "Work_Chop|Chop" : s.kind == "mine" ? "Work_Mine|Chop" : s.kind == "herb" || s.kind == "bog" || s.kind == "reef" ? "Work_Gather|Harvest" : s.kind == "fish" || s.kind == "lava" || s.kind == "sea" ? "Work_Fish|Fish" : "Interact",
@@ -424,7 +455,8 @@ public static class AHGather
         var s = actSpot; var r = actRecipe;
         actSpot = null; actRecipe = null;
         bool again = Finish(p, s, r);
-        if (again && CanDo(p, s, false)) { actSpot = s; actRecipe = null; actT = 0f; actDur = Dur(s.kind) / Speed(p, s.kind); }
+        perfect = false;
+        if (again && CanDo(p, s, false)) { actSpot = s; actRecipe = null; actT = 0f; actDur = Dur(s.kind) / Speed(p, s.kind); NewKnack(p); }
     }
 
     // the feel of the work, in time with the swing: wood chips fly from the axe, sparks and grit from the pick, leaves
@@ -463,7 +495,7 @@ public static class AHGather
                     var tr = AHJson.O(Rule("TREES"), s.type);
                     string log = AHJson.S(tr, "log", "logs");
                     if (!bag.Add(log)) { ui.Toast(bag.lastWarn ?? "Your bag is full."); return false; } AHComp.Forage(g, log);
-                    p.GainXp("woodcutting", (int)AHJson.N(tr, "xp", 25), false);
+                    p.GainXp("woodcutting", (int)AHJson.N(tr, "xp", 25), false); AHProfPets.OnGather(g, "woodcutting");
                     g.quests.Event("gather", log, 1, g);
                     if (Random.value < AHJson.N(tr, "fell", 0.35)) { s.until = now + 22f; SetFelled(s, true); ui.Toast("The " + s.name + " falls. It grows back soon."); return false; }
                     return true;
@@ -472,7 +504,7 @@ public static class AHGather
                 {
                     var h = AHJson.O(Rule("HERB_T"), s.type);
                     if (!bag.Add(s.type)) { ui.Toast(bag.lastWarn ?? "Your bag is full."); return false; } AHComp.Forage(g, s.type);
-                    p.GainXp("herblore", (int)AHJson.N(h, "xp", 14), false);
+                    p.GainXp("herblore", (int)AHJson.N(h, "xp", 14), false); AHProfPets.OnGather(g, "herblore");
                     if (p.Perk("alchemist", 20) && Random.value < 0.3f) bag.Add(s.type);
                     s.until = now + 45f;
                     g.quests.Event("gather", s.type, 1, g);
@@ -483,7 +515,7 @@ public static class AHGather
                     var rk = AHJson.O(Rule("ROCKS"), s.type);
                     string ore = AHJson.S(rk, "ore", "copper_ore");
                     if (!bag.Add(ore)) { ui.Toast(bag.lastWarn ?? "Your bag is full."); return false; } AHComp.Forage(g, ore);
-                    p.GainXp("mining", (int)AHJson.N(rk, "xp", 18), false);
+                    p.GainXp("mining", (int)AHJson.N(rk, "xp", 18), false); AHProfPets.OnGather(g, "mining");
                     s.until = now + 7f * (p.Spec("miner", "delve") ? 0.5f : 1f);
                     g.quests.Event("gather", ore, 1, g);
                     // web mineBonus: double ore, and now and then a gem
@@ -507,7 +539,7 @@ public static class AHGather
                     else if (kind == "bog" && fl >= 5 && Random.value < 0.6f) { fish = "raw_eel"; fxp = 35; }
                     else if (fl >= 10 && Random.value < 0.5f) { fish = "raw_salmon"; fxp = 45; }
                     if (!bag.Add(fish)) { ui.Toast(bag.lastWarn ?? "Your bag is full."); return false; } AHComp.Forage(g, fish);
-                    p.GainXp("fishing", fxp, false);
+                    p.GainXp("fishing", fxp, false); AHProfPets.OnGather(g, "fishing");
                     g.Ripple(s.pos, 1.2f);
                     g.quests.Event("gather", fish, 1, g);
                     AHDerby.OnCatch(g, fish);   // weighed for the weekly derby
@@ -606,6 +638,7 @@ public static class AHGather
         }
         p.GainXp(r.skill, r.xp, false);
         AHArtisan.OnCraft(p, outId, n);
+        AHTwoPart.OnMade(g, outId);
         g.quests.Event("craft", kind, 1, g);
         var o = AHItems.Get(outId);
         if (o.slot != null) ui.Toast("You made " + o.name + ". Open the bag to wear it.", 3f);

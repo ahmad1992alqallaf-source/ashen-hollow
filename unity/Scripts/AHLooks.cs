@@ -48,6 +48,7 @@ public static class AHLooks
             case "kills": return AHExtras.Kills(p) >= d.n;
             case "trophy": return AHTrophies.Has(p, d.trophy);
             case "trophies": return AHTrophies.Count(p) >= d.n;
+            case "book": return AHMonsterBook.Pages(p) >= d.n;
             default: return false;
         }
     }
@@ -63,6 +64,8 @@ public static class AHLooks
             case "trophy": return "Beat " + AHJson.S(AHJson.O(AHDB.Mobs, d.trophy), "name", d.trophy);
             case "trophies": return "Beat " + d.n + " great foes (bosses, elites, rare beasts: " + AHTrophies.Count(p) + " so far)";
             case "store": return "Store · " + AHStore.Amount(d.price);
+            case "challenge": return "Win " + d.n + " weekly challenge" + (d.n > 1 ? "s" : "") + " (" + AHChallenge.Wins(p) + " so far)";
+            case "book": return "Fill " + d.n + " pages of the Monster book (" + AHMonsterBook.Pages(p) + " so far)";
         }
         return "";
     }

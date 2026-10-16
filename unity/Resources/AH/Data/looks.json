@@ -35,6 +35,12 @@
     { "id": "name_purple", "kind": "name", "name": "Veteran violet",  "col": "#c07aff", "how": "level", "lvl": 50, "desc": "Your name in violet above you." },
     { "id": "name_red",    "kind": "name", "name": "Ember red",       "col": "#ff7a50", "how": "store", "price": 500, "desc": "Your name in ember red." },
     { "id": "name_blue",   "kind": "name", "name": "Frost blue",      "col": "#7ad0ff", "how": "store", "price": 500, "desc": "Your name in frost blue." },
-    { "id": "name_gold",   "kind": "name", "name": "Royal gold",      "col": "#ffcc40", "fx": "shimmer", "how": "store", "price": 900, "desc": "Your name in gold that shimmers." }
+    { "id": "name_gold",   "kind": "name", "name": "Royal gold",      "col": "#ffcc40", "fx": "shimmer", "how": "store", "price": 900, "desc": "Your name in gold that shimmers." },
+    {"id": "skin_gauntlet", "kind": "skin", "name": "Gauntlet Steel", "col": "#c9d4ff", "amt": 0.6, "fx": "runes", "how": "challenge", "n": 1, "desc": "Blue-white steel with runes that wake as you fight. For winning a weekly challenge."},
+    {"id": "trail_gauntlet", "kind": "trail", "name": "Challenger's Stars", "col": "#ffd27a", "fx": "star", "how": "challenge", "n": 3, "desc": "Little stars where you step. For three weekly challenges won."},
+    {"id": "name_gauntlet", "kind": "name", "name": "Champion Crimson", "col": "#ff5a4a", "how": "challenge", "n": 6, "desc": "A deep red name. For six weekly challenges won."},
+    {"id": "hit_book", "kind": "hit", "name": "Naturalist's Ink", "col": "#2b3a6a", "fx": "ink", "how": "book", "n": 25, "desc": "Your blows leave a splash of ink. For 25 pages of the Monster book."},
+    {"id": "trail_book", "kind": "trail", "name": "Field Notes", "col": "#9be37a", "fx": "leaf", "how": "book", "n": 50, "desc": "Pressed leaves follow your steps. For 50 pages of the Monster book."},
+    {"id": "name_book", "kind": "name", "name": "Loremaster Teal", "col": "#3fc8c0", "how": "book", "n": 80, "desc": "A scholar's teal name. For 80 pages of the Monster book."}
   ]
 }

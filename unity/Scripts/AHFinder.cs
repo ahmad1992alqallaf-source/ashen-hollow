@@ -213,6 +213,17 @@ public partial class AHUI
         if (AHComp.TestMounts)
             rows.Add(s => Row(s, "Bags and tools (testing)", new Color(0.62f, 0.85f, 1f), "Puts one of every bag and tool in your bag, to try the bag slots and the tool belt", "This row goes away before release.",
                 new WkBtn { label = "Give", on = true, col = Go, act = () => { foreach (var id in new[] { "bag_pouch", "bag_pack", "bag_master", "bag_mythic", "tool_pick_iron", "tool_axe_guild", "tool_rod_bronze" }) p.bag.Add(id, 1); Toast("Test bags and tools are in your bag."); g.MarkDirty(); } }));
+        rows.Add(s => Row(s, "Two-part quest: " + AHTwoPart.Name, new Color(1f, 0.75f, 0.4f), AHTwoPart.Status(p), "A story for both paths: neither can finish it alone",
+            new WkBtn { label = "Open", on = true, col = AHTwoPart.S(p).done && !AHTwoPart.S(p).claimed || !AHTwoPart.S(p).started && AHTwoPart.Open(p) ? Go : Plain, act = OpenTwoPart }));
+        rows.Add(s => Row(s, "Apprentice", new Color(0.62f, 0.9f, 0.55f), AHApprentice.Status(p), "A youngster who learns from you and brings small gifts",
+            new WkBtn { label = "Open", on = true, col = AHApprentice.GiftReady(p) || (!AHApprentice.S(p).active && AHApprentice.Open(p)) ? Go : Plain, act = OpenApprentice }));
+        rows.Add(s => Row(s, "Monster book", new Color(0.85f, 0.75f, 0.55f), AHMonsterBook.Pages(p) + " / " + AHMonsterBook.All.Count + " pages", "A page for every beast you defeat · finish a volume for a reward",
+            new WkBtn { label = "Open", on = true, col = Plain, act = OpenMonsterBook }));
+        rows.Add(s => Row(s, "Weekly challenge", new Color(1f, 0.6f, 0.35f), AHChallenge.Status(p), "A dungeon with a new twist each week · looks-only rewards",
+            new WkBtn { label = "Open", on = true, col = !AHChallenge.S(p).won && p.path != "artisan" ? Go : Plain, act = OpenChallenge }));
+        rows.Add(s => Row(s, p.path == "artisan" ? "Repairs · " + AHRepairs.Rank(p) : "Guild repairs", new Color(0.75f, 0.8f, 0.9f),
+            p.path == "artisan" ? "Mend your gear at an anvil for less, and take other heroes' repair orders" : "The Artisans' Guild mends your gear for less than a shop", "Lowest condition " + AHWear.LowestCondition(p) + "%",
+            new WkBtn { label = "Open", on = true, col = AHWear.LowestCondition(p) <= 30 ? Go : Plain, act = OpenRepairs }));
         rows.Add(s => Row(s, "Caravans", new Color(1f, 0.8f, 0.45f), "Send your goods to towns that want them, or guard other heroes' caravans", "",
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenCaravans }));
         rows.Add(s => Row(s, "Test kitchen", new Color(1f, 0.7f, 0.4f), "Invent your own recipes: the right mix carries your name", AHKitchen.S(p).found.Count + " / " + AHKitchen.Sigs.Length + " found",

@@ -371,6 +371,7 @@ public class AHPlayer : MonoBehaviour
     public void Drink(string id)
     {
         var d = AHItems.Get(id); if (d == null || !d.potion || dead) return;
+        if (AHChallenge.NoFlasks(g)) return;
         var pot = AHJson.O(AHJson.O(AHDB.Items, id), "potion");
         float now = Time.time;
         var ui = g.ui;
@@ -1113,6 +1114,7 @@ public class AHPlayer : MonoBehaviour
         {
             float gap = src.type.lvl - level;
             raw *= Mathf.Clamp(1f + gap * 0.05f, 0.6f, 1.9f) * (g.IsNight && !g.InTown(transform.position) ? 1.2f : 1f);
+            raw *= AHChallenge.YouTakenK();   // the weekly challenge
         }
         // a perfect dodge: rolling just as the blow lands slows the world for a moment and sharpens your next strikes
         if (iframe > 0.22f && src != null && Time.time >= perfectCd)
@@ -1284,6 +1286,7 @@ public class AHPlayer : MonoBehaviour
     public void Eat(string id)
     {
         if (dead) return;
+        if (AHChallenge.NoFlasks(g)) return;
         if (Time.time < eatCd) { if (g.ui != null) g.ui.Toast("You’re still chewing (" + Mathf.CeilToInt(eatCd - Time.time) + "s)."); return; }
         var f = AHItems.Get(id);
         if (f == null || !f.IsFood || !bag.Take(id)) return;

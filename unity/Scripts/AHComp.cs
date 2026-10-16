@@ -50,7 +50,7 @@ public static class AHComp
     // web petK: how strong a pet skill is (0 = not learnt yet)
     public static float PetK(AHPlayer p, string skill)
     {
-        string k = p.pet; if (k == null) return 0f;
+        string k = p.pet; if (k == null || AHProfPets.Is(k)) return 0f;   // (a profession pet gathers; it learns no fighting skills)
         int L = PetLv(p, k), need = skill == "fetch" ? 3 : skill == "forage" ? 5 : skill == "guard" ? 8 : skill == "mend" ? 12 : 16;
         if (L < need) return 0f;
         var kind = AHJson.A(AHDB.Table("companions", "PET_KIND"), k);
@@ -65,7 +65,8 @@ public static class AHComp
     // learnt yet, and what it does at the pet's level now
     public static List<string[]> PetDetails(AHPlayer p, string k)
     {
-        var res = new List<string[]>(); string was = p.pet; p.pet = k;   // (worked out as if this pet were out)
+        var res = new List<string[]>(); if (AHProfPets.Is(k)) return res;
+        string was = p.pet; p.pet = k;   // (worked out as if this pet were out)
         int L = PetLv(p, k);
         var sks = AHDB.List("companions", "PET_SKILLS");
         if (sks != null) foreach (var o in sks)
@@ -117,6 +118,8 @@ public static class AHComp
     public static void Forage(AHGame g, string id)
     {
         AHEggs.OnGather(g);   // now and then an egg
+        if (AHGather.TakePerfect() && AHItems.Get(id) != null && g.player != null && g.player.bag.Add(id) && g.ui != null)
+            g.ui.Float(g.player.transform.position + Vector3.up * 2.8f, "Perfect! +1 " + AHItems.Get(id).name, new Color(1f, 0.85f, 0.3f));
         var p = g.player; float k = PetK(p, "forage"); if (k <= 0f || AHItems.Get(id) == null) return;
         if (Random.value < (0.05f + PetLv(p, p.pet) * 0.008f) * k && p.bag.Add(id) && g.ui != null)
             g.ui.Float(p.transform.position + Vector3.up * 2.4f, "+1 " + AHItems.Get(id).name + " (pet)", new Color(0.79f, 0.9f, 0.66f));

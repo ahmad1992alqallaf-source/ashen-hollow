@@ -232,7 +232,7 @@ public partial class AHUI : MonoBehaviour
         BuildShopHud();
         BuildMenuHud();
         BuildEmoteHud();
-        BuildLeapHud(); BuildPetHud(); BuildExtraHud(); BuildChat(); BuildCombo();
+        BuildLeapHud(); BuildPetHud(); BuildExtraHud(); BuildKnackHud(); BuildChat(); BuildCombo();
         BuildDailyHud();
         BuildEvHud();
         ApplySkin();
@@ -465,7 +465,7 @@ public partial class AHUI : MonoBehaviour
         AHWellbeing.Tick(this, dt);   // rest reminders
         // windows with timers (expeditions, caravans, requests, town projects) refresh by themselves every few seconds
         wkLiveT -= dt;
-        if (wkLiveT <= 0f) { wkLiveT = 5f; if (WorkOpen && (wkMode == "exped" || wkMode == "caravan" || wkMode == "requests" || wkMode == "town")) RenderWork(); }
+        if (wkLiveT <= 0f) { wkLiveT = 5f; if (WorkOpen && (wkMode == "exped" || wkMode == "looters" || wkMode == "twopart" || wkMode == "profpets" || wkMode == "caravan" || wkMode == "requests" || wkMode == "town")) RenderWork(); }
         var p = g.player;
         if (p != null && p.cls != null)
         {
@@ -519,7 +519,7 @@ public partial class AHUI : MonoBehaviour
         UpdatePotions();
         ShopKeys();
         if (Modal == 0) AHTutorial.Tick(g, this, dt);
-        InspectTick(); UpgradeTick(dt); LeapHudTick(); PetHudTick(); ExtraHudTick(dt); ChatTick(dt); ComboTick();
+        InspectTick(); UpgradeTick(dt); LeapHudTick(); PetHudTick(); ExtraHudTick(dt); KnackHudTick(dt); ChatTick(dt); ComboTick();
         Camera cam = g.cam;
         int n = 0;
         if (cam != null && p != null && !PickerOpen)
@@ -1233,7 +1233,7 @@ public partial class AHUI : MonoBehaviour
 
     public void OnAction()
     {
-        if (g.player != null && g.player.Busy) return;
+        if (g.player != null && g.player.Busy) { AHGather.Strike(g.player); return; }   // the gathering knack: a tap in the gold
         var n = NearNpc();
         // people win over things (a shop door, a bank, a chest) unless the thing is much closer
         var s = g.player != null ? AHGather.Nearest(g.player.transform.position) : null;

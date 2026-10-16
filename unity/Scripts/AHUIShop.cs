@@ -332,7 +332,8 @@ public partial class AHUI
         if (AHEggs.StatsOn) rows.Add(slot => Row(slot, AHEggs.StarsText(AHEggs.Stars(p, k)) + "  " + AHEggs.RarityTag(rar) + (AHEggs.Gilded(p, k) ? " · Gilded" : ""), Color.white,
             AHEggs.StatsLine(p, k), AHEggs.StatsHelp(p, k)));
         else rows.Add(slot => Row(slot, AHEggs.RarityTag(rar) + (AHEggs.Gilded(p, k) ? " · Gilded" : "") + (AHEggs.StoreOnly(k) ? " · from the Mystic egg" : ""), Color.white, "A companion: it doesn't change your stats", ""));
-        rows.Add(slot => Row(slot, "Knack: " + AHPetSkills.SkillName(k), new Color(0.62f, 0.85f, 1f), "Used by itself in a fight when it is ready", AHEggs.StatsOn ? "More stars come from hatching this pet again; at five, Essence instead." : ""));
+        if (AHProfPets.Is(k)) rows.Add(slot => Row(slot, "Profession pet", new Color(0.62f, 0.85f, 1f), AHProfPets.HelpText(k), AHProfPets.Helps(p) && p.pet == k ? "Gathering for you · " + AHProfPets.NextText(p) : ""));
+        else rows.Add(slot => Row(slot, "Knack: " + AHPetSkills.SkillName(k), new Color(0.62f, 0.85f, 1f), "Used by itself in a fight when it is ready", AHEggs.StatsOn ? "More stars come from hatching this pet again; at five, Essence instead." : ""));
         foreach (var d in AHComp.PetDetails(p, k))
         {
             var dd = d; bool got = dd[2] == "1";
@@ -374,6 +375,14 @@ public partial class AHUI
         rows.Add(slot => Row(slot, "Pet expeditions" + (homeN > 0 ? "  <color=#9be37a>" + homeN + " back home</color>" : ""), new Color(1f, 0.85f, 0.4f),
             "Send a pet on a trip for materials, pet XP and rare finds · " + awayN + " / " + AHExpeditions.Slots(p) + " away", "",
             new WkBtn { label = "Open", on = true, col = homeN > 0 ? Go : Plain, act = OpenExpeditions }));
+        int ppOwn = 0; foreach (var d in AHProfPets.Defs) if (p.pets.Contains(d.id)) ppOwn++;
+        rows.Add(slot => Row(slot, "Profession pets · " + ppOwn + " / " + AHProfPets.Defs.Length, new Color(1f, 0.85f, 0.4f),
+            "Helpers earned by gathering: a mole, a beaver, an otter, a hedgehog and a rare python", p.path == "artisan" ? "Out at your side, they gather for you" : "Companions to collect (they gather only for Artisans)",
+            new WkBtn { label = "Open", on = true, col = Plain, act = OpenProfPets }));
+        var lh = AHLooters.Hired(p); int ljBack = AHLooters.S(p).jobs.FindAll(x => AHLooters.Back(x)).Count;
+        rows.Add(slot => Row(slot, (p.path == "artisan" ? "Looting contracts" : "Dungeon looters") + (ljBack > 0 ? "  <color=#9be37a>party is back</color>" : ""), new Color(1f, 0.85f, 0.4f),
+            p.path == "artisan" ? "Loot for an adventuring party in a dungeon, for a share of what they find" : lh != null ? lh.name + " comes with you on your next dungeon run" : "Hire an Artisan to gather what the fallen leave behind in a dungeon", "",
+            new WkBtn { label = "Open", on = true, col = ljBack > 0 ? Go : Plain, act = OpenLooters }));
         for (int ei = 0; ei < es.eggs.Count; ei++)
         {
             int ii = ei; var e = es.eggs[ei]; bool ready = AHEggs.Ready(e); long wc = AHEggs.WarmCost(e);
