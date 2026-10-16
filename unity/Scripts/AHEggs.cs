@@ -23,6 +23,7 @@ public class AHEggState
     public List<string> gilded = new List<string>();    // pets you have the golden one of
     public long essence;
     public int pityEpic, pityLeg, hatched, mystic;
+    public string silverDay = ""; public int silverN, silverAll;   // the Artisans' Silver egg: bought today, and in all
 }
 
 public static class AHEggs
@@ -263,6 +264,30 @@ public static class AHEggs
         AHSound.Play("level"); g.SaveProgress();
         return lines;
     }
+    // the Artisans' Silver egg: in-game coin, a few a day, hatches at once into one of the world's fighting pets (never a
+    // store pet, never Gilded). For an Artisan a fighting pet is a companion to collect: looks only.
+    public static object Silver { get { return AHJson.O(D, "SILVER"); } }
+    public static long SilverPrice { get { return (long)AHJson.N(Silver, "price", 2000) * AHDB.CU; } }
+    public static int SilverPerDay { get { return (int)AHJson.N(Silver, "per_day", 3); } }
+    static string Today { get { return System.DateTime.UtcNow.ToString("yyyy-MM-dd"); } }
+    public static int SilverLeft(AHPlayer p) { var s = S(p); return s.silverDay == Today ? Mathf.Max(0, SilverPerDay - s.silverN) : SilverPerDay; }
+    public static string BuySilver(AHGame g)
+    {
+        var p = g.player; var s = S(p);
+        if (p.path != "artisan") { g.ui.Toast("The Silver egg is for Artisans."); return null; }
+        if (SilverLeft(p) <= 0) { g.ui.Toast("No more Silver eggs today. New ones tomorrow."); return null; }
+        long c = SilverPrice; if (p.bag.money < c) { g.ui.Toast("A Silver egg costs " + AHItems.MoneyText(c) + "."); return null; }
+        var pool = Pool(null); if (pool.Count == 0) return null;
+        p.bag.money -= c; p.bag.Touch();
+        if (s.silverDay != Today) { s.silverDay = Today; s.silverN = 0; }
+        s.silverN++; s.silverAll++;
+        string rar = Roll(AHJson.O(D, "ODDS_EGG")); if (rar == "legendary") rar = "epic";   // (no Gilded pets from silver)
+        bool gl; string k = Pick(pool, rar, out gl);
+        string line = Give(g, k, false, Rarity(k));
+        AHSound.Play("level"); g.SaveProgress();
+        return line;
+    }
+
     public static string OddsLine()
     {
         var o = AHJson.O(Mystic, "odds"); var parts = new List<string>();

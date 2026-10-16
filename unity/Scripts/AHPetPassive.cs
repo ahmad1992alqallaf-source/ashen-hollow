@@ -44,7 +44,7 @@ public static class AHPetPassive
 
     public static bool Active(AHPlayer p)
     {
-        return p != null && p.pet != null && p.cls != null && p.level >= HeroLv && Suits(Of(p.pet), p.cls.id) && AHExpeditions.Away(p, p.pet) == null;
+        return p != null && p.pet != null && p.path != "artisan" && p.cls != null && p.level >= HeroLv && Suits(Of(p.pet), p.cls.id) && AHExpeditions.Away(p, p.pet) == null;
     }
 
     // added to the hero's stats in Recalc

@@ -51,6 +51,7 @@ public static class AHComp
     public static float PetK(AHPlayer p, string skill)
     {
         string k = p.pet; if (k == null || AHProfPets.Is(k)) return 0f;   // (a profession pet gathers; it learns no fighting skills)
+        if (p.path == "artisan") return 0f;   // (for an Artisan a fighting pet is a companion to collect: looks only)
         int L = PetLv(p, k), need = skill == "fetch" ? 3 : skill == "forage" ? 5 : skill == "guard" ? 8 : skill == "mend" ? 12 : 16;
         if (L < need) return 0f;
         var kind = AHJson.A(AHDB.Table("companions", "PET_KIND"), k);

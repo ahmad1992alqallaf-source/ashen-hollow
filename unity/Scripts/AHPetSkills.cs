@@ -14,7 +14,7 @@ public static class AHPetSkills
     public const int MinLevel = 1;
     static float readyAt;
 
-    public static bool Has(AHPlayer p) { return p != null && p.pet != null && !AHProfPets.Is(p.pet) && AHComp.PetLv(p, p.pet) >= MinLevel; }
+    public static bool Has(AHPlayer p) { return p != null && p.pet != null && p.path != "artisan" && !AHProfPets.Is(p.pet) && AHComp.PetLv(p, p.pet) >= MinLevel; }
     public static float Left { get { return Mathf.Max(0f, readyAt - Time.time); } }
 
     public static string SkillName(string k)

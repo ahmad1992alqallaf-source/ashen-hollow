@@ -209,6 +209,7 @@
   },
   "DUP_ESSENCE": 150,
   "WARM_POINTS_PER_CROWN": 4,
+  "SILVER": { "name": "Silver egg", "price": 2000, "per_day": 3, "_about": "Artisans only: bought with in-game coin (price x CU), hatches at once into a world fighting pet (never a store pet or a Gilded one). For an Artisan a fighting pet is looks only." },
   "MYSTIC": {
     "name": "Mystic egg",
     "price": 300,

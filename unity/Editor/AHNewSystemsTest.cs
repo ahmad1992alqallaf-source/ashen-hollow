@@ -96,6 +96,20 @@ public static class AHNewSystemsTest
         Add(() => { p.path = "adventurer"; g.ui.OpenProfPets(); Ok(!AHProfPets.Helps(p), "an Adventurer's profession pet does not gather"); });
         Add(() => Shot("1_profpets_adventurer"));
 
+        // ---------- 1b. the Artisans' Silver egg ----------
+        Add(() => {
+            p.path = "artisan"; var es = AHEggs.S(p); es.silverDay = ""; p.bag.money += AHEggs.SilverPrice * 2;
+            int pets0 = p.pets.Count; long ess0 = es.essence, m0 = p.bag.money;
+            string line = AHEggs.BuySilver(g);
+            Ok(line != null && p.bag.money == m0 - AHEggs.SilverPrice, "Artisan buys a Silver egg: " + line);
+            Ok(p.pets.Count > pets0 || es.essence > ess0, "it hatches a new pet or Essence");
+            Ok(AHEggs.SilverLeft(p) == AHEggs.SilverPerDay - 1, "daily count goes down");
+            string fighter = null; foreach (var k in p.pets) if (!AHProfPets.Is(k) && !AHEggs.StoreOnly(k)) { fighter = k; break; }
+            if (fighter != null) { p.pet = fighter; Ok(!AHPetSkills.Has(p) && AHComp.PetK(p, "guard") == 0f && !AHPetPassive.Active(p), "for an Artisan the " + fighter + " is looks only"); }
+            p.path = "adventurer"; Ok(AHEggs.BuySilver(g) == null, "an Adventurer can't buy a Silver egg");
+            p.path = "artisan"; SetUI(g, "wkMode", "comp"); SetUI(g, "wkPageI", 0); g.ui.ShowWork(true); typeof(AHUI).GetMethod("RenderWork", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(g.ui, null);
+        });
+        Add(() => Shot("1b_silver_egg"));
         // ---------- 2. looters ----------
         Add(() => {
             p.path = "adventurer"; AHLooters.S(p).hired = ""; p.bag.money += AHLooters.Fee(p) * 2;

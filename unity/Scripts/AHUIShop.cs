@@ -371,6 +371,13 @@ public partial class AHUI
                 new WkBtn { label = "Egg", on = es.eggs.Count < AHEggs.Satchel, col = Go, act = () => { AHEggs.Add(g, AHEggs.LandEgg(AHGame.AreaId)); RenderWork(); } }));
         rows.Add(slot => Row(slot, "Egg satchel · " + es.eggs.Count + " / " + AHEggs.Satchel + (es.essence > 0 ? "  <color=#c07aff>" + es.essence.ToString("#,0") + " Essence</color>" : ""), new Color(1f, 0.85f, 0.4f),
             "Beasts and gathering drop the egg of the land you are in; beasts slain after dark, a Void egg.", "Each egg grows from the work that matches it. A grown egg hatches a pet: a new one, or Essence for one you have."));
+        if (p.path == "artisan")
+        {
+            int sl = AHEggs.SilverLeft(p); long sp = AHEggs.SilverPrice;
+            rows.Add(slot => Row(slot, "Silver egg · " + AHItems.MoneyText(sp) + "  <color=#c9c0aa>" + sl + " / " + AHEggs.SilverPerDay + " left today</color>", new Color(0.85f, 0.88f, 0.95f),
+                "For Artisans: hatches at once into one of the world's fighting pets", "A companion to collect: for an Artisan it gives looks only",
+                new WkBtn { label = "Buy", on = sl > 0 && p.bag.money >= sp, col = Go, act = () => { var l = AHEggs.BuySilver(g); if (l != null) Banner("Silver egg", l); RenderWork(); } }));
+        }
         int awayN = AHExpeditions.L(p).Count, homeN = AHExpeditions.L(p).FindAll(x => AHExpeditions.Back(x)).Count;
         rows.Add(slot => Row(slot, "Pet expeditions" + (homeN > 0 ? "  <color=#9be37a>" + homeN + " back home</color>" : ""), new Color(1f, 0.85f, 0.4f),
             "Send a pet on a trip for materials, pet XP and rare finds · " + awayN + " / " + AHExpeditions.Slots(p) + " away", "",
