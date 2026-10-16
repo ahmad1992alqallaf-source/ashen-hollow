@@ -13,6 +13,9 @@ using UnityEngine;
 
 public static class AHSlim
 {
+    // models no longer in the game: moved out of Resources so they stop going into the build
+    static readonly string[] Retired = { "Models/Comp/mount_tyrant_hd.glb" };
+
     [MenuItem("Ashen Hollow/Slim Build")]
     public static void Slim()
     {
@@ -26,6 +29,15 @@ public static class AHSlim
             bytes += new FileInfo(old).Length;
             string err = AssetDatabase.MoveAsset(old, unused + "/" + Path.GetFileName(old));
             if (string.IsNullOrEmpty(err)) moved++; else Debug.LogWarning("Ashen Hollow: could not move " + old + ": " + err);
+        }
+
+        // models taken out of the game (their data entries are gone too)
+        foreach (var r in Retired)
+        {
+            string p = root + "/Resources/AH/" + r; if (!File.Exists(p)) continue;
+            bytes += new FileInfo(p).Length; AssetDatabase.MoveAsset(p, unused + "/" + Path.GetFileName(p));
+            string tex = p.Replace(".glb", "_tex"); if (AssetDatabase.IsValidFolder(tex)) AssetDatabase.MoveAsset(tex, unused + "/" + Path.GetFileName(tex));
+            moved++;
         }
 
         int twins = 0, pics = 0;
@@ -65,7 +77,7 @@ public static class AHSlim
             Keep(lit, matDir + "/Keep_GlowBump.mat", true, true);
         }
         AssetDatabase.SaveAssets(); AssetDatabase.Refresh();
-        Debug.Log("Ashen Hollow: slim build: " + moved + " unused world models, " + twins + " plain twins of _hd models and " + pics + " left-over pictures moved out of the build (" + (bytes / 1048576) + " MB on disk); shader keep materials ready");
+        Debug.Log("Ashen Hollow: slim build: " + moved + " unused or retired models, " + twins + " plain twins of _hd models and " + pics + " left-over pictures moved out of the build (" + (bytes / 1048576) + " MB on disk); shader keep materials ready");
     }
 
     // the JSON part of a .glb (null if it is not one)

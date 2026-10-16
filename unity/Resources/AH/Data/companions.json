@@ -264,15 +264,6 @@
    "speed": 1.65,
    "blurb": "A squat black dragon with a red saddle. Nobody argues with you.",
    "store": true
-  },
-  "tyrant": {
-   "name": "Tyrant Alpha",
-   "price": 0,
-   "speed": 1.7,
-   "blurb": "A rebuilt king of the old lizards, black and violet, with machine bones under its scales.",
-   "store": true,
-   "walkV": 1.0,
-   "runV": 3.7
   }
  },
  "MERCS": {
@@ -356,8 +347,7 @@
   "souleater_red": 2.42,
   "souleater_green": 2.42,
   "souleater_blue": 2.42,
-  "souleater_black": 2.42,
-  "tyrant": 2.48
+  "souleater_black": 2.42
  },
  "PET_FLY": [
   "owl",
