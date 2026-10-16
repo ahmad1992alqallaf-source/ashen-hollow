@@ -33,7 +33,7 @@ public static class AHModel
 
         // measure, scale, and put the feet on the ground, as it stands in its idle: some rigs (Sketchfab's) lie on their side
         // at rest and only stand up in their clips, so their skins' own boxes say nothing about where their feet are
-        var clipsAll = Resources.LoadAll<AnimationClip>(path);
+        var clipsAll = Resources.LoadAll<AnimationClip>(ClipPath(path));
         AnimationClip pose = null; foreach (var c in clipsAll) if (c != null && c.name == "Idle") { pose = c; break; }
         if (pose == null && clipsAll.Length > 0) pose = clipsAll[0];
         bool posed = false;
@@ -56,6 +56,30 @@ public static class AHModel
     }
 
     public static float LastHeight;   // how tall the last model came out (metres)
+
+    // models that share one skeleton and the very same moves keep the moves in one file only (the others' copies were
+    // taken out to make the phone build smaller): each of these plays the clips of the model named after it
+    static readonly System.Collections.Generic.Dictionary<string, string> SharedClips = new System.Collections.Generic.Dictionary<string, string>
+    {
+        { "Comp/mount_goldsteed_hd", "Comp/mount_horse_hd" }, { "Comp/mount_nightmare_hd", "Comp/mount_horse_hd" }, { "Comp/mount_voidwing_hd", "Comp/mount_horse_hd" },
+        { "Comp/mount_souleater_blue_hd", "Comp/mount_souleater_black_hd" }, { "Comp/mount_souleater_green_hd", "Comp/mount_souleater_black_hd" }, { "Comp/mount_souleater_red_hd", "Comp/mount_souleater_black_hd" },
+        { "Comp/mount_glacierwolf_hd", "Comp/mount_direwolf_hd" }, { "Comp/pet_snow_fox_hd", "Comp/pet_fox_hd" },
+        { "Beasts/b_boar_hd", "Beasts/b_alphawolf_hd" }, { "Beasts/b_boarlord_hd", "Beasts/b_alphawolf_hd" }, { "Beasts/b_dm_behemoth", "Beasts/b_alphawolf_hd" },
+        { "Beasts/b_dm_hellhound", "Beasts/b_alphawolf_hd" }, { "Beasts/b_goldhorn_hd", "Beasts/b_alphawolf_hd" }, { "Beasts/b_icewolf_hd", "Beasts/b_alphawolf_hd" },
+        { "Beasts/b_mistfang_hd", "Beasts/b_alphawolf_hd" }, { "Beasts/b_rimeclaw_hd", "Beasts/b_alphawolf_hd" }, { "Beasts/b_shadowwolf_hd", "Beasts/b_alphawolf_hd" },
+        { "Beasts/b_wolf_hd", "Beasts/b_alphawolf_hd" }, { "Beasts/b_tjackal_hd", "Beasts/b_jackal_hd" }, { "Beasts/b_stag_hd", "Beasts/b_doe_hd" },
+    };
+    public static string ClipPath(string path)
+    {
+        string f = path.StartsWith("AH/Models/") ? path.Substring(10) : path, from;
+        return SharedClips.TryGetValue(f, out from) ? "AH/Models/" + from : path;
+    }
+
+    // a model is there in either of its forms: <file> or its detailed <file>_hd (the plain one may have been left out of the build)
+    public static bool Exists(string file)
+    {
+        return Resources.Load<GameObject>("AH/Models/" + file) != null || Resources.Load<GameObject>("AH/Models/" + file + "_hd") != null;
+    }
 
     static Mesh baked;
     static Bounds Measure(GameObject go) { return Measure(go, false); }

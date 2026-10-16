@@ -691,7 +691,7 @@ public class AHHomeView : MonoBehaviour
     // a real animal model resting on the spot (the cat on its cushion, the dog by its kennel), breathing in its idle
     bool Pet(Transform t, string file, float len, Vector3 at)
     {
-        if (Resources.Load<GameObject>("AH/Models/" + file) == null) return false;
+        if (!AHModel.Exists(file)) return false;
         var h = new GameObject("Pet").transform; h.SetParent(t, false); h.localPosition = at; h.localRotation = Quaternion.Euler(0, 160f, 0);
         AHAnim an; AHModel.Spawn(h, file, len, true, 0f, out an);
         if (an != null && an.HasClips) { an.Play(an.Has("Idle_2_HeadLow") ? "Idle_2_HeadLow" : "Idle", true, 0.7f, true); petAnims.Add(an); }
@@ -746,7 +746,7 @@ public class AHHomeView : MonoBehaviour
         a.rotation = Quaternion.Euler(0, UnityEngine.Random.value * 360f, 0);
         var body = new GameObject("Body").transform; body.SetParent(a, false); body.localRotation = Quaternion.Euler(0, g.ModelYaw, 0);
         float len = kind == "cow" ? 2.4f : kind == "pig" ? 1.35f : kind == "sheep" ? 1.3f : kind == "goat" ? 1.15f : 0f;
-        if (len > 0f && Resources.Load<GameObject>("AH/Models/Comp/farm_" + kind) != null)
+        if (len > 0f && AHModel.Exists("Comp/farm_" + kind))
         {
             // a real animal: rigged, walking and grazing (made for Ashen Hollow from Quaternius animals, CC0)
             body.localRotation = Quaternion.identity; AHAnim an;
