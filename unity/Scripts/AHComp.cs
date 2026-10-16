@@ -292,7 +292,7 @@ public class AHPetFollow : MonoBehaviour
                 r.materials = mats;
             }
         }
-        else model = AHModel.Spawn(transform, "Comp/pet_" + k, 0f, false, 0f, out a);
+        else model = AHModel.Spawn(transform, "Comp/pet_" + k, AHProfPets.Height(k), false, 0f, out a);   // (profession pets come in at a set height)
         if (a != null && a.HasClips) anim = a; else if (a != null) a.Dispose();
         // flying only with real wingbeats; the still birds and the dragon ride on your shoulder
         // the birds and the baby dragon ride on your shoulder (the parrot's model sits on its own branch, so it can't

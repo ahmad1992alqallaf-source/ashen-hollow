@@ -26,6 +26,8 @@ public static class AHProfPets
     };
     public static Def Of(string pet) { return pet == null ? null : Array.Find(Defs, d => d.id == pet); }
     public static bool Is(string pet) { return Of(pet) != null; }
+    // how tall each one stands next to the hero (0: as the model is)
+    public static float Height(string pet) { return pet == "mole" ? 0.75f : pet == "drill_python" ? 0.6f : pet == "beaver" ? 0.8f : pet == "otter" ? 0.95f : pet == "hedgehog" ? 0.55f : 0f; }
     static string SkillName(string s) { return char.ToUpperInvariant(s[0]) + s.Substring(1); }
     static long NowS { get { return DateTimeOffset.UtcNow.ToUnixTimeSeconds(); } }
 

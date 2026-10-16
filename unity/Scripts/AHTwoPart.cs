@@ -97,7 +97,7 @@ public static class AHTwoPart
         long coin = 3000L * AHDB.CU; p.AddMoney(coin, p.transform.position);
         string[] gems = { "sapphire", "ruby", "emerald" }; p.bag.Add(gems[UnityEngine.Random.Range(0, 3)]); p.bag.Add("ancient_relic");
         p.GainXp("attack", 1500, false);
-        p.bag.Take(Key, p.bag.Count(Key));
+        if (p.bag.Count(Key) > 0) p.bag.Take(Key, p.bag.Count(Key));
         g.ui.Banner(Name + " complete", "You are now " + Title(p) + " · " + AHItems.MoneyText(coin) + ", a gem and an ancient relic");
         p.bag.Touch(); g.MarkDirty();
     }

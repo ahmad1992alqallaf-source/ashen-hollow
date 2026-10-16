@@ -71,9 +71,10 @@ public static class AHRepairs
         {
             s.day = Today; s.orders.Clear();
             var rnd = new System.Random(Today.GetHashCode() ^ (p.heroName ?? "").GetHashCode());
+            var used = new List<int>();
             for (int i = 0; i < 3; i++)
             {
-                int k = rnd.Next(Pieces.GetLength(0)); string mat = Pieces[k, 1];
+                int k = rnd.Next(Pieces.GetLength(0)); while (used.Contains(k)) k = (k + 1) % Pieces.GetLength(0); used.Add(k); string mat = Pieces[k, 1];   // three different pieces
                 if (AHItems.Get(mat) == null) mat = "iron_bar";
                 int n = 1 + rnd.Next(3);
                 long pay = (long)Math.Round((AHComp.Value(mat) * n * 2.2f + 40f) * (1f + 0.1f * RankI(p))) * AHDB.CU / 10;
