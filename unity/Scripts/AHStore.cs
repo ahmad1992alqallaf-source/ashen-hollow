@@ -15,7 +15,7 @@ using UnityEngine;
 public static class AHStore
 {
     public static string Currency { get { return AHJson.S(AHDB.File("store"), "CURRENCY", "Crowns"); } }
-    public static bool Test { get { return AHJson.B(AHDB.File("store"), "TEST"); } }
+    public static bool Test { get { return AHDev.On && AHJson.B(AHDB.File("store"), "TEST"); } }   // free test Crowns: developer mode only
     public static List<object> Items { get { return AHJson.A(AHDB.File("store"), "ITEMS") ?? new List<object>(); } }
     public static List<object> Packs { get { return AHJson.A(AHDB.File("store"), "PACKS") ?? new List<object>(); } }
 

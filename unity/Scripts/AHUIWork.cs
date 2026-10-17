@@ -229,6 +229,8 @@ public partial class AHUI
         else if (wkMode == "furnish") RenderFurnish(p);
         else if (wkMode == "house") RenderHouse(p);
         else if (wkMode == "settings") RenderOptions(p);
+        else if (wkMode == "feedback") RenderFeedback(p);
+        else if (wkMode == "whatsnew") RenderWhatsNew(p);
         else if (wkMode == "emotes") RenderEmotes(p);
         else if (wkMode == "art") RenderArtisan(p);
         else if (wkMode == "loadouts") RenderLoadouts(p);

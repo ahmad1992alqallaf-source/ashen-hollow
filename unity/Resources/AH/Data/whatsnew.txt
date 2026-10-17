@@ -1,0 +1,10 @@
+# 0.9 · Welcome, testers
+- Thank you for testing Ashen Hollow! | Send feedback in Settings (or type /bug in the chat) whenever something feels wrong.
+- Profession pets | The mole, drill python, beaver, otter and hedgehog bring you materials on their own.
+- Looters for hire | Take Marra and friends into a dungeon: they bring back their own haul.
+- Weekly challenge | A new twist each week inside the dungeons, with a reward for winning it.
+- The knack | Strike when the mark is in the gold while gathering for an extra item.
+- Apprentice | A squire who learns from the fights you win.
+- Repairs and the Monster book | Mend your gear, and fill a page for every foe you defeat.
+- Silver egg for Artisans | Up to three a day; Artisan pets follow you for their looks.
+- Lighter armour | Suits are simpler for phones, so the game loads and runs faster.

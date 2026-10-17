@@ -17,8 +17,10 @@ public static class AHBuild
         PlayerSettings.companyName = "DefaultCompany";
         PlayerSettings.productName = "AshenHollow";
         PlayerSettings.SetApplicationIdentifier(UnityEditor.Build.NamedBuildTarget.Android, "com.ashenhollow.game");
-        PlayerSettings.bundleVersion = "0.3.0";
+        // the version testers see is "0.9.<build>"; the build number only goes up (each phone build adds one, which
+        // Firebase and Google Play need to offer it as an update)
         PlayerSettings.Android.bundleVersionCode = Mathf.Max(PlayerSettings.Android.bundleVersionCode, 3);
+        PlayerSettings.bundleVersion = Major + "." + PlayerSettings.Android.bundleVersionCode;
         PlayerSettings.defaultInterfaceOrientation = UIOrientation.AutoRotation;
         PlayerSettings.allowedAutorotateToPortrait = false;
         PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
@@ -41,8 +43,20 @@ public static class AHBuild
     [MenuItem("Ashen Hollow/Build And Run On Phone")]
     public static void BuildAndRun() { Build(true); }
 
+    const string Major = "0.9";   // raise to 1.0 for the release
+    const string InfoFile = "Assets/AshenHollow/Resources/AH/Data/build.txt";
+
+    // the next build number, and the file the game reads it from (Settings > Version, feedback notes)
+    static void NextBuild()
+    {
+        PlayerSettings.Android.bundleVersionCode = Mathf.Max(PlayerSettings.Android.bundleVersionCode, 3) + 1;
+        File.WriteAllText(InfoFile, PlayerSettings.Android.bundleVersionCode + "|" + System.DateTime.Now.ToString("yyyy-MM-dd HH:mm") + "\n");
+        AssetDatabase.ImportAsset(InfoFile, ImportAssetOptions.ForceSynchronousImport);
+    }
+
     static void Build(bool run)
     {
+        NextBuild();
         Settings();
         string scene = null;
         foreach (var guid in AssetDatabase.FindAssets("AshenMeadow t:Scene")) { scene = AssetDatabase.GUIDToAssetPath(guid); break; }
@@ -59,7 +73,7 @@ public static class AHBuild
         var report = BuildPipeline.BuildPlayer(opts);
         var s = report.summary;
         string msg = s.result == BuildResult.Succeeded
-            ? "Ashen Hollow: APK built: Builds/AshenHollow.apk (" + (s.totalSize / 1048576) + " MB) in " + s.totalTime.ToString(@"hh\:mm\:ss")
+            ? "Ashen Hollow: APK built: Builds/AshenHollow.apk · version " + PlayerSettings.bundleVersion + " (build " + PlayerSettings.Android.bundleVersionCode + ") · " + (s.totalSize / 1048576) + " MB in " + s.totalTime.ToString(@"hh\:mm\:ss")
             : "Ashen Hollow: build " + s.result + " with " + s.totalErrors + " errors";
         Debug.Log(msg);
         File.WriteAllText("Builds/build_result.txt", msg + "\n");

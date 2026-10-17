@@ -176,7 +176,7 @@ public static class AHComp
     public static void ToggleRide(AHGame g) { if (g.player.mounted) Dismount(g, false); else Mount(g); }
 
     // TESTING: every mount can be ridden from PETS -> "All mounts", owned or not. Turn this off before release.
-    public const bool TestMounts = true;
+    public static bool TestMounts { get { return AHDev.On; } }   // testing rows: the editor, or a phone in developer mode
     static string trialPrev; static bool inTrial;
     // ride any mount for a try: nothing is learned or saved, and getting off gives you back your own mount
     public static void Try(AHGame g, string k)

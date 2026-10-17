@@ -519,7 +519,7 @@ public partial class AHUI : MonoBehaviour
         UpdatePotions();
         ShopKeys();
         if (Modal == 0) AHTutorial.Tick(g, this, dt);
-        InspectTick(); UpgradeTick(dt); LeapHudTick(); PetHudTick(); ExtraHudTick(dt); KnackHudTick(dt); ChatTick(dt); ComboTick();
+        InspectTick(); UpgradeTick(dt); LeapHudTick(); PetHudTick(); ExtraHudTick(dt); KnackHudTick(dt); ChatTick(dt); ComboTick(); FeedbackTick(); WhatsNewTick(dt);
         Camera cam = g.cam;
         int n = 0;
         if (cam != null && p != null && !PickerOpen)
@@ -584,7 +584,7 @@ public partial class AHUI : MonoBehaviour
     void ReadPointers()
     {
         if (CreatorOpen) { CreatorKeys(); }
-        else if (ChatOpen) { }   // typing in the chat: no hotkeys
+        else if (ChatOpen || FeedbackTyping) { }   // typing in the chat or a feedback note: no hotkeys
         else if (WorkOpen) WorkKeys();
         else if (AHInput.BagKey() && !PickerOpen && Time.frameCount != workShutFrame) ShowBag(!BagOpen);
         if (AHInput.BackKey() && BagOpen) ShowBag(false);

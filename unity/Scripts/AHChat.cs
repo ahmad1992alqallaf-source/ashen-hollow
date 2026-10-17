@@ -85,12 +85,14 @@ public static class AHChat
         if (Array.IndexOf(emotes, c) >= 0 || c == "yes") { p.Emote(c); var d = AHEmote.Find(c); Add("system", (string.IsNullOrEmpty(p.heroName) ? "You" : p.heroName) + " " + (d != null ? d.verb : c) + "."); return; }
         switch (c)
         {
-            case "help": Add("system", "Commands: /wave /bow /nod /no /cheer /dance /sit /point /story /deep /map /where /time"); return;
+            case "help": Add("system", "Commands: /wave /bow /nod /no /cheer /dance /sit /point /story /deep /map /where /time /bug /version"); return;
             case "story": Add("story", AHStory.Status(p)); g.ui.OpenChat(false); g.ui.OpenStory(); return;
             case "deep": Add("system", "The Ashen Deep · this week " + AHDeep.WeekBoss.name + " · " + AHDeep.WeekTwist.name + (AHDeep.Best > 0 ? " · your best " + AHDeep.Clock(AHDeep.Best) : "")); return;
             case "map": g.ui.OpenChat(false); g.ui.OpenMap(); return;
             case "where": Add("system", "You are in " + (g.data != null ? g.data.region : AHGame.AreaId) + "."); return;
             case "time": Add("system", "It is " + g.TimeText() + " in the Hollow" + (g.IsNight ? ", and the night beasts are out." : ".")); return;
+            case "bug": case "feedback": g.ui.OpenChat(false); g.ui.OpenFeedback(); return;
+            case "version": Add("system", "Ashen Hollow " + AHBuildInfo.Label + (AHBuildInfo.Date.Length > 0 ? ", built " + AHBuildInfo.Date : "") + "."); return;
         }
         Add("system", "No such command. Type /help for the list.");
     }

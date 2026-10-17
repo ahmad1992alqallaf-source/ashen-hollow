@@ -79,6 +79,7 @@ public partial class AHUI
         wkHint.text = "Sound, graphics, camera and your account. Changes take effect at once.";
         var rows = new List<Action<int>>();
         Color cS = new Color(0.8f, 0.8f, 1f), cG = new Color(0.61f, 0.89f, 1f), cC = new Color(1f, 0.8f, 0.45f), cA = new Color(1f, 0.6f, 0.75f);
+        TesterRows(rows);   // send feedback, version and what's new
         // sound
         rows.Add(s => Row(s, "Sound", cS, AHSound.Muted ? "All sound is off" : "Music and effects are on", "",
             Opt("On", !AHSound.Muted, () => AHSound.Muted = false), Opt("Off", AHSound.Muted, () => AHSound.Muted = true)));
