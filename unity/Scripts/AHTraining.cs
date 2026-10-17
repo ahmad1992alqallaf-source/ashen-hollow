@@ -25,7 +25,7 @@ public static class AHTraining
     public static bool Active { get { return OnIsland && Step < Steps.Length; } }
 
     // web units on the island (web TL2) -> world
-    static Vector3 At(AHGame g, float u, float v) { return g.W((X0 + u) * AHDB.S, v * AHDB.S); }
+    public static Vector3 At(AHGame g, float u, float v) { return g.W((X0 + u) * AHDB.S, v * AHDB.S); }
 
     // ---------- the steps ----------
     public class StepDef { public string id, text, textTouch; public float u = -1f, v; public float reach = 4.5f; }
@@ -144,6 +144,7 @@ public static class AHTraining
         }
         if (OnIsland && Step >= Steps.Length && !AHPrefs.HasKey(KSnap)) { AHPrefs.SetString(KSnap, Snap(p.bag)); Step = 0; }   // came by another road
         StepReset();
+        if (OnIsland) AHTrainingIsland.Dress(g);
         int arr = AHPrefs.GetInt("ah_train_arrive", 0);
         if (arr != 0 && !OnIsland && g.ui != null)
         {
@@ -280,6 +281,104 @@ public static class AHTraining
         StartStep(g); g.MarkDirty();
     }
     static float Flat(Vector3 a, Vector3 b) { a.y = 0f; b.y = 0f; return (a - b).magnitude; }
+}
+
+// the island's buildings and props, made in the game instead of as boxes in the area model: Elara's cottage with
+// barrels, crates and sacks by the door, a log fence round the toad pen, a weapon rack, a wheelbarrow by the rocks,
+// and a plank pier on round posts out to Oskar's boat
+public static class AHTrainingIsland
+{
+    static Material wood, darkWood;
+    static Material Mat(Color c) { var m = new Material(Shader.Find("Universal Render Pipeline/Lit")); m.SetColor("_BaseColor", c.linear); m.SetFloat("_Smoothness", 0.12f); m.enableInstancing = true; return m; }
+
+    // a KayKit model, its widest side fitted to span metres, standing on the ground at p, facing toward 'face'
+    static GameObject Model(Transform par, string file, float span, Vector3 p, Vector3? face = null, float yaw = 0f)
+    {
+        var pf = Resources.Load<GameObject>("AH/Models/KK/" + file); if (pf == null) return null;
+        var holder = new GameObject(file).transform; holder.SetParent(par, false);
+        var go = Object.Instantiate(pf, holder, false);
+        foreach (var c in go.GetComponentsInChildren<Collider>(true)) Object.Destroy(c);
+        var rs = go.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) { Object.Destroy(holder.gameObject); return null; }
+        var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+        float k = span / Mathf.Max(0.1f, Mathf.Max(b.size.x, b.size.z));
+        go.transform.localScale = Vector3.one * k;
+        go.transform.localPosition = new Vector3(-b.center.x * k, -b.min.y * k, -b.center.z * k);
+        holder.position = p;
+        if (face.HasValue) { Vector3 d = face.Value - p; d.y = 0f; if (d.sqrMagnitude > 0.01f) holder.rotation = Quaternion.LookRotation(d.normalized); }
+        holder.rotation *= Quaternion.Euler(0f, yaw, 0f);
+        AHModel.SetShadows(holder.gameObject);
+        return holder.gameObject;
+    }
+    // a round log between two points (posts standing, rails lying)
+    static void Log(Transform par, string name, Vector3 a, Vector3 b, float r, Material m)
+    {
+        var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder); go.name = name; Object.Destroy(go.GetComponent<Collider>());
+        go.transform.SetParent(par, true);
+        Vector3 d = b - a; go.transform.position = (a + b) * 0.5f;
+        go.transform.rotation = Quaternion.FromToRotation(Vector3.up, d.normalized);
+        go.transform.localScale = new Vector3(r * 2f, d.magnitude * 0.5f, r * 2f);
+        go.GetComponent<Renderer>().sharedMaterial = m;
+    }
+
+    public static void Dress(AHGame g)
+    {
+        if (wood == null) { wood = Mat(new Color(0.52f, 0.37f, 0.22f)); darkWood = Mat(new Color(0.33f, 0.23f, 0.14f)); }
+        var root = new GameObject("Dawnrest Isle props").transform;
+        var rnd = new System.Random(1717);
+        System.Func<float, float, Vector3> A = (u, v) => g.Resolve(AHTraining.At(g, u, v), 0.3f);
+        // Elara's cottage, its door to the road
+        Vector3 hut = AHTraining.At(g, 600, 1000);
+        Model(root, "kk_building_home_A_green", 6.2f, hut, AHTraining.At(g, 600, 880));
+        Model(root, "kk_barrel", 0.8f, A(700, 930), null, 20f);
+        Model(root, "kk_barrel", 0.8f, A(718, 952), null, 70f);
+        Model(root, "kk_crate_A_big", 0.9f, A(500, 935), null, 12f);
+        Model(root, "kk_sack", 0.7f, A(470, 950), null, 40f);
+        Model(root, "kk_resource_lumber", 1.6f, A(760, 470), null, 30f);   // logs stacked by the grove
+        Model(root, "kk_wheelbarrow", 1.4f, A(1150, 600), null, 120f);       // by the rocks
+        Model(root, "kk_weaponrack", 1.4f, A(1330, 1110), A(1520, 1180));   // by the toad pen
+        Model(root, "kk_flag_green", 1.0f, A(2120, 830), null, 0f);          // where the pier starts
+        // the toad pen: a ring of log posts with two rails, open toward the road
+        var pen = new GameObject("Fence").transform; pen.SetParent(root, false);
+        Vector2 c = new Vector2(1520, 1180); float rx = 230, rv = 150; int n = 22;
+        Vector3 prev = Vector3.zero; bool hasPrev = false;
+        for (int i = 0; i <= n; i++)
+        {
+            float a = i * Mathf.PI * 2f / n;
+            bool gap = Mathf.Abs(Mathf.DeltaAngle(a * Mathf.Rad2Deg, -100f)) < 22f;   // the way in, from the road above
+            Vector3 p = AHTraining.At(g, c.x + Mathf.Cos(a) * rx, c.y + Mathf.Sin(a) * rv); p.y = 0f;
+            if (!gap && i < n) Log(pen, "Fence post", p, p + Vector3.up * (0.95f + (float)rnd.NextDouble() * 0.15f), 0.07f, darkWood);
+            if (hasPrev && !gap)
+                foreach (float h in new[] { 0.4f, 0.8f }) Log(pen, "Fence rail", prev + Vector3.up * h, p + Vector3.up * h, 0.045f, wood);
+            prev = p; hasPrev = !gap;
+        }
+        // the pier: planks across two stringers on round posts, each plank its own shade and a little crooked
+        var pier = new GameObject("Pier").transform; pier.SetParent(root, false);
+        Vector3 p0 = AHTraining.At(g, 2120, 900), p1 = AHTraining.At(g, 2398, 900); p0.y = p1.y = 0f;
+        Vector3 along = (p1 - p0).normalized, side = Vector3.Cross(Vector3.up, along); float len = (p1 - p0).magnitude, half = 1.5f;
+        var shades = new[] { Mat(new Color(0.55f, 0.4f, 0.25f)), Mat(new Color(0.48f, 0.34f, 0.2f)), Mat(new Color(0.6f, 0.45f, 0.29f)) };
+        for (float t = 0.15f; t < len; t += 0.34f)
+        {
+            var pl = GameObject.CreatePrimitive(PrimitiveType.Cube); pl.name = "Plank"; Object.Destroy(pl.GetComponent<Collider>());
+            pl.transform.SetParent(pier, false);
+            pl.transform.position = p0 + along * t + Vector3.up * 0.08f + side * (((float)rnd.NextDouble() - 0.5f) * 0.08f);
+            pl.transform.rotation = Quaternion.LookRotation(side) * Quaternion.Euler(((float)rnd.NextDouble() - 0.5f) * 2f, ((float)rnd.NextDouble() - 0.5f) * 3f, 0f);
+            pl.transform.localScale = new Vector3(0.3f, 0.06f, half * 2f + ((float)rnd.NextDouble() - 0.5f) * 0.12f);
+            pl.GetComponent<Renderer>().sharedMaterial = shades[rnd.Next(3)];
+        }
+        foreach (float s in new[] { -1f, 1f })
+        {
+            Log(pier, "Pier beam", p0 + side * s * (half - 0.25f) + Vector3.up * 0.0f, p1 + side * s * (half - 0.25f), 0.09f, darkWood);
+            for (float t = 0.4f; t < len; t += 2.6f)
+            {
+                Vector3 b = p0 + along * t + side * s * (half + 0.05f);
+                Log(pier, "Pier post", b - Vector3.up * 1.6f, b + Vector3.up * 0.55f, 0.13f, darkWood);
+            }
+        }
+        AHModel.SetShadows(root.gameObject);
+        // the boxes the area model still draws for the hut and the pier are hidden (the old area model had them)
+        foreach (var r in Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None))
+            if (r.transform.root != root && (r.name.StartsWith("Hut ") || r.name == "Pier deck" || r.name == "Pier post")) r.enabled = false;
+    }
 }
 
 public partial class AHUI

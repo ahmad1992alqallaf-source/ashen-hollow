@@ -152,30 +152,7 @@ gmat = mat(None, 'AH_GROUND_MAT', tex=0, rough=1)
 P, N, I, UV = quad_xy(WM / 2, HM / 2); kids.append(node('AH_GROUND_0', mesh(P, N, I, gmat, UV), FLAT(X0 + WM / 2, 0, Z0 + HM / 2)))
 wmat = mat([0.028426, 0.158961, 0.300544], 'AH_WATER_MAT', rough=0.2)
 P, N, I, UV = quad_xy(230, 200); kids.append(node('AH_WATER_0_K0_M0', mesh(P, N, I, wmat, UV), FLAT(X0 + WM / 2, 0.04, Z0 + HM / 2)))
-# Elara's hut: log walls, a door, a pitched roof
-wood = mat([0.36, 0.24, 0.14]); dark = mat([0.2, 0.12, 0.07]); roofm = mat([0.48, 0.24, 0.18])
-parts = []
-P, N, I = box(hx, 1.3, hz, hw, 2.6, hd); parts.append(node('Hut walls', mesh(P, N, I, wood)))
-P, N, I = box(hx, 0.9, hz + hd / 2 + 0.03, 1.0, 1.8, 0.08); parts.append(node('Hut door', mesh(P, N, I, dark)))
-rw = hw + 0.6; rd = hd + 0.6; ry = 2.6; rt = 4.2
-P = [[hx - rw / 2, ry, hz - rd / 2], [hx + rw / 2, ry, hz - rd / 2], [hx + rw / 2, rt, hz], [hx - rw / 2, rt, hz], [hx - rw / 2, ry, hz + rd / 2], [hx + rw / 2, ry, hz + rd / 2]]
-def nrm(a, b, c): n = np.cross(np.subtract(b, a), np.subtract(c, a)); return (n / np.linalg.norm(n)).tolist()
-RP, RN, RI = [], [], []
-for tri in [(0, 3, 2), (0, 2, 1), (4, 5, 2), (4, 2, 3), (0, 4, 3), (1, 2, 5)]:
-    a_, b_, c_ = [P[k] for k in tri]; n = nrm(a_, b_, c_)
-    if n[1] < -0.01 or (abs(n[1]) < 0.01 and False): a_, c_ = c_, a_; n = nrm(a_, b_, c_)
-    base = len(RP); RP += [a_, b_, c_]; RN += [n] * 3; RI += [base, base + 1, base + 2]
-parts.append(node('Hut roof', mesh(RP, RN, RI, roofm)))
-kids.append(node('Hut', children=parts))
-# the pier where Ferryman Oskar waits (web ZBRIDGES: 2160 -> 2390 along v 900; the dock tiles)
-pw = mat([0.45, 0.33, 0.2]); pp = mat([0.25, 0.17, 0.1])
-(px0, pz) = M(2130, 900); (px1, _) = M(2398, 900); deck_w = 140 * S
-P, N, I = box((px0 + px1) / 2, -0.05, pz, px1 - px0, 0.2, deck_w); pier = [node('Pier deck', mesh(P, N, I, pw))]
-for k in range(5):
-    x = px0 + 0.6 + k * (px1 - px0 - 1.2) / 4
-    for side in (-1, 1):
-        P, N, I = box(x, -0.7, pz + side * (deck_w / 2 - 0.15), 0.3, 1.5, 0.3); pier.append(node('Pier post', mesh(P, N, I, pp)))
-kids.append(node('Pier', children=pier))
+# (Elara's cottage, the toad pen's fence and the pier are built by the game: AHTrainingIsland)
 # the rocks to mine (world.json rocks on the island): a body and ore specks, as the area models have them (the game
 # swaps in its own ore boulders)
 rockm = mat([0.42, 0.4, 0.37]); oreC = {'copper': [0.72, 0.38, 0.18], 'tin': [0.78, 0.78, 0.74]}

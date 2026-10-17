@@ -143,8 +143,9 @@ public static class AHTrainingTest
             Ok(p.ClassXp == xp0, "no class XP on the island (" + xp0 + " -> " + p.ClassXp + ")");
             Ok(SkillSum() == skills0, "no skill XP on the island (" + skills0 + " -> " + SkillSum() + ")");
             Ok(AHTraining.Cur != null && AHTraining.Cur.id == "ferry", "only Oskar is left: " + (AHTraining.Cur != null ? AHTraining.Cur.id : "none"));
-            var n = AHNpc.Find("Ferryman Oskar"); StandBy(n.transform.position, 1.6f); Shot("09_oskar"); g.TalkTo(n);
-        }, 9);
+            var n = AHNpc.Find("Ferryman Oskar"); StandBy(n.transform.position, 4f); g.camYaw = p.transform.eulerAngles.y; Shot("09_oskar");
+        }, 1.5);
+        Do(() => { g.TalkTo(AHNpc.Find("Ferryman Oskar")); }, 9);
         Do(() =>
         {
             Ok(AHGame.AreaId == area0, "back home in " + area0 + " (" + AHGame.AreaId + ")");

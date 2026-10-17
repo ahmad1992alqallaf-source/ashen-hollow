@@ -123,22 +123,23 @@ public partial class AHUI
 
     public static float GearScore(ItemDef d) { return d == null ? 0f : d.atk + d.def + d.hp * 0.25f + (d.dmg + d.cdr + d.heal) * 120f; }
 
+    // a small see-through card at the right, under the event panels: the piece's picture, its name, what it adds, an
+    // Equip button and a little x (tap the picture to look at it closely)
     void BuildUpgrade()
     {
-        upRoot = Img("Upgrade", transform, white, new Vector2(0.5f, 0f), new Vector2(0, 330), new Vector2(472, 104), new Color(0.085f, 0.065f, 0.05f, 0.97f));
-        if (panel9 != null) { var fr = Img("Frame", upRoot, panel9, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(480, 112), Color.white); fr.GetComponent<Image>().type = Image.Type.Sliced; }
-        var ic = Img("Icon", upRoot, circle, new Vector2(0f, 0.5f), new Vector2(56, 0), new Vector2(76, 76), new Color(0.2f, 0.15f, 0.11f, 1f)); upIcon = ic.GetComponent<Image>();
-        upGlyph = Img("Glyph", ic, white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(70, 70), Color.white).GetComponent<Image>(); upGlyph.preserveAspect = true;
-        var t = Label(upRoot, "Title", "Better gear!", 15, TextAnchor.UpperLeft, new Vector2(104, -12), new Vector2(240, 20), new Color(0.56f, 0.95f, 0.55f)); t.fontStyle = FontStyle.Bold;
-        upName = Label(upRoot, "Name", "", 19, TextAnchor.UpperLeft, new Vector2(104, -32), new Vector2(240, 26), Gold); upName.fontStyle = FontStyle.Bold;
-        upLine = Label(upRoot, "Line", "", 14, TextAnchor.UpperLeft, new Vector2(104, -60), new Vector2(240, 44), Color.white);
-        upLine.horizontalOverflow = HorizontalWrapMode.Wrap; upLine.supportRichText = true;
-        var eq = Img("Equip", upRoot, tag9 != null ? tag9 : white, new Vector2(1f, 0.5f), new Vector2(-70, 22), new Vector2(116, 44), new Color(0.55f, 1f, 0.6f));
+        upRoot = Img("Upgrade", transform, white, new Vector2(1f, 1f), new Vector2(-250, -200), new Vector2(270, 66), new Color(0.06f, 0.045f, 0.035f, 0.55f));
+        var ic = Img("Icon", upRoot, circle, new Vector2(0f, 0.5f), new Vector2(33, 0), new Vector2(52, 52), new Color(0.2f, 0.15f, 0.11f, 0.9f)); upIcon = ic.GetComponent<Image>();
+        upGlyph = Img("Glyph", ic, white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(46, 46), Color.white).GetComponent<Image>(); upGlyph.preserveAspect = true;
+        var t = Label(upRoot, "Title", "Better gear", 11, TextAnchor.UpperLeft, new Vector2(64, -4), new Vector2(110, 14), new Color(0.56f, 0.95f, 0.55f)); t.fontStyle = FontStyle.Bold;
+        upName = Label(upRoot, "Name", "", 14, TextAnchor.UpperLeft, new Vector2(64, -18), new Vector2(118, 20), Gold); upName.fontStyle = FontStyle.Bold;
+        upName.horizontalOverflow = HorizontalWrapMode.Wrap; upName.resizeTextForBestFit = true; upName.resizeTextMinSize = 10; upName.resizeTextMaxSize = 14;
+        upLine = Label(upRoot, "Line", "", 11, TextAnchor.UpperLeft, new Vector2(64, -38), new Vector2(118, 26), Color.white);
+        upLine.horizontalOverflow = HorizontalWrapMode.Wrap; upLine.supportRichText = true; upLine.resizeTextForBestFit = true; upLine.resizeTextMinSize = 9; upLine.resizeTextMaxSize = 11;
+        var eq = Img("Equip", upRoot, tag9 != null ? tag9 : white, new Vector2(1f, 0.5f), new Vector2(-46, -2), new Vector2(74, 36), new Color(0.45f, 0.9f, 0.5f, 0.95f));
         if (tag9 != null) eq.GetComponent<Image>().type = Image.Type.Sliced;
-        Center(Label(eq, "T", "Equip", 18, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(116, 30), Color.white)).fontStyle = FontStyle.Bold;
-        var no = Img("Later", upRoot, tag9 != null ? tag9 : white, new Vector2(1f, 0.5f), new Vector2(-70, -26), new Vector2(116, 38), new Color(0.75f, 0.68f, 0.6f));
-        if (tag9 != null) no.GetComponent<Image>().type = Image.Type.Sliced;
-        Center(Label(no, "T", "Not now", 16, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(116, 28), Color.white));
+        Center(Label(eq, "T", "Equip", 15, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(74, 26), Color.white)).fontStyle = FontStyle.Bold;
+        var no = Img("Later", upRoot, circle, new Vector2(1f, 1f), new Vector2(-2, -2), new Vector2(22, 22), new Color(0.2f, 0.15f, 0.12f, 0.9f));
+        Center(Label(no, "T", "×", 15, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(22, 22), Color.white));
         taps.Add(new TapBtn { rt = eq, act = () => { var p = g.player; if (upId != null && p.bag.Count(upId) > 0) { string msg = p.bag.Equip(upId, p.cls.id); if (msg != null) Toast(msg); else { AHSound.Play("level"); Toast("Equipped " + AHItems.Get(upId).name + "."); } } HideUpgrade(); } });
         taps.Add(new TapBtn { rt = no, act = HideUpgrade });
         taps.Add(new TapBtn { rt = ic, act = () => { var d = AHItems.Get(upId); HideUpgrade(); OpenInspect(d); } });
