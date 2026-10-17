@@ -40,7 +40,7 @@ public static class AHModel
         Bounds b = Measure(inst, false);
         if (pose != null)
         {
-            try { pose.SampleAnimation(inst, 0f); } catch { }
+            if (Application.isEditor || pose.legacy) { try { pose.SampleAnimation(inst, 0f); } catch { } }   // (a phone can only pose a legacy clip this way)
             // only where the skin's box is far off (other models keep the measure their feet were set by, AH/Data/mob_feet)
             Bounds bp = Measure(inst, true);
             if (Mathf.Abs(bp.size.y - b.size.y) > 0.25f * Mathf.Max(b.size.y, 0.01f) || Mathf.Abs(bp.min.y - b.min.y) > 0.25f * Mathf.Max(b.size.y, 0.01f)) { b = bp; posed = true; }

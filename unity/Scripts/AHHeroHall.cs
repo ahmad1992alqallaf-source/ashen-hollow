@@ -62,7 +62,8 @@ public class AHHeroHall : MonoBehaviour
     static Material M(Color c, bool glow = false)
     {
         if (lit == null) { lit = Shader.Find("Universal Render Pipeline/Lit"); unlit = Shader.Find("Universal Render Pipeline/Unlit"); }
-        var m = new Material(glow ? unlit : lit); m.SetColor("_BaseColor", c); if (!glow) m.SetFloat("_Smoothness", 0.1f); return m;
+        var sh = glow && unlit != null ? unlit : lit; if (sh == null) sh = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+        var m = new Material(sh); m.SetColor("_BaseColor", c); if (!glow) m.SetFloat("_Smoothness", 0.1f); return m;
     }
     Transform Prim(PrimitiveType pt, Transform parent, Vector3 pos, Vector3 scale, Material m, Vector3 rot = default(Vector3))
     {

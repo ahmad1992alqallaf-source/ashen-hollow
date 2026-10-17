@@ -33,7 +33,27 @@ public static class AHBuild
         EditorUserBuildSettings.androidBuildSubtarget = MobileTextureSubtarget.ASTC;
         EditorUserBuildSettings.buildAppBundle = false;   // an .apk you can copy straight to a phone
         AssetDatabase.SaveAssets();
+        AlwaysInclude("Universal Render Pipeline/Lit", "Universal Render Pipeline/Unlit", "Universal Render Pipeline/Particles/Unlit", "Unlit/Color", "AshenHollow/Range");
         Debug.Log("Ashen Hollow: Android settings ready");
+    }
+
+    // shaders the game finds by name in code (Shader.Find) and that no material in the build uses: without this a
+    // phone build leaves them out, Shader.Find gives nothing there, and whatever needed them fails (the hero hall
+    // came up blue and stuck on phones)
+    static void AlwaysInclude(params string[] names)
+    {
+        var all = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/GraphicsSettings.asset");
+        if (all == null || all.Length == 0) return;
+        var so = new SerializedObject(all[0]); var arr = so.FindProperty("m_AlwaysIncludedShaders"); if (arr == null) return;
+        int added = 0;
+        foreach (var n in names)
+        {
+            var sh = Shader.Find(n); if (sh == null) { Debug.LogWarning("Ashen Hollow: shader not found: " + n); continue; }
+            bool have = false; for (int i = 0; i < arr.arraySize; i++) if (arr.GetArrayElementAtIndex(i).objectReferenceValue == sh) { have = true; break; }
+            if (have) continue;
+            arr.InsertArrayElementAtIndex(arr.arraySize); arr.GetArrayElementAtIndex(arr.arraySize - 1).objectReferenceValue = sh; added++;
+        }
+        if (added > 0) { so.ApplyModifiedPropertiesWithoutUndo(); AssetDatabase.SaveAssets(); Debug.Log("Ashen Hollow: " + added + " shaders always included in builds"); }
     }
 
     [MenuItem("Ashen Hollow/Build Android APK %#&5")]
