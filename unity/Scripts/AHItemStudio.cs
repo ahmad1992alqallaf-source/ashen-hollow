@@ -162,16 +162,22 @@ public class AHItemStudio : MonoBehaviour
         }
         var dd = AHItems.Get(pendingId);
         cam.targetTexture = iconRt; Aim(pending, dd, 28f, 1.12f); cam.Render();
-        var was = RenderTexture.active; RenderTexture.active = iconRt;
+        // read back through a plain (not multisampled) copy: phones (Vulkan) read a multisampled picture back as empty
+        if (iconFlat == null) iconFlat = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGB32);
+        Graphics.Blit(iconRt, iconFlat);
+        var was = RenderTexture.active; RenderTexture.active = iconFlat;
         var tex = new Texture2D(128, 128, TextureFormat.RGBA32, false); tex.ReadPixels(new Rect(0, 0, 128, 128), 0, 0); tex.Apply(); RenderTexture.active = was;
-        icons[pendingId] = Sprite.Create(tex, new Rect(0, 0, 128, 128), new Vector2(0.5f, 0.5f), 100f);
+        // a picture that came out empty is not kept: the bag shows the item's drawn icon instead
+        bool any = false; var px = tex.GetPixels32(); for (int i = 0; i < px.Length; i += 7) if (px[i].a > 8) { any = true; break; }
+        if (any) icons[pendingId] = Sprite.Create(tex, new Rect(0, 0, 128, 128), new Vector2(0.5f, 0.5f), 100f);
+        else { icons[pendingId] = null; Destroy(tex); if (!blankWarned) { blankWarned = true; Debug.LogWarning("Ashen Hollow: gear picture came out empty on this device (" + pendingId + "); the drawn icons are used"); } }
 #if UNITY_EDITOR
         try { System.IO.File.WriteAllBytes(System.IO.Path.Combine(Application.dataPath, "../HeroShots/icon_" + pendingId + ".png"), tex.EncodeToPNG()); } catch { }
 #endif
         Destroy(pending); pending = null; pendingId = null;
         if (Changed != null) Changed();
     }
-    GameObject pending; string pendingId;
+    GameObject pending; string pendingId; RenderTexture iconFlat; static bool blankWarned;
 
     void BuildView(ItemDef d) { ClearView(); viewRig = Dress(viewStage, d, false); viewId = d.id; spin = 0f; }
 
