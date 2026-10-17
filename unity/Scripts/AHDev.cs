@@ -221,3 +221,35 @@ public static class AHFeedback
         return uri;
     }
 }
+
+// Tester builds: when the game hits an error, a small red box shows it on screen (drawn with OnGUI, so it shows even
+// when the game's own screens are stuck), with the last crash from an earlier run. Tap it to hide it. Testers can send
+// a photo of it.
+public class AHErrorOverlay : MonoBehaviour
+{
+    static AHErrorOverlay inst; int seen, shownCount; bool hidden; string text = ""; float refreshT; GUIStyle st, btn;
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    static void Make()
+    {
+        if (inst != null || Application.isEditor) return;
+        var go = new GameObject("AH Error Overlay"); DontDestroyOnLoad(go); inst = go.AddComponent<AHErrorOverlay>();
+        string before = AHErrors.Earlier(3);
+        if (before.Length > 0) { inst.text = "Last crash (earlier run):\n" + before; inst.shownCount = 1; }
+    }
+    void Update()
+    {
+        refreshT -= Time.unscaledDeltaTime; if (refreshT > 0f) return; refreshT = 0.5f;
+        if (AHErrors.Count != seen) { seen = AHErrors.Count; text = "Error (" + seen + ") · version " + AHBuildInfo.Label + "\n" + AHErrors.Recent(4); hidden = false; shownCount++; }
+    }
+    void OnGUI()
+    {
+        if (hidden || shownCount == 0 || text.Length == 0) return;
+        float k = Mathf.Max(1f, Screen.height / 720f);
+        if (st == null) { st = new GUIStyle(GUI.skin.label) { wordWrap = true }; st.normal.textColor = Color.white; btn = new GUIStyle(GUI.skin.button); }
+        st.fontSize = Mathf.RoundToInt(13 * k); btn.fontSize = Mathf.RoundToInt(14 * k);
+        Rect r = new Rect(10 * k, Screen.height * 0.30f, Screen.width * 0.6f, Screen.height * 0.4f);
+        var old = GUI.color; GUI.color = new Color(0.45f, 0.05f, 0.05f, 0.88f); GUI.DrawTexture(r, Texture2D.whiteTexture); GUI.color = old;
+        GUI.Label(new Rect(r.x + 8 * k, r.y + 6 * k, r.width - 16 * k, r.height - 50 * k), text, st);
+        if (GUI.Button(new Rect(r.xMax - 110 * k, r.yMax - 40 * k, 100 * k, 34 * k), "Hide", btn)) hidden = true;
+    }
+}
