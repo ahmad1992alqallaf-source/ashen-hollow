@@ -113,7 +113,7 @@ public static class AHTrainingTest
         Lesson("cook", () => { var s = Nearest("fire"); StandBy(s.pos, 1.6f); AHGather.Start(p, s); Shot("04_cook"); }, 25f, () => { if (InStep > 6 && (int)InStep % 5 == 0) { var s = Nearest("fire"); if (s != null) AHGather.Start(p, s); } });
         Lesson("bag", () => { g.ui.ShowBag(true); Shot("05_bag"); });
         Do(() => g.ui.ShowBag(false), 0.3);
-        Lesson("gear", () => { var c = p.bag.inv; foreach (var id in new List<string>(c.Keys)) { var it = AHItems.Get(id); if (it != null && it.slot == "weapon" && AHItems.CanUse(id, p.cls.id)) { p.bag.Equip(id, p.cls.id); p.Recalc(); break; } } });
+        Lesson("gear", () => { string w = AHTraining.TrainingWeapon(p); Ok(w != null && (p.bag.Count(w) > 0 || p.bag.Worn("weapon") == w), "the training weapon is in the bag: " + w); if (w != null) { p.bag.Equip(w, p.cls.id); p.Recalc(); } });
         Lesson("fight", () => { }, 40f, () =>
         {
             AHMob next = null; float bd = 1e9f;

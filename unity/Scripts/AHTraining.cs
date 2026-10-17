@@ -156,6 +156,14 @@ public static class AHTraining
     static float yaw0, look, beamT, dodgeNext, stepAt; static int bag0, kills, dodged; static bool talked, cooked;
     static Vector3 dodgeAt; static float dodgeEnd = -1f; static string weapon;
 
+    // training items go in even when the bag is full (they stay behind on the island anyway)
+    static void Give(AHBag b, string id, int n = 1)
+    {
+        if (AHItems.Get(id) == null || n <= 0) return;
+        if (b.Add(id, n)) return;
+        b.inv[id] = b.Count(id) + n; if (!b.order.Contains(id)) b.order.Add(id); b.Touch();
+    }
+    public static string TrainingWeapon(AHPlayer p) { return Weapon(p); }
     static int Has(AHBag b, params string[] ids) { int n = 0; foreach (var id in ids) n += b.Count(id); return n; }
     static string Weapon(AHPlayer p)
     {
@@ -172,17 +180,17 @@ public static class AHTraining
         var p = g.player; var s = Cur; StepReset(); if (s == null) return;
         switch (s.id)
         {
-            case "cook": if (p.bag.Count("raw_trout") <= 0) p.bag.Add("raw_trout"); bag0 = Has(p.bag, "trout"); break;
+            case "cook": if (p.bag.Count("raw_trout") <= 0) Give(p.bag, "raw_trout"); bag0 = Has(p.bag, "trout"); break;
             case "chop": bag0 = Has(p.bag, "logs", "pine_logs"); break;
             case "mine": bag0 = Has(p.bag, "copper_ore", "tin_ore"); break;
             case "gear":
                 weapon = Weapon(p); bag0 = 0;
                 if (weapon == null || p.bag.Worn("weapon") == weapon) break;
-                if (p.bag.Count(weapon) <= 0) p.bag.Add(weapon);
+                if (p.bag.Count(weapon) <= 0) Give(p.bag, weapon);
                 break;
             case "potion":
-                if (p.bag.Count("hp_potion") < 2) p.bag.Add("hp_potion", 2 - p.bag.Count("hp_potion"));
-                if (p.cls.mana && p.bag.Count("mana_potion") <= 0) p.bag.Add("mana_potion");
+                if (p.bag.Count("hp_potion") < 2) Give(p.bag, "hp_potion", 2 - p.bag.Count("hp_potion"));
+                if (p.cls.mana && p.bag.Count("mana_potion") <= 0) Give(p.bag, "mana_potion");
                 p.hp = Mathf.Min(p.hp, Mathf.Round(p.maxHp * 0.45f)); bag0 = p.bag.Count("hp_potion");
                 break;
         }
@@ -282,11 +290,11 @@ public partial class AHUI
 
     void BuildTrainHud()
     {
-        trainBox = Img("TrainBox", transform, white, new Vector2(0.5f, 1f), new Vector2(0f, -150f), new Vector2(820f, 58f), new Color(0.08f, 0.06f, 0.05f, 0.82f));
-        trainText = Label(trainBox, "T", "", 18, TextAnchor.MiddleLeft, new Vector2(14f, -6f), new Vector2(680f, 46f), new Color(1f, 0.93f, 0.78f));
+        trainBox = Img("TrainBox", transform, white, new Vector2(0.5f, 0f), new Vector2(-40f, 128f), new Vector2(500f, 64f), new Color(0.08f, 0.06f, 0.05f, 0.85f));
+        trainText = Label(trainBox, "T", "", 18, TextAnchor.MiddleLeft, new Vector2(10f, -4f), new Vector2(392f, 56f), new Color(1f, 0.93f, 0.78f));
         trainText.horizontalOverflow = HorizontalWrapMode.Wrap; trainText.resizeTextForBestFit = true; trainText.resizeTextMinSize = 12; trainText.resizeTextMaxSize = 18;
-        var skip = Img("Skip", trainBox, white, new Vector2(1f, 0.5f), new Vector2(-62f, 0f), new Vector2(104f, 40f), new Color(0.35f, 0.27f, 0.2f, 1f));
-        Center(Label(skip, "T", "Skip", 17, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(104f, 30f), Color.white));
+        var skip = Img("Skip", trainBox, white, new Vector2(1f, 0.5f), new Vector2(-48f, 0f), new Vector2(84f, 40f), new Color(0.35f, 0.27f, 0.2f, 1f));
+        Center(Label(skip, "T", "Skip", 17, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(84f, 30f), Color.white));
         taps.Add(new TapBtn { rt = skip, act = () =>
         {
             if (!AHTraining.Active) return;
@@ -309,6 +317,6 @@ public partial class AHUI
         if (trainShown == AHTraining.Step && prog == trainProg) return;
         trainShown = AHTraining.Step; trainProg = prog;
         var s = AHTraining.Cur;
-        trainText.text = s == null ? "" : "<b>Training " + (AHTraining.Step + 1) + "/" + AHTraining.Steps.Length + "</b> · " + AHTraining.Text(s) + (prog.Length > 0 ? "  <b>" + prog + "</b>" : "") + "  <color=#9fd49a>(no XP on the island)</color>";
+        trainText.text = s == null ? "" : "<b>Training " + (AHTraining.Step + 1) + "/" + AHTraining.Steps.Length + "</b> · " + AHTraining.Text(s) + (prog.Length > 0 ? "  <b>" + prog + "</b>" : "") + "\n<size=13><color=#9fd49a>No XP on the island: it is all practice.</color></size>";
     }
 }
