@@ -190,7 +190,7 @@ public static class AHFossils
         int nv = Mathf.Max(10, Mathf.RoundToInt(L / 0.42f)); var spine = new Vector3[nv];
         for (int i = 0; i < nv; i++)
         {
-            float u = i / (float)(nv - 1), y = H * Mathf.Pow(Mathf.Sin(Mathf.PI * Mathf.Clamp01(u * 1.1f - 0.05f)), 0.6f) - 0.25f;
+            float u = i / (float)(nv - 1), y = H * Mathf.Pow(Mathf.Max(0f, Mathf.Sin(Mathf.PI * Mathf.Clamp01(u * 1.1f - 0.05f))), 0.6f) - 0.25f;
             spine[i] = new Vector3(Mathf.Sin(u * 5f + seed) * 0.12f, y, (u - 0.5f) * L);
         }
         float vr = Mathf.Clamp(H * 0.075f, 0.1f, 0.3f);

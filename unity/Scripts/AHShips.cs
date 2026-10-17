@@ -225,7 +225,7 @@ public static class AHShips
                 for (int k = 0; k <= K; k++)
                 {
                     float a = k / (float)K * Mathf.PI * 0.5f;
-                    float x = hw * Mathf.Pow(Mathf.Cos(a), 0.45f), y = top - (top - bot) * Mathf.Sin(a);
+                    float x = hw * Mathf.Pow(Mathf.Max(0f, Mathf.Cos(a)), 0.45f), y = top - (top - bot) * Mathf.Sin(a);
                     hv.Add(new Vector3(x * side, y, z)); huv.Add(new Vector2(z / 3f, y / 0.9f));
                 }
             }
@@ -242,8 +242,8 @@ public static class AHShips
             int c = hv.Count; float t = 0f, top = Top(t, H), bot = Bottom(t, H), hw = HalfW(t, W);
             hv.Add(new Vector3(0, (top + bot) * 0.5f, -L * 0.5f)); huv.Add(new Vector2(0, 0));
             int s0 = hv.Count;
-            for (int k = 0; k <= K; k++) { float a = k / (float)K * Mathf.PI * 0.5f; hv.Add(new Vector3(hw * Mathf.Pow(Mathf.Cos(a), 0.45f), top - (top - bot) * Mathf.Sin(a), -L * 0.5f)); huv.Add(new Vector2(hv[hv.Count - 1].x / 0.9f, hv[hv.Count - 1].y / 0.9f)); }
-            for (int k = 0; k <= K; k++) { float a = k / (float)K * Mathf.PI * 0.5f; hv.Add(new Vector3(-hw * Mathf.Pow(Mathf.Cos(a), 0.45f), top - (top - bot) * Mathf.Sin(a), -L * 0.5f)); huv.Add(new Vector2(hv[hv.Count - 1].x / 0.9f, hv[hv.Count - 1].y / 0.9f)); }
+            for (int k = 0; k <= K; k++) { float a = k / (float)K * Mathf.PI * 0.5f; hv.Add(new Vector3(hw * Mathf.Pow(Mathf.Max(0f, Mathf.Cos(a)), 0.45f), top - (top - bot) * Mathf.Sin(a), -L * 0.5f)); huv.Add(new Vector2(hv[hv.Count - 1].x / 0.9f, hv[hv.Count - 1].y / 0.9f)); }
+            for (int k = 0; k <= K; k++) { float a = k / (float)K * Mathf.PI * 0.5f; hv.Add(new Vector3(-hw * Mathf.Pow(Mathf.Max(0f, Mathf.Cos(a)), 0.45f), top - (top - bot) * Mathf.Sin(a), -L * 0.5f)); huv.Add(new Vector2(hv[hv.Count - 1].x / 0.9f, hv[hv.Count - 1].y / 0.9f)); }
             for (int k = 0; k < K; k++) { tWood.AddRange(new[] { c, s0 + k, s0 + k + 1 }); tWood.AddRange(new[] { c, s0 + K + 2 + k, s0 + K + 1 + k }); }
             tWood.AddRange(new[] { c, s0 + K + 1, s0 });   // the top edge between the two gunwale corners
         }
@@ -369,6 +369,10 @@ public static class AHShips
     // through the bloom): give those a plain up normal
     static void Sane(Mesh m)
     {
+        // (a phone's maths can land a hair below zero where a PC lands on zero: a point that came out NaN is put at 0)
+        var vs = m.vertices; bool badV = false;
+        for (int i = 0; i < vs.Length; i++) { var v = vs[i]; if (float.IsNaN(v.x) || float.IsNaN(v.y) || float.IsNaN(v.z)) { vs[i] = new Vector3(float.IsNaN(v.x) ? 0f : v.x, float.IsNaN(v.y) ? 0f : v.y, float.IsNaN(v.z) ? 0f : v.z); badV = true; } }
+        if (badV) { m.vertices = vs; m.RecalculateNormals(); }
         var n = m.normals; bool bad = false;
         for (int i = 0; i < n.Length; i++) { var v = n[i]; if (float.IsNaN(v.x) || float.IsNaN(v.y) || float.IsNaN(v.z) || v.sqrMagnitude < 1e-6f) { n[i] = Vector3.up; bad = true; } }
         if (bad) m.normals = n;
