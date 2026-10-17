@@ -232,7 +232,7 @@ public partial class AHUI : MonoBehaviour
         BuildShopHud();
         BuildMenuHud();
         BuildEmoteHud();
-        BuildLeapHud(); BuildPetHud(); BuildExtraHud(); BuildKnackHud(); BuildChat(); BuildCombo();
+        BuildLeapHud(); BuildPetHud(); BuildExtraHud(); BuildKnackHud(); BuildChat(); BuildCombo(); BuildTrainHud();
         BuildDailyHud();
         BuildEvHud();
         ApplySkin();
@@ -519,7 +519,7 @@ public partial class AHUI : MonoBehaviour
         UpdatePotions();
         ShopKeys();
         if (Modal == 0) AHTutorial.Tick(g, this, dt);
-        InspectTick(); UpgradeTick(dt); LeapHudTick(); PetHudTick(); ExtraHudTick(dt); KnackHudTick(dt); ChatTick(dt); ComboTick(); FeedbackTick(); WhatsNewTick(dt);
+        InspectTick(); UpgradeTick(dt); LeapHudTick(); PetHudTick(); ExtraHudTick(dt); KnackHudTick(dt); ChatTick(dt); ComboTick(); FeedbackTick(); WhatsNewTick(dt); TrainTick(dt);
         Camera cam = g.cam;
         int n = 0;
         if (cam != null && p != null && !PickerOpen)

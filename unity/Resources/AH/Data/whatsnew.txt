@@ -1,5 +1,6 @@
 # 0.9 · Welcome, testers
 - Thank you for testing Ashen Hollow! | Send feedback in Settings (or type /bug in the chat) whenever something feels wrong.
+- Dawnrest Isle is back | New heroes learn the game on the training island (no XP there). Visit it again from Settings.
 - Profession pets | The mole, drill python, beaver, otter and hedgehog bring you materials on their own.
 - Looters for hire | Take Marra and friends into a dungeon: they bring back their own haul.
 - Weekly challenge | A new twist each week inside the dungeons, with a reward for winning it.

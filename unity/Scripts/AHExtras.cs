@@ -122,7 +122,7 @@ public static class AHExtras
     public static string SeasonKey(DateTime t) { return t.Year + "-S" + ((t.Month - 1) / 3 + 1); }
     public static string SeasonName(DateTime t) { string[] n = { "Season of Frost", "Season of Bloom", "Season of Embers", "Season of Harvest" }; return n[(t.Month - 1) / 3]; }
     static void Fresh(AHPlayer p) { string k = SeasonKey(DateTime.Now); if (p.prog.seasonKey != k) { p.prog.seasonKey = k; p.prog.seasonXp = 0; p.prog.seasonClaimed = 0; } }
-    public static void AddXp(AHPlayer p, int n) { if (p == null || n <= 0) return; Fresh(p); p.prog.seasonXp += n; }
+    public static void AddXp(AHPlayer p, int n) { if (p == null || n <= 0 || AHTraining.NoXp) return; Fresh(p); p.prog.seasonXp += n; }
     public static int Tier(AHPlayer p) { Fresh(p); return Mathf.Min(Tiers, p.prog.seasonXp / TierXp); }
     public static int Claimed(AHPlayer p) { Fresh(p); return p.prog.seasonClaimed; }
     public static AHDaily.Reward TierReward(AHPlayer p, int tier)   // tier 1..30

@@ -224,6 +224,7 @@ public class AHGame : MonoBehaviour
         AHHomeView.Setup(this);
         AHRaidView.Setup(this);
         AHDeepView.Setup(this);   // the Ashen Deep: this floor's rooms, foes, traps and stairs
+        AHTraining.Setup(this);   // Dawnrest Isle: the training steps, and the bag put back after leaving it
         AHAbyss.Setup(this);      // the Abyssal Realm: its islands over the void (and the rift to it in the Fossil Lands)
         AHStory.Setup(this);      // the Ashen King story: its people in the meadow, an unfinished fight, the statue
         AHJuice.Ensure(this); AHJuice.SetupDummy(this);   // hit-stop, shake, combos; the Training Golem in the meadow
@@ -327,6 +328,7 @@ public class AHGame : MonoBehaviour
         SaveProgress();
         ui.Banner(data.region, AreaSub());
         if (player.PeaceOn) ui.Toast("Artisan: monsters leave you alone unless you strike first.");
+        AHTraining.NewHero(this);   // every new hero begins on Dawnrest Isle, the training island
     }
 
     // a beast was skinned (web questEvent('skin', type))
@@ -397,6 +399,7 @@ public class AHGame : MonoBehaviour
     {
         if (n == null || player == null || player.dead) return;
         if (AHTales.Talk(this, n)) return;   // a townsfolk tale takes the conversation
+        if (AHTraining.Talk(this, n)) return;   // Guide Elara and Ferryman Oskar on Dawnrest Isle
         string line = n.Talk();
         if (n.sail != null)
         {

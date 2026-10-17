@@ -87,6 +87,7 @@ public class AHQuestLog
     // web questEvent. Returns a banner line when the quest became ready.
     public bool Event(string t, string id, int n, AHGame g)
     {
+        if (AHTraining.OnIsland) return false;   // nothing on the training island counts toward quests, the book or the apprentice
         AHDaily.Event(g, t, id, n);
         AHTwoPart.Event(g, t, id, n);
         AHApprentice.Event(g, t, id, n);

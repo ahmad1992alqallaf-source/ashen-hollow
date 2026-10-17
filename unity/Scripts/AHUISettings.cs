@@ -133,6 +133,9 @@ public partial class AHUI
         // account
         rows.Add(s => Row(s, "Your hero: " + (p.heroName ?? "Hero"), cA, p.cls.name + " · level " + p.level + " · " + AHPrefs.Slots().Count + " of " + AHPrefs.MaxHeroes + " heroes on this device", "",
             new WkBtn { label = "Change hero", on = true, col = Go, act = () => { ShowWork(false); g.Logout(); } }));
+        if (AHTraining.Exists)
+            rows.Add(s => Row(s, "Dawnrest Isle", cA, AHTraining.OnIsland ? "You are training now. Ferryman Oskar takes you back." : "The training island: practise the basics again.", "No XP there, and what you gather stays on the island.",
+                new WkBtn { label = "Visit", on = !AHTraining.OnIsland, col = Plain, act = () => { ShowWork(false); AHTraining.Visit(g); } }));
         rows.Add(s => Row(s, "Log out", cA, "Saves your hero and goes back to the hero select screen.", "",
             new WkBtn { label = "Log out", on = true, col = new Color(0.45f, 0.22f, 0.17f, 1f), act = () => { ShowWork(false); g.Logout(); } }));
         rows.Add(s => Row(s, "This device", cA, "ID " + AHPrefs.DeviceId.Substring(0, 8).ToUpperInvariant(), "Kept for fair play when heroes are stored online."));

@@ -137,7 +137,7 @@ public partial class AHUI
     bool wnChecked; float wnWait = 4f;
     void WhatsNewTick(float dt)
     {
-        if (wnChecked || g.player == null || Application.isEditor) return;
+        if (wnChecked || g.player == null || Application.isEditor || AHTraining.Active) return;
         if (Modal != 0) return;
         wnWait -= dt; if (wnWait > 0f) return;
         wnChecked = true;

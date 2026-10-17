@@ -311,6 +311,7 @@ public class AHPlayer : MonoBehaviour
     // web maxManaOf: 100 + 3 a class level + 1.5 per point of gear attack
     public float MaxManaFor(int lv) { return cls != null && cls.mana ? Mathf.Round((100f + (lv - 1) * 3f + stat.atk * 1.5f) * (1f + stat.manaK)) : 0f; }
     float lastCast = -99f, autoTake;
+    public float lastSpellAt = -99f;   // any spell (the training island watches for the first)
     // web: P.maxHp = cls.hp * (1 + (lv - 1) * 0.04) + gear hp + (lv - 1) * 3
     public float MaxHpFor(int lv) { return Mathf.Round(((cls != null ? cls.hp : 100f) * (1f + (lv - 1) * 0.04f) + stat.hp + (lv - 1) * 3f) * AHFinder.HpK * (1f + AHMeal.Fx(this, "hp")) * (1f + stat.hpK)); }
     // web damage(): base 4 + Attack level * 0.7 + gear attack, times buffs; Power is that without the dice
@@ -862,7 +863,7 @@ public class AHPlayer : MonoBehaviour
         if (cls.mana) { mana -= sp.cost; lastCast = Time.time; }
         // cone spells and jumps turn to the enemy too (on a phone you have let go of the stick, so you may face away)
         if (t != null) { target = t; if (needsTarget || sp.kind == SpellKind.Arc || sp.kind == SpellKind.Leap) FaceTarget(t); }
-        cds[i] = AHEvo.Cd(this, sp);
+        cds[i] = AHEvo.Cd(this, sp); lastSpellAt = Time.time;
         var el = AHSpellLook.Element(sp);
         AHSound.Spell(el, false);
         // melee and instant spells land at once: their impact follows the cast sound
@@ -1168,6 +1169,7 @@ public class AHPlayer : MonoBehaviour
     // web gainXp: the skill gets 60% (at least 1); Attack XP also feeds the class level in full
     public void GainXp(string skill, int amount, bool fromKill)
     {
+        if (AHTraining.NoXp) return;   // nothing on the training island counts
         int before = Skill(skill);
         // web: professions you practise learn 25% faster, earn mastery, and an Artisan's class grows from the work
         List<string> pk; bool profSkill = IsProfSkill(skill, out pk);
@@ -1199,6 +1201,7 @@ public class AHPlayer : MonoBehaviour
     // web gainClassXp, with the trial walls: every 10th level waits for its trial boss; up to one level of XP is banked
     void GainClassXp(int n, bool fromKill)
     {
+        if (AHTraining.NoXp) return;
         int before = level;
         n = Mathf.RoundToInt(n * (1f + AHMeal.Fx(this, "xp")) * (fromKill ? AHTown.ClassXpK(this) : 1f));
         if (fromKill && rested > 0) { long rb = System.Math.Min(rested, n); rested -= rb; n += (int)rb; }

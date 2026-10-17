@@ -152,7 +152,7 @@ public static class AHSave
         AHPrefs.DeleteKey("ah_xp");
         // the rest of a hero's story: lands seen, treasure X spots and digs, the Fossil Lands gift, the raid lock,
         // the dungeon finder and the kingdom quests (sound settings stay)
-        foreach (var k in new[] { "ah_seen", "ah_digs", "ah_fossil_dig", "ah_fossil_dug", "ah_fossil_gift", "ah_raid_from", "ah_raid_week", "ah_df", "ah_df_role", "ah_df_runs", "ah_kq" })
+        foreach (var k in new[] { "ah_seen", "ah_digs", "ah_fossil_dig", "ah_fossil_dug", "ah_fossil_gift", "ah_raid_from", "ah_raid_week", "ah_df", "ah_df_role", "ah_df_runs", "ah_kq", "ah_train_step", "ah_train_snap", "ah_train_back", "ah_train_gift", "ah_train_arrive" })
             AHPrefs.DeleteKey(k);
         foreach (var a in new[] { "meadow", "silkwood", "mire", "vale", "frost", "sands", "isle", "tide", "ember", "fossil" }) AHPrefs.DeleteKey("ah_dig_" + a);
         AHPrefs.Save();

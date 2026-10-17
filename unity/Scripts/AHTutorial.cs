@@ -25,7 +25,7 @@ public static class AHTutorial
     public static void Tick(AHGame g, AHUI ui, float dt)
     {
         var p = g.player;
-        if (p == null || p.dead || ui.CreatorOpen) return;
+        if (p == null || p.dead || ui.CreatorOpen || AHTraining.Active) return;   // the training island teaches by itself
         if (!started) { started = true; start = p.transform.position; }
         if (wait > 0f) { wait -= dt; return; }
         t += dt; if (t < 0.4f) return; t = 0f;

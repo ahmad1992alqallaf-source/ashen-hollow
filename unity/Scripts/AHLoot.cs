@@ -28,6 +28,13 @@ public static class AHLoot
     {
         var t = m.type;
         Vector3 at = m.transform.position;
+        // the training island: a kill counts for the lesson and nothing else (no XP, loot or money)
+        if (AHTraining.OnIsland)
+        {
+            AHTraining.OnKill(g, m);
+            if (g.ui != null) { g.ui.Float(at + Vector3.up * 2.2f, "Training: no XP", new Color(0.65f, 0.9f, 1f)); g.ui.Toast(t.name + " defeated."); }
+            return;
+        }
 
         // XP (web: gainXp('attack', xp * killXpMult, 'kill'))
         int kxp = Mathf.Max(1, Mathf.RoundToInt(t.xp * KillXpMult(t.lvl, p.level)));
