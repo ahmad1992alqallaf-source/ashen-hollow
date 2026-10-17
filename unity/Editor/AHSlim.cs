@@ -14,9 +14,10 @@ using UnityEngine;
 public static class AHSlim
 {
     // models no longer in the game: moved out of Resources so they stop going into the build
-    static readonly string[] Retired = { "Models/Comp/mount_tyrant_hd.glb" };
+    static readonly string[] Retired = { "Models/Comp/mount_tyrant_hd.glb",
+        "Models/Outfits/tqo_demonic_mage_f.glb" };   // (built too tall for the women's skeleton: women wear the men's Demonic mage robe)
 
-    [MenuItem("Ashen Hollow/Slim Build")]
+    [MenuItem("Ashen Hollow/Slim Build %#&F12")]
     public static void Slim()
     {
         string root = "Assets/AshenHollow", areas = root + "/Resources/AH/Areas", unused = root + "/Unused";

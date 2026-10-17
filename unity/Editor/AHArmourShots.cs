@@ -6,7 +6,7 @@ using UnityEditor;
 
 public static class AHArmourShots
 {
-    public static string Only = "starfallen";
+    public static string Only = "demonic";
     [MenuItem("Ashen Hollow/Test: Armour Check %#&F10")]
     static void Run()
     {
