@@ -73,7 +73,7 @@ public static class AHBuild
         var report = BuildPipeline.BuildPlayer(opts);
         var s = report.summary;
         string msg = s.result == BuildResult.Succeeded
-            ? "Ashen Hollow: APK built: Builds/AshenHollow.apk · version " + PlayerSettings.bundleVersion + " (build " + PlayerSettings.Android.bundleVersionCode + ") · " + (s.totalSize / 1048576) + " MB in " + s.totalTime.ToString(@"hh\:mm\:ss")
+            ? "Ashen Hollow: APK built: Builds/AshenHollow.apk · version " + PlayerSettings.bundleVersion + " (build " + PlayerSettings.Android.bundleVersionCode + ") · " + (File.Exists("Builds/AshenHollow.apk") ? new FileInfo("Builds/AshenHollow.apk").Length / 1048576 : (long)(s.totalSize / 1048576)) + " MB in " + s.totalTime.ToString(@"hh\:mm\:ss")
             : "Ashen Hollow: build " + s.result + " with " + s.totalErrors + " errors";
         Debug.Log(msg);
         File.WriteAllText("Builds/build_result.txt", msg + "\n");
