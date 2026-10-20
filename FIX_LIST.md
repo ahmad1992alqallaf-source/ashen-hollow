@@ -15,12 +15,13 @@ Collected while testing; fixed together in one round.
    texture, or a material that looks wrong on phones. Compare with the editor.
 
 3. **Burnt food needs a better icon.**
-4. (From the videos, to confirm) **Nights are very dark** in Hollow Meadow and Old Mill Road: the hero, roads and
-   foes are hard to see on the phone.
-5. (From the videos, to confirm) **Big plain blue blocks on Old Mill Road** (the tall slabs/stones near the road
-   and the bridge) look like untextured boxes.
-6. (From the videos, to confirm) In the bag, tapping a **weapon shows the whole hero** in the picture instead of the
-   weapon itself.
+4. **The sign before entering Silkwood is hard to read**: its writing (the land name and level) doesn't show
+   clearly. Make the text sharp and readable on the phone.
+5. **Pink/purple weeds on the ground seen from far away vanish when you walk close.** Far away the ground shows
+   pink weeds; up close they disappear. Likely the far-distance version of the grass/flowers (LOD or terrain
+   detail) has the wrong colour, or the close version doesn't draw. Far and near should match.
+
+Not a problem: night darkness is fine as it is (keep it).
 
 ## Waiting to be checked on the phone
 
