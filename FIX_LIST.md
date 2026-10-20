@@ -39,7 +39,12 @@ Not a problem: night darkness is fine as it is (keep it).
 25. **Old Mill Road: plain blue blocks** (stone slabs, ruins, posts near the deer) look like untextured boxes.
 26. **Silkwood fights: a huge green glowing cylinder and giant orange/green rings** on the ground around the hero
     (shaman totem / level-up / pet "seal" effects?) look like placeholders and cover the screen. (To confirm.)
-27. Wolves in Silkwood look like dark shadows, like the boars (item 2). (To confirm.)
+27. **Wolves look pixelated / like dark shadows** in Silkwood fights, same problem as the boars (item 2).
+30. **The brown bear ("Brown bear · lv 12", Silkwood) is invisible**: its name and health bar show but the body
+    can't be seen.
+31. **Bridges: you walk through them** instead of on them (no solid floor / sides).
+32. **You can stand and walk on rivers.** Water should not be a floor: wade in shallow water, swim (or be blocked)
+    in deep water.
 28. **Skinning has no animation**: the hero just stands while the skinning bar fills. Add a kneel-and-cut
     animation (knife in hand, kneeling at the body) for the whole time skinning runs.
 29. **Fishing like World of Warcraft**: hold a fishing pole and cast; the line flies out and a bobber lands on the
