@@ -40,6 +40,8 @@ Not a problem: night darkness is fine as it is (keep it).
 26. **Silkwood fights: a huge green glowing cylinder and giant orange/green rings** on the ground around the hero
     (shaman totem / level-up / pet "seal" effects?) look like placeholders and cover the screen. (To confirm.)
 27. Wolves in Silkwood look like dark shadows, like the boars (item 2). (To confirm.)
+28. **Skinning has no animation**: the hero just stands while the skinning bar fills. Add a kneel-and-cut
+    animation (knife in hand, kneeling at the body) for the whole time skinning runs.
 
 ## Big ideas (to discuss, then build)
 7. **Longer talent tree, like Aion 2's Daevanion boards** but in our own style: many more nodes, the player picks
