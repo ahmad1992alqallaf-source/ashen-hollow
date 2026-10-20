@@ -35,6 +35,10 @@ Not a problem: night darkness is fine as it is (keep it).
    their own route from the centre (stat nodes, skill-level nodes, big bonus nodes at the ends); not enough points
    to take everything, so choices matter; a refund costs coin. Keep our class / path / form tree as the base.
 8. **New fantasy interface** (like Aion 2, its own unique look, not an old-game look): HUD, bags, menus, buttons.
+   **Chosen: style B "Celestial Glass"** (design canvas: https://claude.ai/artifact/SVJGDm947F32yq1LRXvJCk):
+   frosted see-through glass panels, thin silver lines, sky-blue (#7fe0ff) glow, soft gold (#f0d58a) highlights,
+   rounded shapes, Marcellus for titles and Manrope for text. Rounded-square minimap, round glass buttons,
+   thin HP/MP bars, rarity shown as a coloured dot and a glow at the bottom of each bag slot.
 9. **Travel loading screen**: 2 to 5 seconds when moving between lands, so the next land spawns fully before you see it.
 10. **Minimap and a guide arrow**: a minimap to see where you are going, and an arrow pointing to the quest goal
     (works even when AUTO doesn't).
