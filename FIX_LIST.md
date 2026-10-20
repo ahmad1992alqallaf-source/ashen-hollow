@@ -21,6 +21,13 @@ Collected while testing; fixed together in one round.
    pink weeds; up close they disappear. Likely the far-distance version of the grass/flowers (LOD or terrain
    detail) has the wrong colour, or the close version doesn't draw. Far and near should match.
 
+6. **New: mining and smithing like World of Warcraft / Aion 2** (user's choice):
+   - Ore rocks show on the minimap.
+   - Ore quality: grey, green, blue, yellow. Better ore makes better gear.
+   - Smithing recipe window (WoW style): pick a recipe and how many, made one after another with a progress bar;
+     recipe colours (orange/yellow/green/grey) show if it still raises skill; new recipes from trainers and drops.
+   - Not wanted: Aion 2's 3-roll gathering panel.
+
 Not a problem: night darkness is fine as it is (keep it).
 
 ## Waiting to be checked on the phone
