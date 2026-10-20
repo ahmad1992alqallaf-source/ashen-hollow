@@ -30,6 +30,17 @@ Collected while testing; fixed together in one round.
 
 Not a problem: night darkness is fine as it is (keep it).
 
+23. **Weapons don't show in the item preview** (anvil, also the bag): the picture of a weapon (bronze sword, mace,
+    staff) shows a close-up of a headless robe/body instead of the weapon, and "Try it on" shows the hero still
+    holding their own dagger, not the weapon being tried (seen as a Rogue; the item says "your class can't use
+    this", but the preview should still show it). The preview must draw the weapon itself, and Try it on must put
+    it in the hero's hand.
+24. **Old Mill Road: the river/water is a flat bright-blue sheet** with no water look (and the hero walks along it).
+25. **Old Mill Road: plain blue blocks** (stone slabs, ruins, posts near the deer) look like untextured boxes.
+26. **Silkwood fights: a huge green glowing cylinder and giant orange/green rings** on the ground around the hero
+    (shaman totem / level-up / pet "seal" effects?) look like placeholders and cover the screen. (To confirm.)
+27. Wolves in Silkwood look like dark shadows, like the boars (item 2). (To confirm.)
+
 ## Big ideas (to discuss, then build)
 7. **Longer talent tree, like Aion 2's Daevanion boards** but in our own style: many more nodes, the player picks
    their own route from the centre (stat nodes, skill-level nodes, big bonus nodes at the ends); not enough points
