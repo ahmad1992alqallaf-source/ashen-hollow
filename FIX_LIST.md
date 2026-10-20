@@ -37,6 +37,7 @@ Not a problem: night darkness is fine as it is (keep it).
     it in the hero's hand.
 24. **Old Mill Road: the river/water is a flat bright-blue sheet** with no water look (and the hero walks along it).
 25. **Old Mill Road: plain blue blocks** (stone slabs, ruins, posts near the deer) look like untextured boxes.
+    The pillar lying on the ground near the deer is **see-through** (missing faces / one-sided or inside-out mesh).
 26. **Silkwood fights: a huge green glowing cylinder and giant orange/green rings** on the ground around the hero
     (shaman totem / level-up / pet "seal" effects?) look like placeholders and cover the screen. (To confirm.)
 27. **Wolves look pixelated / like dark shadows** in Silkwood fights, same problem as the boars (item 2).
