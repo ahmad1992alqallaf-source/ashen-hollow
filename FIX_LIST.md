@@ -48,6 +48,13 @@ Not a problem: night darkness is fine as it is (keep it).
 15. **VIP (monthly, store)**: auto pickup, +2% XP, +2% profession XP. No power, not pay-to-win.
 16. **Battle Pass.**
 
+17. **Collection book**: each land's fish, ores, logs, hides and herbs by rarity; a full page gives a title or a look.
+18. **Rare catch announcements** in chat ("Ahmad caught a Legendary Moonfin!").
+19. **Loot glow**: a body holding rare loot glows in that rarity's colour.
+20. **Fishing mini-game** (a short tension bar) for rare fish.
+21. **Rich veins and ancient trees**: rare gathering spots that appear for a while with better-rarity materials.
+22. **Battle Pass with two lines**: one for fighting, one for gathering and crafting.
+
 ## Waiting to be checked on the phone
 
 
