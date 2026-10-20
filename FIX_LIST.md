@@ -42,6 +42,11 @@ Not a problem: night darkness is fine as it is (keep it).
 27. Wolves in Silkwood look like dark shadows, like the boars (item 2). (To confirm.)
 28. **Skinning has no animation**: the hero just stands while the skinning bar fills. Add a kneel-and-cut
     animation (knife in hand, kneeling at the body) for the whole time skinning runs.
+29. **Fishing like World of Warcraft**: hold a fishing pole and cast; the line flies out and a bobber lands on the
+    water and floats; after a random wait (a few to ~20 s) the bobber dips and splashes with a sound; tap it (or the
+    button) quickly to hook the fish; too slow and it gets away. Fish schools (rippling spots) give more and rarer
+    fish. Lures add a bonus for a while. Each land has its own fish list by rarity (item 11); rare and better
+    fish go into the short tension mini-game (item 20).
 
 ## Big ideas (to discuss, then build)
 7. **Longer talent tree, like Aion 2's Daevanion boards** but in our own style: many more nodes, the player picks
