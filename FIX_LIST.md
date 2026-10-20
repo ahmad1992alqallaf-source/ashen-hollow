@@ -10,6 +10,10 @@ Collected while testing; fixed together in one round.
    item) are in and travel there by itself, road by road (through the area exits / passes, or the waystone if it is
    unlocked), then carry on with the step. Same for "talk to" steps whose NPC is in another land.
 
+2. **The boars in Silkwood look pixelated / like dark shadows** (the tusked boars). Check their model and textures
+   on the phone (Mobs/boar and Mobs/boarlord, also used by Old Tusk): likely a low-resolution or badly compressed
+   texture, or a material that looks wrong on phones. Compare with the editor.
+
 ## Waiting to be checked on the phone
 - Gear and weapon pictures in the bag (0.9.8: read back through a plain copy, drawn icon if still empty).
 
