@@ -14,9 +14,18 @@ Collected while testing; fixed together in one round.
    on the phone (Mobs/boar and Mobs/boarlord, also used by Old Tusk): likely a low-resolution or badly compressed
    texture, or a material that looks wrong on phones. Compare with the editor.
 
+3. **Burnt food needs a better icon.**
+4. (From the videos, to confirm) **Nights are very dark** in Hollow Meadow and Old Mill Road: the hero, roads and
+   foes are hard to see on the phone.
+5. (From the videos, to confirm) **Big plain blue blocks on Old Mill Road** (the tall slabs/stones near the road
+   and the bridge) look like untextured boxes.
+6. (From the videos, to confirm) In the bag, tapping a **weapon shows the whole hero** in the picture instead of the
+   weapon itself.
+
 ## Waiting to be checked on the phone
-- Gear and weapon pictures in the bag (0.9.8: read back through a plain copy, drawn icon if still empty).
+
 
 ## Fixed
+- Gear and weapon pictures in the bag were empty on phones (0.9.8).
 - Blue screen / nothing could be tapped after Begin (0.9.6 ships' hulls NaN on phones; 0.9.7 shaders left out of
   phone builds).
