@@ -30,6 +30,24 @@ Collected while testing; fixed together in one round.
 
 Not a problem: night darkness is fine as it is (keep it).
 
+## Big ideas (to discuss, then build)
+7. **Longer talent tree, like Aion 2's Daevanion boards** but in our own style: many more nodes, the player picks
+   their own route from the centre (stat nodes, skill-level nodes, big bonus nodes at the ends); not enough points
+   to take everything, so choices matter; a refund costs coin. Keep our class / path / form tree as the base.
+8. **New fantasy interface** (like Aion 2, its own unique look, not an old-game look): HUD, bags, menus, buttons.
+9. **Travel loading screen**: 2 to 5 seconds when moving between lands, so the next land spawns fully before you see it.
+10. **Minimap and a guide arrow**: a minimap to see where you are going, and an arrow pointing to the quest goal
+    (works even when AUTO doesn't).
+11. **Rarity for everything gathered**: common, uncommon, rare, epic, legendary for fish (each land has its own
+    fish), ore, logs, hides (skinning), herbs. Rarer = better things made from it.
+12. **Recipes for everything**: food, potions, cooking, banquets, gear. Bosses and monsters drop recipes; the
+    Adventurer path finds them and sells them to Artisans, who make the gear. (Ties the two paths together.)
+13. **Loot like WoW**: no automatic pickup. A killed monster (skinnable or not) gets a button: tap it to open its
+    loot window and take what dropped.
+14. **Auto pickup** comes from: a pet at 3 stars, OR a monthly VIP from the store.
+15. **VIP (monthly, store)**: auto pickup, +2% XP, +2% profession XP. No power, not pay-to-win.
+16. **Battle Pass.**
+
 ## Waiting to be checked on the phone
 
 
