@@ -472,7 +472,7 @@ public partial class AHUI : MonoBehaviour
         float dt = Time.unscaledDeltaTime;
         AHWellbeing.Tick(this, dt);   // rest reminders
         MinimapTick(dt);
-        CelestialTick(); CelestialBagTick();
+
         // windows with timers (expeditions, caravans, requests, town projects) refresh by themselves every few seconds
         wkLiveT -= dt;
         if (wkLiveT <= 0f) { wkLiveT = 5f; if (WorkOpen && (wkMode == "exped" || wkMode == "looters" || wkMode == "twopart" || wkMode == "profpets" || wkMode == "caravan" || wkMode == "requests" || wkMode == "town")) RenderWork(); }
