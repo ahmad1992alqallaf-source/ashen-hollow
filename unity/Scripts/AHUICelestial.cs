@@ -14,6 +14,7 @@ public partial class AHUI
 {
     public static readonly Color CGSky = new Color(0.498f, 0.878f, 1f), CGGold = new Color(0.941f, 0.835f, 0.541f), CGSilver = new Color(0.86f, 0.9f, 0.96f);
     static Sprite cgRound, cgPill, cgRow;
+    readonly HashSet<Image> cgDone = new HashSet<Image>();
 
     // a rounded glass shape drawn at 4x (pixels per unit 400), sliced: night-blue face, a sheen along the top, a silver
     // hairline and a faint sky-blue line inside it
@@ -129,7 +130,7 @@ public partial class AHUI
                     break;
                 }
             }
-            else if (im.sprite == ornDisc && im.color.a > 0.5f && !im.name.StartsWith("CG")) { im.color = CGFace(im.color); im.name = "CG" + im.name; }
+            else if (im.sprite == ornDisc && im.color.a > 0.5f && cgDone.Add(im)) im.color = CGFace(im.color);
         }
         foreach (var t in root.GetComponentsInChildren<Text>(true))
         {

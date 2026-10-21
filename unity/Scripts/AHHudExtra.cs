@@ -38,9 +38,9 @@ public partial class AHUI
         if (pill.gameObject.activeSelf != on) pill.gameObject.SetActive(on);
         if (on)
         {
-            pillT.text = s;
-            float w = Mathf.Clamp(s.Length * 9.2f + 40f, 220f, 760f);
-            pill.sizeDelta = new Vector2(w, 34f); pillT.rectTransform.sizeDelta = new Vector2(w - 10f, 30f);
+            pillT.text = s.StartsWith("STORY · ") ? "<color=#f0d58a><b>STORY</b></color>    " + s.Substring(8) : s;
+            float w = Mathf.Clamp(s.Length * 8.2f + 48f, 220f, 760f);
+            pill.sizeDelta = new Vector2(w, 39f); pillT.rectTransform.sizeDelta = new Vector2(w - 10f, 32f);
             var e = pill.Find("Edge") as RectTransform; if (e != null) e.sizeDelta = new Vector2(w, 2f);
         }
     }

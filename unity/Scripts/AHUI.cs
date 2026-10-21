@@ -243,6 +243,7 @@ public partial class AHUI : MonoBehaviour
         ApplySkin();
         Celestial(transform);   // the whole HUD in Celestial Glass
         CelestialTitle(wkTitle); if (bannerTitle != null) CelestialTitle(bannerTitle);
+        CelestialLayout();   // the play screen as the Celestial Glass design
         RefreshClass();
         if (g.player != null) g.player.bag.Changed += RefreshBag;
     }
@@ -471,6 +472,7 @@ public partial class AHUI : MonoBehaviour
         float dt = Time.unscaledDeltaTime;
         AHWellbeing.Tick(this, dt);   // rest reminders
         MinimapTick(dt);
+        CelestialTick(); CelestialBagTick();
         // windows with timers (expeditions, caravans, requests, town projects) refresh by themselves every few seconds
         wkLiveT -= dt;
         if (wkLiveT <= 0f) { wkLiveT = 5f; if (WorkOpen && (wkMode == "exped" || wkMode == "looters" || wkMode == "twopart" || wkMode == "profpets" || wkMode == "caravan" || wkMode == "requests" || wkMode == "town")) RenderWork(); }
@@ -515,8 +517,9 @@ public partial class AHUI : MonoBehaviour
                 }
             }
         }
-        atkImg.color = sealAct != null ? (skillMode ? new Color(0.16f, 0.46f, 0.22f, 0.95f) : new Color(0.16f, 0.32f, 0.55f, 0.95f))
-            : attackHeld ? new Color(0.5f, 0.3f, 0.15f, 0.95f) : skillMode ? new Color(0.14f, 0.24f, 0.16f, 0.85f) : new Color(0.2f, 0.14f, 0.1f, 0.85f);
+        // Celestial Glass: the seal is sky glass; it brightens when held, greens in SKILL mode, warms for an action
+        atkImg.color = sealAct != null ? (skillMode ? new Color(0.7f, 1f, 0.75f, 1f) : new Color(1f, 0.95f, 0.8f, 1f))
+            : attackHeld ? new Color(1.2f, 1.2f, 1.2f, 1f) : skillMode ? new Color(0.75f, 1f, 0.8f, 1f) : Color.white;
 
         if (bannerT > 0f) { bannerT -= dt; bannerGroup.alpha = Mathf.Clamp01(bannerT / 0.6f) * Mathf.Clamp01((3.2f - bannerT) / 0.3f); }
         else bannerGroup.alpha = 0f;
@@ -704,6 +707,7 @@ public partial class AHUI : MonoBehaviour
     {
         var p = g.player; var pg = CurPage(p);
         if (pg.box == 9) { if (idx < AHBags.ToolKinds.Length) OnToolCell(idx); return; }
+        if (bagFiltered != null) { if (idx < bagFiltered.Count) OnBagSlot(bagFiltered[idx]); return; }
         if (idx < pg.count) OnBagSlot(pg.start + idx);
     }
 
@@ -931,6 +935,7 @@ public partial class AHUI : MonoBehaviour
             b.frame.color = selected ? new Color(1f, 0.85f, 0.4f, 1f) : d != null ? new Color(q.r, q.g, q.b, 0.95f) : new Color(0.8f, 0.65f, 0.4f, 0.25f);
         }
         else b.bg.color = selected ? new Color(0.55f, 0.38f, 0.18f, 1f) : d != null ? Color.Lerp(new Color(0.2f, 0.15f, 0.11f, 1f), AHItems.Quality(d), 0.18f) : new Color(0.2f, 0.15f, 0.11f, 1f);
+        CGPaintSlot(b, d, selected);   // Celestial Glass: a glass socket, a rarity dot and a glow at its foot
     }
 
     public void RefreshBag()
@@ -940,9 +945,23 @@ public partial class AHUI : MonoBehaviour
         var bag = p.bag;
         bagGold.text = AHItems.MoneyText(bag.money, 3);
         var pages = BagPages(p); bagPageI = Mathf.Clamp(bagPageI, 0, pages.Count - 1); var pg = pages[bagPageI];
+        // a tab other than All: everything of that kind across the whole bag
+        bagFiltered = null;
+        if (bagTab != "all" && pg.box != 9)
+        {
+            bagFiltered = new List<int>();
+            for (int oi = 0; oi < bag.order.Count; oi++) { var fid = bag.order[oi]; if (fid != null && TabHas(AHItems.Get(fid))) bagFiltered.Add(oi); }
+        }
         for (int i = 0; i < bagSlots.Length; i++)
         {
-            bool show = i < pg.count; bagSlots[i].rt.gameObject.SetActive(show); if (!show) continue;
+            bool show = bagFiltered != null || i < pg.count; bagSlots[i].rt.gameObject.SetActive(show); if (!show) continue;
+            if (bagFiltered != null)
+            {
+                bagSlots[i].hint.text = "";
+                string fid2 = i < bagFiltered.Count ? bag.order[bagFiltered[i]] : null;
+                PaintSlot(bagSlots[i], AHItems.Get(fid2), bag.Count(fid2), fid2 != null && fid2 == bagSel);
+                continue;
+            }
             if (pg.box == 9)
             {
                 string kind = AHBags.ToolKinds[i], tid = AHBags.Tool(p, kind);

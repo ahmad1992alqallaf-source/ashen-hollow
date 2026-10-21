@@ -14,7 +14,7 @@ public partial class AHUI
 {
     RectTransform mmRoot, mmSpin, mmDots, mmMe, guideRt, guideArrow; RawImage mmMap; Text guideText;
     Texture2D mmTex; Vector3 mmC; float mmS, mmTick;
-    const float MmD = 150f, MmRange = 45f;   // diameter on screen, metres from the centre to the rim
+    const float MmD = 164f, MmRange = 45f;   // diameter on screen, metres from the centre to the rim
     static readonly Vector2 MmPos = new Vector2(98f, -318f);
     readonly System.Collections.Generic.List<RectTransform> mmPool = new System.Collections.Generic.List<RectTransform>();
     int mmUsed; bool hasQ, qRoad; Vector3 qAt; string qLabel;
@@ -25,7 +25,7 @@ public partial class AHUI
         mmRoot = Img("Minimap", transform, circle, new Vector2(0f, 1f), MmPos, new Vector2(MmD + 8f, MmD + 8f), new Color(0.75f, 0.85f, 0.95f, 0.55f));   // the silver rim
         var face = Img("Face", mmRoot, circle, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(MmD, MmD), new Color(0.06f, 0.1f, 0.16f, 0.92f));
         var mask = face.gameObject.AddComponent<Mask>(); mask.showMaskGraphic = true;
-        mmSpin = Box("Spin", face, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(MmD * 1.45f, MmD * 1.45f));
+        mmSpin = Box("Spin", face, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(MmD * 1.6f, MmD * 1.6f));
         var mapGo = new GameObject("Map", typeof(RectTransform)); var mrt = (RectTransform)mapGo.transform; mrt.SetParent(mmSpin, false);
         mrt.anchorMin = Vector2.zero; mrt.anchorMax = Vector2.one; mrt.offsetMin = mrt.offsetMax = Vector2.zero;
         mmMap = mapGo.AddComponent<RawImage>(); mmMap.raycastTarget = false; mmMap.color = new Color(1f, 1f, 1f, 0f);
@@ -36,10 +36,13 @@ public partial class AHUI
         mmMe = Img("Me", face, arrowSp, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(18, 18), Color.white);
         taps.Add(new TapBtn { rt = mmRoot, act = () => OpenMap() });
         // the guide arrow, top middle under the story line
-        guideRt = Box("Guide", transform, new Vector2(0.5f, 1f), new Vector2(0.5f, 0.5f), new Vector2(0f, -66f), new Vector2(220, 46));
-        guideArrow = Img("Arrow", guideRt, arrowSp, new Vector2(0.5f, 0.5f), new Vector2(0f, 4f), new Vector2(30, 30), new Color(0.94f, 0.84f, 0.54f, 1f));
-        guideText = Center(Label(guideRt, "T", "", 13, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(220, 18), new Color(0.94f, 0.84f, 0.54f)));
-        guideText.rectTransform.anchoredPosition = new Vector2(0f, -18f);
+        // the guide: glowing chevrons on the ground ahead of the hero (placed every frame), the goal and distance beside
+        guideRt = Box("Guide", transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(10, 10));
+        var cgl = Img("Glow", guideRt, glowSprite(), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(110, 130), new Color(0.5f, 0.88f, 1f, 0.35f));
+        guideArrow = Img("Arrow", guideRt, CGIcon("chevrons") ?? arrowSp, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(52, 74), new Color(0.82f, 0.96f, 1f, 1f));
+        guideArrow.GetComponent<Image>().preserveAspect = true; cgl.SetParent(guideArrow, true);
+        guideText = Label(guideRt, "T", "", 15, TextAnchor.MiddleLeft, Vector2.zero, new Vector2(260, 22), new Color(0.84f, 0.96f, 1f));
+        guideText.fontStyle = FontStyle.Bold; guideText.rectTransform.anchorMin = guideText.rectTransform.anchorMax = new Vector2(0.5f, 0.5f); guideText.rectTransform.pivot = new Vector2(0f, 0.5f);
         var sh = guideText.gameObject.AddComponent<Shadow>(); sh.effectColor = new Color(0f, 0f, 0f, 0.8f);
         guideRt.gameObject.SetActive(false);
         StartCoroutine(SnapMinimap());
@@ -101,7 +104,7 @@ public partial class AHUI
         // the land picture under you
         if (mmTex != null)
         {
-            float span = MmRange * 1.45f;
+            float span = MmRange * 1.6f;
             float u = (pp.x - (mmC.x - mmS * 0.5f)) / mmS, v = (pp.z - (mmC.z - mmS * 0.5f)) / mmS, w = span * 2f / mmS;
             mmMap.uvRect = new Rect(u - w * 0.5f, v - w * 0.5f, w, w);
         }
@@ -158,17 +161,38 @@ public partial class AHUI
             }
             for (int i = mmUsed; i < mmPool.Count; i++) if (mmPool[i].gameObject.activeSelf) mmPool[i].gameObject.SetActive(false);
         }
-        // the guide arrow at the top
-        bool gOn = hasQ && !AHFishing.Active;
+        // the guide: chevrons on the ground a few steps ahead of the hero, turned toward the goal
+        Vector3 gd = qAt - pp; gd.y = 0f; float gdist = gd.magnitude;
+        bool gOn = hasQ && !AHFishing.Active && gdist > 4f && cam != null;
+        Vector3 s0 = Vector3.zero, s1 = Vector3.zero;
+        if (gOn)
+        {
+            Vector3 dir = gd / gdist, a0 = pp + dir * 1.6f + Vector3.up * 0.15f, a1 = pp + dir * 3.2f + Vector3.up * 0.15f;
+            s0 = cam.WorldToScreenPoint(a0); s1 = cam.WorldToScreenPoint(a1);
+            gOn = s0.z > 0f && s1.z > 0f;
+        }
         if (guideRt.gameObject.activeSelf != gOn) guideRt.gameObject.SetActive(gOn);
         if (gOn)
         {
-            Vector3 d = qAt - pp; d.y = 0f; float dist = d.magnitude;
-            float ang = Mathf.Atan2(d.x, d.z) * Mathf.Rad2Deg - yaw;   // 0: straight ahead
-            guideArrow.localEulerAngles = new Vector3(0f, 0f, -ang);
-            var ac = guideArrow.GetComponent<Image>(); ac.color = new Color(0.94f, 0.84f, 0.54f, dist < 4f ? 0.5f + 0.5f * Mathf.PingPong(Time.unscaledTime * 2f, 1f) : 1f);
-            guideText.text = (qLabel ?? "Quest") + " · " + (dist < 4f ? "here" : Mathf.RoundToInt(dist) + " m");
+            var par = (RectTransform)guideRt.parent; Vector2 l0, l1;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(par, (s0 + s1) * 0.5f, null, out l0);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(par, s1, null, out l1);
+            Vector2 off = par.rect.size * (par.pivot - new Vector2(0.5f, 0.5f));
+            guideRt.anchoredPosition = l0 + off;
+            Vector2 sd = (Vector2)(s1 - s0);
+            guideArrow.localEulerAngles = new Vector3(0f, 0f, Mathf.Atan2(-sd.x, sd.y) * Mathf.Rad2Deg);
+            guideArrow.GetComponent<Image>().color = new Color(0.82f, 0.96f, 1f, 0.75f + 0.25f * Mathf.PingPong(Time.unscaledTime * 1.5f, 1f));
+            guideText.rectTransform.anchoredPosition = new Vector2(28f, -30f);
+            guideText.text = (qLabel ?? "Quest") + " · " + Mathf.RoundToInt(gdist) + " m";
         }
+    }
+
+    static Sprite glowSp; static Sprite glowSprite()
+    {
+        if (glowSp != null) return glowSp;
+        const int N = 64; var tex = new Texture2D(N, N, TextureFormat.RGBA32, false); var px = new Color32[N * N];
+        for (int y = 0; y < N; y++) for (int x = 0; x < N; x++) { float d = new Vector2(x + 0.5f - N / 2f, y + 0.5f - N / 2f).magnitude / (N / 2f); px[y * N + x] = new Color32(255, 255, 255, (byte)(Mathf.Pow(Mathf.Clamp01(1f - d), 2f) * 255)); }
+        tex.SetPixels32(px); tex.Apply(); glowSp = Sprite.Create(tex, new Rect(0, 0, N, N), new Vector2(0.5f, 0.5f), 100f); return glowSp;
     }
 
     // 0: a diamond, 1: a five-point star, 2: an arrow pointing up
