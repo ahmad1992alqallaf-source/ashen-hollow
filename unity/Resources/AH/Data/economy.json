@@ -21,7 +21,9 @@
     "tool_axe_bronze",
     "tool_sickle_bronze",
     "tool_knife_bronze",
-    "tool_rod_bronze"
+    "tool_rod_bronze",
+    "torch",
+    "fishing_lure"
    ]
   },
   "anvil": {
@@ -134,7 +136,8 @@
     "frost_boots",
     "stew",
     "hp_potion",
-    "mount:direwolf"
+    "mount:direwolf",
+    "torch"
    ],
    "premium": [
     "frost_pelt",
@@ -436,7 +439,8 @@
     "stew",
     "lantern_hood",
     "pet:toad",
-    "logs"
+    "logs",
+    "torch"
    ]
   },
   "caravanserai": {

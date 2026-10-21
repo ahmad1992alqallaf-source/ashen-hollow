@@ -361,6 +361,13 @@ public class AHGame : MonoBehaviour
     }
 
     public void AddBlocker(Vector3 p, float r) { cPos.Add(new Vector3(p.x, 0f, p.z)); cRad.Add(r); }
+    // a gathering node that moved: its solid circle goes with it
+    public void MoveBlocker(Vector3 from, Vector3 to)
+    {
+        int best = -1; float bd = 1.5f * 1.5f;
+        for (int i = 0; i < cPos.Count; i++) { float dx = cPos[i].x - from.x, dz = cPos[i].z - from.z, d = dx * dx + dz * dz; if (d < bd) { bd = d; best = i; } }
+        if (best >= 0) cPos[best] = new Vector3(to.x, 0f, to.z);
+    }
     // takes away the box blockers whose middle stands inside r (a house that was taken away leaves no wall behind)
     public int RemoveBoxesIn(Rect r)
     {
@@ -956,7 +963,7 @@ public class AHGame : MonoBehaviour
         if (data == null || player == null) return;
         dayT = (dayT + Time.deltaTime) % dayLength;
         UpdateDay();
-        AHGather.Tick(this); AHFishing.WorldTick(this, Time.deltaTime);
+        AHGather.Tick(this); AHFishing.WorldTick(this, Time.deltaTime); AHTorch.Tick(this, Time.deltaTime);
         ahT -= Time.unscaledDeltaTime; if (ahT <= 0f) { ahT = 5f; AHAuction.Tick(this); AHOrders.Tick(this); AHRequests.Tick(this); AHExpeditions.Tick(this); AHProfPets.Tick(this); AHLooters.Tick(this); AHTwoPart.Tick(this); AHCaravan.Tick(this); AHKitchen.Names(player); AHHome.Tick(this); AHMarket.Tick(this); }
         AHHome.RestTick(this, Time.deltaTime);
         AHFinder.Tick(this, Time.deltaTime);

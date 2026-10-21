@@ -24,7 +24,7 @@ public class AHMob : MonoBehaviour
     public bool Taunted { get { return Time.time < tauntUntil; } }
     public void Taunt(float t) { tgt = null; tauntUntil = Mathf.Max(tauntUntil, Time.time + t); Engage(); }
     public void Scare(float t) { if (!dead) { state = State.Flee; fleeT = t; } }   // runs from you (the treasure goblin)
-    float corpseT, respawnT;        // web: the body stays 40 s (1.2 s once skinned), then back in 18 s (or d.respawn)
+    float corpseT, respawnT, respawnAt;        // web: the body stays 40 s (1.2 s once skinned), then back in 18 s (or d.respawn)
     bool away;                      // night beasts by day, and anything waiting to come back
     bool lungeHit;
     public bool CanSkin { get { return dead && !type.noSkin && !away && !skinned && corpseT > 0f && model.activeSelf; } }
@@ -346,6 +346,9 @@ public class AHMob : MonoBehaviour
     {
         if (by != null) AHExtras.OnKill(by);   // weapon mastery
         dead = true; hp = 0f; windup = 0f; skinned = false; corpseT = 40f; respawnT = 0f; voiceT = 0f; Voice("death", 1f);
+        // every beast comes back 30-35 s after it fell (bosses and slow ones keep their own longer wait), so a cleared
+        // spot stays clear long enough to loot and skin in peace
+        respawnAt = Time.time + (type.respawn > 35f ? type.respawn : Random.Range(30f, 35f));
         loot.Clear(); lootMoney = 0;
         burnT = poisonT = slowT = rootT = stunT = fearT = 0f;
         if (hasClips && anim.Has("Death")) anim.Play("Death", false, 1f, true);
@@ -443,7 +446,7 @@ public class AHMob : MonoBehaviour
             {
                 corpseT -= dt;
                 if (corpseT <= 0f && add) { g.mobs.Remove(this); Destroy(gameObject); return; }
-                if (corpseT <= 0f) GoAway(nightOk ? type.respawn : float.PositiveInfinity);
+                if (corpseT <= 0f) GoAway(nightOk ? Mathf.Max(1f, respawnAt - Time.time) : float.PositiveInfinity);
                 return;
             }
             if (float.IsPositiveInfinity(respawnT)) { if (nightOk) respawnT = 0f; return; }

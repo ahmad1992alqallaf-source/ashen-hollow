@@ -300,7 +300,7 @@ public partial class AHUI
     AHMob lootPillMob;
 
     // after the HUD's own update each frame, so its words are the last ones written
-    void LateUpdate() { CelestialTick(); CelestialBagTick(); }
+    void LateUpdate() { CelestialTick(); CelestialBagTick(); LootAllTick(); }
 
     // every frame: the words that follow the game, the loot pill, the attack seal's sword
     void CelestialTick()

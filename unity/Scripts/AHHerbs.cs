@@ -217,7 +217,7 @@ public static class AHHerbs
             plant.transform.SetParent(root, true); plant.transform.position = new Vector3(s.pos.x, ground, s.pos.z);
             plant.transform.localScale = Vector3.one * 1.15f;
             AHModel.SetShadows(plant);
-            s.body = body; s.bodyCol = lc; s.fx = flowers;
+            s.body = body; s.bodyCol = lc; s.fx = flowers; s.look = plant.transform;
             n++;
         }
         if (n == 0) Object.Destroy(root.gameObject);

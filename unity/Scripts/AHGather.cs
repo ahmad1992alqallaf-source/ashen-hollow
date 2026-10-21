@@ -26,6 +26,11 @@ public class AHSpot
     public AHGate gate;
     public System.Action use;   // something you use with the action button (a dungeon chest)
     public bool rich;        // a rich vein (rocks) or an ancient tree: better grades, more XP, a golden shimmer
+    // World of Warcraft style nodes: a rock holds a few ores, then it is gone and comes back a minute or so later
+    // somewhere else nearby (herbs the same with one picking)
+    public Transform look, look2;   // the rock (or plant) and its ore crystals, moved together
+    public bool wander; public Vector3 home;             // gone, waiting to come back somewhere else
+    public int charges = -1;        // ores left in this rock (-1: not counted yet)
 }
 
 public class AHRecipe
@@ -169,12 +174,50 @@ public static class AHGather
     }
     public static float RichK(AHSpot s) { return s != null && s.rich ? 3f : 1f; }
 
+    // ---------- nodes that move (World of Warcraft style) ----------
+    static void Deplete(AHSpot s, float wait)
+    {
+        s.until = Time.time + wait; s.charges = -1;
+        if (s.look == null) return;   // an old-style spot: it just greys out and comes back where it was
+        s.wander = true;
+        s.look.gameObject.SetActive(false); if (s.look2 != null) s.look2.gameObject.SetActive(false);
+        AHSpark.Burst(s.pos + Vector3.up * 0.4f, new Color(0.8f, 0.75f, 0.65f, 0.8f), 14, 2f, 0.7f, 0.1f, 1.2f);
+    }
+    // back somewhere else: near a place where this kind already grows, on open ground (not a road, water, a tree,
+    // a house), clear of other nodes, fires and stations, and out of the hero's sight-line close by
+    static void Relocate(AHGame game, AHSpot s)
+    {
+        s.wander = false; s.until = 0f;
+        var homes = new List<Vector3>();
+        foreach (var o in Spots) if (o.kind == s.kind && o.type == s.type) homes.Add(o.home);
+        if (homes.Count == 0) homes.Add(s.home);
+        Vector3 hero = game.player != null ? game.player.transform.position : Vector3.one * 1e6f, at = s.home; bool found = false;
+        for (int tries = 0; tries < 60 && !found; tries++)
+        {
+            Vector3 h = homes[Random.Range(0, homes.Count)];
+            float a = Random.value * Mathf.PI * 2f, r = Random.Range(3f, 24f);
+            Vector3 c = new Vector3(h.x + Mathf.Cos(a) * r, s.pos.y, h.z + Mathf.Sin(a) * r);
+            if (!game.InArea(c) || game.InTown(c) || game.Blocked(c, 1.3f) || AHNav.IsRoad(game, c) || AHSea.Sea(c, 1.5f)) continue;
+            Vector3 dh = c - hero; dh.y = 0f; if (dh.sqrMagnitude < 14f * 14f) continue;
+            bool clear = true;
+            foreach (var o in Spots) { if (o == s) continue; Vector3 d = o.pos - c; d.y = 0f; if (d.sqrMagnitude < (o.kind == "chop" ? 3f * 3f : 6f * 6f)) { clear = false; break; } }
+            if (!clear) continue;
+            at = c; found = true;
+        }
+        Vector3 delta = at - s.pos; delta.y = 0f;
+        game.MoveBlocker(s.pos, at);
+        s.pos += delta;
+        if (s.look != null) { s.look.position += delta; s.look.gameObject.SetActive(true); }
+        if (s.look2 != null) { s.look2.position += delta; s.look2.gameObject.SetActive(true); }
+        if (s.kind == "mine") { bool wasRich = s.rich; s.rich = Random.value < 0.11f; if (s.rich != wasRich) s.name = s.rich ? "Rich " + char.ToLowerInvariant(s.name[0]) + s.name.Substring(1) : s.name.Replace("Rich ", "").Substring(0, 1).ToUpperInvariant() + s.name.Replace("Rich ", "").Substring(1); }
+    }
+
     static AHSpot Spot(string kind, string type, object o, float reachUnits)
     {
         float S = AHDB.S;
         Vector3 p = g.W((float)AHJson.N(o, "x") * S, (float)AHJson.N(o, "y") * S);
         if (!g.InArea(p)) return null;
-        var s = new AHSpot { kind = kind, type = type, pos = p, r = (float)AHJson.N(o, "r", 16) * S, reach = reachUnits * S };
+        var s = new AHSpot { kind = kind, type = type, pos = p, home = p, r = (float)AHJson.N(o, "r", 16) * S, reach = reachUnits * S };
         Spots.Add(s);
         return s;
     }
@@ -294,6 +337,7 @@ public static class AHGather
                 s.body.SetPropertyBlock(spent ? mpb : null);
             }
             if (s.kind == "chop" && s.until != 0f && s.until <= now) { s.until = 0f; SetFelled(s, false); }
+            if (s.wander && s.until <= now) Relocate(game, s);
             if (s.rich && !spent && p != null && (s.pos - p.transform.position).sqrMagnitude < 1600f)
                 AHSpark.Burst(s.pos + Vector3.up * (s.kind == "chop" ? 1.6f : 0.5f) + new Vector3(Random.Range(-0.5f, 0.5f), 0f, Random.Range(-0.5f, 0.5f)), new Color(1f, 0.85f, 0.4f, 0.9f), 3, 0.5f, 1.1f, 0.07f, 1.2f);
             if (s.kind == "fish" && p != null && (s.pos - p.transform.position).sqrMagnitude < 900f && now - s.lastRipple > 1.4f)
@@ -448,13 +492,34 @@ public static class AHGather
             s.kind == "chop" ? "axe" : s.kind == "mine" ? "pick" : s.kind == "fish" || s.kind == "lava" || s.kind == "sea" ? "rod" : null);
     }
 
+    static bool FireSpotOk(Vector3 c)
+    {
+        if (g.Blocked(c, 0.5f)) return false;
+        foreach (var o in Spots)
+        {
+            if (o.wander) continue;
+            Vector3 d = o.pos - c; d.y = 0f;
+            float keep = o.kind == "chop" ? 2.2f : o.kind == "fish" ? 1.5f : 2.6f;
+            if (d.sqrMagnitude < keep * keep) return false;
+        }
+        return true;
+    }
+
     // web: lighting your own campfire in the wild with logs
     public static bool CanLight(AHPlayer p) { return !p.dead && !AHInterior.Inside && !g.InTown(p.transform.position) && (p.bag.Count("logs") > 0 || p.bag.Count("pine_logs") > 0); }
     public static void StartLight(AHPlayer p)
     {
         if (g.InTown(p.transform.position)) { g.ui.Toast("Use the town campfire. You can light your own in the wild."); return; }
         if (p.bag.Count("logs") <= 0 && p.bag.Count("pine_logs") <= 0) { g.ui.Toast("You need logs. Chop a tree first."); return; }
-        var spot = new AHSpot { kind = "light", pos = p.transform.position + p.transform.forward * 34f * AHDB.S, reach = 1f };
+        // a fire needs open ground: never on a rock, a tree, a herb, a fishing spot or a station
+        Vector3 at = Vector3.zero; bool ok = false;
+        foreach (float turn in new[] { 0f, 50f, -50f, 100f, -100f, 180f })
+        {
+            Vector3 c = p.transform.position + Quaternion.Euler(0f, turn, 0f) * p.transform.forward * 34f * AHDB.S;
+            if (FireSpotOk(c)) { at = c; ok = true; break; }
+        }
+        if (!ok) { g.ui.Toast("No room for a fire here. Step away from the rocks, trees and plants."); return; }
+        var spot = new AHSpot { kind = "light", pos = at, reach = 1f };
         actSpot = spot; actRecipe = null; actT = 0f; actDur = Dur("light");
     }
 
@@ -517,7 +582,7 @@ public static class AHGather
                     if (!bag.Add(glog)) { ui.Toast(bag.lastWarn ?? "Your bag is full."); return false; } AHComp.Forage(g, log); GradeFx(p, glog, gr);
                     p.GainXp("woodcutting", Mathf.RoundToInt((int)AHJson.N(tr, "xp", 25) * (s.rich ? 1.5f : 1f)), false); AHProfPets.OnGather(g, "woodcutting");
                     g.quests.Event("gather", log, 1, g);
-                    if (Random.value < AHJson.N(tr, "fell", 0.35)) { s.until = now + 22f; SetFelled(s, true); ui.Toast("The " + s.name + " falls. It grows back soon."); return false; }
+                    if (Random.value < AHJson.N(tr, "fell", 0.35)) { s.until = now + Random.Range(60f, 90f); SetFelled(s, true); ui.Toast("The " + s.name + " falls. It grows back soon."); return false; }
                     return true;
                 }
             case "herb":
@@ -527,7 +592,7 @@ public static class AHGather
                     if (!bag.Add(gh)) { ui.Toast(bag.lastWarn ?? "Your bag is full."); return false; } AHComp.Forage(g, s.type); GradeFx(p, gh, gr);
                     p.GainXp("herblore", (int)AHJson.N(h, "xp", 14), false); AHProfPets.OnGather(g, "herblore");
                     if (p.Perk("alchemist", 20) && Random.value < 0.3f) bag.Add(s.type);
-                    s.until = now + 45f;
+                    Deplete(s, Random.Range(60f, 90f));   // picked: it grows again a minute or so later, somewhere nearby
                     g.quests.Event("gather", s.type, 1, g);
                     return false;
                 }
@@ -538,7 +603,11 @@ public static class AHGather
                     string gore = Graded(p, ore, "mining", (int)AHJson.N(rk, "req", 1), s, out gr);
                     if (!bag.Add(gore)) { ui.Toast(bag.lastWarn ?? "Your bag is full."); return false; } AHComp.Forage(g, ore); GradeFx(p, gore, gr);
                     p.GainXp("mining", Mathf.RoundToInt((int)AHJson.N(rk, "xp", 18) * (s.rich ? 1.5f : 1f)), false); AHProfPets.OnGather(g, "mining");
-                    s.until = now + 7f * (p.Spec("miner", "delve") ? 0.5f : 1f);
+                    // a rock holds 2-4 ores (a rich vein 4-6); the last one takes it away, to come back elsewhere
+                    if (s.charges < 0) s.charges = s.rich ? Random.Range(4, 7) : Random.Range(2, 5);
+                    s.charges--;
+                    bool gone = s.charges <= 0;
+                    if (gone) Deplete(s, p.Spec("miner", "delve") ? Random.Range(45f, 65f) : Random.Range(60f, 90f));
                     g.quests.Event("gather", ore, 1, g);
                     // web mineBonus: double ore, and now and then a gem
                     float dbl = p.Perk("miner", 30) ? 0.35f : p.Perk("miner", 10) ? 0.2f : 0f;
@@ -549,7 +618,8 @@ public static class AHGather
                         float x = Random.value; string gid = x < 0.45f ? "sapphire" : x < 0.75f ? "ruby" : x < 0.95f ? "emerald" : "diamond";
                         if (bag.Add(gid)) ui.Banner(AHItems.Get(gid).name, "You found a gem!");
                     }
-                    return false;
+                    if (gone) { ui.Toast("The vein is spent. Another will turn up somewhere nearby.", 2f); return false; }
+                    return true;   // keep swinging while ore is left
                 }
             case "fish": return false;   // fishing runs on its own (AHFishing), it lands its catch with GrantFish
             case "fire":

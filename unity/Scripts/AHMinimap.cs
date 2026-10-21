@@ -119,6 +119,7 @@ public partial class AHUI
             float r2 = MmRange * MmRange * 1.1f;
             foreach (var s in AHGather.Spots)
             {
+                if (s.wander) continue;   // gone, coming back somewhere else
                 Vector3 d = s.pos - pp; d.y = 0f; if (d.sqrMagnitude > r2) continue;
                 Color c; Sprite sp = diamond; float sz = 8f;
                 switch (s.kind)

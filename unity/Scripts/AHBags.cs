@@ -14,8 +14,8 @@ public static class AHBags
 {
     public const int Boxes = 5, FreeBoxes = 2;
     static readonly long[] OpenCost = { 0, 0, 5000, 25000, 100000 };   // copper: 5 silver, 25 silver, 100 silver
-    public static readonly string[] ToolKinds = { "pick", "axe", "sickle", "knife", "rod" };
-    public static readonly string[] ToolNames = { "Pickaxe", "Axe", "Sickle", "Knife", "Rod" };
+    public static readonly string[] ToolKinds = { "pick", "axe", "sickle", "knife", "rod", "torch" };
+    public static readonly string[] ToolNames = { "Pickaxe", "Axe", "Sickle", "Knife", "Rod", "Torch" };
     public static readonly string[] ArtisanOnly = { "bag_wool", "bag_hide", "bag_silk", "bag_rune", "bag_master", "bag_mythic", "tool_pick_guild", "tool_axe_guild", "tool_sickle_guild", "tool_knife_guild", "tool_rod_guild" };
 
     static List<string> L(AHPlayer p) { var l = p.prog.bags; while (l.Count < Boxes) l.Add(""); return l; }
@@ -79,6 +79,7 @@ public static class AHBags
 
     // ---------- the tool belt ----------
     public static string Tool(AHPlayer p, string kind) { foreach (var t in p.prog.tools) if (t.k == kind) return string.IsNullOrEmpty(t.v) ? null : t.v; return null; }
+    public static void SetToolPublic(AHPlayer p, string kind, string id) { SetTool(p, kind, id); }
     static void SetTool(AHPlayer p, string kind, string id)
     {
         var e = p.prog.tools.Find(t => t.k == kind);

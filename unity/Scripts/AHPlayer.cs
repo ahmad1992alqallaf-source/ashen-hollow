@@ -589,7 +589,7 @@ public class AHPlayer : MonoBehaviour
 
         // web: hunger falls 0.33 a second out in the wild; health comes back 1.1 a second, 8 s after the last hit, if not hungry
         bool town = g.InTown(transform.position);
-        if (!town) hunger = Mathf.Max(0f, hunger - dt * 0.33f);
+        if (!town) hunger = Mathf.Max(0f, hunger - dt * 0.07f);   // a full belly lasts about 24 minutes in the wild
         if (hunger < 25f && !hungerWarned) { hungerWarned = true; if (g.ui != null) g.ui.Toast("You are hungry. HP stops regenerating. Eat something."); }
         if (hunger >= 30f) hungerWarned = false;
         if (Time.time - lastHurt > 8f && hunger >= 25f && hp < maxHp) hp = Mathf.Min(maxHp, hp + (town ? 3f : 1.1f) * dt);

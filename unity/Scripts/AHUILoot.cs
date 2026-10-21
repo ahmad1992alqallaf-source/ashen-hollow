@@ -3,10 +3,29 @@
 // take them one by one, or all at once. What does not fit in the bag stays on the body until it fades.
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public partial class AHUI
 {
     AHMob lootMob;
+    RectTransform lootAllBtn;
+
+    // a big Take all under the right thumb (where the attack seal sits), while the loot window is open
+    void LootAllTick()
+    {
+        bool on = WorkOpen && wkMode == "loot" && lootMob != null && lootMob.HasLoot;
+        if (lootAllBtn == null)
+        {
+            if (!on) return;
+            lootAllBtn = Img("LootTakeAll", transform, cgBtnGo != null ? cgBtnGo : white, new Vector2(1, 0), new Vector2(-150f, 92f), new Vector2(230, 84), Color.white);
+            lootAllBtn.GetComponent<Image>().type = Image.Type.Sliced;
+            var ic = Img("Icon", lootAllBtn, CGIcon("loot"), new Vector2(0f, 0.5f), new Vector2(40, 0), new Vector2(34, 34), Color.white); ic.GetComponent<Image>().preserveAspect = true;
+            var t = Center(Label(lootAllBtn, "T", "Take all", 26, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(160, 50), Color.white)); t.fontStyle = FontStyle.Bold; t.rectTransform.anchoredPosition = new Vector2(22, 0);
+            taps.Insert(0, new TapBtn { rt = lootAllBtn, layer = 5, act = () => { var m = lootMob; if (m == null || !m.HasLoot) return; AHLoot.TakeAll(g, g.player, m); AfterLoot(); } });
+        }
+        if (lootAllBtn.gameObject.activeSelf != on) lootAllBtn.gameObject.SetActive(on);
+        if (on) lootAllBtn.SetAsLastSibling();
+    }
 
     // the nearest body with loot on it, close enough to open
     public AHMob LootTarget(AHPlayer p)

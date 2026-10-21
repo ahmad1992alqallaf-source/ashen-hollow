@@ -36,7 +36,7 @@ public static class AHAuto
         On = false; Clear(); if (why != null && g.ui != null) g.ui.Toast(why, 4f);
         if (g.ui != null) g.ui.RefreshAuto();
     }
-    static void Clear() { hasGoal = false; foe = null; spot = null; npc = null; WantAttack = false; castI = -1; Doing = ""; wayExit = null; wayGate = null; wayTo = null; }
+    static void Clear() { way = null; hasGoal = false; foe = null; spot = null; npc = null; WantAttack = false; castI = -1; Doing = ""; wayExit = null; wayGate = null; wayTo = null; }
 
     // which spell the hero should cast this frame (or -1)
     public static bool WantCast(int i) { return On && castI == i; }
@@ -77,11 +77,26 @@ public static class AHAuto
         // unstick: if we have not moved for a while, sidestep
         stuckT = (p.transform.position - lastPos).sqrMagnitude < 0.0004f ? stuckT + dt : 0f; lastPos = p.transform.position;
         Vector3 dir = to.normalized;
+        // further than a few steps: follow the way along the roads and round anything solid (AHNav)
+        if (to.magnitude > 5f)
+        {
+            navT -= dt;
+            if (way == null || navT <= 0f || (wayFor - goal).sqrMagnitude > 9f) { way = AHNav.Path(g, p.transform.position, goal); wayFor = goal; navT = 1.5f; }
+            if (way != null)
+            {
+                while (way.Count > 1 && Flat(way[0] - p.transform.position) < 0.9f) way.RemoveAt(0);
+                Vector3 w = way[0] - p.transform.position; w.y = 0f;
+                if (w.sqrMagnitude > 0.01f) dir = w.normalized;
+            }
+        }
+        else way = null;
+        if (stuckT > 1.6f) way = null;
         if (stuckT > 0.8f) { dir = Quaternion.Euler(0, stuckT % 2f < 1f ? 70f : -70f, 0) * dir; if (stuckT > 6f) { if (wayExit != null || wayGate != null) { stuckT = 0f; wayGoal = p.transform.position; Arrive(g, p); return Vector3.zero; } Stop(g, "Auto quest stopped: the way is blocked. Walk a little and tap AUTO again."); return Vector3.zero; } }
         return dir;
     }
 
     static float Flat(Vector3 v) { v.y = 0; return v.magnitude; }
+    static List<Vector3> way; static Vector3 wayFor; static float navT;
 
     // heal when hurt, otherwise the first damaging spell that is ready
     static void PickSpell(AHPlayer p)

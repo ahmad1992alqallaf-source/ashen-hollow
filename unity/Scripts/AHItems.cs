@@ -50,7 +50,7 @@ public static class AHItems
     public static ItemDef Get(string id)
     {
         if (id == null) return null;
-        if (cache == null) { cache = new Dictionary<string, ItemDef>(); AHGrades.Inject(); AHFish.Inject(); AHRecipeDrops.Inject(); }
+        if (cache == null) { cache = new Dictionary<string, ItemDef>(); AHGrades.Inject(); AHFish.Inject(); AHRecipeDrops.Inject(); AHTorch.Inject(); }
         ItemDef d;
         if (cache.TryGetValue(id, out d)) return d;
         var items = AHDB.Items;

@@ -100,6 +100,7 @@ public static class AHOre
             // the gathering code dims the body and hides the ore while the rock is spent
             s.body = rr; s.bodyCol = rm.HasProperty("baseColorFactor") ? rm.GetColor("baseColorFactor") : rm.HasProperty("_BaseColor") ? rm.GetColor("_BaseColor") : Color.white;
             s.fx = ore.gameObject;
+            s.look = rock.transform; s.look2 = ore;   // moved together when the vein turns up somewhere else
             n++;
         }
         if (n == 0) Object.Destroy(root.gameObject);
