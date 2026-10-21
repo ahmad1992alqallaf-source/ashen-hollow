@@ -245,7 +245,9 @@ public partial class AHUI
         var p = g.player; if (dailyChip == null || p == null || p.cls == null) return;
         var S = p.prog.daily; int done = S.tasks.FindAll(q => q.prog >= q.n).Count, ready = AHDaily.Ready(p);
         dailyChipText.text = "Daily " + done + "/" + S.tasks.Count + (ready > 0 ? " · claim!" : "");
-        dailyChip.GetComponent<UnityEngine.UI.Image>().color = ready > 0 ? new Color(0.45f, 0.3f, 0.08f, 0.92f) : new Color(0.2f, 0.14f, 0.1f, 0.85f);
+        // Celestial Glass: plain words under the minimap, soft gold when something waits to be claimed
+        dailyChip.GetComponent<UnityEngine.UI.Image>().color = new Color(1f, 1f, 1f, 0f);
+        dailyChipText.color = ready > 0 ? CGGold : new Color(0.93f, 0.96f, 1f);
     }
 
     public void OpenDaily() { AHDaily.Refresh(g); wkMode = "daily"; wkPageI = 0; ShowWork(true); RenderWork(); }

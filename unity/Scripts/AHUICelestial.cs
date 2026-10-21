@@ -93,31 +93,46 @@ public partial class AHUI
         cgRound = CGGlass(160, 26f, 1f, 0.9f); cgPill = CGGlass(96, 44f, 1f, 1f); cgRow = CGGlass(128, 18f, 1f, 0.6f);
     }
 
-    // old colour -> glass colour and shape (0 keep the shape, 1 panel, 2 row, 3 button)
-    struct CGMap { public Color from, to; public int shape; }
+    // old colour -> glass piece. kind: 0 recolour only, 1 window, 2 row, 3 chosen row, 4 main button (sky glass),
+    // 5 plain button (glass), 6 a button you can't press, 7 close / set aside (rose glass), 8 hidden
+    struct CGMap { public Color from, to; public int kind; }
     static readonly CGMap[] CGTable =
     {
-        new CGMap { from = new Color(0.1f, 0.075f, 0.055f), to = new Color(0.05f, 0.08f, 0.14f, 0.94f), shape = 1 },      // a window
-        new CGMap { from = new Color(0.085f, 0.065f, 0.05f), to = new Color(0f, 0f, 0f, 0f), shape = 0 },                 // its backing (the glass covers it)
-        new CGMap { from = new Color(0.85f, 0.65f, 0.3f), to = new Color(0.5f, 0.88f, 1f, 0.8f), shape = 0 },             // the gold edge: a sky-blue hairline
-        new CGMap { from = new Color(0.16f, 0.12f, 0.09f), to = new Color(0.12f, 0.19f, 0.29f, 0.8f), shape = 2 },        // a row
-        new CGMap { from = new Color(0.13f, 0.1f, 0.08f), to = new Color(0.1f, 0.15f, 0.24f, 0.78f), shape = 2 },
-        new CGMap { from = new Color(0.13f, 0.1f, 0.075f), to = new Color(0.09f, 0.14f, 0.22f, 0.85f), shape = 2 },
-        new CGMap { from = new Color(0.15f, 0.115f, 0.085f), to = new Color(0.1f, 0.15f, 0.23f, 0.8f), shape = 2 },
-        new CGMap { from = new Color(0.32f, 0.24f, 0.14f), to = new Color(0.2f, 0.38f, 0.52f, 0.95f), shape = 2 },        // a chosen row
-        new CGMap { from = new Color(0.22f, 0.5f, 0.26f), to = new Color(0.16f, 0.5f, 0.66f, 1f), shape = 3 },            // Go: sky glass
-        new CGMap { from = new Color(0.35f, 0.27f, 0.2f), to = new Color(0.22f, 0.29f, 0.4f, 1f), shape = 3 },            // Plain
-        new CGMap { from = new Color(0.28f, 0.25f, 0.22f), to = new Color(0.15f, 0.18f, 0.24f, 0.9f), shape = 3 },        // a button you can't press
-        new CGMap { from = new Color(0.3f, 0.22f, 0.17f), to = new Color(0.22f, 0.29f, 0.4f, 1f), shape = 3 },            // Prev / Next
-        new CGMap { from = new Color(0.55f, 0.18f, 0.14f), to = new Color(0.45f, 0.2f, 0.3f, 1f), shape = 3 },            // Close
-        new CGMap { from = new Color(0.45f, 0.22f, 0.17f), to = new Color(0.45f, 0.2f, 0.3f, 1f), shape = 3 },            // Set aside
+        new CGMap { from = new Color(0.1f, 0.075f, 0.055f), kind = 1 },                                              // a window
+        new CGMap { from = new Color(0.085f, 0.065f, 0.05f), kind = 8 },                                             // its backing (the glass covers it)
+        new CGMap { from = new Color(0.85f, 0.65f, 0.3f), to = new Color(0.5f, 0.88f, 1f, 0.55f), kind = 0 },          // the gold edge: a sky-blue hairline
+        new CGMap { from = new Color(0.16f, 0.12f, 0.09f), kind = 2 },                                              // a row
+        new CGMap { from = new Color(0.13f, 0.1f, 0.08f), kind = 2 },
+        new CGMap { from = new Color(0.13f, 0.1f, 0.075f), kind = 2 },
+        new CGMap { from = new Color(0.15f, 0.115f, 0.085f), kind = 2 },
+        new CGMap { from = new Color(0.32f, 0.24f, 0.14f), kind = 3 },                                              // a chosen row
+        new CGMap { from = new Color(0.22f, 0.5f, 0.26f), kind = 4 },                                               // Go
+        new CGMap { from = new Color(0.35f, 0.27f, 0.2f), kind = 5 },                                               // Plain
+        new CGMap { from = new Color(0.3f, 0.22f, 0.17f), kind = 5 },                                               // Prev / Next
+        new CGMap { from = new Color(0.3f, 0.24f, 0.18f), kind = 5 },
+        new CGMap { from = new Color(0.22f, 0.16f, 0.11f), kind = 5 },                                              // tabs and side buttons
+        new CGMap { from = new Color(0.28f, 0.25f, 0.22f), kind = 6 },                                              // a button you can't press
+        new CGMap { from = new Color(0.55f, 0.18f, 0.14f), kind = 7 },                                              // Close
+        new CGMap { from = new Color(0.45f, 0.22f, 0.17f), kind = 7 },                                              // Set aside
+        new CGMap { from = new Color(0.42f, 0.18f, 0.14f), kind = 7 },
+        new CGMap { from = new Color(0.45f, 0.15f, 0.12f), kind = 7 },
     };
+    static Sprite cgWin, cgRowB, cgRowSel, cgBtnGo, cgBtnPlain, cgBtnRose;
     static bool Near(Color a, Color b) { return Mathf.Abs(a.r - b.r) + Mathf.Abs(a.g - b.g) + Mathf.Abs(a.b - b.b) < 0.03f; }
 
     // restyle everything under root (after a window is drawn, and the HUD once)
     void Celestial(Transform root)
     {
         if (root == null || cgRound == null) return;
+        if (cgWin == null)
+        {
+            cgWin = CGGlass(160, 40f, 0.9f, 1f, new Color(0.06f, 0.1f, 0.18f));
+            cgRowB = CGGlass(128, 22f, 0.72f, 0.55f, new Color(0.11f, 0.17f, 0.27f));
+            cgRowSel = CGGlass(128, 22f, 0.9f, 1f, new Color(0.2f, 0.36f, 0.52f));
+            cgBtnGo = CGGlass(96, 44f, 0.85f, 1f, new Color(0.3f, 0.56f, 0.82f));
+            cgBtnPlain = CGGlass(96, 44f, 0.7f, 0.9f, new Color(0.14f, 0.21f, 0.32f));
+            cgBtnRose = CGGlass(96, 44f, 0.8f, 0.9f, new Color(0.45f, 0.22f, 0.32f));
+        }
         foreach (var im in root.GetComponentsInChildren<Image>(true))
         {
             if (im.sprite == null)
@@ -125,8 +140,16 @@ public partial class AHUI
                 foreach (var m in CGTable)
                 {
                     if (!Near(im.color, m.from)) continue;
-                    im.color = m.to;
-                    if (m.shape != 0) { im.sprite = m.shape == 1 ? cgRound : m.shape == 2 ? cgRow : cgPill; im.type = Image.Type.Sliced; }
+                    float a = im.color.a;
+                    switch (m.kind)
+                    {
+                        case 0: im.color = m.to; break;
+                        case 8: im.color = new Color(0f, 0f, 0f, 0f); break;
+                        default:
+                            im.sprite = m.kind == 1 ? cgWin : m.kind == 2 ? cgRowB : m.kind == 3 ? cgRowSel : m.kind == 4 ? cgBtnGo : m.kind == 7 ? cgBtnRose : cgBtnPlain;
+                            im.type = Image.Type.Sliced; im.color = new Color(1f, 1f, 1f, m.kind == 6 ? 0.45f : 1f);
+                            break;
+                    }
                     break;
                 }
             }
@@ -134,9 +157,35 @@ public partial class AHUI
         }
         foreach (var t in root.GetComponentsInChildren<Text>(true))
         {
-            if (t.font == null || t.font.name == "LegacyRuntime" || t.font.name.StartsWith("Nunito")) t.font = MainFont;
+            if (t.font == null || t.font.name == "LegacyRuntime" || t.font.name.StartsWith("Nunito") || t.font.name.StartsWith("Cinzel")) t.font = MainFont;
             Color c = t.color;
             if (c.r > 0.95f && c.g > 0.72f && c.g < 0.9f && c.b > 0.25f && c.b < 0.6f) t.color = new Color(CGGold.r, CGGold.g, CGGold.b, c.a);   // the old gold words
+        }
+    }
+    // the windows' frames, once: deep night dim behind, white Marcellus titles, a round glass close button
+    void CelestialWindows()
+    {
+        foreach (var root in new[] { wkRoot, dlgRoot })
+        {
+            if (root == null) continue;
+            var dim = root.GetComponent<Image>(); if (dim != null) dim.color = new Color(0.03f, 0.05f, 0.1f, 0.8f);
+        }
+        if (wkTitle != null) { wkTitle.font = TitleFont; wkTitle.fontStyle = FontStyle.Normal; wkTitle.color = Color.white; wkTitle.fontSize = 28; }
+        if (wkHint != null) wkHint.color = new Color(0.74f, 0.83f, 0.93f);
+        if (dlgName != null) { dlgName.font = TitleFont; dlgName.fontStyle = FontStyle.Normal; dlgName.color = Color.white; }
+        if (dlgQuest != null) { dlgQuest.font = TitleFont; dlgQuest.fontStyle = FontStyle.Normal; dlgQuest.color = CGGold; }
+        if (wkPanel != null)
+        {
+            var cl = wkPanel.Find("Close") as RectTransform;
+            if (cl != null)
+            {
+                cl.sizeDelta = new Vector2(44, 44);
+                var ci = cl.GetComponent<Image>(); ci.sprite = ornDisc; ci.type = Image.Type.Simple; ci.color = new Color(0.05f, 0.08f, 0.15f, 0.7f);
+                Img("Rim", cl, ornRing, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(47, 47), Color.white);
+                foreach (var t in cl.GetComponentsInChildren<Text>(true)) t.gameObject.SetActive(false);
+                Img("CGIcon", cl, CGIcon("close"), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(18, 18), Color.white);
+            }
+            var e = wkPanel.Find("Edge"); if (e != null) e.gameObject.SetActive(false);
         }
     }
     void CelestialTitle(Text t) { if (t == null) return; t.font = TitleFont; t.fontStyle = FontStyle.Normal; t.color = CGGold; }

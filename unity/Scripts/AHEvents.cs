@@ -157,7 +157,8 @@ public partial class AHUI
     {
         var p = g.player; if (evChip == null || p == null) return;
         bool hot; evChipText.text = AHEvents.ChipText(p, out hot);
-        evChip.GetComponent<Image>().color = hot ? new Color(0.42f, 0.16f, 0.5f, 0.92f) : new Color(0.2f, 0.14f, 0.1f, 0.85f);
+        evChip.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0f);   // Celestial Glass: plain words under the minimap
+        evChipText.color = hot ? new Color(0.8f, 0.6f, 1f) : new Color(0.93f, 0.96f, 1f);
         if (WorkOpen && wkMode == "events") RenderWork();
     }
 

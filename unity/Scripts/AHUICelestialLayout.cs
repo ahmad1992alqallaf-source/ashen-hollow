@@ -295,6 +295,7 @@ public partial class AHUI
         taps.Insert(0, new TapBtn { rt = lootPill, act = () => { var m = lootPillMob; if (m == null || !m.HasLoot) return; float d = Vector3.Distance(m.transform.position, g.player.transform.position); if (d <= 3.6f) OpenLoot(m); else Toast("Walk up to the body to loot it.", 1.4f); } });
         lootPill.gameObject.SetActive(false);
         CelestialBag();   // the bag as the design (AHUICelestialBag)
+        CelestialWindows();   // the windows' frames
     }
     AHMob lootPillMob;
 

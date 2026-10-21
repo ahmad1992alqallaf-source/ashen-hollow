@@ -225,6 +225,14 @@ public partial class AHUI
             var t = kv.Value.GetComponentInChildren<Text>(); if (t != null) t.color = on ? Color.white : new Color(0.74f, 0.83f, 0.93f);
         }
         cgBagCount.text = p.bag.UsedSlots + " / " + p.bag.SlotsMax;
+        // the bag buttons: glass, sky when showing, faint when locked (RefreshBag paints them in the old colours)
+        foreach (var bt in boxBtns)
+        {
+            var im = bt.GetComponent<Image>(); var c = im.color;
+            if (c.r > 0.5f && c.g < 0.5f) im.color = new Color(0.55f, 0.85f, 1f, 1f);
+            else if (c.r < 0.15f && c.g < 0.12f) im.color = new Color(1f, 1f, 1f, 0.45f);
+            else if (c.b < 0.5f || c.r < 0.5f) im.color = Color.white;
+        }
         cgGearName.text = string.IsNullOrEmpty(p.heroName) ? p.cls.name : p.heroName;
         var s = p.stat; int score = s.atk * 2 + s.def + Mathf.RoundToInt(p.maxHp / 10f);
         cgGearScore.text = "Gear score <color=#f0d58a><b><size=15>" + score + "</size></b></color>";
