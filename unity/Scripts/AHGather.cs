@@ -31,6 +31,7 @@ public class AHSpot
     public Transform look, look2;   // the rock (or plant) and its ore crystals, moved together
     public bool wander; public Vector3 home;             // gone, waiting to come back somewhere else
     public int charges = -1;        // ores left in this rock (-1: not counted yet)
+    public bool mother; public float motherUntil;   // a mother lode: ten ores and a golden glow, for a few minutes
 }
 
 public class AHRecipe
@@ -108,7 +109,7 @@ public static class AHGather
     public static void Build(AHGame game, Transform world)
     {
         g = game;
-        Spots.Clear();
+        Spots.Clear(); nextMother = -1f;
         float S = AHDB.S;
         // group objects of the world model (rocks and herbs are a body + a group of specks/flowers)
         var objs = new List<Transform>();
@@ -174,6 +175,28 @@ public static class AHGather
     }
     public static float RichK(AHSpot s) { return s != null && s.rich ? 3f : 1f; }
 
+    // ---------- the mother lode: now and then one rock in the land swells with ore ----------
+    static float nextMother = -1f;
+    static void MotherTick(AHGame game, float now)
+    {
+        if (nextMother < 0f) { nextMother = now + Random.Range(240f, 480f); return; }
+        if (now < nextMother) return;
+        nextMother = now + Random.Range(480f, 840f);
+        var pool = new List<AHSpot>();
+        foreach (var s in Spots) if (s.kind == "mine" && !s.wander && !s.mother && s.until <= now && s.look != null) pool.Add(s);
+        if (pool.Count == 0) return;
+        var m = pool[Random.Range(0, pool.Count)];
+        m.mother = true; m.rich = true; m.charges = 10; m.motherUntil = now + 300f;
+        m.name = "Mother lode of " + (AHJson.S(AHJson.O(Rule("ROCKS"), m.type), "name", "ore")).ToLowerInvariant();
+        if (game.ui != null) game.ui.Banner("A mother lode!", "Ten ores in one rock somewhere in " + (game.data != null ? game.data.region : "this land") + " · look for the gold star on the map");
+        AHSound.Play("level");
+    }
+    static void EndMother(AHSpot s)
+    {
+        s.mother = false; s.rich = false;
+        s.name = AHJson.S(AHJson.O(Rule("ROCKS"), s.type), "name", "Rock");
+    }
+
     // ---------- nodes that move (World of Warcraft style) ----------
     static void Deplete(AHSpot s, float wait)
     {
@@ -209,6 +232,7 @@ public static class AHGather
         s.pos += delta;
         if (s.look != null) { s.look.position += delta; s.look.gameObject.SetActive(true); }
         if (s.look2 != null) { s.look2.position += delta; s.look2.gameObject.SetActive(true); }
+        if (s.mother) EndMother(s);
         if (s.kind == "mine") { bool wasRich = s.rich; s.rich = Random.value < 0.11f; if (s.rich != wasRich) s.name = s.rich ? "Rich " + char.ToLowerInvariant(s.name[0]) + s.name.Substring(1) : s.name.Replace("Rich ", "").Substring(0, 1).ToUpperInvariant() + s.name.Replace("Rich ", "").Substring(1); }
     }
 
@@ -338,6 +362,15 @@ public static class AHGather
             }
             if (s.kind == "chop" && s.until != 0f && s.until <= now) { s.until = 0f; SetFelled(s, false); }
             if (s.wander && s.until <= now) Relocate(game, s);
+            if (s.mother)
+            {
+                if (now > s.motherUntil) EndMother(s);
+                else if (p != null && (s.pos - p.transform.position).sqrMagnitude < 3600f)
+                {
+                    AHSpark.Burst(s.pos + Vector3.up * 0.6f, new Color(1f, 0.82f, 0.3f, 1f), 10, 1.4f, 1.2f, 0.12f, 3f);
+                    AHSpark.Burst(s.pos + Vector3.up * 2.5f, new Color(1f, 0.9f, 0.55f, 0.8f), 4, 0.4f, 1.6f, 0.09f, 4f);
+                }
+            }
             if (s.rich && !spent && p != null && (s.pos - p.transform.position).sqrMagnitude < 1600f)
                 AHSpark.Burst(s.pos + Vector3.up * (s.kind == "chop" ? 1.6f : 0.5f) + new Vector3(Random.Range(-0.5f, 0.5f), 0f, Random.Range(-0.5f, 0.5f)), new Color(1f, 0.85f, 0.4f, 0.9f), 3, 0.5f, 1.1f, 0.07f, 1.2f);
             if (s.kind == "fish" && p != null && (s.pos - p.transform.position).sqrMagnitude < 900f && now - s.lastRipple > 1.4f)
@@ -346,6 +379,7 @@ public static class AHGather
                 AHFx.Ring(s.pos, 0.25f, 0.9f, new Color(0.92f, 0.96f, 1f, 0.6f), 1.3f);
             }
         }
+        MotherTick(game, now);
         if (treesDirty) { treesDirty = false; foreach (var tm in treeMeshes) { tm.mesh.vertices = tm.cur; tm.mesh.RecalculateBounds(); } }
     }
 
@@ -388,13 +422,9 @@ public static class AHGather
     // ---------- web canDo ----------
     public static bool CanDo(AHPlayer p, AHSpot s, bool loud)
     {
-        string warn = null;
+        string warn = null;   // gathering has no level locks now (AHMastery): anyone can gather anything
         switch (s.kind)
         {
-            case "herb": { int req = (int)AHJson.N(AHJson.O(Rule("HERB_T"), s.type), "req", 1); if (p.Skill("herblore") < req) warn = "Requires Herblore " + req + " to pick " + s.name.ToLowerInvariant() + "."; break; }
-            case "mine": { int req = (int)AHJson.N(AHJson.O(Rule("ROCKS"), s.type), "req", 1); if (p.Skill("mining") < req) warn = "Requires Mining " + req + " to mine " + s.name.ToLowerInvariant() + "."; break; }
-            case "chop": { int req = (int)AHJson.N(AHJson.O(Rule("TREES"), s.type), "req", 1); if (p.Skill("woodcutting") < req) warn = "Requires Woodcutting " + req + " to chop pines."; break; }
-            case "fish": { int fl = p.Skill("fishing") + (p.Spec("fisher", "angler") ? 4 : 0), need = AHFish.Of(AHGame.AreaId)[0].lvl; if (s.type == "lava") need = Mathf.Max(need, 18); if (fl < need) warn = "Requires Fishing " + need + " to fish here."; break; }
             case "fire": if (RawToCook(p) == null) warn = "Nothing to cook. Catch fish or hunt for raw meat."; break;
             case "furnace": if (SmeltRecipe(p) == null) warn = "Need 1 copper + 1 tin ore (or iron ore at Smithing 10)."; break;
         }
@@ -406,6 +436,7 @@ public static class AHGather
     public static string RawToCook(AHPlayer p)
     {
         var b = p.bag;
+        if (b.Count("raw_glowfin") > 0) return "raw_glowfin";   // the night's catch first
         string fish = AHFish.BestRaw(p); if (fish != null) return fish;   // the best fish this cook can manage
         if (b.Count("raw_meat") > 0) return "raw_meat";
         foreach (var k in Meats) if (b.Count(k) > 0) return k;
@@ -590,7 +621,7 @@ public static class AHGather
                     var h = AHJson.O(Rule("HERB_T"), s.type);
                     int gr; string gh = Graded(p, s.type, "herblore", (int)AHJson.N(h, "req", 1), s, out gr);
                     if (!bag.Add(gh)) { ui.Toast(bag.lastWarn ?? "Your bag is full."); return false; } AHComp.Forage(g, s.type); GradeFx(p, gh, gr);
-                    p.GainXp("herblore", (int)AHJson.N(h, "xp", 14), false); AHProfPets.OnGather(g, "herblore");
+                    p.GainXp("herblore", (int)AHJson.N(h, "xp", 14), false, true); AHProfPets.OnGather(g, "herblore");
                     if (p.Perk("alchemist", 20) && Random.value < 0.3f) bag.Add(s.type);
                     Deplete(s, Random.Range(60f, 90f));   // picked: it grows again a minute or so later, somewhere nearby
                     g.quests.Event("gather", s.type, 1, g);
@@ -604,9 +635,10 @@ public static class AHGather
                     if (!bag.Add(gore)) { ui.Toast(bag.lastWarn ?? "Your bag is full."); return false; } AHComp.Forage(g, ore); GradeFx(p, gore, gr);
                     p.GainXp("mining", Mathf.RoundToInt((int)AHJson.N(rk, "xp", 18) * (s.rich ? 1.5f : 1f)), false); AHProfPets.OnGather(g, "mining");
                     // a rock holds 2-4 ores (a rich vein 4-6); the last one takes it away, to come back elsewhere
-                    if (s.charges < 0) s.charges = s.rich ? Random.Range(4, 7) : Random.Range(2, 5);
+                    if (s.charges < 0) s.charges = s.mother ? 10 : s.rich ? Random.Range(4, 7) : Random.Range(2, 5);
                     s.charges--;
                     bool gone = s.charges <= 0;
+                    if (gone && s.mother) EndMother(s);
                     if (gone) Deplete(s, p.Spec("miner", "delve") ? Random.Range(45f, 65f) : Random.Range(60f, 90f));
                     g.quests.Event("gather", ore, 1, g);
                     // web mineBonus: double ore, and now and then a gem
@@ -627,7 +659,7 @@ public static class AHGather
                     string raw = RawToCook(p); if (raw == null) return false;
                     int req = AHFish.Get(raw) != null ? AHFish.CookReq(raw) : 1;
                     float burn = Mathf.Max(0.03f, 0.34f - (p.Skill("cooking") - req) * 0.035f);
-                    string cooked = AHFish.Cooked(raw) ?? "meat";
+                    string cooked = AHFish.Cooked(raw) ?? (raw == "raw_glowfin" ? "glowfin" : "meat");
                     bool burnt = Random.value < burn; string outId = burnt ? "burnt" : cooked;
                     if (!bag.Fits(new[] { outId }) && bag.Count(raw) > 1) { ui.Toast("Your bag is full. Make room to keep cooking."); return false; }
                     g.quests.Event("craft", "fire", 1, g);
@@ -702,7 +734,17 @@ public static class AHGather
     // a gathering roll: the plain thing or one of its grades (better above the node's level, on a rich node)
     static string Graded(AHPlayer p, string baseId, string skill, int req, AHSpot s, out int grade)
     {
-        grade = AHGrades.Gradable(baseId) ? AHGrades.Roll(p, p.Skill(skill), req, RichK(s)) : 0;
+        // the grade: the tool's mark on this tier (AHMastery) and a rich vein or ancient tree raise the odds
+        int tier = AHMastery.Tier(skill, req);
+        grade = AHGrades.Gradable(baseId) ? AHGrades.Roll(p, 0, 0, RichK(s) * (s != null && s.mother ? 2f : 1f) * AHMastery.GradeK(p, skill, tier)) : 0;
+        // it counts toward the tier's mastery, and now and then brings a rare extra find (or a night one)
+        AHMastery.Add(g, p, skill, tier);
+        foreach (var ex in new[] { AHMastery.ExtraFind(p, skill, tier), AHMastery.NightFind(g, skill) })
+        {
+            if (ex == null || !p.bag.Add(ex)) continue;
+            var xd = AHItems.Get(ex); if (g.ui != null) g.ui.Float(p.transform.position + Vector3.up * 3.2f, xd.name + "!", AHItems.Quality(xd));
+            AHSound.Play("loot"); AHCollection.Add(g, p, ex); AHAnnounce.Item(g, p, xd, "found");
+        }
         return AHGrades.Id(baseId, grade);
     }
     public static void GradeFx(AHPlayer p, string id, int grade)
@@ -727,6 +769,14 @@ public static class AHGather
         g.quests.Event("gather", fish, 1, g);
         AHDerby.OnCatch(g, fish);   // weighed for the weekly derby
         AHCollection.Add(g, p, fish);
+        int ft = AHMastery.FishTier(AHGame.AreaId);
+        AHMastery.Add(g, p, "fishing", ft);
+        foreach (var ex in new[] { AHMastery.ExtraFind(p, "fishing", ft), AHMastery.NightFind(g, "fishing") })
+        {
+            if (ex == null || !bag.Add(ex)) continue;
+            var xd = AHItems.Get(ex); ui.Float(p.transform.position + Vector3.up * 3.2f, xd.name + "!", AHItems.Quality(xd));
+            AHSound.Play("loot"); AHCollection.Add(g, p, ex); AHAnnounce.Item(g, p, xd, "caught");
+        }
         var d = AHItems.Get(fish);
         if (d != null) ui.Float(p.transform.position + Vector3.up * 2.6f, d.name, tier > 0 ? AHItems.Quality(d) : new Color(0.62f, 0.89f, 1f));
         if (d != null) AHAnnounce.Rare(g, p, d.name, AHFish.TierName[Mathf.Clamp(tier, 0, 4)], "caught");

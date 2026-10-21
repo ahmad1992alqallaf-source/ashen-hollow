@@ -65,7 +65,8 @@ public class AHProgress
     public long vipUntil;                                        // the VIP month ends (unix seconds) (AHVip)
     public long lureUntil;                                       // a fishing lure is on until (unix seconds) (AHFishing)
     public bool learnedInit;
-    public bool torchGiven;                                      // the first dark night gave a torch (AHTorch)                                     // the recipes your skill had reached were kept (AHRecipeDrops)
+    public bool torchGiven;
+    public List<AHKV> mastery = new List<AHKV>(); public bool masteryInit;   // gathering mastery: counts and tool marks (AHMastery)                                      // the first dark night gave a torch (AHTorch)                                     // the recipes your skill had reached were kept (AHRecipeDrops)
     public List<string> learned = new List<string>();            // recipes learned from scrolls of every kind (AHRecipeDrops)
     public int passXp, passXpC, passClaimedF, passClaimedC, passPremF, passPremC, passPremium; public string passKey = "";   // the Battle Pass (AHPass2)               // bosses, elites and rare beasts beaten (id, name|model)
 

@@ -168,6 +168,7 @@ public class AHGame : MonoBehaviour
         LoadTiles();
         // trees, rocks, herbs, fishing spots and the town's work stations
         AHFishing.Clear(); AHGather.Build(this, world);
+        AHBag.MatHook = AHMastery.IsMaterial; AHBag.RoomHook = () => AHMastery.SatchelRoom(I != null ? I.player : null);   // the Gatherer's satchel
         AHVillage.Setup(this, world);  // a ring of buildings around the starter village's square (before the trees)
         AHForest.Setup(this, world);   // the new trees on the same spots
         AHStations.Setup(this, world);  // campfires, furnaces and anvils rebuilt

@@ -23,7 +23,8 @@
     "tool_knife_bronze",
     "tool_rod_bronze",
     "torch",
-    "fishing_lure"
+    "fishing_lure",
+    "satchel_gather"
    ]
   },
   "anvil": {

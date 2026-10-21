@@ -50,7 +50,7 @@ public static class AHItems
     public static ItemDef Get(string id)
     {
         if (id == null) return null;
-        if (cache == null) { cache = new Dictionary<string, ItemDef>(); AHGrades.Inject(); AHFish.Inject(); AHRecipeDrops.Inject(); AHTorch.Inject(); }
+        if (cache == null) { cache = new Dictionary<string, ItemDef>(); AHGrades.Inject(); AHFish.Inject(); AHRecipeDrops.Inject(); AHTorch.Inject(); AHMastery.Inject(); }
         ItemDef d;
         if (cache.TryGetValue(id, out d)) return d;
         var items = AHDB.Items;
@@ -204,14 +204,23 @@ public class AHBag
     public void Touch() { if (Changed != null) Changed(); }
 
     public int Count(string id) { int n; return id != null && inv.TryGetValue(id, out n) ? n : 0; }
-    public int UsedSlots { get { int u = 0; foreach (var kv in inv) if (kv.Value > 0) u++; return u; } }
+    // the Gatherer's satchel (AHMastery): while it is on the belt, the first kinds of material go in it, not the bag
+    public static Func<string, bool> MatHook; public static Func<int> RoomHook;
+    int Used(IEnumerable<string> plus)
+    {
+        int room = RoomHook != null ? RoomHook() : 0, u = 0, m = 0;
+        foreach (var kv in inv) if (kv.Value > 0) { if (room > 0 && MatHook != null && MatHook(kv.Key)) m++; else u++; }
+        if (plus != null) foreach (var id in plus) { if (room > 0 && MatHook != null && MatHook(id)) m++; else u++; }
+        return u + Mathf.Max(0, m - room);
+    }
+    public int UsedSlots { get { return Used(null); } }
 
     // web: bagFits: room for these kinds of item (ones already in the bag need no new slot)
     public bool Fits(IEnumerable<string> ids)
     {
         var need = new HashSet<string>();
         foreach (var id in ids) { var d = AHItems.Get(id); if (d != null && !d.cosmetic && Count(id) <= 0) need.Add(id); }
-        return UsedSlots + need.Count <= SlotsMax;
+        return Used(need) <= SlotsMax;
     }
 
     // web: addItem
@@ -219,7 +228,7 @@ public class AHBag
     {
         if (AHItems.Get(id) == null || n <= 0) return false;
         if (CosHook != null && CosHook(id, n)) { Touch(); return true; }   // cosmetics go to the Wardrobe
-        if (Count(id) <= 0 && UsedSlots >= SlotsMax) { lastWarn = "Your bag is full (" + SlotsMax + " slots)."; return false; }
+        if (Count(id) <= 0 && Used(new[] { id }) > SlotsMax) { lastWarn = "Your bag is full (" + SlotsMax + " slots)."; return false; }
         inv[id] = Count(id) + n;
         if (!order.Contains(id)) order.Add(id);
         Touch();

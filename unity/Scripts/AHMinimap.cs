@@ -120,6 +120,13 @@ public partial class AHUI
             foreach (var s in AHGather.Spots)
             {
                 if (s.wander) continue;   // gone, coming back somewhere else
+                if (s.mother)
+                {
+                    // a mother lode: a gold star, held at the rim when it is further than the map shows
+                    Vector3 dm = s.pos - pp; dm.y = 0f; Vector2 vm = new Vector2(dm.x, dm.z) * ppm; if (vm.magnitude > MmD * 0.45f) vm = vm.normalized * MmD * 0.45f;
+                    var md = MmDot(star, 15f, new Color(1f, 0.75f, 0.2f)); md.anchoredPosition = vm; md.localEulerAngles = new Vector3(0, 0, -yaw);
+                    continue;
+                }
                 Vector3 d = s.pos - pp; d.y = 0f; if (d.sqrMagnitude > r2) continue;
                 Color c; Sprite sp = diamond; float sz = 8f;
                 switch (s.kind)

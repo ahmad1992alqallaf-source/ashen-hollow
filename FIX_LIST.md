@@ -84,6 +84,16 @@ Not a problem: night darkness is fine as it is (keep it).
 22. **Battle Pass with two lines**: one for fighting, one for gathering and crafting.
 
 ## Waiting to be checked on the phone
+Round 5 (21 Oct):
+- AUTO walks the roads (grid path, round anything solid). Monsters respawn 30-35 s after they fall.
+- Rocks hold 2-4 ores, herbs one pick; then they are gone and come back 60-90 s later somewhere else nearby
+  (WoW style). Trees regrow in 60-90 s. A mother lode (10 ores, gold star on the map) turns up now and then.
+- No campfire on rocks, trees, herbs or stations. Hunger lasts about 24 minutes. Take all sits under the right thumb.
+- A torch on the tool belt lights the dark (one free on the first night; general stores sell them).
+- Gathering mastery replaces gathering levels (Mining, Woodcutting, Fishing, Skinning; Herblore keeps its level for
+  brewing only): counts per tier, quests at the Guild at 100/250/500/1000, marks on your one tool (better grades,
+  rare finds: gems, amber, starpetals, pearls, perfect pelts), a title at the fourth mark, night-only finds
+  (moonpetal, glowfin), the Gatherer's satchel (24 kinds of material off the bag), Collection pages for them.
 Built in this round (items above are kept for the record; all of these are in the game now):
 - 1 AUTO travels road by road to the land a quest step needs (foes, people, things to gather) and fights on the way.
 - 2 / 27 Boar and wolf textures brightened; phones now draw the beasts with the same lit shader as the editor.

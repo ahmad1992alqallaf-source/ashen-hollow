@@ -192,6 +192,7 @@ public partial class AHUI
         else if (wkMode == "book") RenderMonsterBook(p);
         else if (wkMode == "catch") RenderCatchBook(p);
         else if (wkMode == "pass") RenderPass(p);
+        else if (wkMode == "mastery") RenderMastery(p);
         else if (wkMode == "loot") RenderLoot(p);
         else if (wkMode == "appr") RenderApprentice(p);
         else if (wkMode == "town") RenderTown(p);
@@ -259,8 +260,8 @@ public partial class AHUI
         wkTitle.text = p.profs.Count > 0 ? "Your professions" : "Choose a profession";
         wkHint.text = "Professions you take up learn 25% faster, earn mastery and unlock perks. Your ★ focus is the guild whose work orders you take. Taking up or setting aside is free; mastery is never lost.";
         var keys = new List<string>(all.Keys);
-        // the first row: your guild's work orders
-        keys.Insert(0, "__orders");
+        // the first rows: gathering mastery (the quests are handed in here), then your guild's work orders
+        keys.Insert(0, "__orders"); keys.Insert(0, "__mastery");
         int count = keys.Count + 1;
         int from = Paged(count);
         for (int i = from; i < Mathf.Min(count, from + RowsPerPage); i++)
@@ -273,6 +274,13 @@ public partial class AHUI
                 if (pl != null && pl.Count > 0) pn = pl[0] as string;
                 string pd = pl != null && pl.Count > 1 ? pl[1] as string : "";
                 Row(i - from, "Your path: " + pn, new Color(1f, 0.8f, 0.45f), pd, "", new WkBtn { label = art ? "Become an Adventurer" : "Become an Artisan", on = true, col = Plain, act = () => SwitchPath(p) });
+                continue;
+            }
+            if (keys[i] == "__mastery")
+            {
+                int rd = AHMastery.ReadyCount(p);
+                Row(i - from, "Gathering mastery", new Color(0.55f, 0.95f, 0.6f), rd > 0 ? "<color=#9be37a>" + rd + (rd == 1 ? " quest" : " quests") + " to hand in</color>" : "Gather to earn your tools' marks", "Mining · Woodcutting · Herblore · Fishing · Skinning",
+                    new WkBtn { label = "Open", on = true, col = rd > 0 ? Go : Plain, act = () => OpenMastery(true) });
                 continue;
             }
             if (keys[i] == "__orders")

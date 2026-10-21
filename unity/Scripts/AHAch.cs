@@ -37,6 +37,11 @@ public static class AHAch
             A("artisan", "Artisan", "Reach level 20 in any gathering or crafting skill.", "Artisan", p => { foreach (var kv in p.skillXp) if (kv.Key != "attack" && p.Skill(kv.Key) >= 20) return true; return false; });
             A("waywalker", "Waywalker", "Attune every waystone.", "Waywalker", p => AHWays.Ways != null && AHWays.KnownCount(p) >= AHWays.Ways.Count);
             A("treasure", "Treasure Hunter", "Find every hidden treasure chest.", "the Lucky", p => { var ts = AHWays.Treasures; if (ts == null) return false; foreach (var t in ts) if (!p.prog.found.Contains(AHJson.S(t, "id"))) return false; return true; });
+            for (int mi = 0; mi < AHMastery.Profs.Length; mi++)
+            {
+                string mp = AHMastery.Profs[mi]; string[] tn = { "the Master Miner", "the Master Woodcutter", "the Master Herbalist", "the Master Angler", "the Master Skinner" };
+                A("master_" + mp, "Master " + AHMastery.ProfName[mi], "Earn the fourth mark on any " + AHMastery.ProfName[mi].ToLowerInvariant() + " tier.", tn[mi], p => AHMastery.Master(p, mp));
+            }
             A("explorer", "Explorer", "Discover 10 lands of the realm.", "the Explorer", p => AHGame.SeenCount >= 10);
             A("cartographer", "Cartographer", "Discover 20 lands of the realm.", "the Cartographer", p => AHGame.SeenCount >= 20);
             A("digger", "X Marks the Spot", "Dig up 5 treasures in the Fossil Lands.", "the Digger", p => AHPrefs.GetInt("ah_fossil_dug", 0) >= 5);

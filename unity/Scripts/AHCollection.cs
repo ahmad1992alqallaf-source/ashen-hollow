@@ -27,6 +27,10 @@ public static class AHCollection
                 foreach (var f in fish) pg.items.Add(f.id);
                 pages.Add(pg);
             }
+            // the rare finds a tool's marks bring, and what only comes at night
+            AHMastery.Inject();
+            pages.Add(new Page { id = "rare_finds", title = "Rare finds", skill = "mining", col = new Color(1f, 0.75f, 0.35f), items = new List<string> { "amber", "starpetal", "pearl", "perfect_pelt", "diamond" } });
+            pages.Add(new Page { id = "night_finds", title = "Night finds", skill = "herblore", col = new Color(0.72f, 0.8f, 1f), items = new List<string> { "moonpetal", "raw_glowfin" } });
             // the materials: each base in its five grades
             AHItems.Get("copper_ore");   // makes sure the grades are in the item table
             var bases = new List<string>();

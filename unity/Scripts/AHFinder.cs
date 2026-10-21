@@ -222,6 +222,8 @@ public partial class AHUI
         rows.Add(s => Row(s, "Battle Pass · " + AHPass2.MonthName, new Color(0.79f, 0.65f, 1f), "Fight tier " + AHPass2.Tier(p, false) + " · Craft tier " + AHPass2.Tier(p, true) + (AHPass2.Ready(p) > 0 ? " · <color=#9be37a>" + AHPass2.Ready(p) + " to claim</color>" : ""), "Two lines: fighting and crafting · Premium rewards are looks only",
             new WkBtn { label = "Open", on = true, col = AHPass2.Ready(p) > 0 ? Go : Plain, act = OpenPass }));
         rows.Add(s => Row(s, "VIP", new Color(1f, 0.85f, 0.4f), AHVip.Describe(p), "", new WkBtn { label = "Store", on = true, col = Plain, act = () => OpenStore() }));
+        rows.Add(s => Row(s, "Gathering mastery", new Color(0.55f, 0.95f, 0.6f), AHMastery.ReadyCount(p) > 0 ? "<color=#9be37a>" + AHMastery.ReadyCount(p) + " quests to hand in at the Guild</color>" : "How far along each tier is · your tools' marks", "",
+            new WkBtn { label = "Open", on = true, col = Plain, act = () => OpenMastery(false) }));
         rows.Add(s => Row(s, "Collection book", new Color(0.55f, 0.85f, 1f), AHCollection.Filled(p) + " / " + AHCollection.Pages.Count + " pages" + (AHCollection.Ready(p) > 0 ? " · <color=#9be37a>" + AHCollection.Ready(p) + " rewards waiting</color>" : ""), "Every fish of every land · every grade of ore, logs, hides and herbs",
             new WkBtn { label = "Open", on = true, col = AHCollection.Ready(p) > 0 ? Go : Plain, act = OpenCatchBook }));
         rows.Add(s => Row(s, "Weekly challenge", new Color(1f, 0.6f, 0.35f), AHChallenge.Status(p), "A dungeon with a new twist each week · looks-only rewards",

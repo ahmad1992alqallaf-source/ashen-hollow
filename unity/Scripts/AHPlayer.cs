@@ -1173,7 +1173,7 @@ public class AHPlayer : MonoBehaviour
     public void GainXp(int amount) { GainXp("attack", amount, false); }
 
     // web gainXp: the skill gets 60% (at least 1); Attack XP also feeds the class level in full
-    public void GainXp(string skill, int amount, bool fromKill)
+    public void GainXp(string skill, int amount, bool fromKill, bool gathered = false)
     {
         if (AHTraining.NoXp) return;   // nothing on the training island counts
         int before = Skill(skill);
@@ -1181,11 +1181,13 @@ public class AHPlayer : MonoBehaviour
         List<string> pk; bool profSkill = IsProfSkill(skill, out pk);
         bool mine = false; foreach (var k in pk) if (profs.Contains(k)) mine = true;
         int add = Mathf.Max(1, Mathf.RoundToInt(amount * 0.6f * (1f + AHMeal.Fx(this, "xp")) * AHFriends.DayXp(skill) * (mine ? 1.25f : 1f) * AHTown.XpK(this, skill) * AHVip.K(this, profSkill)));
-        skillXp[skill] = SkillXp(skill) + add;
+        // gathering has no levels now (AHMastery counts what you gather); Herblore still levels from brewing
+        bool gatherSkill = AHMastery.IsGather(skill) && (skill != "herblore" || gathered);
+        if (!gatherSkill) skillXp[skill] = SkillXp(skill) + add;
         if (profSkill && amount > 0) AHPass2.OnWork(this);   // the Battle Pass's Craft line
         foreach (var k in pk) if (profs.Contains(k)) AddMastery(k, amount);
         if (profSkill && path == "artisan" && amount > 0) GainClassXp(Mathf.RoundToInt(amount * 1.6f + 4f), false);
-        if (skill != "attack" && g.ui != null) g.ui.Float(transform.position + Vector3.up * 2.3f, "+" + add + " " + AHDB.SkillName(skill), new Color(0.79f, 0.91f, 0.66f));
+        if (skill != "attack" && !gatherSkill && g.ui != null) g.ui.Float(transform.position + Vector3.up * 2.3f, "+" + add + " " + AHDB.SkillName(skill), new Color(0.79f, 0.91f, 0.66f));
         int after = Skill(skill);
         if (after > before && g.ui != null) g.ui.Banner(AHDB.SkillName(skill) + " " + after, "Level up");
         if (skill == "attack") GainClassXp(amount, fromKill);
@@ -1403,7 +1405,7 @@ public class AHPlayer : MonoBehaviour
             return;
         }
         var ids = new List<string> { "raw_meat" };
-        if (Skill("skinning") >= m.type.skinReq && m.type.skin != null) ids.AddRange(m.type.skin);
+        if (m.type.skin != null) ids.AddRange(m.type.skin);   // no level lock: any hero skins any beast
         if (!bag.Fits(ids)) { if (g.ui != null) g.ui.Toast("Your bag is full. Make room to skin it."); return; }
         actionMob = m; actionT = SkinTime;
         // kneel at the body with a skinning knife (the herbalist's kneel), knife in hand
@@ -1423,17 +1425,19 @@ public class AHPlayer : MonoBehaviour
         int req = m.type.skinReq;
         m.Skinned();
         bag.Add("raw_meat");
-        if (Skill("skinning") < req) { GainXp("skinning", 10, false); if (g.ui != null) g.ui.Toast("Requires Skinning " + req + ": you only got the meat (and a little skinning practice)."); }
-        else
         {
+            int tier = AHMastery.Tier("skinning", req);
             if (m.type.skin != null)
                 foreach (var id in m.type.skin)
                 {
-                    // hides and pelts come in grades too (tougher beasts give better ones)
-                    int gr = AHGrades.Gradable(id) ? AHGrades.Roll(this, Skill("skinning"), req, m.type.elite || m.type.rare ? 3f : 1f) : 0;
+                    // hides and pelts come in grades; the knife's mark on this tier (and tougher beasts) give better ones
+                    int gr = AHGrades.Gradable(id) ? AHGrades.Roll(this, 0, 0, (m.type.elite || m.type.rare ? 3f : 1f) * AHMastery.GradeK(this, "skinning", tier)) : 0;
                     string gid = AHGrades.Id(id, gr); bag.Add(gid); AHGather.GradeFx(this, gid, gr);
+                    AHMastery.Add(g, this, "skinning", tier);
                 }
-            GainXp("skinning", (20 + req * 8) * 3, false);   // three times the web rate: the higher beasts were out of reach for most heroes
+            string ex = AHMastery.ExtraFind(this, "skinning", tier);
+            if (ex != null && bag.Add(ex)) { var xd = AHItems.Get(ex); if (g.ui != null) g.ui.Float(transform.position + Vector3.up * 3.1f, xd.name + "!", AHItems.Quality(xd)); AHGather.GradeFx(this, ex, 0); }
+            GainXp("skinning", (20 + req * 8) * 3, false);
             g.OnSkin(m.type.id);
         }
     }

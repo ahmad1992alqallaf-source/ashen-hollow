@@ -79,7 +79,7 @@ public static class AHFishing
                 if (t >= 0.9f)
                 {
                     MakeBobber(); phase = Phase.Wait; t = 0f;
-                    float k = 1f + p.Skill("fishing") * 0.015f; if (School(spot)) k *= 1.6f; if (p.prog.lureUntil > Now()) k *= 1.3f; k *= AHWeather.GatherK("fish");
+                    float k = 1f + AHMastery.Rank(p, "fishing", AHMastery.FishTier(AHGame.AreaId)) * 0.12f; if (School(spot)) k *= 1.6f; if (p.prog.lureUntil > Now()) k *= 1.3f; k *= AHWeather.GatherK("fish");
                     waitFor = Random.Range(3f, 18f) / k;
                     p.BeginWork(bobAt, "Work_Fish|Fish", "rod");
                     AHGame.I.Ripple(bobAt, 0.6f);
@@ -146,11 +146,14 @@ public static class AHFishing
 
     static int RollTier(AHPlayer p, AHFish.Fish[] land)
     {
-        int fl = p.Skill("fishing") + (p.Spec("fisher", "angler") ? 4 : 0);
+        // no level locks: every fish of the land can bite; the rod's mark on these waters, a school, a lure and the
+        // angler's specialisation make the rare ones likelier
+        int rank = AHMastery.Rank(p, "fishing", AHMastery.FishTier(AHGame.AreaId));
         float[] w = { 60f, 25f, 10f, 4f, 1f };
-        float k = (School(spot) ? 2f : 1f) * (p.prog.lureUntil > Now() ? 1.5f : 1f) * (p.path == "artisan" ? 1.25f : 1f);
+        float k = (School(spot) ? 2f : 1f) * (p.prog.lureUntil > Now() ? 1.5f : 1f) * (p.path == "artisan" ? 1.25f : 1f) * (1f + 0.5f * rank) * (p.Spec("fisher", "angler") ? 1.2f : 1f);
         for (int i = 2; i < 5; i++) w[i] *= k;
-        float sum = 0f; for (int i = 0; i < 5; i++) { if (land[i].lvl > fl) w[i] = 0f; sum += w[i]; }
+        w[1] *= 1f + 0.25f * rank;
+        float sum = 0f; for (int i = 0; i < 5; i++) sum += w[i];
         if (sum <= 0f) return 0;
         float r = Random.value * sum;
         for (int i = 0; i < 5; i++) { r -= w[i]; if (r <= 0f) return i; }

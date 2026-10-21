@@ -698,6 +698,7 @@ public partial class AHUI : MonoBehaviour
         Action<int, int, string> add = (box, n, label) => { for (int s = 0; s < n; s += GridN) l.Add(new BagPage { label = label, start = at + s, count = Mathf.Min(GridN, n - s), box = box }); at += n; };
         add(-1, AHBags.Backpack(p), "Backpack");
         for (int i = 0; i < AHBags.Boxes; i++) { var id = AHBags.In(p, i); if (id != null) add(i, AHBags.Size(id), AHItems.Get(id) != null ? AHItems.Get(id).name : id); }
+        int sr = AHMastery.SatchelRoom(p); if (sr > 0) add(-1, sr, "Gatherer’s satchel");   // its pages follow the backpack's
         l.Add(new BagPage { label = "Tool belt", box = 9, start = 0, count = AHBags.ToolKinds.Length });
         return l;
     }
@@ -1026,6 +1027,8 @@ public partial class AHUI : MonoBehaviour
         else if (toolSel != null && AHBags.Tool(p, toolSel) != null)
         {
             sd = AHItems.Get(AHBags.Tool(p, toolSel)); n = 1; text = AHBags.Describe(sd.id); act = "Take off";
+            int mi = System.Array.IndexOf(AHMastery.ToolKind, toolSel);
+            if (mi >= 0) text += "\n<color=#9fe6ff>Marks: " + AHMastery.MarkLine(p, AHMastery.Profs[mi]) + "</color>";
         }
         string boxTitle = null;
         if (sd == null && boxSel >= 0)
