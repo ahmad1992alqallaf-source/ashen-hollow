@@ -28,11 +28,11 @@ public static class AHChat
 
     public static string Color(string ch)
     {
-        switch (ch) { case "say": return "#ffffff"; case "you": return "#ffe08a"; case "party": return "#8fd6ff"; case "story": return "#ffb85a"; default: return "#c8c0b0"; }
+        switch (ch) { case "say": return "#ffffff"; case "you": return "#ffe08a"; case "party": return "#8fd6ff"; case "story": return "#ffb85a"; case "world": return "#ffcf5a"; default: return "#c8c0b0"; }
     }
     public static string Tag(string ch)
     {
-        switch (ch) { case "say": return "[Say] "; case "you": return "[Say] "; case "party": return "[Party] "; case "story": return "[Story] "; default: return ""; }
+        switch (ch) { case "say": return "[Say] "; case "you": return "[Say] "; case "party": return "[Party] "; case "story": return "[Story] "; case "world": return "[World] "; default: return ""; }
     }
 
     // ---- your party's banter ----

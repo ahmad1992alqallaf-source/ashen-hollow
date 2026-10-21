@@ -76,7 +76,7 @@ public class AHGame : MonoBehaviour
         Build();
     }
 
-    // phones: 30 frames a second, a slightly lower render size on very sharp screens and shorter shadows, so the
+    // phones: 30 frames a second, a slightly lower render size on very sharp screens, 2x edge smoothing and shorter shadows, so the
     // phone stays cool and the battery lasts (the picture still looks the same at arm's length)
     void PhoneQuality()
     {
@@ -85,9 +85,10 @@ public class AHGame : MonoBehaviour
         if (urp != null)
         {
             int longSide = Mathf.Max(Screen.width, Screen.height);
-            urp.renderScale = longSide > 2000 ? 0.7f : longSide > 1600 ? 0.8f : 0.9f;
+            // 0.7 made fine edges (fur, grass, thin branches) come out in big pixels on sharp screens
+            urp.renderScale = longSide > 2000 ? 0.85f : longSide > 1600 ? 0.9f : 1f;
             urp.shadowDistance = Mathf.Min(urp.shadowDistance, 30f);
-            urp.msaaSampleCount = 1;
+            urp.msaaSampleCount = 2;   // smooth edges on the beasts' fur and the trees
         }
     }
 
@@ -145,8 +146,12 @@ public class AHGame : MonoBehaviour
             {
                 // a house keeps its size; a wall keeps its thickness but runs on to meet the next (no gaps to slip through)
                 var c = rr.center; bool wall = Mathf.Min(b.w, b.h) < 2f && Mathf.Max(b.w, b.h) > 8f;
+                // a river (the web game's long narrow water blocks beside a bridge) is painted on the ground, which is
+                // stretched with the land: it keeps the stretched size, or you could walk out onto the painted water
+                bool river = !wall && Mathf.Min(b.w, b.h) <= 4.5f && Mathf.Max(b.w, b.h) >= 15f;
                 float fx = WorldSpread(true), fz = WorldSpread(false);   // the stretch along the world's x and z
-                if (wall) { if (rr.width > rr.height) rr.height /= fz; else rr.width /= fx; }
+                if (river) { }
+                else if (wall) { if (rr.width > rr.height) rr.height /= fz; else rr.width /= fx; }
                 else { rr.width /= fx; rr.height /= fz; }
                 rr.center = c;
             }
@@ -162,7 +167,7 @@ public class AHGame : MonoBehaviour
         if (data.walk != null) foreach (var b in data.walk) floors.Add(MapRect(b.x, b.z, b.w, b.h));
         LoadTiles();
         // trees, rocks, herbs, fishing spots and the town's work stations
-        AHGather.Build(this, world);
+        AHFishing.Clear(); AHGather.Build(this, world);
         AHVillage.Setup(this, world);  // a ring of buildings around the starter village's square (before the trees)
         AHForest.Setup(this, world);   // the new trees on the same spots
         AHStations.Setup(this, world);  // campfires, furnaces and anvils rebuilt
@@ -179,6 +184,7 @@ public class AHGame : MonoBehaviour
         AHHerbs.Setup(this);           // each herb a little plant of its own kind
         AHMountains.Foothills(this);   // the open stretches of a land's border closed with crags (not over a sea or a road out)
         AHDreamScatter.Setup(this, world);  // Dreamscape bushes, flowers, grass and rocks (lands that use the pack)
+        AHStoneLook.Apply(this);       // plain grey blocks, plinths and fallen columns: weathered stone, solid from every side
 
         SetupLightAndSky();
         SetupCamera();
@@ -248,6 +254,7 @@ public class AHGame : MonoBehaviour
         SelectAtStart = false;
         camTarget = player.transform.position;
         travelLock = Time.time + 1.5f;
+        AHLoading.Ready();
         if (arriving)
         {
             arriving = false;
@@ -543,6 +550,7 @@ public class AHGame : MonoBehaviour
         carryDayT = dayT;
         arriving = true;
         if (ui != null) ui.Fade(true);
+        AHLoading.Show(to);
         StartCoroutine(LoadNext());
     }
 
@@ -948,7 +956,7 @@ public class AHGame : MonoBehaviour
         if (data == null || player == null) return;
         dayT = (dayT + Time.deltaTime) % dayLength;
         UpdateDay();
-        AHGather.Tick(this);
+        AHGather.Tick(this); AHFishing.WorldTick(this, Time.deltaTime);
         ahT -= Time.unscaledDeltaTime; if (ahT <= 0f) { ahT = 5f; AHAuction.Tick(this); AHOrders.Tick(this); AHRequests.Tick(this); AHExpeditions.Tick(this); AHProfPets.Tick(this); AHLooters.Tick(this); AHTwoPart.Tick(this); AHCaravan.Tick(this); AHKitchen.Names(player); AHHome.Tick(this); AHMarket.Tick(this); }
         AHHome.RestTick(this, Time.deltaTime);
         AHFinder.Tick(this, Time.deltaTime);

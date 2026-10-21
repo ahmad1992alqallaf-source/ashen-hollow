@@ -53,12 +53,13 @@ public partial class AHUI
 
     void SkinGlass()
     {
-        hudFont = Resources.Load<Font>("AH/Fonts/Nunito-ExtraBold");
+        hudFont = MainFont;
         if (glassPanel == null)
         {
-            glassPanel = Glass(160, 28f, new Color(0.1f, 0.09f, 0.11f), new Color(0.03f, 0.03f, 0.05f), new Color(0.95f, 0.76f, 0.38f), 3.5f, 0.78f);
-            glassTag = Glass(96, 40f, new Color(0.13f, 0.1f, 0.12f), new Color(0.05f, 0.04f, 0.06f), new Color(0.95f, 0.76f, 0.38f), 3f, 0.85f);
-            glassTagGold = Glass(96, 40f, new Color(0.62f, 0.16f, 0.12f), new Color(0.38f, 0.07f, 0.06f), new Color(1f, 0.85f, 0.5f), 3f, 0.95f);
+            // Celestial Glass: night-blue frosted faces, a silver hairline
+            glassPanel = Glass(160, 28f, new Color(0.08f, 0.13f, 0.21f), new Color(0.03f, 0.06f, 0.11f), new Color(0.86f, 0.9f, 0.96f), 2.5f, 0.74f);
+            glassTag = Glass(96, 40f, new Color(0.1f, 0.16f, 0.25f), new Color(0.04f, 0.07f, 0.13f), new Color(0.86f, 0.9f, 0.96f), 2.5f, 0.82f);
+            glassTagGold = Glass(96, 40f, new Color(0.2f, 0.45f, 0.6f), new Color(0.1f, 0.25f, 0.38f), new Color(0.6f, 0.92f, 1f), 2.5f, 0.95f);
         }
         // the quest tracker
         if (questPanel != null)

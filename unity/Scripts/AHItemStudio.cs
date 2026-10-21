@@ -149,7 +149,7 @@ public class AHItemStudio : MonoBehaviour
         if (viewRig != null)
         {
             spin += Time.unscaledDeltaTime * 30f;
-            cam.targetTexture = bigRt; Aim(viewRig, AHItems.Get(viewId), spin, 1.6f); cam.Render();
+            var vd = AHItems.Get(viewId); cam.targetTexture = bigRt; Aim(viewRig, vd, spin, vd != null && vd.slot == "weapon" ? 1.05f : 1.6f); cam.Render();
         }
         // one new icon every other frame
         if (todo.Count == 0) return;
@@ -179,7 +179,8 @@ public class AHItemStudio : MonoBehaviour
     }
     GameObject pending; string pendingId; RenderTexture iconFlat; static bool blankWarned;
 
-    void BuildView(ItemDef d) { ClearView(); viewRig = Dress(viewStage, d, false); viewId = d.id; spin = 0f; }
+    // a weapon turns on its own (no hero round it); armour is shown on the stand-in
+    void BuildView(ItemDef d) { ClearView(); viewRig = Dress(viewStage, d, d.slot == "weapon"); viewId = d.id; spin = 0f; }
 
     // ---- your whole hero, standing in all its gear (the Stats window) ----
     RenderTexture heroRt; GameObject heroRig; string heroSig; Transform heroStage; float heroT;

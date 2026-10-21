@@ -81,6 +81,12 @@ public partial class AHUI
             new WkBtn { label = "Get " + cur, on = true, col = Go, act = () => { EndStorePreview(); wkMode = "storepacks"; wkPageI = 0; RenderWork(); } }));
         rows.Add(s => Row(s, "Looks  <color=#9be37a>New</color>", new Color(1f, 0.62f, 0.85f), "Weapon skins, hit effects, footstep trails and name colours", "Some are earned in the world, some are here. Try them on first.",
             new WkBtn { label = "Open", on = true, col = Go, act = () => { EndStorePreview(); OpenLooks(); } }));
+        // the VIP month: comfort, never power
+        const long VipPrice = 450;
+        rows.Add(s => Row(s, "VIP month" + (AHVip.Active(p) ? "  <color=#9be37a>" + AHVip.DaysLeft(p) + " days left</color>" : ""), new Color(1f, 0.85f, 0.4f), "Auto pickup of loot · +2% XP · +2% profession XP", "Comfort only: no stats, no gear. More months add on. " + AHStore.Amount(VipPrice) + " for 30 days.",
+            new WkBtn { label = "30 days · " + VipPrice, on = p.prog.crowns >= VipPrice, col = Go, act = () => { if (p.prog.crowns < VipPrice) return; p.prog.crowns -= VipPrice; AHVip.Grant(g, p, 30); RenderWork(); } }));
+        rows.Add(s => Row(s, "Premium Battle Pass · " + AHPass2.MonthName + (AHPass2.Premium(p) ? "  <color=#9be37a>yours</color>" : ""), new Color(0.79f, 0.65f, 1f), "A second reward on every tier of both lines: weapon skins, trails, hit effects, name colours", "Looks only · " + AHStore.Amount(AHPass2.PremiumPrice),
+            AHPass2.Premium(p) ? new WkBtn { label = "Open", on = true, col = Plain, act = () => { EndStorePreview(); OpenPass(); } } : new WkBtn { label = "Buy · " + AHPass2.PremiumPrice, on = p.prog.crowns >= AHPass2.PremiumPrice, col = Go, act = () => { AHPass2.BuyPremium(g, p); RenderWork(); } }));
         // the Mystic egg: hatches at once, one of the store's own pets (found nowhere else); shown once one is in the game
         if (!AHEggs.MysticReady) rows.Add(s => Row(s, AHJson.S(AHEggs.Mystic, "name", "Mystic egg") + "  <color=#c8b89a>coming soon</color>", new Color(0.75f, 0.55f, 1f), "Store-only pets: Rock golem, Spirit wisp, Night prowler, Flame hatchling", "Looks only, like every pet."));
         else

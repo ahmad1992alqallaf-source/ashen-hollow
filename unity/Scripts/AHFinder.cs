@@ -219,6 +219,11 @@ public partial class AHUI
             new WkBtn { label = "Open", on = true, col = AHApprentice.GiftReady(p) || (!AHApprentice.S(p).active && AHApprentice.Open(p)) ? Go : Plain, act = OpenApprentice }));
         rows.Add(s => Row(s, "Monster book", new Color(0.85f, 0.75f, 0.55f), AHMonsterBook.Pages(p) + " / " + AHMonsterBook.All.Count + " pages", "A page for every beast you defeat · finish a volume for a reward",
             new WkBtn { label = "Open", on = true, col = Plain, act = OpenMonsterBook }));
+        rows.Add(s => Row(s, "Battle Pass · " + AHPass2.MonthName, new Color(0.79f, 0.65f, 1f), "Fight tier " + AHPass2.Tier(p, false) + " · Craft tier " + AHPass2.Tier(p, true) + (AHPass2.Ready(p) > 0 ? " · <color=#9be37a>" + AHPass2.Ready(p) + " to claim</color>" : ""), "Two lines: fighting and crafting · Premium rewards are looks only",
+            new WkBtn { label = "Open", on = true, col = AHPass2.Ready(p) > 0 ? Go : Plain, act = OpenPass }));
+        rows.Add(s => Row(s, "VIP", new Color(1f, 0.85f, 0.4f), AHVip.Describe(p), "", new WkBtn { label = "Store", on = true, col = Plain, act = () => OpenStore() }));
+        rows.Add(s => Row(s, "Collection book", new Color(0.55f, 0.85f, 1f), AHCollection.Filled(p) + " / " + AHCollection.Pages.Count + " pages" + (AHCollection.Ready(p) > 0 ? " · <color=#9be37a>" + AHCollection.Ready(p) + " rewards waiting</color>" : ""), "Every fish of every land · every grade of ore, logs, hides and herbs",
+            new WkBtn { label = "Open", on = true, col = AHCollection.Ready(p) > 0 ? Go : Plain, act = OpenCatchBook }));
         rows.Add(s => Row(s, "Weekly challenge", new Color(1f, 0.6f, 0.35f), AHChallenge.Status(p), "A dungeon with a new twist each week · looks-only rewards",
             new WkBtn { label = "Open", on = true, col = !AHChallenge.S(p).won && p.path != "artisan" ? Go : Plain, act = OpenChallenge }));
         rows.Add(s => Row(s, p.path == "artisan" ? "Repairs · " + AHRepairs.Rank(p) : "Guild repairs", new Color(0.75f, 0.8f, 0.9f),

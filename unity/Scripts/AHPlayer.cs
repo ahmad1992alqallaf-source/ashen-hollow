@@ -99,6 +99,11 @@ public class AHPlayer : MonoBehaviour
         modelBaseY = float.NaN;
         ghosted = false; ghostRs = null; ghostKeep = null;
         AHWardrobe.Dress(this, model);
+        // dressing may have put the weapon's own kind in the hand (a mace, a bow, a collection blade): find it again
+        weaponR = null; weaponL = null;
+        foreach (var t in model.GetComponentsInChildren<Transform>(true))
+            if (t.name.StartsWith("Weapon_") && t.gameObject.activeSelf) { if (t.parent != null && t.parent.name == "hand_l") weaponL = t; else weaponR = t; }
+        ApplyWeaponGlow();
         builtSig = LookSig();
     }
     public void CheckOutfit() { if (model != null && LookSig() != builtSig) ApplyLook(); }
@@ -330,7 +335,7 @@ public class AHPlayer : MonoBehaviour
     public float ArmorCut { get { return 1f - 100f / (100f + stat.def * 5f * (1f + (Elix("iron") ? 0.3f : 0f) + (Elix("titan") ? 0.25f : 0f) + AHMeal.Fx(this, "def") + AHEvo.Pass(this, "armor") + (cls != null && cls.id == "warden" ? 0.2f : 0f))); } }   // the Warden: stone-bound, 20% more from armour
 
     // ---------- wading: the shallow rim of a pond slows you, you sink a little and the water ripples ----------
-    float wadeDepth, rippleT, modelBaseY = float.NaN;
+    float wadeDepth, rippleT, modelBaseY = float.NaN, deckY;
     void UpdateWading(float dt, bool moving)
     {
         float wd = g.WaterDepth(transform.position);
@@ -338,7 +343,8 @@ public class AHPlayer : MonoBehaviour
         if (model != null)
         {
             if (float.IsNaN(modelBaseY)) modelBaseY = model.transform.localPosition.y;
-            var lp = model.transform.localPosition; lp.y = modelBaseY - 0.4f * wadeDepth * (mounted ? 0.3f : 1f) + seatY + (mounted ? seatBob : 0f) + leapY; model.transform.localPosition = lp;
+            deckY = Mathf.MoveTowards(deckY, AHScenery.DeckLift(transform.position), dt * 2.5f);   // up onto a bridge's planks
+            var lp = model.transform.localPosition; lp.y = modelBaseY - 0.4f * wadeDepth * (mounted ? 0.3f : 1f) + seatY + (mounted ? seatBob : 0f) + leapY + deckY; model.transform.localPosition = lp;
         }
         if (wd <= 0.02f) return;
         rippleT -= dt;
@@ -1174,8 +1180,9 @@ public class AHPlayer : MonoBehaviour
         // web: professions you practise learn 25% faster, earn mastery, and an Artisan's class grows from the work
         List<string> pk; bool profSkill = IsProfSkill(skill, out pk);
         bool mine = false; foreach (var k in pk) if (profs.Contains(k)) mine = true;
-        int add = Mathf.Max(1, Mathf.RoundToInt(amount * 0.6f * (1f + AHMeal.Fx(this, "xp")) * AHFriends.DayXp(skill) * (mine ? 1.25f : 1f) * AHTown.XpK(this, skill)));
+        int add = Mathf.Max(1, Mathf.RoundToInt(amount * 0.6f * (1f + AHMeal.Fx(this, "xp")) * AHFriends.DayXp(skill) * (mine ? 1.25f : 1f) * AHTown.XpK(this, skill) * AHVip.K(this, profSkill)));
         skillXp[skill] = SkillXp(skill) + add;
+        if (profSkill && amount > 0) AHPass2.OnWork(this);   // the Battle Pass's Craft line
         foreach (var k in pk) if (profs.Contains(k)) AddMastery(k, amount);
         if (profSkill && path == "artisan" && amount > 0) GainClassXp(Mathf.RoundToInt(amount * 1.6f + 4f), false);
         if (skill != "attack" && g.ui != null) g.ui.Float(transform.position + Vector3.up * 2.3f, "+" + add + " " + AHDB.SkillName(skill), new Color(0.79f, 0.91f, 0.66f));
@@ -1306,7 +1313,8 @@ public class AHPlayer : MonoBehaviour
     float actionT;
     bool hungerWarned;
     public bool Busy { get { return actionMob != null || AHGather.Busy; } }
-    public float ActionFrac { get { return actionMob != null ? 1f - actionT / 1.2f : AHGather.Frac; } }
+    public float ActionFrac { get { return actionMob != null ? 1f - actionT / SkinTime : AHGather.Frac; } }
+    const float SkinTime = 1.8f;   // long enough to see the hero kneel and work the knife
     public string ActionName { get { return actionMob != null ? "Skinning" : AHGather.Busy ? (AHGather.actSpot.kind == "light" ? "Light fire" : AHGather.actRecipe != null ? AHItems.Get(AHGather.actRecipe.outId).name : AHGather.Label(AHGather.actSpot)) : null; } }
 
     // turn to the work and swing the tools
@@ -1359,12 +1367,12 @@ public class AHPlayer : MonoBehaviour
     }
     void ToolTick()
     {
-        if (toolKind != null && !AHGather.Busy) HideTool();
+        if (toolKind != null && !AHGather.Busy && actionMob == null) HideTool();
         if (fishLine != null && toolGo != null)
         {
             Vector3 tip = toolGo.transform.TransformPoint(new Vector3(0, 1.62f, 0));
             Vector3 bob = fishAt; bob.y = transform.position.y - 0.05f;
-            fishLine.SetPosition(0, tip); fishLine.SetPosition(1, bob + Vector3.up * Mathf.Sin(Time.time * 2.2f) * 0.03f);
+            fishLine.SetPosition(0, tip); fishLine.SetPosition(1, AHFishing.HasBobber ? AHFishing.BobberPos : bob + Vector3.up * Mathf.Sin(Time.time * 2.2f) * 0.03f);
         }
     }
 
@@ -1397,9 +1405,9 @@ public class AHPlayer : MonoBehaviour
         var ids = new List<string> { "raw_meat" };
         if (Skill("skinning") >= m.type.skinReq && m.type.skin != null) ids.AddRange(m.type.skin);
         if (!bag.Fits(ids)) { if (g.ui != null) g.ui.Toast("Your bag is full. Make room to skin it."); return; }
-        actionMob = m; actionT = 1.2f;
-        transform.rotation = g.Face(m.transform.position - transform.position);
-        if (anim != null) anim.Play("Interact", true, 1f, true);
+        actionMob = m; actionT = SkinTime;
+        // kneel at the body with a skinning knife (the herbalist's kneel), knife in hand
+        BeginWork(m.transform.position, "Work_Gather|Harvest|Interact", "knife");
     }
 
     void CancelAction() { actionMob = null; }
@@ -1418,7 +1426,13 @@ public class AHPlayer : MonoBehaviour
         if (Skill("skinning") < req) { GainXp("skinning", 10, false); if (g.ui != null) g.ui.Toast("Requires Skinning " + req + ": you only got the meat (and a little skinning practice)."); }
         else
         {
-            if (m.type.skin != null) foreach (var id in m.type.skin) bag.Add(id);
+            if (m.type.skin != null)
+                foreach (var id in m.type.skin)
+                {
+                    // hides and pelts come in grades too (tougher beasts give better ones)
+                    int gr = AHGrades.Gradable(id) ? AHGrades.Roll(this, Skill("skinning"), req, m.type.elite || m.type.rare ? 3f : 1f) : 0;
+                    string gid = AHGrades.Id(id, gr); bag.Add(gid); AHGather.GradeFx(this, gid, gr);
+                }
             GainXp("skinning", (20 + req * 8) * 3, false);   // three times the web rate: the higher beasts were out of reach for most heroes
             g.OnSkin(m.type.id);
         }

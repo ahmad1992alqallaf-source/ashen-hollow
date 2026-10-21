@@ -202,6 +202,139 @@ public static class AHPeople
         if (name.Contains("Spellbook")) { p = new Vector3(right ? 0.07f : -0.07f, 0.09f, 0f); return; }   // held at its edge against the palm
     }
 
+    // ---------- a weapon by its form (the item's own kind: sword, mace, dagger, bow, staff...) ----------
+    // The hero holds the class weapon; a piece of gear can show its own kind instead: in the bag picture, the inspect
+    // window, "Try it on" and on the hero once equipped. Its metal takes the item's colour (bronze, iron, obsidian...).
+    public static bool FormWeapon(GameObject rig, ItemDef it, AHGame g)
+    {
+        if (rig == null || it == null || it.slot != "weapon" || string.IsNullOrEmpty(it.form)) return false;
+        string f = it.form, kk = null, model = null, special = null;
+        switch (f)
+        {
+            case "sword": kk = "1H_Sword"; model = "Knight_t"; break;
+            case "cleaver": kk = "2H_Axe"; model = "Barbarian_t"; break;
+            case "dagger": case "kris": kk = "Knife"; model = "Rogue_t"; break;
+            case "mace": case "sunmace": case "sceptre": special = "mace"; break;
+            case "bow": case "longbow": special = "bow"; break;
+            case "staff": case "shodstaff": case "magmastaff": case "bloomstaff": case "wildstaff": special = f == "bloomstaff" || f == "wildstaff" ? "druidstaff" : "staff"; break;
+            case "warhammer": case "hammer": special = "hammer"; break;
+            case "totemaxe": special = "axe"; break;
+            default: return false;
+        }
+        Transform hr = Find(rig.transform, "hand_r"); if (hr == null) return false;
+        for (int i = hr.childCount - 1; i >= 0; i--) { var c = hr.GetChild(i); if (c.name.StartsWith("Weapon_")) { c.gameObject.SetActive(false); Object.Destroy(c.gameObject); } }
+        int before = hr.childCount;
+        Quaternion q; Vector3 p;
+        switch (special)
+        {
+            case "mace": Grip("1H_Mace", true, out q, out p); Mace(hr, q, p, f == "sunmace"); break;
+            case "bow": Grip("2H_Staff", true, out q, out p); Bow(hr, q, p, f == "longbow"); break;
+            case "staff": Grip("2H_Staff", true, out q, out p); Staff(hr, q, p, false); break;
+            case "druidstaff": Grip("2H_Staff", true, out q, out p); Staff(hr, q, p, true); break;
+            case "hammer": Grip("1H_Hammer", true, out q, out p); StoneHammer(hr, q, p); break;
+            case "axe": Grip("1H_Axe", true, out q, out p); SpiritAxe(hr, q, p); break;
+            default:
+                {
+                    var pf = Resources.Load<GameObject>("AH/Models/" + model); if (pf == null) return false;
+                    var tmp = Object.Instantiate(pf);
+                    var rs = tmp.GetComponentsInChildren<Renderer>(true);
+                    if (rs.Length > 0) { Bounds b = rs[0].bounds; for (int i = 1; i < rs.Length; i++) b.Encapsulate(rs[i].bounds); if (b.size.y > 1e-3f) tmp.transform.localScale = Vector3.one * (1.8f / b.size.y); }
+                    Grip(kk, true, out q, out p); Grab(tmp.transform, kk, hr, q, p);
+                    Object.Destroy(tmp);
+                    break;
+                }
+        }
+        // the item's metal colour on the metal parts
+        Color ic = it.color; var mpb = new MaterialPropertyBlock();
+        for (int i = 0; i < hr.childCount; i++)
+        {
+            var w = hr.GetChild(i); if (!w.name.StartsWith("Weapon_")) continue;
+            foreach (var r in w.GetComponentsInChildren<Renderer>(true))
+            {
+                var m = r.sharedMaterial; if (m == null) continue;
+                bool metal = (m.HasProperty("_Metallic") && m.GetFloat("_Metallic") > 0.45f) || special == null;
+                if (!metal) continue;
+                Color bc = m.HasProperty("_BaseColor") ? m.GetColor("_BaseColor") : Color.white;
+                if (!m.HasProperty("_BaseColor") && m.HasProperty("baseColorFactor")) bc = m.GetColor("baseColorFactor");
+                Color tc = special == null ? Color.Lerp(Color.white, ic, 0.6f) : Color.Lerp(bc, ic, 0.65f);
+                r.GetPropertyBlock(mpb); mpb.SetColor("_BaseColor", tc); mpb.SetColor("baseColorFactor", tc); r.SetPropertyBlock(mpb);
+            }
+        }
+        return hr.childCount > 0;
+    }
+
+    // a flanged mace (ours): a wrapped haft and a round head ringed by six flanges; the sun mace has a gold sunburst
+    static Material mcWood, mcWrap, mcMetal, mcGold;
+    static void Mace(Transform hand, Quaternion q, Vector3 p, bool sun)
+    {
+        if (hand == null) return;
+        if (mcWood == null)
+        {
+            var sh = Shader.Find("Universal Render Pipeline/Lit");
+            mcWood = new Material(sh); mcWood.color = new Color(0.3f, 0.2f, 0.13f); mcWood.SetFloat("_Smoothness", 0.25f);
+            mcWrap = new Material(sh); mcWrap.color = new Color(0.4f, 0.26f, 0.15f); mcWrap.SetFloat("_Smoothness", 0.15f);
+            mcMetal = new Material(sh); mcMetal.color = new Color(0.7f, 0.7f, 0.72f); mcMetal.SetFloat("_Metallic", 0.85f); mcMetal.SetFloat("_Smoothness", 0.6f);
+            mcGold = new Material(sh); mcGold.color = new Color(1f, 0.8f, 0.35f); mcGold.SetFloat("_Metallic", 0.9f); mcGold.SetFloat("_Smoothness", 0.7f); mcGold.EnableKeyword("_EMISSION"); mcGold.SetColor("_EmissionColor", new Color(1f, 0.75f, 0.3f) * 0.5f);
+        }
+        var root = new GameObject("Weapon_1H_Mace").transform; root.SetParent(hand, false);
+        root.localPosition = p; root.localRotation = q;
+        Vector3 hs = hand.lossyScale; root.localScale = new Vector3(1f / Mathf.Max(1e-5f, hs.x), 1f / Mathf.Max(1e-5f, hs.y), 1f / Mathf.Max(1e-5f, hs.z));
+        System.Action<PrimitiveType, Vector3, Vector3, Vector3, Material> P = (t, pos, sc, rot, m) =>
+        {
+            var go = GameObject.CreatePrimitive(t); Object.Destroy(go.GetComponent<Collider>());
+            go.name = "Piece"; go.transform.SetParent(root, false); go.transform.localPosition = pos; go.transform.localScale = sc; go.transform.localEulerAngles = rot;
+            var r = go.GetComponent<Renderer>(); r.sharedMaterial = m; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+        };
+        P(PrimitiveType.Cylinder, new Vector3(0, 0.27f, 0), new Vector3(0.034f, 0.36f, 0.034f), Vector3.zero, mcWood);
+        P(PrimitiveType.Cylinder, new Vector3(0, 0.03f, 0), new Vector3(0.042f, 0.1f, 0.042f), Vector3.zero, mcWrap);
+        P(PrimitiveType.Sphere, new Vector3(0, -0.08f, 0), new Vector3(0.05f, 0.04f, 0.05f), Vector3.zero, mcMetal);
+        P(PrimitiveType.Sphere, new Vector3(0, 0.66f, 0), new Vector3(0.12f, 0.13f, 0.12f), Vector3.zero, mcMetal);
+        for (int i = 0; i < 6; i++) P(PrimitiveType.Cube, new Vector3(Mathf.Cos(i * 1.047f) * 0.065f, 0.66f, Mathf.Sin(i * 1.047f) * 0.065f), new Vector3(0.07f, 0.17f, 0.018f), new Vector3(0, -i * 60f, 0), mcMetal);
+        P(PrimitiveType.Cylinder, new Vector3(0, 0.76f, 0), new Vector3(0.03f, 0.03f, 0.03f), Vector3.zero, mcMetal);
+        if (sun) { P(PrimitiveType.Sphere, new Vector3(0, 0.66f, 0), new Vector3(0.09f, 0.09f, 0.135f), Vector3.zero, mcGold); }
+    }
+
+    // a bow (ours): a curved limb of segments, a leather grip and a taut string
+    static Material bwWood, bwGrip, bwString;
+    static void Bow(Transform hand, Quaternion q, Vector3 p, bool longbow)
+    {
+        if (hand == null) return;
+        if (bwWood == null)
+        {
+            var sh = Shader.Find("Universal Render Pipeline/Lit");
+            bwWood = new Material(sh); bwWood.color = new Color(0.45f, 0.3f, 0.17f); bwWood.SetFloat("_Smoothness", 0.35f);
+            bwGrip = new Material(sh); bwGrip.color = new Color(0.25f, 0.16f, 0.1f); bwGrip.SetFloat("_Smoothness", 0.15f);
+            bwString = new Material(sh); bwString.color = new Color(0.9f, 0.87f, 0.78f);
+        }
+        var root = new GameObject("Weapon_2H_Bow").transform; root.SetParent(hand, false);
+        root.localPosition = p; root.localRotation = q;
+        Vector3 hs = hand.lossyScale; root.localScale = new Vector3(1f / Mathf.Max(1e-5f, hs.x), 1f / Mathf.Max(1e-5f, hs.y), 1f / Mathf.Max(1e-5f, hs.z));
+        System.Action<PrimitiveType, Vector3, Vector3, Vector3, Material> P = (t, pos, sc, rot, m) =>
+        {
+            var go = GameObject.CreatePrimitive(t); Object.Destroy(go.GetComponent<Collider>());
+            go.name = "Piece"; go.transform.SetParent(root, false); go.transform.localPosition = pos; go.transform.localScale = sc; go.transform.localEulerAngles = rot;
+            var r = go.GetComponent<Renderer>(); r.sharedMaterial = m; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+        };
+        float half = longbow ? 0.78f : 0.55f, bend = longbow ? 0.16f : 0.13f; int n = 8;
+        Vector3 prev = Vector3.zero, tipT = Vector3.zero, tipB = Vector3.zero;
+        for (int side = -1; side <= 1; side += 2)
+        {
+            prev = new Vector3(0, 0, 0);
+            for (int i = 1; i <= n; i++)
+            {
+                float t = i / (float)n; Vector3 pt = new Vector3(0, side * half * t, -bend * t * t);
+                Vector3 mid = (prev + pt) * 0.5f, d = pt - prev;
+                float ang = Mathf.Atan2(d.z, d.y) * Mathf.Rad2Deg;
+                P(PrimitiveType.Cylinder, mid, new Vector3(0.026f * (1.1f - t * 0.4f), d.magnitude * 0.5f, 0.03f * (1.1f - t * 0.4f)), new Vector3(-ang, 0, 0), bwWood);
+                prev = pt;
+            }
+            if (side > 0) tipT = prev; else tipB = prev;
+        }
+        P(PrimitiveType.Cylinder, Vector3.zero, new Vector3(0.04f, 0.07f, 0.042f), Vector3.zero, bwGrip);
+        Vector3 sm = (tipT + tipB) * 0.5f; float sl = (tipT - tipB).magnitude;
+        P(PrimitiveType.Cylinder, sm, new Vector3(0.005f, sl * 0.5f, 0.005f), Vector3.zero, bwString);
+    }
+
     // the Warden's stone hammer (ours): an ash-wood haft bound in iron, a squared head of grey stone with an ember
     // seam glowing through it and an iron band round its middle. About 0.65 m long, held near the end of the haft.
     static Material hamWood, hamStone, hamIron, hamEmber;
@@ -515,6 +648,14 @@ public static class AHPeople
                 P(PrimitiveType.Cube, new Vector3(sx * 0.235f, 0.495f, 0), new Vector3(0.07f, 0.03f, 0.03f), new Vector3(0, 0, -sx * 24f), toolIron);   // the points
             }
             P(PrimitiveType.Cube, new Vector3(0, 0.54f, 0), new Vector3(0.07f, 0.08f, 0.07f), Vector3.zero, toolIron);
+        }
+        else if (kind == "knife")
+        {
+            // a skinning knife: a short curved blade on a wrapped wooden handle
+            P(PrimitiveType.Cylinder, new Vector3(0, 0.04f, 0), new Vector3(0.026f, 0.06f, 0.026f), Vector3.zero, toolWood);
+            P(PrimitiveType.Cube, new Vector3(0, 0.105f, 0), new Vector3(0.04f, 0.012f, 0.03f), Vector3.zero, toolIron);   // the guard
+            P(PrimitiveType.Cube, new Vector3(0.006f, 0.18f, 0), new Vector3(0.03f, 0.14f, 0.005f), new Vector3(0, 0, -6f), toolIron);
+            P(PrimitiveType.Cube, new Vector3(0.016f, 0.255f, 0), new Vector3(0.018f, 0.03f, 0.005f), new Vector3(0, 0, -30f), toolIron);   // the curved tip
         }
         else if (kind == "rod")
         {

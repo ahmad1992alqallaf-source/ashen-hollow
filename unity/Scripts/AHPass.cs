@@ -109,24 +109,40 @@ public static class AHPass
         var sp = new GameObject("Pass signpost").transform; sp.SetParent(root, false); sp.position = at;
         sp.rotation = Quaternion.LookRotation(w.outw);
         var wood = new Material(Shader.Find("Universal Render Pipeline/Lit")); wood.color = new Color(0.36f, 0.24f, 0.14f);
+        var plank = new Material(wood); plank.color = new Color(0.17f, 0.11f, 0.07f);   // a dark board, so the letters stand out
         var post = GameObject.CreatePrimitive(PrimitiveType.Cylinder); Object.Destroy(post.GetComponent<Collider>()); post.transform.SetParent(sp, false);
         post.transform.localPosition = new Vector3(0f, 1.4f, 0f); post.transform.localScale = new Vector3(0.16f, 1.4f, 0.16f); post.GetComponent<Renderer>().sharedMaterial = wood;
         var board = GameObject.CreatePrimitive(PrimitiveType.Cube); Object.Destroy(board.GetComponent<Collider>()); board.transform.SetParent(sp, false);
-        board.transform.localPosition = new Vector3(-0.75f, 2.35f, 0f); board.transform.localScale = new Vector3(2.0f, 0.55f, 0.07f); board.GetComponent<Renderer>().sharedMaterial = wood;
+        board.transform.localPosition = new Vector3(-1.05f, 2.35f, 0f); board.transform.localScale = new Vector3(2.6f, 0.85f, 0.07f); board.GetComponent<Renderer>().sharedMaterial = plank;
         // the point of the arrow, towards the road out
         var tip = GameObject.CreatePrimitive(PrimitiveType.Cube); Object.Destroy(tip.GetComponent<Collider>()); tip.transform.SetParent(sp, false);
-        tip.transform.localPosition = new Vector3(-1.8f, 2.35f, 0f); tip.transform.localRotation = Quaternion.Euler(0f, 0f, 45f); tip.transform.localScale = new Vector3(0.39f, 0.39f, 0.069f); tip.GetComponent<Renderer>().sharedMaterial = wood;
+        tip.transform.localPosition = new Vector3(-2.35f, 2.35f, 0f); tip.transform.localRotation = Quaternion.Euler(0f, 0f, 45f); tip.transform.localScale = new Vector3(0.6f, 0.6f, 0.069f); tip.GetComponent<Renderer>().sharedMaterial = plank;
         var font = Resources.Load<Font>("AH/Fonts/Nunito-ExtraBold") ?? Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        var tmat = TextMat(font);
         foreach (int face in new[] { -1, 1 })
         {
             var t = new GameObject("Text").AddComponent<TextMesh>(); t.transform.SetParent(sp, false);
-            t.font = font; t.GetComponent<MeshRenderer>().sharedMaterial = font.material;
-            t.text = w.name + "\n<size=24>" + (string.IsNullOrEmpty(w.levels) ? "" : (w.levels == "safe" ? "a safe city" : "Level " + w.levels)) + "</size>";
-            t.fontSize = 36; t.characterSize = 0.042f; t.anchor = TextAnchor.MiddleCenter; t.alignment = TextAlignment.Center; t.color = new Color(1f, 0.92f, 0.72f);
-            t.richText = true;
-            t.transform.localPosition = new Vector3(-0.85f, 2.35f, face * 0.045f); t.transform.localRotation = Quaternion.Euler(0f, face > 0 ? 180f : 0f, 0f);
+            t.font = font; t.GetComponent<MeshRenderer>().sharedMaterial = tmat;
+            // big font letters drawn small: sharp on a phone (the old 36-point letters came out blurred)
+            t.text = w.name + "\n<size=78><color=#ffd27a>" + (string.IsNullOrEmpty(w.levels) ? "" : (w.levels == "safe" ? "a safe city" : "Level " + w.levels)) + "</color></size>";
+            t.fontSize = 120; t.characterSize = 0.022f * Mathf.Min(1f, 11f / Mathf.Max(1, w.name.Length)); t.anchor = TextAnchor.MiddleCenter; t.alignment = TextAlignment.Center; t.color = new Color(1f, 0.97f, 0.88f);
+            t.lineSpacing = 0.85f; t.richText = true;
+            t.transform.localPosition = new Vector3(-1.05f, 2.35f, face * 0.045f); t.transform.localRotation = Quaternion.Euler(0f, face > 0 ? 180f : 0f, 0f);
         }
     }
+
+    // the letters' material: hidden behind the board like any surface (the font's own material draws on top of
+    // everything, so the back's mirrored words showed through and smeared the front's)
+    static Material textMat; static Font textFont;
+    static Material TextMat(Font font)
+    {
+        if (textMat != null && textFont == font) return textMat;
+        var sh = Shader.Find("AshenHollow/Text3D"); if (sh == null) return font.material;
+        textMat = new Material(sh) { name = "Signpost letters" }; textMat.mainTexture = font.material.mainTexture; textFont = font;
+        Font.textureRebuilt -= Rebuilt; Font.textureRebuilt += Rebuilt;
+        return textMat;
+    }
+    static void Rebuilt(Font f) { if (f == textFont && textMat != null) textMat.mainTexture = f.material.mainTexture; }
 
     static Bounds Measure(GameObject go) { var rs = go.GetComponentsInChildren<Renderer>(true); Bounds b = rs.Length > 0 ? rs[0].bounds : new Bounds(go.transform.position, Vector3.zero); for (int i = 1; i < rs.Length; i++) b.Encapsulate(rs[i].bounds); return b; }
 }

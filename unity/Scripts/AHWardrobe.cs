@@ -727,7 +727,9 @@ public static class AHWardrobe
             }
         }
         // a collection weapon in the hand (its own model), in place of the class weapon
-        if (heroCls != null) AHTripo.CollectionWeapon(rig, heroCls, shown("weapon"));
+        // otherwise the weapon's own kind (a mace, a bow, a dagger...) in the item's metal, so what you wear or try on
+        // is what you hold
+        { string wid = shown("weapon"); if (!AHTripo.CollectionWeapon(rig, heroCls, wid) && wid != null) AHPeople.FormWeapon(rig, AHItems.Get(wid), null); }
         if (lit == null) lit = Shader.Find("Universal Render Pipeline/Lit");
         if (cone == null) { cone = Frustum(0f, 0.5f, 1f); frustum = Frustum(0.55f, 1f, 1f); torus = Torus(0.5f, 0.06f); shell = Frustum(1f, 0.85f, 1f); }
         float ground = hold.position.y;

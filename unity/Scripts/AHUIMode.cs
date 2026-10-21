@@ -93,7 +93,11 @@ public partial class AHUI
             n = PersonOrThing(n, us);
             var sk = p.SkinTarget();
             fieldHere = FieldJob(us) || sk != null;
-            if (p.Busy) act = p.ActionName.ToUpperInvariant() + "\n" + Mathf.RoundToInt(p.ActionFrac * 100) + "%";
+            var lt = LootTarget(p);
+            if (lt != null) fieldHere = true;
+            if (AHFishing.Active) act = AHFishing.Label.ToUpperInvariant() + (AHFishing.sayT > 0f && AHFishing.say != null ? "\n" + AHFishing.say : "");
+            else if (p.Busy) act = p.ActionName.ToUpperInvariant() + "\n" + Mathf.RoundToInt(p.ActionFrac * 100) + "%";
+            else if (lt != null && (skillMode || !Danger(p))) act = "LOOT";
             else if (skillMode)
             {
                 if (n != null) act = n.Label.ToUpperInvariant();
@@ -107,7 +111,7 @@ public partial class AHUI
                 if (n != null) act = n.Label.ToUpperInvariant();
                 else if (us != null && !FieldJob(us) && sk == null) act = AHGather.Label(us).ToUpperInvariant();
             }
-            if (p.Busy && !skillMode && Danger(p)) act = null;   // gathering in FIGHT mode is impossible anyway; never hide the attack in a fight
+            if (p.Busy && !skillMode && Danger(p) && !AHFishing.Active) act = null;   // gathering in FIGHT mode is impossible anyway; never hide the attack in a fight
         }
         sealAct = act;
         atkLabelText.text = act ?? "ATTACK";
@@ -123,7 +127,8 @@ public partial class AHUI
     void PressSeal()
     {
         var p = g.player; if (p == null) return;
-        if (p.Busy) { AHGather.Strike(p); return; }   // the gathering knack: a tap in the gold
+        if (p.Busy) { AHGather.Strike(p); return; }   // the gathering knack: a tap in the gold (fishing: hook and reel)
+        if (sealAct == "LOOT") { OpenLoot(LootTarget(p)); return; }
         if (skillMode) { OnAction(); return; }
         // FIGHT mode: only people, doors and stations come here
         var n = PersonOrThing(NearNpc(), AHGather.Nearest(p.transform.position));

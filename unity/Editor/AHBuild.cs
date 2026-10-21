@@ -33,7 +33,7 @@ public static class AHBuild
         EditorUserBuildSettings.androidBuildSubtarget = MobileTextureSubtarget.ASTC;
         EditorUserBuildSettings.buildAppBundle = false;   // an .apk you can copy straight to a phone
         AssetDatabase.SaveAssets();
-        AlwaysInclude("Universal Render Pipeline/Lit", "Universal Render Pipeline/Unlit", "Universal Render Pipeline/Particles/Unlit", "Unlit/Color", "AshenHollow/Range");
+        AlwaysInclude("Universal Render Pipeline/Lit", "Universal Render Pipeline/Unlit", "Universal Render Pipeline/Particles/Unlit", "Unlit/Color", "AshenHollow/Range", "AshenHollow/Text3D");
         Debug.Log("Ashen Hollow: Android settings ready");
     }
 

@@ -1,5 +1,6 @@
 // Ashen Hollow: loads a model from Resources/AH/Models, sizes it and stands it on the ground
 using UnityEngine;
+using UnityEngine.Playables;   // (SetTime, SetSourcePlayable)
 
 public static class AHModel
 {
@@ -40,7 +41,8 @@ public static class AHModel
         Bounds b = Measure(inst, false);
         if (pose != null)
         {
-            if (Application.isEditor || pose.legacy) { try { pose.SampleAnimation(inst, 0f); } catch { } }   // (a phone can only pose a legacy clip this way)
+            if ((Application.isEditor && !PhoneLike) || pose.legacy) { try { pose.SampleAnimation(inst, 0f); } catch { } }   // (a phone can only pose a legacy clip this way)
+            else PoseByGraph(inst, pose);   // phones: the same pose through a one-frame animation graph (models whose rest pose lies on its side, the bear, were measured wrong and stood out of sight)
             // only where the skin's box is far off (other models keep the measure their feet were set by, AH/Data/mob_feet)
             Bounds bp = Measure(inst, true);
             if (Mathf.Abs(bp.size.y - b.size.y) > 0.25f * Mathf.Max(b.size.y, 0.01f) || Mathf.Abs(bp.min.y - b.min.y) > 0.25f * Mathf.Max(b.size.y, 0.01f)) { b = bp; posed = true; }
@@ -56,6 +58,25 @@ public static class AHModel
     }
 
     public static float LastHeight;   // how tall the last model came out (metres)
+    public static bool PhoneLike;     // editor tests: build models (and the meadow's flowers) the way a phone does
+
+    // put a model into the first frame of a (Mecanim) clip at run time on a phone, where SampleAnimation only works for
+    // legacy clips: a throwaway playable graph evaluated once
+    static void PoseByGraph(GameObject inst, AnimationClip clip)
+    {
+        try
+        {
+            var animator = inst.GetComponent<Animator>(); if (animator == null) animator = inst.AddComponent<Animator>();
+            animator.applyRootMotion = false;
+            var graph = UnityEngine.Playables.PlayableGraph.Create("AshenHollowPose");
+            var output = UnityEngine.Animations.AnimationPlayableOutput.Create(graph, "Pose", animator);
+            var cp = UnityEngine.Animations.AnimationClipPlayable.Create(graph, clip);
+            cp.SetTime(0); output.SetSourcePlayable(cp);
+            graph.Evaluate(0f);
+            graph.Destroy();
+        }
+        catch (System.Exception e) { Debug.LogWarning("Ashen Hollow: could not pose " + inst.name + ": " + e.Message); }
+    }
 
     // models that share one skeleton and the very same moves keep the moves in one file only (the others' copies were
     // taken out to make the phone build smaller): each of these plays the clips of the model named after it

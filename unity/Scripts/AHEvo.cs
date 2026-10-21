@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
-public class AHClassProg { public string cls, path, form; public List<AHKV> tal = new List<AHKV>(); public List<string> load = new List<string>(); }
+public class AHClassProg { public string cls, path, form; public List<AHKV> tal = new List<AHKV>(); public List<string> load = new List<string>(); public List<string> board = new List<string>(); }
 
 public static class AHEvo
 {
@@ -66,6 +66,7 @@ public static class AHEvo
         if (pa != null) add(AHJson.O(pa, "pass"), 1);
         if (f != null) add(AHJson.O(f, "pass"), 1);
         foreach (var t in Tiers(p)) if (t.nodes != null) foreach (var n in t.nodes) { int r = Rank(p, AHJson.S(n, "id")); if (r > 0) add(AHJson.O(n, "per"), r); }
+        AHBoards.AddPass(p, o);   // the talent boards
         return o;
     }
     public static float Pass(AHPlayer p, string k) { float v; return p.pass != null && p.pass.TryGetValue(k, out v) ? v : 0f; }
@@ -243,9 +244,10 @@ public partial class AHUI
         var cp = AHEvo.CP(p); var rows = new List<Action<int>>();
         int free = AHEvo.Points(p) - AHEvo.Spent(p);
         wkTitle.text = AHEvo.Title(p) + " · level " + p.level;
-        rows.Add(s => Row(s, "Evolution · Talents (" + free + " free) · Spellbook", new Color(1f, 0.8f, 0.45f), "Switch between the three pages.", "",
+        rows.Add(s => Row(s, "Evolution · Talents (" + free + " free) · Boards (" + AHBoards.Free(p) + ") · Spells", new Color(1f, 0.8f, 0.45f), "Switch between the pages.", "",
             new WkBtn { label = "Evolution", on = true, col = classTab == "evo" ? Go : Plain, act = () => OpenClassWin("evo") },
             new WkBtn { label = "Talents", on = true, col = classTab == "tal" ? Go : Plain, act = () => OpenClassWin("tal") },
+            new WkBtn { label = "Boards", on = true, col = classTab == "boards" ? Go : Plain, act = () => OpenClassWin("boards") },
             new WkBtn { label = "Spells", on = true, col = classTab == "book" ? Go : Plain, act = () => OpenClassWin("book") }));
         if (classTab == "evo")
         {
@@ -271,6 +273,7 @@ public partial class AHUI
                         }
                 }
         }
+        else if (classTab == "boards") { rows[0](0); RenderBoards(p); return; }
         else if (classTab == "tal")
         {
             rows[0](0); RenderTalentTree(p, free); return;   // the painted tree (AHTalentTree)

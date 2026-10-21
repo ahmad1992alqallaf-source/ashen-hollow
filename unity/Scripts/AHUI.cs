@@ -22,6 +22,10 @@ public partial class AHUI : MonoBehaviour
     AHGame g;
     Canvas canvas;
     Font font;
+    // the game's text face (Celestial Glass: Manrope when it is in Resources/AH/Fonts, else Unity's own)
+    static Font mainFont, titleFont;
+    public static Font MainFont { get { if (mainFont == null) { mainFont = Resources.Load<Font>("AH/Fonts/Manrope"); if (mainFont == null) mainFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); } return mainFont; } }
+    public static Font TitleFont { get { if (titleFont == null) { titleFont = Resources.Load<Font>("AH/Fonts/Marcellus"); if (titleFont == null) titleFont = MainFont; } return titleFont; } }
     Sprite circle, ring, white;
     RectTransform joyBase, joyKnob, atkBtn, dodgeBtn, picker;
     Image hpFill, xpFill, atkImg, shieldFill, manaFill, hungerFill;
@@ -115,7 +119,7 @@ public partial class AHUI : MonoBehaviour
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1100, 620);
         scaler.matchWidthOrHeight = 1f;
-        font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        font = MainFont;   // Manrope (Celestial Glass), or Unity's own if it is missing
         circle = MakeCircle(128, 0f);
         ring = MakeCircle(128, 10f);
         white = MakeWhite();
@@ -234,8 +238,11 @@ public partial class AHUI : MonoBehaviour
         BuildEmoteHud();
         BuildLeapHud(); BuildPetHud(); BuildExtraHud(); BuildKnackHud(); BuildChat(); BuildCombo(); BuildTrainHud();
         BuildDailyHud();
+        BuildMinimap();
         BuildEvHud();
         ApplySkin();
+        Celestial(transform);   // the whole HUD in Celestial Glass
+        CelestialTitle(wkTitle); if (bannerTitle != null) CelestialTitle(bannerTitle);
         RefreshClass();
         if (g.player != null) g.player.bag.Changed += RefreshBag;
     }
@@ -463,6 +470,7 @@ public partial class AHUI : MonoBehaviour
         TickSkin();
         float dt = Time.unscaledDeltaTime;
         AHWellbeing.Tick(this, dt);   // rest reminders
+        MinimapTick(dt);
         // windows with timers (expeditions, caravans, requests, town projects) refresh by themselves every few seconds
         wkLiveT -= dt;
         if (wkLiveT <= 0f) { wkLiveT = 5f; if (WorkOpen && (wkMode == "exped" || wkMode == "looters" || wkMode == "twopart" || wkMode == "profpets" || wkMode == "caravan" || wkMode == "requests" || wkMode == "town")) RenderWork(); }
@@ -837,6 +845,7 @@ public partial class AHUI : MonoBehaviour
             else if (d.potion) { p.Drink(id); bagSel = bag.Count(id) > 0 ? id : null; }
             else if (id == "mystery_sack") { AHDaily.OpenSack(g); bagSel = bag.Count(id) > 0 ? id : null; }
             else if (id == AHRareRecipes.ScrollId) { AHRareRecipes.Read(g); bagSel = bag.Count(id) > 0 ? id : null; }
+            else if (AHRecipeDrops.IsScroll(id)) { AHRecipeDrops.Read(g, id); bagSel = bag.Count(id) > 0 ? id : null; }
             else if (AHFashion.IsPattern(id)) { AHFashion.ReadPattern(g, id); bagSel = bag.Count(id) > 0 ? id : null; }
             else if (AHTreasure.IsMap(id)) { AHTreasure.Read(g, id); bagSel = bag.Count(id) > 0 ? id : null; }
             else if (d.reins != null) { if (p.mounts.Contains(d.reins)) Toast("You already know that mount. Sell the reins to someone who wants it."); else if (bag.Take(id)) { p.mounts.Add(d.reins); p.mountSel = d.reins; RefreshRide(); Banner(AHComp.MountName(d.reins), "Mount learned! Tap RIDE"); AHSound.Play("level"); g.MarkDirty(); } bagSel = bag.Count(id) > 0 ? id : null; }
@@ -984,6 +993,7 @@ public partial class AHUI : MonoBehaviour
             else if (sd.id == "mystery_sack") { text = sd.note ?? "What could be inside?"; act = "Open"; }
             else if (AHFashion.IsPattern(sd.id)) { var pc = AHCostumes.Get(sd.id.Substring(8)); text = (sd.note ?? "") + (pc != null && AHCostumes.Owns(p, pc.id) ? " You already have this costume." : ""); act = "Read"; }
             else if (sd.id == AHRareRecipes.ScrollId) { text = (sd.note ?? "") + " You know " + AHRareRecipes.KnownCount(p) + " of " + AHRareRecipes.Total + "."; act = "Read"; }
+            else if (AHRecipeDrops.IsScroll(sd.id)) { bool kn = p.prog.learned.Contains(sd.id.Substring(AHRecipeDrops.Pre.Length)); text = (sd.note ?? "") + (kn ? " You already know it." : ""); act = kn ? null : "Read"; }
             else if (AHTreasure.IsMap(sd.id)) { text = sd.note ?? "A treasure map."; act = "Read"; }
             else if (sd.reins != null) { text = sd.note ?? "Reins: learn this mount."; act = "Learn"; }
             else if (AHBags.Describe(sd.id) != null) { text = AHBags.Describe(sd.id); act = AHBags.IsBag(sd.id) ? "Equip bag" : "Put on belt"; }

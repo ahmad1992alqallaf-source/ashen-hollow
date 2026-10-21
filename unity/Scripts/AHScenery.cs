@@ -80,7 +80,7 @@ public static class AHScenery
 
     public static void Setup(AHGame g, Transform world)
     {
-        BridgeBoxes.Clear();
+        BridgeBoxes.Clear(); Decks.Clear();
         if (world == null) return;
         int nb = Bridges(world), nr = Ruins(g, world);
         int nc = Replace(g, world, new[] { "spire" }, "crys_ice_", 3, "Crystals", 1.4f, 2.5f, 0f, 1.1f)
@@ -259,9 +259,27 @@ public static class AHScenery
             var br = Bridge(root, lo + 1.4f, hi, Mathf.RoundToInt(b.center.x * 3f + b.center.z));
             br.transform.position = new Vector3(b.center.x, b.min.y, b.center.z);
             br.transform.rotation = Quaternion.Euler(0f, alongX ? 90f : 0f, 0f);   // built along +Z
+            Decks.Add(new Deck { c = br.transform.position, rot = br.transform.rotation, L = lo + 1.4f, W = hi });
             AHModel.SetShadows(br); n++;
         }
         return n;
+    }
+
+    // where you walk on a footbridge: the hero (and anyone) is lifted onto its arched planks instead of walking through
+    // them at the height of the ground under it
+    public struct Deck { public Vector3 c; public Quaternion rot; public float L, W; }
+    public static readonly List<Deck> Decks = new List<Deck>();
+    public static float DeckLift(Vector3 p)
+    {
+        for (int i = 0; i < Decks.Count; i++)
+        {
+            var d = Decks[i]; Vector3 lp = Quaternion.Inverse(d.rot) * (p - d.c);
+            float half = d.L * 0.5f;
+            if (Mathf.Abs(lp.x) > d.W * 0.5f + 0.1f || Mathf.Abs(lp.z) > half) continue;
+            float k = lp.z / half;
+            return Mathf.Max(0f, d.c.y - p.y + 0.34f + 0.28f * (1f - k * k) + 0.04f);
+        }
+        return 0f;
     }
 
     // a wooden footbridge along +Z, L long, W wide, its feet at y = 0

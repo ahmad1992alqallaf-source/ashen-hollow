@@ -50,7 +50,7 @@ public static class AHItems
     public static ItemDef Get(string id)
     {
         if (id == null) return null;
-        if (cache == null) cache = new Dictionary<string, ItemDef>();
+        if (cache == null) { cache = new Dictionary<string, ItemDef>(); AHGrades.Inject(); AHFish.Inject(); AHRecipeDrops.Inject(); }
         ItemDef d;
         if (cache.TryGetValue(id, out d)) return d;
         var items = AHDB.Items;
@@ -106,16 +106,24 @@ public static class AHItems
     // ---------- web: qualityOf / qColor ----------
     public static Color Quality(ItemDef d)
     {
+        var row = AHJson.A(AHDB.Table("items", "QUALITY"), QualityName(d));
+        return row != null && row.Count > 1 ? AHDB.Col(row[1], Color.white) : Color.white;
+    }
+    public static string QualityName(ItemDef d)
+    {
         string q = "common";
         if (d == null) q = "common";
+        else if (d.rarity == "g1" || d.rarity == "uncommon") q = "uncommon";   // graded materials and the lands' fish (AHGrades, AHFish)
+        else if (d.rarity == "g2" || d.rarity == "rare") q = "rare";
+        else if (d.rarity == "g3" || d.rarity == "epic") q = "epic";
+        else if (d.rarity == "g4" || d.rarity == "legendary") q = "legendary";
         else if (d.cosmetic) q = "cosmetic";
         else if (d.id == "burnt") q = "poor";
         else if (d.rarity == "legend" || d.id == "diamond" || d.id == "void_shard") q = "legendary";
         else if (d.rarity == "set" || d.id == "lucky_charm") q = "epic";
         else if (d.rarity == "masterwork" || Array.IndexOf(RareMats, d.id) >= 0) q = "rare";
         else if (d.rarity == "crafted" || d.meal || d.potion) q = "uncommon";
-        var row = AHJson.A(AHDB.Table("items", "QUALITY"), q);
-        return row != null && row.Count > 1 ? AHDB.Col(row[1], Color.white) : Color.white;
+        return q;
     }
 
     // ---------- web: canUse / whoUses (armour type and weapon type decide the class) ----------

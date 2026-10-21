@@ -190,6 +190,9 @@ public partial class AHUI
         else if (wkMode == "challenge") RenderChallenge(p);
         else if (wkMode == "repairs") RenderRepairs(p);
         else if (wkMode == "book") RenderMonsterBook(p);
+        else if (wkMode == "catch") RenderCatchBook(p);
+        else if (wkMode == "pass") RenderPass(p);
+        else if (wkMode == "loot") RenderLoot(p);
         else if (wkMode == "appr") RenderApprentice(p);
         else if (wkMode == "town") RenderTown(p);
         else if (wkMode == "caravan") RenderCaravans(p);
@@ -236,6 +239,7 @@ public partial class AHUI
         else if (wkMode == "loadouts") RenderLoadouts(p);
         else if (wkMode == "world") RenderRealm(p);
         else RenderProf(p);
+        Celestial(wkRoot);   // Celestial Glass
     }
 
     int Paged(int count)
@@ -244,36 +248,6 @@ public partial class AHUI
         wkPageI = Mathf.Clamp(wkPageI, 0, pages - 1);
         wkPage.text = pages > 1 ? (wkPageI + 1) + " / " + pages : "";
         return wkPageI * RowsPerPage;
-    }
-
-    // ---------- web renderCraft ----------
-    void RenderCraft(AHPlayer p)
-    {
-        string kind = wkStation.kind;
-        wkTitle.text = AHGather.StationName(kind);
-        wkHint.text = AHGather.StationHint(kind);
-        var list = AHGather.Recipes(kind).FindAll(x => !x.rare || AHRareRecipes.Known(p, x.outId));   // rare recipes once learned
-        int from = Paged(list.Count);
-        for (int i = from; i < Mathf.Min(list.Count, from + RowsPerPage); i++)
-        {
-            var r = list[i]; var it = AHItems.Get(r.outId);
-            bool lvOk = p.Skill(r.skill) >= r.lvl && AHGather.MasteryOk(p, r) && (!AHArtisan.Only(r.outId) || p.path == "artisan"), ok = lvOk && AHGather.HasMats(p, r);
-            string l2 = it.slot != null ? AHItems.StatLine(it) + " · " + Bad(AHItems.WhoUses(r.outId), AHItems.CanUse(r.outId, p.cls.id)) : (it.note ?? "");
-            if (r.n > 1) l2 += " · makes " + r.n;
-            if (r.rare) l2 = "<color=#e8c26a>Rare recipe</color> · " + l2;
-            var mats = new List<string>();
-            foreach (var m in r.mats) { var md = AHItems.Get(m.Key); int have = p.bag.Count(m.Key); mats.Add(Bad(have + "/" + m.Value + " " + (md != null ? md.name : m.Key), have >= m.Value)); }
-            string lv = AHDB.SkillName(r.skill) + " " + r.lvl + (r.masteryProf != null ? " · " + AHJson.S(AHJson.O(AHPlayer.Profs, r.masteryProf), "name", r.masteryProf) + " mastery " + r.masteryLv : "");
-            if (AHArtisan.Only(r.outId)) lv += " · Artisans only";
-            string l3 = string.Join(" · ", mats.ToArray()) + " · " + Bad(lv, lvOk);
-            var rr = r;
-            rowItem = it;
-            Row(i - from, it.name, AHItems.Quality(it), l2, l3, new WkBtn
-            {
-                label = "Make", on = ok, col = Go,
-                act = () => { ShowWork(false); AHGather.Start(p, wkStation, rr); }
-            });
-        }
     }
 
     // ---------- web renderProf ----------

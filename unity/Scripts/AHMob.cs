@@ -29,6 +29,14 @@ public class AHMob : MonoBehaviour
     bool lungeHit;
     public bool CanSkin { get { return dead && !type.noSkin && !away && !skinned && corpseT > 0f && model.activeSelf; } }
 
+    // ---------- the body's loot (World of Warcraft style): what it dropped waits on it until you open it ----------
+    [System.NonSerialized] public readonly System.Collections.Generic.List<string> loot = new System.Collections.Generic.List<string>();
+    [System.NonSerialized] public long lootMoney;
+    public bool HasLoot { get { return dead && !away && corpseT > 0f && model != null && model.activeSelf && (loot.Count > 0 || lootMoney > 0); } }
+    // a body with loot left lies a while longer (two minutes from the kill); once emptied (and skinned) it goes
+    public void KeepForLoot() { if (HasLoot) corpseT = Mathf.Max(corpseT, 120f); }
+    public void Looted() { if (!HasLoot && (skinned || type.noSkin)) corpseT = Mathf.Min(corpseT, 1.2f); AHLootGlow.Refresh(this); }
+
     AHGame g;
     [System.NonSerialized] public AHAnim anim;
     GameObject model;
@@ -338,6 +346,7 @@ public class AHMob : MonoBehaviour
     {
         if (by != null) AHExtras.OnKill(by);   // weapon mastery
         dead = true; hp = 0f; windup = 0f; skinned = false; corpseT = 40f; respawnT = 0f; voiceT = 0f; Voice("death", 1f);
+        loot.Clear(); lootMoney = 0;
         burnT = poisonT = slowT = rootT = stunT = fearT = 0f;
         if (hasClips && anim.Has("Death")) anim.Play("Death", false, 1f, true);
         else
@@ -376,7 +385,7 @@ public class AHMob : MonoBehaviour
     }
 
     // skinned: the body goes 1.2 s later
-    public void Skinned() { skinned = true; corpseT = Mathf.Min(corpseT, 1.2f); }
+    public void Skinned() { skinned = true; if (!HasLoot) corpseT = Mathf.Min(corpseT, 1.2f); }
 
     // off the map until 'wait' runs out (infinite = until night for night beasts)
     // timed events (rares, the world boss): held away outside their window
@@ -386,6 +395,7 @@ public class AHMob : MonoBehaviour
 
     void GoAway(float wait)
     {
+        loot.Clear(); lootMoney = 0; AHLootGlow.Refresh(this);
         dead = true; away = true; skinned = true; corpseT = 0f; respawnT = wait; state = State.Wander;
         model.SetActive(false);
     }

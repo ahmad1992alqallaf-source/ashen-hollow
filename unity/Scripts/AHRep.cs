@@ -59,7 +59,14 @@ public class AHProgress
     public long profPetAt; public string profPetPet;              // the next haul of an Artisan's profession pet (AHProfPets)
     public List<AHExped> exped = new List<AHExped>();             // pets away on expeditions (AHExpeditions)                   // the Requests board (AHRequests)
     public AHEggState eggs = new AHEggState();                 // pet eggs, stars and Essence (AHEggs)
-    public List<string> recipes = new List<string>();            // rare recipes learned (AHRareRecipes)               // bosses, elites and rare beasts beaten (id, name|model)
+    public List<string> recipes = new List<string>();            // rare recipes learned (AHRareRecipes)
+    public List<AHKV> caught = new List<AHKV>();                 // the Collection book: "land|item" -> how many (AHCollection)
+    public List<string> bookPages = new List<string>();          // Collection book pages completed (their reward taken)
+    public long vipUntil;                                        // the VIP month ends (unix seconds) (AHVip)
+    public long lureUntil;                                       // a fishing lure is on until (unix seconds) (AHFishing)
+    public bool learnedInit;                                     // the recipes your skill had reached were kept (AHRecipeDrops)
+    public List<string> learned = new List<string>();            // recipes learned from scrolls of every kind (AHRecipeDrops)
+    public int passXp, passXpC, passClaimedF, passClaimedC, passPremF, passPremC, passPremium; public string passKey = "";   // the Battle Pass (AHPass2)               // bosses, elites and rare beasts beaten (id, name|model)
 
     public static long Get(List<AHKV> l, string k) { foreach (var e in l) if (e.k == k) return e.v; return 0; }
     public static void Add(List<AHKV> l, string k, long n) { foreach (var e in l) if (e.k == k) { e.v += n; return; } l.Add(new AHKV { k = k, v = n }); }

@@ -10,7 +10,7 @@ public partial class AHUI
 {
     Sprite ornRing, ornDisc, panel9, tag9, bar9, glow;
     RectTransform questPanel, autoBtn; Image autoImg; Text autoText, panelTag;
-    static readonly Color Gold = new Color(1f, 0.82f, 0.42f), GoldDeep = new Color(0.62f, 0.42f, 0.16f);
+    static readonly Color Gold = new Color(0.941f, 0.835f, 0.541f), GoldDeep = new Color(0.35f, 0.55f, 0.7f);   // Celestial Glass: soft gold, and silver-blue for the deep tone
 
     // ---------- the drawn pieces ----------
     static Sprite MakeOrnRing(int n)
@@ -108,10 +108,8 @@ public partial class AHUI
 
     void ApplySkin()
     {
-        ornRing = MakeOrnRing(160); ornDisc = MakeOrnDisc(128); glow = MakeGlow(64);
-        panel9 = MakePanel(48, 14, new Color(0.11f, 0.06f, 0.06f), new Color(0.05f, 0.035f, 0.05f), 0.9f);
-        tag9 = MakePanel(32, 9, new Color(0.35f, 0.08f, 0.07f), new Color(0.18f, 0.05f, 0.05f), 0.92f);
-        bar9 = MakePanel(24, 6, new Color(0.05f, 0.03f, 0.03f), new Color(0.02f, 0.02f, 0.02f), 0.85f);
+        glow = MakeGlow(64);
+        CelestialSprites();   // Celestial Glass: glass discs, silver rings, rounded glass panels (AHUICelestial)
 
         // ---- the round buttons along the top and the side ----
         var lacquer = new Color(0.55f, 0.16f, 0.13f);

@@ -84,6 +84,29 @@ Not a problem: night darkness is fine as it is (keep it).
 22. **Battle Pass with two lines**: one for fighting, one for gathering and crafting.
 
 ## Waiting to be checked on the phone
+Built in this round (items above are kept for the record; all of these are in the game now):
+- 1 AUTO travels road by road to the land a quest step needs (foes, people, things to gather) and fights on the way.
+- 2 / 27 Boar and wolf textures brightened; phones now draw the beasts with the same lit shader as the editor.
+- 3 A new burnt-food icon. 4 Signposts: dark plank boards with crisp letters (a new text shader).
+- 5 Small flowers and weeds use a phone-safe shader, so far and near match.
+- 23 Weapon pictures show the weapon alone (tinted to its metal); Try it on puts it in the hero's hand.
+- 24 / 32 Rivers keep their real width (you can't walk on them); 31 bridges have a walkable deck.
+- 25 Plain grey blocks get a stone texture and are drawn from both sides (the see-through pillar).
+- 28 Skinning: the hero kneels with a knife for the whole skin. 30 the brown bear shows on phones.
+- 13 / 19 Loot like WoW: the body glows in its best item's colour; tap LOOT for a loot window (Take / Take all).
+- 14 / 15 Auto pickup from a pet at 3 stars or the VIP month (store: auto pickup, +2% XP, +2% profession XP).
+- 11 Grades for ore, bars, logs, hides and herbs (Common to Legendary); each land has five fish of its own.
+- 12 Recipes above skill 10 are learned (the station's book, or recipe scrolls that bosses and elites drop).
+- 6 WoW crafting window: recipe colours, counts, Create / Create all, best-grades switch; ore on the minimap.
+- 21 Rich veins and ancient trees (gold shimmer, better grades, more XP).
+- 29 / 20 WoW fishing: cast, bobber, bite, HOOK!; rare fish fight on a reel bar; schools and Glimmer lures.
+- 17 Collection book (Menu): a page per land's fish and per material in all grades, with rewards.
+- 18 Epic and Legendary finds are told in chat ([World] ...).
+- 9 Loading screen between lands (2 to 5 seconds). 10 Minimap (left, turns with the camera) and a gold guide arrow.
+- 7 Talent boards (Class → Boards): four boards of 24 stones, one point a level from 10, clearing costs coin.
+- 16 / 22 Battle Pass (Menu): Fight and Craft lines, 30 tiers; Premium (Crowns) gives looks only.
+- 8 Celestial Glass interface: glass buttons with silver rings, night-blue glass windows, Marcellus and Manrope.
+- 26 (the green tube and rings) was not changed: still to be confirmed.
 
 
 ## Fixed

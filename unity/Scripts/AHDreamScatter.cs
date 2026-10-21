@@ -28,6 +28,7 @@ public static class AHDreamScatter
         for (int i = 0; i < nGrass; i++) placed += Put(g, root, d.grass, Rand(r, rnd), y, 0.9f, 1.6f, rnd, 0.8f) ? 1 : 0;
         for (int i = 0; i < nFlow; i++) placed += Put(g, root, d.flowerFields, Rand(r, rnd), y, 0.8f, 1.3f, rnd, 1.2f) ? 1 : 0;
         for (int i = 0; i < nRock; i++) placed += (rnd.NextDouble() < 0.3 ? Put(g, root, d.rocks, Rand(r, rnd), y, 0.3f, 0.5f, rnd, 2f) : Put(g, root, d.smallRocks, Rand(r, rnd), y, 0.8f, 1.5f, rnd, 1f)) ? 1 : 0;
+        SafeMaterials(root);
         AHModel.SetShadows(root.gameObject);
         // grass and flowers cast no shadows (they are many and small)
         foreach (var rr in root.GetComponentsInChildren<Renderer>(true)) if (rr.bounds.size.y < 1.2f) rr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
@@ -53,5 +54,52 @@ public static class AHDreamScatter
         go.transform.position = p; go.transform.rotation = Quaternion.Euler(0f, (float)rnd.NextDouble() * 360f, 0f);
         go.transform.localScale = pf.transform.localScale * (s0 + (float)rnd.NextDouble() * (s1 - s0));
         return true;
+    }
+
+    // the pack's flower shader shows pink (the "missing shader" colour) on phones from afar, and nothing up close:
+    // on a phone (and anywhere a shader can't run) the flowers and grass wear plain URP Lit with the same picture,
+    // cut out by its alpha and seen from both sides
+    static readonly Dictionary<Material, Material> safe = new Dictionary<Material, Material>();
+    static Shader lit;
+    static void SafeMaterials(Transform root)
+    {
+        if (lit == null) lit = Shader.Find("Universal Render Pipeline/Lit"); if (lit == null) return;
+        foreach (var r in root.GetComponentsInChildren<Renderer>(true))
+        {
+            var ms = r.sharedMaterials; bool changed = false;
+            for (int i = 0; i < ms.Length; i++)
+            {
+                var m = ms[i]; if (m == null || m.shader == null) continue;
+                bool foliage = r.bounds.size.y < 2.5f && m.shader.name != lit.name && !m.name.Contains("Rock") && !m.name.Contains("rock");
+                if (m.shader.isSupported && !((Application.isMobilePlatform || AHModel.PhoneLike) && foliage)) continue;
+                Material n;
+                if (!safe.TryGetValue(m, out n)) { n = ToLit(m); safe[m] = n; }
+                if (n != null) { ms[i] = n; changed = true; }
+            }
+            if (changed) r.sharedMaterials = ms;
+        }
+    }
+    static Material ToLit(Material m)
+    {
+        Texture tex = null; Color col = Color.white;
+        foreach (var name in m.GetTexturePropertyNames())
+        {
+            var t = m.GetTexture(name); if (t == null) continue;
+            string l = name.ToLowerInvariant();
+            if (l.Contains("normal") || l.Contains("mask") || l.Contains("noise") || l.Contains("orm") || l.Contains("rough") || l.Contains("wind") || l.Contains("variation")) continue;
+            if (tex == null || l.Contains("albedo") || l.Contains("basecolor") || l.Contains("maintex") || l.Contains("diffuse")) tex = t;
+            if (l.Contains("albedo") || l.Contains("basecolor") || l.Contains("maintex")) break;
+        }
+        foreach (var cn in new[] { "_BaseColor", "_Color", "_Albedo_Color", "_Tint", "_MainColor" }) if (m.HasProperty(cn)) { col = m.GetColor(cn); break; }
+        if (col.maxColorComponent < 0.05f) col = Color.white;
+        var n = new Material(lit) { name = m.name + " (phone)" };
+        if (tex != null) n.SetTexture("_BaseMap", tex);
+        n.SetColor("_BaseColor", new Color(col.r, col.g, col.b, 1f));
+        n.SetFloat("_AlphaClip", 1f); n.EnableKeyword("_ALPHATEST_ON"); n.SetFloat("_Cutoff", 0.5f);
+        n.SetFloat("_Cull", 0f); n.doubleSidedGI = true;
+        n.SetFloat("_Smoothness", 0.1f); n.SetFloat("_Metallic", 0f);
+        n.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest; n.SetOverrideTag("RenderType", "TransparentCutout");
+        n.enableInstancing = true;
+        return n;
     }
 }

@@ -342,6 +342,13 @@ public partial class AHUI
         if (m < 2) return "just now"; if (m < 60) return (int)m + " min ago"; if (m < 48 * 60) return (int)(m / 60) + " h ago"; return (int)(m / 1440) + " days ago";
     }
 
+    // editor tests (AHRemote "hero n"): play the n-th saved hero from the hero select screen
+    public static bool TestPlayHero(int n)
+    {
+        var g = AHGame.I; if (g == null || g.ui == null || g.ui.selRoot == null || !g.ui.selRoot.gameObject.activeSelf) return false;
+        var l = AHPrefs.Slots(); if (l.Count == 0) return false;
+        g.ui.selPick = l[Mathf.Clamp(n, 0, l.Count - 1)]; g.ui.PlaySel(); return true;
+    }
     void PlaySel()
     {
         if (selPick < 0) return;
