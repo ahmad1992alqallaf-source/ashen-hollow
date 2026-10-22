@@ -66,7 +66,8 @@ public partial class AHUI
             int ii = i; var d = AHItems.Get(m.loot[i]); if (d == null) continue;
             string q = AHItems.QualityName(d); q = char.ToUpperInvariant(q[0]) + q.Substring(1);
             string l2 = d.IsGear ? AHItems.StatLine(d) + " · " + AHItems.WhoUses(d.id) : (d.note ?? q);
-            rows.Add(s => { rowItem = d; Row(s, d.name, AHItems.Quality(d), l2, q, new WkBtn { label = "Take", on = true, col = Plain, act = () => { AHLoot.TakeOne(g, p, m, ii); AfterLoot(); } }); });
+            string l3 = d.IsGear && !d.cosmetic ? (AHItems.CanUse(d.id, p.cls.id) ? Compare(p, d) : "<color=#ff8a7a>✕ your class can't wear it</color> · " + q) : (l2 == q ? "" : q);
+            rows.Add(s => { rowItem = d; Row(s, d.name, AHItems.Quality(d), l2, l3, new WkBtn { label = "Take", on = true, col = Plain, act = () => { AHLoot.TakeOne(g, p, m, ii); AfterLoot(); } }); });
         }
         int from = Paged(rows.Count);
         for (int i = from; i < Mathf.Min(rows.Count, from + RowsPerPage); i++) rows[i](i - from);

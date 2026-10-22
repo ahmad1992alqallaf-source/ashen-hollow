@@ -49,7 +49,7 @@ public partial class AHUI : MonoBehaviour
 
     class Plate { public RectTransform rt; public Text label; public Image fill; }
     readonly List<Plate> plates = new List<Plate>();
-    class Floater { public RectTransform rt; public Text text; public Vector3 world; public float t; }
+    class Floater { public RectTransform rt; public Text text; public Vector3 world; public float t, size = 1f; }
     readonly List<Floater> floaters = new List<Floater>();
     int nextFloat;
     float pinchLast;
@@ -451,7 +451,32 @@ public partial class AHUI : MonoBehaviour
         toastText.text = s; toastT = t; toastShown = 0f;
     }
 
-    public void Float(Vector3 world, string s, Color c)
+    public static Color ElementColor(SpellEl e)
+    {
+        switch (e)
+        {
+            case SpellEl.Fire: return new Color(1f, 0.55f, 0.2f);
+            case SpellEl.Frost: return new Color(0.6f, 0.88f, 1f);
+            case SpellEl.Arcane: return new Color(0.82f, 0.6f, 1f);
+            case SpellEl.Storm: return new Color(0.7f, 0.85f, 1f);
+            case SpellEl.Holy: return new Color(1f, 0.95f, 0.7f);
+            case SpellEl.Nature: return new Color(0.6f, 1f, 0.45f);
+            case SpellEl.Star: return new Color(1f, 0.7f, 0.95f);
+            case SpellEl.Shadow: return new Color(0.75f, 0.55f, 1f);
+            case SpellEl.Poison: return new Color(0.7f, 1f, 0.3f);
+            case SpellEl.Earth: return new Color(0.9f, 0.75f, 0.5f);
+            case SpellEl.Wind: return new Color(0.75f, 1f, 0.9f);
+        }
+        return new Color(1f, 0.92f, 0.5f);
+    }
+    public void Float(Vector3 world, string s, Color c) { Float(world, s, c, s.StartsWith("+") ? 1.12f : 1f); }   // gains (+HP, +XP) a touch bigger
+    public void Float(Vector3 world, string s, Color c, float size)
+    {
+        if (AHSettings.Tips == 0) return;
+        var f0 = floaters[nextFloat]; f0.size = size; f0.text.fontSize = Mathf.RoundToInt(30f * size); f0.rt.sizeDelta = new Vector2(320f, 30f * size + 18f); f0.text.verticalOverflow = VerticalWrapMode.Overflow;
+        FloatGo(world, s, c);
+    }
+    void FloatGo(Vector3 world, string s, Color c)
     {
         if (AHSettings.Tips == 0) return;
         var f = floaters[nextFloat];
@@ -561,6 +586,8 @@ public partial class AHUI : MonoBehaviour
             Vector3 sp = cam.WorldToScreenPoint(f.world + Vector3.up * f.t * 0.9f);
             if (sp.z <= 0f) { f.rt.gameObject.SetActive(false); continue; }
             f.rt.position = sp;
+            float pop = f.size > 1.3f ? 1f + 0.45f * Mathf.Clamp01(1f - f.t / 0.18f) : 1f;   // a critical punches in big, then settles
+            f.rt.localScale = new Vector3(pop, pop, 1f);
             var c = f.text.color; c.a = Mathf.Clamp01((1.1f - f.t) / 0.4f); f.text.color = c;
         }
     }

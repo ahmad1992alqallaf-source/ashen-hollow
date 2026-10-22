@@ -323,7 +323,15 @@ public class AHMob : MonoBehaviour
         if (by != null) dmg = Mathf.Max(1, Mathf.RoundToInt(dmg * AHChallenge.MobTakenK() * AHChallenge.YouDealK()));   // the weekly challenge
         hp -= dmg;
         if (by != null) { AHEvo.Leech(by, dmg); if (!quiet) { AHSound.Play("hit"); Voice("hurt", 0.5f); AHSpark.Burst(transform.position + Vector3.up * Mathf.Max(0.6f, type.radius * 0.8f), new Color(1f, 0.75f, 0.4f), 7, 3.2f, 0.35f, 0.1f, 0.8f); AHLooks.OnHit(by, transform.position + Vector3.up * Mathf.Max(0.6f, type.radius * 0.8f)); } }
-        if (g.ui != null) g.ui.Float(transform.position + Vector3.up * 1.6f, dmg.ToString(), quiet ? new Color(1f, 0.6f, 0.3f) : new Color(1f, 0.92f, 0.5f));
+        if (g.ui != null)
+        {
+            // a critical: big and gold with a "!"; a spell: its element's colour; a plain hit: pale gold
+            bool crit = by != null && !quiet && AHPlayer.critFrame == Time.frameCount; bool el = by != null && !quiet && AHPlayer.elFrame == Time.frameCount;
+            AHPlayer.critFrame = -1; AHPlayer.elFrame = -1;
+            Color c = quiet ? new Color(1f, 0.6f, 0.3f) : el ? AHUI.ElementColor(AHPlayer.hitEl) : new Color(1f, 0.92f, 0.5f);
+            if (crit) g.ui.Float(transform.position + Vector3.up * 1.8f, dmg.ToString("#,0") + "!", Color.Lerp(new Color(1f, 0.78f, 0.15f), c, 0.25f), 1.6f);
+            else g.ui.Float(transform.position + Vector3.up * 1.6f, dmg.ToString("#,0"), c, quiet ? 0.85f : 1f);
+        }
         if (hp <= 0f) { Die(by); return; }
         if (type.flee) { state = State.Flee; fleeT = 3f; }
         else if (state != State.Return) { state = State.Chase; calmT = 0f; }

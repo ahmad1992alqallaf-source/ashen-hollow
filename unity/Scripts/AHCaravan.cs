@@ -117,9 +117,9 @@ public static class AHCaravan
             var rnd = new System.Random((int)(r.start ^ r.worth));
             bool hit = rnd.NextDouble() < risk;
             long pay = (long)Math.Round(r.worth * r.mult * (hit ? 1f - Loss : 1f));
-            p.AddMoney(pay * AHDB.CU, p.transform.position); s.earned += pay;
+            AHMail.Send(g, "Caravan master of " + tn, (hit ? "Bandits took a third on the road, but your goods sold in " : "Your goods sold well in ") + tn + ". Here is your coin.", pay); s.earned += pay;
             foreach (var c in r.cargo) AHArtisan.OnSoldAbroad(g, c.id, c.n);
-            g.ui.Banner("Caravan arrived in " + tn, (hit ? "Bandits took a third, but it sold for " : "Sold for ") + AHItems.MoneyText(pay * AHDB.CU));
+            g.ui.Banner("Caravan arrived in " + tn, (hit ? "Bandits took a third, but it sold for " : "Sold for ") + AHItems.MoneyText(pay * AHDB.CU) + " · the coin waits in your mail");
             if (safe) g.ui.Toast("You cleared the road: not a bandit in sight.", 3f);
         }
         // contracts on offer: three; a taken one ends when its caravan arrives

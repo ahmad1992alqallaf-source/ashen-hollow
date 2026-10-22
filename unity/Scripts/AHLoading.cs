@@ -1,6 +1,8 @@
 // Ashen Hollow: the loading screen between lands. Two to five seconds of the realm's map drifting slowly, the land
 // you are going to in large letters, a tip, and a bar filling along the bottom; it fades away once the land is built
 // (never sooner than two seconds, so it doesn't flash, and never kept past five once the land is ready).
+using System.Collections;
+using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,6 +28,44 @@ public class AHLoading : MonoBehaviour
         "Talent boards open as you level: every few levels brings a new point to spend.",
         "Ancient trees glitter at night as well as by day. Their logs are worth the walk.",
     };
+
+    // a line of the realm's lore, now and then in place of a tip
+    static readonly string[] Lore =
+    {
+        "Long before the walls, Hollow Meadow was a ford where traders waited out the floods.",
+        "The ash that gave the Hollow its name fell for nine days, the year the mountain woke.",
+        "Waystones are older than any kingdom. Nobody remembers who carved the runes.",
+        "Miners say the Ashen Deep is never the same twice. They also say it listens.",
+        "The old guild hall burned the winter before you came. Its master still keeps her letters.",
+        "Golden beasts are said to have grazed where a dragon's hoard was buried.",
+        "Every town crier swears the news is true. Most of it even is.",
+        "The Fossil Lands were a sea once. Some nights the sand still sounds like waves.",
+        "Bards sing that the first rider tamed a wolf with nothing but a loaf of bread.",
+        "Captains of the guard pass down one rule: never fight on an empty stomach.",
+    };
+    // the last look you had at each land, shown the next time you travel there
+    static string ShotPath(string id) { return Path.Combine(Application.persistentDataPath, "landshots", id + ".jpg"); }
+    static Texture2D LoadShot(string id)
+    {
+        try { var f = ShotPath(id); if (!File.Exists(f)) return null; var tex = new Texture2D(2, 2, TextureFormat.RGB24, false); tex.LoadImage(File.ReadAllBytes(f)); return tex; } catch { return null; }
+    }
+    public static IEnumerator TakeShot(AHGame g, string id)
+    {
+        yield return new WaitForSecondsRealtime(7f);
+        if (g == null || AHGame.AreaId != id || Showing || g.player == null || g.player.dead || g.ui == null || g.ui.Modal != 0) yield break;
+        string f = ShotPath(id);
+        try { if (File.Exists(f) && (System.DateTime.Now - File.GetLastWriteTime(f)).TotalDays < 3) yield break; } catch { }
+        var main = Camera.main; if (main == null) yield break;
+        var rt = new RenderTexture(640, 360, 24);
+        var go = new GameObject("LandShot"); var cam = go.AddComponent<Camera>(); cam.CopyFrom(main); cam.cullingMask &= ~(1 << 5); cam.targetTexture = rt; cam.depth = main.depth - 1;
+        cam.enabled = true;   // URP draws a camera only in its own loop
+        yield return new WaitForEndOfFrame();
+        cam.enabled = false;
+        var tex = new Texture2D(640, 360, TextureFormat.RGB24, false);
+        var prev = RenderTexture.active; RenderTexture.active = rt; tex.ReadPixels(new Rect(0, 0, 640, 360), 0, 0); tex.Apply(); RenderTexture.active = prev;
+        try { Directory.CreateDirectory(Path.GetDirectoryName(f)); File.WriteAllBytes(f, tex.EncodeToJPG(80)); } catch { }
+        cam.targetTexture = null; Destroy(go); rt.Release(); Destroy(rt); Destroy(tex);
+    }
 
     public static void Show(string toId)
     {
@@ -72,7 +112,11 @@ public class AHLoading : MonoBehaviour
         string lv = null;
         foreach (var o in AHDB.List("world", "REGIONS") ?? new System.Collections.Generic.List<object>()) if (AHJson.S(o, "id") == id) lv = AHJson.S(o, "lv", AHJson.S(o, "levels", null));
         sub.text = lv == "safe" ? "A safe city" : lv != null ? "Levels " + lv : "Travelling…";
-        tip.text = Tips[Random.Range(0, Tips.Length)];
+        tip.text = Random.value < 0.35f ? "<i>" + Lore[Random.Range(0, Lore.Length)] + "</i>" : Tips[Random.Range(0, Tips.Length)];
+        // the land's own picture when you have been there before, else the realm's map
+        var shot = LoadShot(id);
+        if (shot != null) { if (bg.texture != null && bg.texture.name == "landshot") Destroy(bg.texture); shot.name = "landshot"; bg.texture = shot; bg.color = new Color(0.78f, 0.8f, 0.86f, 1f); }
+        else { bg.texture = Resources.Load<Texture2D>("AH/UI/worldmap"); bg.color = new Color(0.55f, 0.6f, 0.7f, bg.texture != null ? 1f : 0f); }
         minT = Random.Range(2f, 3f);
     }
 

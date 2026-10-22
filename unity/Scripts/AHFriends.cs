@@ -68,7 +68,7 @@ public static class AHFriends
         l.money = mo[h];
         var L = g.player.prog.letters; L.Insert(0, l);
         while (L.Count > 40) { int i = L.FindLastIndex(x => x.taken); if (i < 0) break; L.RemoveAt(i); }
-        g.ui.Toast("A letter from " + n + " arrived. Open Menu → Friends to read it.", 4f);
+        g.ui.Toast("A letter from " + n + " arrived. Tap the envelope to read it.", 4f);
     }
 
     // web friendTalk: one chat a day

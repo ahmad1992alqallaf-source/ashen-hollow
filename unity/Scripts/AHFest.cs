@@ -88,7 +88,7 @@ public static class AHFest
         if (F.night && !g.IsNight) { g.ui.Toast("The lanterns are lit after sunset."); return; }
         if (S.acts >= F.actN) { g.ui.Toast("That’s enough for today. Come back tomorrow!"); return; }
         S.acts++; Event(g, "fest", 1);
-        if (F.id == "winter") { long c = (long)Mathf.Round(p.level * 30) * AHDB.CU; p.AddMoney(c, at); string[] gs = { "ruby", "sapphire", "emerald" }; p.bag.Add(gs[UnityEngine.Random.Range(0, 3)]); g.ui.Banner("A gift for you!", AHItems.MoneyText(c) + " and a gem"); }
+        if (F.id == "winter") { long c = (long)Mathf.Round(p.level * 30); string[] gs = { "ruby", "sapphire", "emerald" }; AHMail.Send(g, "The Winter Fair", "A gift for you, with the season's warmest wishes.", c, new AHStack { id = gs[UnityEngine.Random.Range(0, 3)], n = 1 }); g.ui.Banner("A gift for you!", AHItems.MoneyText(c * AHDB.CU) + " and a gem · it waits in your mail"); }
         else if (F.id == "makers")
         {
             // townsfolk admire your work; an Artisan's draws a bigger crowd

@@ -209,6 +209,7 @@ public partial class AHUI
         else if (wkMode == "hubcat") RenderHubCat(p);
         else if (wkMode == "char") RenderChar(p);
         else if (wkMode == "quick") RenderQuick(p);
+        else if (wkMode == "mail") RenderMail(p);
         else if (wkMode == "finder") RenderFinder(p);
         else if (wkMode == "board") RenderBoard(p);
         else if (wkMode == "rep") RenderRepList(p);
@@ -250,6 +251,7 @@ public partial class AHUI
         HubBack();           // opened from the menu: a way back to its page
         Celestial(wkRoot);   // Celestial Glass
         MirrorWork();        // Arabic: right to left
+        WorkTip();           // the first time this window opens: what it is for
     }
 
     int Paged(int count)

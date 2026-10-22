@@ -250,12 +250,16 @@ public partial class AHUI
         if (dat != null) { var m = System.Text.RegularExpressions.Regex.Match(dat.text, "\"region\"\\s*:\\s*\"([^\"]*)\""); if (m.Success) r = m.Groups[1].Value; Resources.UnloadAsset(dat); }
         regionOf[area] = r; return r;
     }
-    public void OpenWays() { wkMode = "ways"; wkPageI = 0; ShowWork(true); RenderWork(); }
+    bool waysFar;   // opened from the map, not at a stone: each trip costs a little coin
+    public void OpenWays() { waysFar = false; wkMode = "ways"; wkPageI = 0; ShowWork(true); RenderWork(); }
+    public void OpenFastTravel() { waysFar = true; wkMode = "ways"; wkPageI = 0; ShowWork(true); RenderWork(); }
+    public static long FastCost(AHPlayer p) { return (long)(5 + Mathf.Max(1, p.level)) * 10L * AHDB.CU; }
 
     void RenderWays(AHPlayer p)
     {
         wkTitle.text = "Waystones · " + AHWays.KnownCount(p) + " / " + (AHWays.Ways != null ? AHWays.Ways.Count : 0);
-        wkHint.text = "Touch any waystone to travel to one you have attuned. Walk near a waystone to attune it.";
+        long fee = waysFar ? FastCost(p) : 0;
+        wkHint.text = waysFar ? "Fast travel from anywhere to a waystone you have attuned, for " + AHItems.MoneyText(fee) + ". At a waystone it is free." : "Touch any waystone to travel to one you have attuned. Walk near a waystone to attune it.";
         var rows = new List<Action<int>>();
         if (p.home != null)
             rows.Add(s => Row(s, "Your Homestead", new Color(0.6f, 0.9f, 0.5f), "Your own land", "", new WkBtn { label = "Travel", on = AHGame.AreaId != AHHome.Area, col = Go, act = () => { ShowWork(false); AHHome.TravelHome(g); } }));
@@ -266,7 +270,7 @@ public partial class AHUI
                 var ww = w; bool k = AHWays.Known(p, w);
                 string region = RegionOf(AHJson.S(w, "area"));
                 rows.Add(s => Row(s, k ? AHJson.S(ww, "name") : "???", k ? new Color(0.5f, 0.83f, 1f) : new Color(0.5f, 0.5f, 0.55f), k ? region : "Not attuned yet", "",
-                    k ? new WkBtn { label = "Travel", on = !p.dead, col = Go, act = () => { ShowWork(false); AHWays.Go(g, ww); } } : null));
+                    k ? new WkBtn { label = fee > 0 ? "Travel · " + AHItems.MoneyText(fee, 1) : "Travel", on = !p.dead && p.bag.money >= fee && !AHDeep.InRun, col = Go, act = () => { if (fee > 0) { p.bag.money -= fee; p.bag.Touch(); } ShowWork(false); AHWays.Go(g, ww); } } : null));
             }
         int from = Paged(rows.Count);
         for (int i = from; i < Mathf.Min(rows.Count, from + RowsPerPage); i++) rows[i](i - from);

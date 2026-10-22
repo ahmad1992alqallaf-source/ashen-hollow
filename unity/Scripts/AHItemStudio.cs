@@ -234,20 +234,21 @@ public class AHItemStudio : MonoBehaviour
     public static Texture Hero(AHPlayer p)
     {
         if (p == null) return null;
-        return HeroOf(p.cls, p.look, s => AHWardrobe.Shown(p, s));
+        return HeroOf(p.cls, p.look, s => AHWardrobe.Shown(p, s), p);
     }
     // any hero, from its class, look and what each slot shows (the hero select screen shows heroes not being played)
-    public static Texture HeroOf(ClassDef cls, AHLook look, System.Func<string, string> shown)
+    public static Texture HeroOf(ClassDef cls, AHLook look, System.Func<string, string> shown, AHPlayer p = null)
     {
         var st = Get(); if (st == null || cls == null) return null;
         look = look ?? new AHLook();
         string sig = cls.id + "|" + JsonUtility.ToJson(look);
         foreach (var sl in AHItems.GearSlots) sig += "|" + (shown(sl) ?? "");
-        if (st.heroRig == null || st.heroSig != sig) st.BuildHero(cls, look, shown, sig);
+        string cos = p != null ? AHCostumes.Worn(p) : null; sig += "|" + (cos ?? "");
+        if (st.heroRig == null || st.heroSig != sig) st.BuildHero(cls, look, shown, sig, p, cos);
         return st.heroRt;
     }
     public static void StopHero() { if (inst != null && inst.heroRig != null) { Destroy(inst.heroRig); inst.heroRig = null; inst.heroSig = null; } }
-    void BuildHero(ClassDef cls, AHLook look, System.Func<string, string> shown, string sig)
+    void BuildHero(ClassDef cls, AHLook look, System.Func<string, string> shown, string sig, AHPlayer p = null, string cos = null)
     {
         if (heroRig != null) Destroy(heroRig);
         if (heroRt == null) { heroRt = new RenderTexture(320, 448, 24, RenderTextureFormat.ARGB32); heroRt.antiAliasing = 4; }
@@ -255,7 +256,9 @@ public class AHItemStudio : MonoBehaviour
         var holder = new GameObject("Hero").transform; holder.SetParent(heroStage, false);
         AHAnim a; var rig = AHPeople.BuildHero(holder, cls, look, AHGame.I, out a);
         if (rig == null) { Destroy(holder.gameObject); return; }
-        AHWardrobe.DressWith(rig, holder, shown, () => false);
+        // dressed as the hero is in the world: a costume over everything, else the real outfit made from the worn gear
+        if (cos != null && AHCostumes.Apply(rig, cos, look, AHFashion.DyeOf(p, cos))) AHWardrobe.DressWith(rig, holder, s => null, () => false);
+        else { if (shown("chest") != null) AHCostumes.Apply(rig, AHCostumes.Under, look); AHWardrobe.DressWith(rig, holder, shown, () => false, look.sex == "f" ? "f" : "m", cls.id); }
         if (a != null) { a.Play("Idle", true); holder.gameObject.AddComponent<AHStudioPose>().anim = a; }
         SetLayer(holder, Layer);
         heroRig = holder.gameObject; heroSig = sig; heroT = 0f;

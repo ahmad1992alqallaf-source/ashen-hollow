@@ -129,6 +129,7 @@ public partial class AHUI
                 menuBadge.gameObject.SetActive(false);
             }
             BuildQuick(new Color(0.05f, 0.08f, 0.15f, 0.6f));
+            BuildMail();
             HudLayoutCapture();
         }
         catch (Exception e) { Debug.LogWarning("Ashen Hollow: interface extras (" + e.Message + ")"); }
@@ -151,6 +152,8 @@ public partial class AHUI
         RewardTick();
         HudEditTick();
         QuickTick();
+        MailTick();
+        TipTick();
         if (menuBadge != null && (badgeT -= Time.unscaledDeltaTime) <= 0f && g.player != null && g.player.cls != null)
         {
             badgeT = 2f; int n = 0;
@@ -336,12 +339,12 @@ public partial class AHUI
             hudGroups.Add(gr); return gr;
         };
         var joy = G("joy", "Joystick", true, new string[0]); if (joyBase != null) joy.rts.Add(joyBase);
-        var fight = G("fight", "Fighting buttons", true, new[] { "PotHeal", "PotMana", "PotFood", "BagBtn", "LeapBtn", "EmoteBtn", "AttackLabel" });
+        var fight = G("fight", "Fighting buttons", true, new[] { "PotHeal", "PotMana", "PotFood", "PotBuff", "BagBtn", "LeapBtn", "EmoteBtn", "AttackLabel" });
         if (atkBtn != null) fight.rts.Add(atkBtn); if (dodgeBtn != null) fight.rts.Add(dodgeBtn); if (modeBtn != null) fight.rts.Add(modeBtn); if (modeGlow != null) fight.rts.Add(modeGlow.rectTransform);
         for (int i = 0; i < 6; i++) if (spellBtns[i] != null) fight.rts.Add(spellBtns[i].rt);
         var top = G("top", "Minimap and buttons", false, new[] { "MapBtn", "MenuBtn", "PetsBtn", "StoreBtn", "PassBtn", "DailyChip", "EvChip" });
         if (mmRoot != null) top.rts.Add(mmRoot); if (slideBtn != null) top.rts.Add(slideBtn); if (timerPill != null) top.rts.Add(timerPill);
-        var quest = G("quest", "Quest card", false, new string[0]); if (questPanel != null) quest.rts.Add(questPanel);
+        var quest = G("quest", "Quest card", false, new[] { "MailBtn" }); if (questPanel != null) quest.rts.Add(questPanel);
         var chat = G("chat", "Chat", false, new string[0]); if (chatBox != null) chat.rts.Add(chatBox);
         var ride = G("ride", "Ride button", true, new[] { "RideBtn" });
         foreach (var gr in hudGroups) foreach (var r in gr.rts) gr.home[r] = r.anchoredPosition;

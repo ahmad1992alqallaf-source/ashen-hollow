@@ -656,6 +656,23 @@ public class AHTownLife : MonoBehaviour
         else if (what == "cards") AHTable.OpenCards(AHGame.I);
         else if (what == "hub") AHGame.I.ui.OpenHub();
         else if (what == "char") AHGame.I.ui.OpenChar();
+        else if (what == "mailtest") { AHMail.Send(AHGame.I, "Caravan master of Ashen Hollow", "Your goods sold well in Ashen Hollow. Here is your coin.", 340); AHMail.Send(AHGame.I, "The Winter Fair", "A gift for you, with the season's warmest wishes.", 630, new AHStack { id = "ruby", n = 1 }); }
+        else if (what == "mail") AHGame.I.ui.OpenMail();
+        else if (what == "loading") { AHLoading.Show("mill"); AHLoading.Ready(); }
+        else if (what == "loottest")
+        {
+            var g = AHGame.I; AHMob near = null; foreach (var m in g.mobs) if (m != null && !m.dead) { near = m; break; }
+            if (near != null)
+            {
+                var pt = g.player.transform; var b = AHMob.Create(g, near.type, pt.position + pt.forward * 3f); g.mobs.Add(b);
+                b.Hurt(999999, g.player); b.loot.Clear(); b.loot.AddRange(new[] { "iron_helm", "shadow_plate", "bronze_plate", "big_potion" }); b.KeepForLoot(); g.ui.OpenLoot(b);
+            }
+        }
+        else if (what == "fast") AHGame.I.ui.OpenFastTravel();
+        else if (what == "mmbig") AHGame.I.ui.SendMessage("MmToggle");
+        else if (what == "tipsreset") { foreach (var k in new[] { "hub", "char", "shop", "mail", "quick", "map", "ways" }) AHPrefs.SetInt("ah_tip_" + k, 0); }
+        else if (what == "giveelix") { var b = AHGame.I.player.bag; foreach (var id in new[] { "elixir_might", "elixir_swift", "dragon_draught" }) if (AHItems.Get(id) != null) b.Add(id, 2); b.Touch(); }
+        else if (what == "crits") { var g = AHGame.I; foreach (var m in g.mobs) if (m != null && !m.dead && (m.transform.position - g.player.transform.position).magnitude < 15f) { AHPlayer.critFrame = Time.frameCount; m.Hurt(321, g.player); AHPlayer.hitEl = SpellEl.Fire; AHPlayer.elFrame = Time.frameCount; m.Hurt(87, g.player); AHPlayer.hitEl = SpellEl.Frost; AHPlayer.elFrame = Time.frameCount; m.Hurt(64, g.player); g.player.Heal(40f, true); break; } }
         else if (what == "givefood") { var b = AHGame.I.player.bag; b.Add("bread", 4); b.Add("stew", 2); b.Add("salmon", 3); b.Touch(); }
         else if (what.StartsWith("quick:")) AHGame.I.ui.OpenQuick(what.Substring(6));
         else if (what == "eat") AHGame.I.ui.SendMessage("QuickEat");

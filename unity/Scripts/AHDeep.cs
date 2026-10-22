@@ -135,6 +135,7 @@ public static class AHDeep
         g.Travel(Area, s.x, s.y, Mathf.PI / 2f);
     }
 
+    public static void Drop() { AHPrefs.DeleteKey(RunKey); AHPrefs.SetString(ChestKey, ""); AHPrefs.Save(); }
     public static void Leave(AHGame g)
     {
         AHPrefs.DeleteKey(RunKey); AHPrefs.SetString(ChestKey, ""); AHPrefs.Save();
@@ -309,6 +310,7 @@ public class AHDeepView : MonoBehaviour
     public static void Setup(AHGame g)
     {
         AHDeep.Reset();
+        if (AHGame.AreaId != AHDeep.Area && AHDeep.InRun) AHDeep.Drop();   // a run left behind (the hero is up top): it ended when they left
         if (AHGame.AreaId == "meadow") { Entrance(g); return; }
         if (AHGame.AreaId != AHDeep.Area) return;
         if (!AHDeep.InRun) { g.StartCoroutine(Bounce(g)); return; }   // a run that already ended: back up top

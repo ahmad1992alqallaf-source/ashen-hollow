@@ -99,6 +99,7 @@ public partial class AHUI
         E("store", "VIP", AHVip.Describe(p), "sapphire", new Color(1f, 0.85f, 0.4f), false, true, () => OpenStore());
         // ---- friends & settings ----
         bool letters = p.prog.letters.Exists(x => !x.taken);
+        { int mn = AHMail.Count(p); E("acct", "Mail", mn > 0 ? "<color=#9be37a>" + mn + " waiting</color>" : "Rewards and letters", "cg:chat", new Color(1f, 0.85f, 0.55f), mn > 0, true, OpenMail); }
         E("acct", "Friends", AHFriends.Count(p, 1) + " friends · " + p.prog.letters.FindAll(x => !x.taken).Count + " letters", "cg:chat", new Color(1f, 0.6f, 0.75f), letters, true, () => OpenFriends(letters ? "letters" : "list"));
         E("acct", "Settings", "Sound, graphics, camera, account", "cg:menu", new Color(0.8f, 0.8f, 1f), false, true, OpenSettings);
         if (AHComp.TestMounts) E("acct", "Bags and tools (testing)", "One of every bag and tool", "bag_pouch", W, false, true, () => { foreach (var id in new[] { "bag_pouch", "bag_pack", "bag_master", "bag_mythic", "tool_pick_iron", "tool_axe_guild", "tool_rod_bronze" }) p.bag.Add(id, 1); Toast("Test bags and tools are in your bag."); g.MarkDirty(); });

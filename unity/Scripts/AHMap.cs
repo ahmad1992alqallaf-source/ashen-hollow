@@ -252,7 +252,8 @@ public partial class AHUI
         float half = (sw - 36f) / 2f;
         MapButton(side, "Pin here", new Vector2(14f + half / 2f, -size + 88f), half, () => { if (AHSecrets.AddPin(p.transform.position)) Toast("Pinned where you stand"); else Toast("Six pins at most: clear them first"); StartCoroutine(SnapMap()); });
         MapButton(side, "Clear pins", new Vector2(22f + half * 1.5f, -size + 88f), half, () => { AHSecrets.ClearPins(); Toast("Pins cleared"); StartCoroutine(SnapMap()); });
-        MapButton(side, "World map ▶", new Vector2(sw / 2f, -size + 34f), sw - 28f, () => { wkPageI = 1; RenderWork(); });
+        MapButton(side, "Fast travel", new Vector2(14f + half / 2f, -size + 34f), half, () => OpenFastTravel());
+        MapButton(side, "World map ▶", new Vector2(22f + half * 1.5f, -size + 34f), half, () => { wkPageI = 1; RenderWork(); });
     }
 
     void RenderWorld(AHPlayer p)

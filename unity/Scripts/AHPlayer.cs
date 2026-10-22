@@ -436,12 +436,14 @@ public class AHPlayer : MonoBehaviour
     }
     float ClassCrit { get { return (float)AHJson.N(AHJson.O(AHDB.Classes, cls.id), "crit"); } }
     // one hit's damage: web damage() * the spell's multiplier, then criticals (x2.5 after Vanish, x2 by chance)
+    // the hit about to land: was it a critical, and what element (read by AHMob.Hurt for the number's size and colour)
+    public static int critFrame = -1, elFrame = -1; public static SpellEl hitEl;
     int Roll(float mult)
     {
         float d = Damage() * mult;
         float cr = ClassCrit + stat.crit;
-        if (critNext) { d *= 2.5f; critNext = false; }
-        else if (cr > 0f && Random.value < cr) d *= 2f;
+        if (critNext) { d *= 2.5f; critNext = false; critFrame = Time.frameCount; }
+        else if (cr > 0f && Random.value < cr) { d *= 2f; critFrame = Time.frameCount; }
         return Mathf.Max(1, Mathf.RoundToInt(d));
     }
     public bool Stealthed { get { return stealthT > 0f; } }
@@ -863,6 +865,7 @@ public class AHPlayer : MonoBehaviour
             if (m.dead) continue;
             Vector3 d = m.transform.position - at; d.y = 0;
             if (d.magnitude - m.type.radius > radius) continue;
+            if (sp != null) { hitEl = AHSpellLook.Element(sp); elFrame = Time.frameCount; }
             m.Hurt(Roll(mult), this);
             if (sp != null && sp.status != AHStatus.None) m.AddStatus(sp.status, sp.statusTime, Power * sp.mult * 0.3f, this);
         }
@@ -871,7 +874,7 @@ public class AHPlayer : MonoBehaviour
     void Hit(AHMob m, SpellDef sp)
     {
         if (m == null || m.dead) return;
-        if (sp.mult > 0f) m.Hurt(Roll(sp.mult), this);
+        if (sp.mult > 0f) { hitEl = AHSpellLook.Element(sp); elFrame = Time.frameCount; m.Hurt(Roll(sp.mult), this); }
         if (sp.status != AHStatus.None) m.AddStatus(sp.status, sp.statusTime, Power * Mathf.Max(0.4f, sp.mult) * 0.35f, this);
         if (!m.dead) m.ElementHit(AHSpellLook.Element(sp), this);   // element combos (wet + storm, burning + wind...)
     }

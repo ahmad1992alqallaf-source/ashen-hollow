@@ -14,12 +14,15 @@ public partial class AHUI
 {
     RectTransform mmRoot, mmSpin, mmDots, mmMe, guideRt, guideArrow; RawImage mmMap; Text guideText;
     Texture2D mmTex; Vector3 mmC; float mmS, mmTick;
-    const float MmD = 164f, MmRange = 45f;   // diameter on screen, metres from the centre to the rim
+    const float MmD = 164f;   // diameter on screen
+    float MmRange = 45f;       // metres from the centre to the rim (further out while the minimap is big)
+    bool mmBig; float mmBigK;
     static readonly Vector2 MmPos = new Vector2(98f, -318f);
     readonly System.Collections.Generic.List<RectTransform> mmPool = new System.Collections.Generic.List<RectTransform>();
     int mmUsed; bool hasQ, qRoad; Vector3 qAt; string qLabel;
     static Sprite diamond, star, arrowSp;
 
+    void MmToggle() { mmBig = !mmBig; if (mmBig) mmRoot.SetAsLastSibling(); }
     void BuildMinimap()
     {
         mmRoot = Img("Minimap", transform, circle, new Vector2(0f, 1f), MmPos, new Vector2(MmD + 8f, MmD + 8f), new Color(0.75f, 0.85f, 0.95f, 0.55f));   // the silver rim
@@ -34,7 +37,7 @@ public partial class AHUI
         Img("Glass", face, ring, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(MmD, MmD), new Color(0.5f, 0.88f, 1f, 0.35f));
         if (arrowSp == null) { diamond = MakeShape(0); star = MakeShape(1); arrowSp = MakeShape(2); }
         mmMe = Img("Me", face, arrowSp, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(18, 18), Color.white);
-        taps.Add(new TapBtn { rt = mmRoot, act = () => OpenMap() });
+        taps.Add(new TapBtn { rt = mmRoot, act = () => { mmBig = !mmBig; if (mmBig) mmRoot.SetAsLastSibling(); } });   // tap: bigger, tap again: back (the MAP button opens the full map)
         // the guide arrow, top middle under the story line
         // the guide: glowing chevrons on the ground ahead of the hero (placed every frame), the goal and distance beside
         guideRt = Box("Guide", transform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(10, 10));
@@ -98,6 +101,10 @@ public partial class AHUI
         bool on = p != null && Modal == 0 && !PhotoOn && !AHInterior.Inside;
         if (mmRoot.gameObject.activeSelf != on) mmRoot.gameObject.SetActive(on);
         if (!on) { if (guideRt != null) guideRt.gameObject.SetActive(false); return; }
+        // growing and shrinking (tap)
+        mmBigK = Mathf.MoveTowards(mmBigK, mmBig ? 1f : 0f, Time.unscaledDeltaTime * 5f);
+        float sc = Mathf.SmoothStep(1f, 1.75f, mmBigK); mmRoot.localScale = new Vector3(sc, sc, 1f);
+        MmRange = Mathf.Lerp(45f, 70f, mmBigK);
         var cam = Camera.main; float yaw = cam != null ? cam.transform.eulerAngles.y : g.camYaw;
         Vector3 pp = p.transform.position;
         float ppm = (MmD * 0.5f) / MmRange;   // pixels per metre
@@ -164,8 +171,10 @@ public partial class AHUI
             if (hasQ)
             {
                 Vector3 d = qAt - pp; d.y = 0f; Vector2 v2 = new Vector2(d.x, d.z) * ppm; bool far = v2.magnitude > MmD * 0.45f;
-                if (far) v2 = v2.normalized * MmD * 0.45f;
-                var dot = MmDot(star, far ? 14f : 16f, new Color(1f, 0.85f, 0.35f)); dot.anchoredPosition = v2; dot.localEulerAngles = new Vector3(0, 0, -yaw);
+                if (far) v2 = v2.normalized * MmD * 0.43f;
+                // near: a gold star on the spot; further than the map shows: a gold arrow on the rim pointing the way
+                var dot = MmDot(far ? arrowSp : star, far ? 17f : 16f, new Color(1f, 0.85f, 0.35f)); dot.anchoredPosition = v2;
+                dot.localEulerAngles = far ? new Vector3(0, 0, Mathf.Atan2(v2.y, v2.x) * Mathf.Rad2Deg - 90f) : new Vector3(0, 0, -yaw);
             }
             for (int i = mmUsed; i < mmPool.Count; i++) if (mmPool[i].gameObject.activeSelf) mmPool[i].gameObject.SetActive(false);
         }
