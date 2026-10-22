@@ -6,13 +6,18 @@ public static class AHModel
 {
     // holder: the object that moves and turns. The model sits inside it, scaled to size metres
     // (its height, or its length for four-legged beasts), facing the holder's forward.
+    static readonly System.Collections.Generic.HashSet<string> CleanLook = new System.Collections.Generic.HashSet<string> {
+        "Beasts/b_boar", "Beasts/b_boarlord", "Beasts/b_goldhorn", "Beasts/b_alphawolf", "Beasts/b_mistfang", "Beasts/b_jackal", "Beasts/b_tjackal",
+        "Beasts/b_stag", "Beasts/b_doe", "Beasts/b_rimeclaw" };
     public static GameObject Spawn(Transform holder, string file, float size, bool byLength, float yawFix, out AHAnim anim, System.Collections.Generic.List<object> split = null)
     {
         anim = null;
         string path = "AH/Models/" + file;
         GameObject prefab = null;
         // an animal, mount or pet with a detailed body made for it (the same skeleton and clips, <name>_hd) wears that one
-        if ((file.StartsWith("Beasts/") || file.StartsWith("Comp/")) && !file.EndsWith("_hd")) { prefab = Resources.Load<GameObject>(path + "_hd"); if (prefab != null) path += "_hd"; }
+        // (not the furry beasts: their detailed bodies came out "shady", a noise of bristles and specks, so they keep their
+        // clean sculpted look; their _hd files are no longer read)
+        if ((file.StartsWith("Beasts/") || file.StartsWith("Comp/")) && !file.EndsWith("_hd") && !CleanLook.Contains(file)) { prefab = Resources.Load<GameObject>(path + "_hd"); if (prefab != null) path += "_hd"; }
         if (prefab == null) prefab = Resources.Load<GameObject>(path);
         GameObject inst;
         if (prefab == null)

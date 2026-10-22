@@ -105,6 +105,31 @@ public static class AHRemote
                     AHGame.FreeRot = Quaternion.LookRotation(mid - AHGame.FreePos); AHGame.FreeCam = true; return "ok";
                 }
             case "freecam": AHGame.FreeCam = false; return "ok";
+            case "beast":
+                {
+                    // beast <id> [old]: that monster stood still 4 m in front of the hero, and the camera on it (old: as before the clean-up)
+                    var g = AHGame.I; if (!Application.isPlaying || g == null) return "not playing";
+                    var f = a.Split(' '); string id = f[0];
+                    foreach (var o in GameObject.FindObjectsByType<AHMob>(FindObjectsSortMode.None)) if (o.name.StartsWith("ShowBeast")) Object.Destroy(o.gameObject);
+                    AHMobType t = null;
+                    foreach (var ta in Resources.LoadAll<TextAsset>("AH/Areas"))
+                    {
+                        object d; try { d = AHJson.Parse(ta.text); } catch { continue; }
+                        var mts = AHJson.A(d, "mobTypes"); if (mts == null) continue;
+                        foreach (var o in mts) if (AHJson.S(o, "id") == id) { t = new AHMobType { id = id, name = AHJson.S(o, "name", id), model = AHJson.S(o, "model"), hp = 10, lvl = 1, radius = 0.5f }; break; }
+                        if (t != null) break;
+                    }
+                    if (t == null) return "no such monster";
+                    AHBeastClean.Off = f.Length > 1 && f[1] == "old";
+                    var p = g.player.transform; Vector3 fw = p.forward; fw.y = 0; fw.Normalize();
+                    var m = AHMob.Create(g, t, p.position + fw * 4.5f); m.enabled = false; m.name = "ShowBeast " + id;
+                    AHBeastClean.Off = false;
+                    m.transform.rotation = Quaternion.LookRotation(Quaternion.Euler(0, 60f, 0) * -fw);
+                    if (m.anim != null && m.anim.HasClips) { m.anim.Play("Idle", true); m.anim.Tick(0.5f); }
+                    float h = Mathf.Max(1f, m.height); Vector3 cen = m.transform.position + Vector3.up * h * 0.5f;
+                    AHGame.FreePos = cen - fw * (h * 2.2f + 1.2f) + Vector3.up * h * 0.5f + Vector3.Cross(Vector3.up, fw) * h * 0.6f; AHGame.FreeRot = Quaternion.LookRotation(cen - AHGame.FreePos); AHGame.FreeCam = true;
+                    return "ok";
+                }
             case "show":
                 {
                     // show <building id> [in]: the camera on a building's front (or, with the hero inside, over its room)

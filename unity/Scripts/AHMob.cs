@@ -97,6 +97,12 @@ public class AHMob : MonoBehaviour
             var wpn = AHJson.O(sk, "weapon");   // a monster's weapon in its fist (Meshy rigs): file, len (x its height), grip
             if (wpn != null) AHTripo.MobHold(m.model, go.transform.forward, AHJson.S(wpn, "file"), (float)AHJson.N(wpn, "len", 0.5) * size, (float)AHJson.N(wpn, "grip", 0.1), AHJson.S(wpn, "hand") ?? "RightHand");
             if (AHJson.B(sk, "golem")) GolemSkin(m.model, t.id);
+            if (AHJson.Has(sk, "lift") || AHJson.Has(sk, "liftCol") || AHJson.B(sk, "twoSided"))
+            {
+                float lk = (float)AHJson.N(sk, "lift", 1); var lc = new Color(lk, lk, lk);
+                var la = AHJson.A(sk, "liftCol"); if (la != null && la.Count >= 3) lc = new Color(System.Convert.ToSingle(la[0]), System.Convert.ToSingle(la[1]), System.Convert.ToSingle(la[2]));
+                Lift(m.model, lc, AHJson.B(sk, "twoSided"));
+            }   // a dark body brought up to read clearly, thin wings drawn from both sides
             if (AHJson.S(sk, "rig") == "serpent") m.model.AddComponent<AHSerpentRig>();   // bones moved in code
             // the game asks for Idle / Walk / Gallop / Attack / HitReact / Death; this model's own names (web MOB_SKINS)
             var al = new System.Collections.Generic.Dictionary<string, string>();
@@ -260,6 +266,22 @@ public class AHMob : MonoBehaviour
         var n = Resources.Load<Texture2D>("AH/Models/" + path + "_normal"); if (n != null) { m.SetTexture("_BumpMap", n); m.EnableKeyword("_NORMALMAP"); }
         var e = Resources.Load<Texture2D>("AH/Models/" + path + "_emis"); if (e != null) { m.SetTexture("_EmissionMap", e); m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", new Color(2f, 1.4f, 0.6f)); }
         texMats[path] = m; return m;
+    }
+
+    static void Lift(GameObject model, Color k, bool twoSided)
+    {
+        foreach (var r in model.GetComponentsInChildren<Renderer>(true))
+        {
+            var mats = r.materials;
+            foreach (var mt in mats)
+            {
+                if (mt == null) continue;
+                if (mt.HasProperty("baseColorFactor")) { var c = mt.GetColor("baseColorFactor"); mt.SetColor("baseColorFactor", new Color(c.r * k.r, c.g * k.g, c.b * k.b, c.a)); }
+                else if (mt.HasProperty("_BaseColor")) { var c = mt.GetColor("_BaseColor"); mt.SetColor("_BaseColor", new Color(c.r * k.r, c.g * k.g, c.b * k.b, c.a)); }
+                if (twoSided) { if (mt.HasProperty("_Cull")) mt.SetFloat("_Cull", 0f); if (mt.HasProperty("_CullMode")) mt.SetFloat("_CullMode", 0f); if (mt.HasProperty("doubleSided")) mt.SetFloat("doubleSided", 1f); }
+            }
+            r.materials = mats;
+        }
     }
 
     // web: a skinned beast is tinted toward its colour (tintAs, or the beast's own tint), 55% of the way
