@@ -168,7 +168,10 @@ public static class AHHollow
         public void Add(Material m, Mesh mesh, Matrix4x4 M)
         {
             List<CombineInstance> l; if (!by.TryGetValue(m, out l)) by[m] = l = new List<CombineInstance>();
-            l.Add(new CombineInstance { mesh = mesh, transform = M });
+            // the part's own size goes into its mesh, with texture coordinates in metres: bricks, planks and shingles
+            // keep one size on every part, however big
+            Vector3 sc = M.lossyScale; Vector3 pos = M.GetColumn(3); Quaternion rot = M.rotation;
+            l.Add(new CombineInstance { mesh = Bake(mesh, sc), transform = Matrix4x4.TRS(pos, rot, Vector3.one) });
         }
         public List<Renderer> Build(Transform parent, string name)
         {
@@ -185,7 +188,115 @@ public static class AHHollow
             return list;
         }
     }
-    static Mesh boxM, cylM, prismM, coneM;
+    static readonly Dictionary<string, Mesh> baked = new Dictionary<string, Mesh>();
+    static Mesh Bake(Mesh src, Vector3 sc)
+    {
+        sc = new Vector3(Mathf.Abs(sc.x), Mathf.Abs(sc.y), Mathf.Abs(sc.z));
+        string key = src.GetInstanceID() + ":" + Mathf.RoundToInt(sc.x * 200) + "," + Mathf.RoundToInt(sc.y * 200) + "," + Mathf.RoundToInt(sc.z * 200);
+        Mesh m; if (baked.TryGetValue(key, out m) && m != null) return m;
+        var v = src.vertices; var n = src.normals; var t = src.triangles;
+        var nv = new Vector3[v.Length]; var nn = new Vector3[v.Length]; var uv = new Vector2[v.Length];
+        Vector3 inv = new Vector3(1f / Mathf.Max(1e-4f, sc.x), 1f / Mathf.Max(1e-4f, sc.y), 1f / Mathf.Max(1e-4f, sc.z));
+        for (int i = 0; i < v.Length; i++)
+        {
+            Vector3 q = Vector3.Scale(v[i], sc); nv[i] = q;
+            Vector3 d = n.Length == v.Length ? Vector3.Scale(n[i], inv).normalized : Vector3.up; nn[i] = d;
+            Vector3 a = new Vector3(Mathf.Abs(d.x), Mathf.Abs(d.y), Mathf.Abs(d.z));
+            uv[i] = a.x >= a.y && a.x >= a.z ? new Vector2(q.z, q.y) : a.y >= a.z ? new Vector2(q.x, q.z) : new Vector2(q.x, q.y);
+        }
+        m = new Mesh { name = src.name + " " + key }; m.vertices = nv; m.normals = nn; m.uv = uv; m.triangles = t; m.RecalculateBounds();
+        baked[key] = m; return m;
+    }
+
+    // ---------- pictures for the surfaces, made here: stone blocks, roof shingles, planks and plaster (1 m each) ----------
+    static Texture2D texBrick, texShingle, texPlank, texPlaster;
+    static float Hs(int x, int y, int k) { uint h = (uint)(x * 374761393 + y * 668265263 + k * 1442695041); h = (h ^ (h >> 13)) * 1274126177u; return (h & 0xffff) / 65535f; }
+    static float Vn(float x, float y, int k)
+    {
+        int xi = Mathf.FloorToInt(x), yi = Mathf.FloorToInt(y); float fx = x - xi, fy = y - yi; fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy);
+        return Mathf.Lerp(Mathf.Lerp(Hs(xi, yi, k), Hs(xi + 1, yi, k), fx), Mathf.Lerp(Hs(xi, yi + 1, k), Hs(xi + 1, yi + 1, k), fx), fy);
+    }
+    static Texture2D MakeTex(string name, System.Func<int, int, float> f, bool tint = false)
+    {
+        const int N = 256; var t = new Texture2D(N, N, TextureFormat.RGBA32, true) { name = name, wrapMode = TextureWrapMode.Repeat, filterMode = FilterMode.Trilinear, anisoLevel = 4 };
+        var px = new Color32[N * N];
+        for (int y = 0; y < N; y++) for (int x = 0; x < N; x++) { byte b = (byte)Mathf.Clamp(f(x, y) * 255f, 0, 255); px[y * N + x] = new Color32(b, b, (byte)Mathf.Clamp(f(x, y) * (tint ? 236f : 255f), 0, 255), 255); }
+        t.SetPixels32(px); t.Apply(true, true); return t;
+    }
+    // tileable noise with a period of 256 pixels
+    static float Tn(int x, int y, float cell, int k) { int P = Mathf.RoundToInt(256f / cell); float u = x / cell, v = y / cell; int xi = Mathf.FloorToInt(u), yi = Mathf.FloorToInt(v); float fx = u - xi, fy = v - yi; fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy); return Mathf.Lerp(Mathf.Lerp(Hs(xi % P, yi % P, k), Hs((xi + 1) % P, yi % P, k), fx), Mathf.Lerp(Hs(xi % P, (yi + 1) % P, k), Hs((xi + 1) % P, (yi + 1) % P, k), fx), fy); }
+    static Texture2D Bricks
+    {
+        get
+        {
+            if (texBrick != null) return texBrick;
+            // four courses of cut stone a metre, each course its own run of blocks (joints staggered), dark mortar
+            var cuts = new List<int>[4]; var rnd = new System.Random(11);
+            for (int r = 0; r < 4; r++) { cuts[r] = new List<int>(); int x = rnd.Next(0, 60); int first = x; cuts[r].Add(x); while (true) { x += 70 + rnd.Next(0, 60); if (x >= first + 256 - 50) break; cuts[r].Add(x % 256); } }
+            texBrick = MakeTex("AH hollow stone", (x, y) =>
+            {
+                int r = y / 64, yy = y % 64; int bi = 0, dist = 999;
+                foreach (var c in cuts[r]) { int d = Mathf.Abs(x - c); d = Mathf.Min(d, 256 - d); dist = Mathf.Min(dist, d); }
+                foreach (var c in cuts[r]) if (((x - c) % 256 + 256) % 256 < 256) bi += x >= c ? 1 : 0;
+                float edge = Mathf.Min(Mathf.Min(yy, 63 - yy), dist);
+                if (edge < 2.5f) return 0.42f + Tn(x, y, 8, 3) * 0.06f;
+                float shade = 0.74f + Hs(r, bi, 5) * 0.2f;
+                float bevel = edge < 6f ? (yy < 6 ? 0.08f : -0.06f) * (1f - edge / 6f) : 0f;
+                return shade + bevel + (Tn(x, y, 16, 7) - 0.5f) * 0.12f + (Tn(x, y, 4, 9) - 0.5f) * 0.06f;
+            });
+            return texBrick;
+        }
+    }
+    static Texture2D Shingles
+    {
+        get
+        {
+            if (texShingle != null) return texShingle;
+            texShingle = MakeTex("AH hollow shingles", (x, y) =>
+            {
+                int r = y / 32, yy = y % 32; int off = (r % 2) * 20; int xx = ((x + off) % 256 + 256) % 256; int ti = xx / 40, tx = xx % 40;
+                if (xx >= 240) { ti = 6; tx = xx - 240; }
+                float gap = tx < 2 ? 0.45f : 1f;
+                float lip = yy < 5 ? 0.62f + yy * 0.05f : 1f;   // the shadow under the row above
+                float sh = 0.72f + Hs(r, ti, 13) * 0.22f + (Tn(x, y, 8, 15) - 0.5f) * 0.1f;
+                return sh * gap * lip;
+            });
+            return texShingle;
+        }
+    }
+    static Texture2D Planks
+    {
+        get
+        {
+            if (texPlank != null) return texPlank;
+            texPlank = MakeTex("AH hollow planks", (x, y) =>
+            {
+                int r = y / 51; if (r > 4) r = 4; int yy = y - r * 51;
+                if (yy < 2) return 0.38f;
+                int joint = (int)(Hs(r, 1, 21) * 256f); int dj = Mathf.Abs(x - joint); dj = Mathf.Min(dj, 256 - dj);
+                if (dj < 1) return 0.42f;
+                float grain = Mathf.Sin((y * 0.9f + Tn(x, y, 32, 23) * 18f) * 0.8f) * 0.05f + (Tn(x, y * 6 % 256, 64, 25) - 0.5f) * 0.12f;
+                return 0.78f + Hs(r, 2, 27) * 0.16f + grain;
+            }, true);
+            return texPlank;
+        }
+    }
+    static Texture2D Plaster
+    {
+        get
+        {
+            if (texPlaster != null) return texPlaster;
+            texPlaster = MakeTex("AH hollow plaster", (x, y) => 0.9f + (Tn(x, y, 64, 31) - 0.5f) * 0.08f + (Tn(x, y, 8, 33) - 0.5f) * 0.05f + (Hs(x, y, 35) < 0.01f ? -0.06f : 0f));
+            return texPlaster;
+        }
+    }
+    static Material TexMat(string key, Color c, Texture2D t, float smooth = 0.12f)
+    {
+        Material m; if (mats.TryGetValue(key, out m) && m != null) return m;
+        m = Mat(key, c, smooth); m.SetTexture("_BaseMap", t); m.SetTextureScale("_BaseMap", Vector2.one); return m;
+    }
+    static Mesh boxM, cylM, prismM, coneM, sphM;
+    static Mesh SphMesh { get { if (sphM == null) sphM = Prim(PrimitiveType.Sphere); return sphM; } }
     static Mesh BoxMesh { get { if (boxM == null) boxM = Prim(PrimitiveType.Cube); return boxM; } }
     static Mesh CylMesh { get { if (cylM == null) cylM = Prim(PrimitiveType.Cylinder); return cylM; } }
     static Mesh Prim(PrimitiveType t) { var go = GameObject.CreatePrimitive(t); var m = Object.Instantiate(go.GetComponent<MeshFilter>().sharedMesh); Object.Destroy(go); return m; }
@@ -241,8 +352,8 @@ public static class AHHollow
     static void Walls(AHGame g)
     {
         var kit = new Kit();
-        Material stone = Mat("hw_stone", new Color(0.62f, 0.58f, 0.52f)), stone2 = Mat("hw_stone_dark", new Color(0.47f, 0.44f, 0.40f)),
-                 slate = Mat("hw_slate", new Color(0.24f, 0.34f, 0.30f)), wood = Mat("hw_beam", new Color(0.33f, 0.22f, 0.13f));
+        Material stone = TexMat("hw_stone", new Color(0.78f, 0.73f, 0.66f), Bricks), stone2 = TexMat("hw_stone_dark", new Color(0.6f, 0.57f, 0.52f), Bricks),
+                 wood = TexMat("hw_beam", new Color(0.45f, 0.31f, 0.19f), Planks);
         int n = Mathf.RoundToInt(2f * Mathf.PI * R / 4f); float step = Mathf.PI * 2f / n, chord = 2f * R * Mathf.Sin(step / 2f);
         for (int i = 0; i < n; i++)
         {
@@ -269,19 +380,9 @@ public static class AHHollow
             foreach (var t in towers) if (Mathf.Abs(Mathf.DeltaAngle(t * Mathf.Rad2Deg, a * Mathf.Rad2Deg)) < 22f) near = true;
             if (!near) towers.Add(a);
         }
-        foreach (var a in towers)
-        {
-            Vector3 at = C + Dir(a) * R;
-            kit.Add(stone, CylMesh, TRS(at + Vector3.up * 3.6f, Quaternion.identity, new Vector3(4.6f, 3.6f, 4.6f)));
-            kit.Add(stone2, CylMesh, TRS(at + Vector3.up * 0.4f, Quaternion.identity, new Vector3(5.1f, 0.4f, 5.1f)));
-            kit.Add(stone2, CylMesh, TRS(at + Vector3.up * 7.35f, Quaternion.identity, new Vector3(5.2f, 0.15f, 5.2f)));
-            for (int k = 0; k < 8; k++)
-            {
-                float b = k * Mathf.PI / 4f; Vector3 o = new Vector3(Mathf.Cos(b), 0, Mathf.Sin(b)) * 2.3f;
-                kit.Box(stone, TRS(at + o + Vector3.up * 7.8f, Quaternion.LookRotation(o), new Vector3(0.8f, 0.8f, 0.45f)));
-            }
-            kit.Add(slate, Cone, TRS(at + Vector3.up * 7.5f, Quaternion.identity, new Vector3(4.2f, 3.4f, 4.2f)));
-        }
+        string col; if (!AHCity.ColourOf(Area, out col)) col = "green";
+        int ti = 0;
+        foreach (var a in towers) Tower(C + Dir(a) * R, -Dir(a), (ti++ % 3 == 1 ? "kk_building_tower_B_" : "kk_building_tower_A_") + col);
         // gatehouses: an arch over each road in, with its name
         foreach (var s in streets)
         {
@@ -297,12 +398,20 @@ public static class AHHollow
             }
             // the town's name over the road in, and which gate it is over the road out
             Sign(root, at - dir * (WallT / 2f + 0.3f) + Vector3.up * (WallH + 0.9f), -dir, s.label, Hex("ffd27a"), s.hw * 2f, 1.1f, Mat("hw_sign", new Color(0.16f, 0.11f, 0.07f)));
-            Sign(root, at + dir * (WallT / 2f + 0.3f) + Vector3.up * (WallH + 0.9f), -dir, "Hollow Meadow", Hex("ffd27a"), s.hw * 2f, 1.1f, Mat("hw_sign", new Color(0.16f, 0.11f, 0.07f)));
+            Sign(root, at + dir * (WallT / 2f + 0.3f) + Vector3.up * (WallH + 0.9f), dir, "Hollow Meadow", Hex("ffd27a"), s.hw * 2f, 1.1f, Mat("hw_sign", new Color(0.16f, 0.11f, 0.07f)));
             Banner(at + tan * (s.hw + 2.6f) - dir * 2.45f, -dir);
             Banner(at - tan * (s.hw + 2.6f) - dir * 2.45f, -dir);
         }
         var rs = kit.Build(root, "AH_TownWall");
         foreach (var r in rs) AHModel.SetShadows(r.gameObject);
+    }
+    // a proper stone tower (KayKit) standing astride the wall, at least five metres across
+    static void Tower(Vector3 at, Vector3 face, string model)
+    {
+        var go = Prop(model, root, at, 11f, face); if (go == null) return;
+        go.name = "AH_Wall tower";
+        var b = Measure(go); float foot = Mathf.Min(b.size.x, b.size.z);
+        if (foot < 5.4f) { go.transform.localScale *= 5.4f / Mathf.Max(0.5f, foot); b = Measure(go); go.transform.position += new Vector3(at.x - b.center.x, at.y - b.min.y, at.z - b.center.z); }
     }
     static bool InGate(float a, float pad)
     {
@@ -507,8 +616,8 @@ public static class AHHollow
         float w = h.w, d = h.d;
         var Q = Quaternion.LookRotation(h.b, Vector3.up);   // local +z: into the building, local +x: -r
         System.Func<float, float, float, Vector3> P = (x, y, z) => h.O + h.r * x + Vector3.up * y + h.b * z;
-        Material plaster = Mat("hw_plaster", new Color(0.86f, 0.80f, 0.68f)), stoneB = Mat("hw_base", new Color(0.52f, 0.49f, 0.45f)), timber = Mat("hw_timber", new Color(0.30f, 0.20f, 0.12f)),
-                 floor = Mat("hw_floor", new Color(0.74f, 0.58f, 0.4f), 0.15f, 0.12f), roof = Mat("hw_roof_" + def.id, Color.Lerp(h.col, new Color(0.25f, 0.22f, 0.2f), 0.55f)),
+        Material plaster = TexMat("hw_plaster", new Color(0.93f, 0.87f, 0.74f), Plaster), stoneB = TexMat("hw_base", new Color(0.7f, 0.66f, 0.6f), Bricks), timber = TexMat("hw_timber", new Color(0.42f, 0.28f, 0.17f), Planks),
+                 floor = TexMat("hw_floor", new Color(0.86f, 0.68f, 0.48f), Planks, 0.2f), roof = TexMat("hw_roof_" + def.id, Color.Lerp(h.col, new Color(0.3f, 0.26f, 0.22f), 0.5f), Shingles, 0.18f),
                  glass = Mat("hw_window", new Color(1f, 0.78f, 0.42f), 0.6f, 0.9f), board = Mat("hw_sign", new Color(0.16f, 0.11f, 0.07f));
         var low = new Kit(); var up = new Kit(); var top = new Kit();
         // the floor and a stone footing
@@ -561,6 +670,45 @@ public static class AHHollow
             up.Box(timber, TRS(P(x, 1.95f, -0.03f), Q, new Vector3(1.2f, 1.0f, 0.1f)));
             up.Box(glass, TRS(P(x, 1.95f, -0.07f), Q, new Vector3(1.0f, 0.8f, 0.04f)));
         }
+        // half-timbering: braces across the upper walls, and posts between the windows
+        foreach (var sx in new[] { -1f, 1f })
+        {
+            float x = sx * (w / 2f + 0.01f);
+            up.Box(timber, TRS(P(x, (Low + H) / 2f, d / 2f), Q, new Vector3(0.12f, H - Low, 0.22f)));
+            foreach (var zz in new[] { d * 0.12f, d * 0.88f })
+            {
+                float run = d * 0.22f, rise = H - Low - 0.2f, len = Mathf.Sqrt(run * run + rise * rise), ang2 = Mathf.Atan2(run, rise) * Mathf.Rad2Deg;
+                up.Box(timber, TRS(P(x, (Low + H) / 2f, zz), Q * Quaternion.Euler((zz < d / 2f ? 1 : -1) * ang2, 0, 0), new Vector3(0.11f, len, 0.18f)));
+            }
+        }
+        foreach (var xx in new[] { -w * 0.5f + 1.2f, -w * 0.12f, w * 0.12f, w * 0.5f - 1.2f })
+        {
+            if (Mathf.Abs(xx) < DoorW / 2f + 0.3f) continue;
+            up.Box(timber, TRS(P(xx, (Low + H) / 2f, -0.01f), Q, new Vector3(0.18f, H - Low, 0.1f)));
+            up.Box(timber, TRS(P(xx, (Low + H) / 2f, d + 0.01f), Q, new Vector3(0.18f, H - Low, 0.1f)));
+        }
+        // shutters either side of the front windows, and a flower box under each
+        Material shutter = TexMat("hw_shutter_" + def.id, Color.Lerp(h.col, new Color(0.35f, 0.25f, 0.15f), 0.6f), Planks), soil = Mat("hw_soil", new Color(0.25f, 0.17f, 0.1f)), bloom = Mat("hw_bloom_" + def.id, Color.Lerp(h.col, Color.white, 0.25f), 0.3f, 0.15f), leaf = Mat("hw_leaf", new Color(0.25f, 0.5f, 0.2f));
+        foreach (var x in new[] { -w * 0.33f, w * 0.33f })
+        {
+            foreach (var sx in new[] { -1f, 1f }) up.Box(shutter, TRS(P(x + sx * 0.78f, 1.95f, -0.09f), Q, new Vector3(0.36f, 1.0f, 0.05f)));
+            up.Box(timber, TRS(P(x, 1.38f, -0.2f), Q, new Vector3(1.2f, 0.22f, 0.28f)));
+            up.Box(soil, TRS(P(x, 1.5f, -0.2f), Q, new Vector3(1.1f, 0.04f, 0.22f)));
+            for (int k = 0; k < 6; k++)
+            {
+                float fx = x - 0.45f + k * 0.18f;
+                up.Add(leaf, SphMesh, TRS(P(fx, 1.58f, -0.2f), Q, new Vector3(0.2f, 0.14f, 0.18f)));
+                up.Add(bloom, SphMesh, TRS(P(fx + 0.04f, 1.68f, -0.22f - (k % 2) * 0.04f), Q, Vector3.one * 0.09f));
+            }
+        }
+        // the door: two plank leaves standing open inside the doorway, on iron straps
+        Material iron = Mat("hw_iron", new Color(0.15f, 0.15f, 0.17f), 0.4f);
+        foreach (var sx in new[] { -1f, 1f })
+        {
+            Vector3 hinge = P(sx * DoorW / 2f, DoorH / 2f, T + 0.04f);
+            low.Box(timber, TRS(hinge + h.b * 0.72f - h.r * sx * 0.06f, Q, new Vector3(0.07f, DoorH - 0.05f, 1.42f)));
+            foreach (var yy in new[] { 0.5f, DoorH - 0.5f }) low.Box(iron, TRS(P(sx * DoorW / 2f - sx * 0.1f, yy, T + 0.76f), Q, new Vector3(0.09f, 0.07f, 1.2f)));
+        }
         // the roof: two slopes and the gable ends, the ridge across the frontage
         float over = 0.55f, hd = d / 2f + over, ang = Mathf.Atan2(Rise, hd) * Mathf.Rad2Deg, sl = Mathf.Sqrt(hd * hd + Rise * Rise);
         top.Box(roof, TRS(P(0, H + Rise / 2f + 0.1f, d / 2f - hd / 2f), Q * Quaternion.Euler(-ang, 0, 0), new Vector3(w + 1.0f, 0.2f, sl)));
@@ -585,156 +733,194 @@ public static class AHHollow
         var lg = new GameObject("Hall light"); lg.transform.SetParent(go, false); lg.transform.position = P(0, H - 0.5f, d / 2f);
         var li = lg.AddComponent<Light>(); li.type = LightType.Point; li.color = new Color(1f, 0.78f, 0.5f); li.range = Mathf.Max(w, d) * 0.9f; li.intensity = 1.6f; li.shadows = LightShadows.None; li.enabled = false;
         // the roof and upper walls lift away while you are inside
+        Furnish(g, h);
         var fade = go.gameObject.AddComponent<AHHallFade>(); fade.hall = h; fade.lamp = li; li.intensity = 5f; li.range = Mathf.Max(w, d) * 1.2f;
         var hide = new List<Renderer>(); hide.AddRange(upR); hide.AddRange(topR);
-        foreach (Transform c in go) if (c.name.StartsWith("Sign ")) hide.AddRange(c.GetComponentsInChildren<Renderer>());
+        foreach (Transform c in go) if (c.name.StartsWith("Sign ") || c.name.StartsWith("AH_Upper")) hide.AddRange(c.GetComponentsInChildren<Renderer>());
         fade.hide = hide.ToArray();
-        Furnish(g, h);
     }
 
-    // ---------- inside each building ----------
+    // ---------- inside each building: its work station, its people and real furniture ----------
     static void Furnish(AHGame g, Hall h)
     {
-        float w = h.w, d = h.d; Vector3 front = -h.b;
+        float w = h.w, d = h.d; Vector3 front = -h.b, back = h.b, right = h.r, left = -h.r;
         Transform p = h.go;
+        System.Func<float, float, Vector3> A = (x, z) => h.At(x, z) + Vector3.up * 0.1f;   // on the floorboards
+        float sx = w / 2f - 0.42f;                                                        // against a side wall
+        int seed = h.id.GetHashCode();
+        // every room: a rug down the middle and a torch either side of the back wall
+        Rug(p, A(0f, d * 0.5f), back, Mathf.Min(3.2f, w * 0.3f), d * 0.55f, Color.Lerp(h.col, new Color(0.35f, 0.12f, 0.1f), 0.55f));
+        foreach (var x in new[] { -w * 0.42f, w * 0.42f }) { var t = Prop("kk_dg_torch_mounted", p, h.At(x, d - 0.32f) + Vector3.up * 1.9f, 0.7f, front); if (t != null) t.name = "AH_Upper torch"; }
         switch (h.id)
         {
             case "forge":
             {
                 var fu = Place(AHStations.Furnace(p, 1.8f, 1.3f, 3), h.At(-w * 0.25f, d - 1.3f), front); fu.name = "AH_Furnace";
                 Station(g, "furnace", "Furnace", h.At(-w * 0.25f, d - 1.3f), 1.0f);
-                var a1 = Place(AHStations.Anvil(p, 1.3f), h.At(w * 0.12f, d * 0.5f), h.r); a1.name = "AH_Anvil";
-                var a2 = Place(AHStations.Anvil(p, 1.3f), h.At(w * 0.32f, d * 0.62f), h.r); a2.name = "AH_Anvil";
-                Station(g, "anvil", "Anvil", h.At(w * 0.12f, d * 0.5f), 0.7f);
-                Station(g, "anvil", "Anvil", h.At(w * 0.32f, d * 0.62f), 0.7f);
-                Prop("kk_weaponrack", p, h.At(w / 2f - 0.6f, d * 0.8f), 1.6f, -h.r);
-                Prop("kk_barrel", p, h.At(-w / 2f + 0.7f, 1.2f), 1.0f, h.r);
-                Prop("kk_dg_crates_stacked", p, h.At(w / 2f - 0.9f, 1.3f), 1.4f, -h.r);
+                var a1 = Place(AHStations.Anvil(p, 1.3f), h.At(w * 0.1f, d * 0.52f), h.r); a1.name = "AH_Anvil";
+                var a2 = Place(AHStations.Anvil(p, 1.3f), h.At(w * 0.28f, d * 0.68f), h.r); a2.name = "AH_Anvil";
+                Station(g, "anvil", "Anvil", h.At(w * 0.1f, d * 0.52f), 0.7f);
+                Station(g, "anvil", "Anvil", h.At(w * 0.28f, d * 0.68f), 0.7f);
+                Prop("kk_weaponrack", p, A(sx - 0.05f, d * 0.82f), 1.7f, left);
+                Shelf(p, A(-sx, d * 0.42f), right, 1.8f, "ingots", seed);
+                Trough(p, A(w * 0.3f, d * 0.3f), front);
+                Prop("kk_barrel", p, A(-sx + 0.2f, 1.1f), 1.0f, right);
+                Prop("kk_barrel", p, A(-sx + 0.95f, 0.95f), 0.9f, right);
+                Prop("kk_dg_crates_stacked", p, A(sx - 0.4f, 1.2f), 1.4f, left);
+                CoalHeap(p, A(-w * 0.25f + 1.5f, d - 1.0f));
                 break;
             }
             case "kitchen":
             {
                 for (int i = 0; i < 2; i++)
                 {
-                    Vector3 at = h.At((i == 0 ? -1 : 1) * w * 0.22f, d * 0.62f);
+                    Vector3 at = h.At((i == 0 ? -1 : 1) * w * 0.24f, d * 0.6f);
                     Place(Cookpot(p, i), at, front);
                     Station(g, "fire", "Cooking pot", at, 0.8f);
                 }
-                Prop("kk_sack", p, h.At(-w / 2f + 0.6f, d - 0.7f), 0.9f, h.r);
-                Prop("kk_sack", p, h.At(-w / 2f + 1.4f, d - 0.6f), 0.8f, h.r);
-                Prop("kk_dg_barrel_small_stack", p, h.At(w / 2f - 0.8f, d - 0.9f), 1.3f, -h.r);
-                Prop("kk_crate_A_big", p, h.At(w / 2f - 0.7f, 1.3f), 1.0f, -h.r);
-                Npc(g, "Baker Maudie", h, 0f, d * 0.82f);
+                Table(p, A(0f, d - 1.55f), front, 2.6f, 0.9f); Food(p, A(0f, d - 1.55f) + Vector3.up * 0.82f, front, 2.3f, seed);
+                Npc(g, "Baker Maudie", h, 0f, d - 0.7f);
+                Shelf(p, A(-sx, d * 0.35f), right, 1.8f, "jars", seed + 1);
+                Shelf(p, A(sx, d * 0.35f), left, 1.8f, "jars", seed + 2);
+                Prop("kk_sack", p, A(-sx + 0.2f, d - 0.6f), 0.9f, right);
+                Prop("kk_sack", p, A(-sx + 0.9f, d - 0.5f), 0.8f, right);
+                Prop("kk_dg_barrel_small_stack", p, A(sx - 0.6f, d - 0.8f), 1.3f, left);
+                Prop("kk_crate_A_big", p, A(sx - 0.5f, 1.1f), 1.0f, left);
+                Prop("kk_bucket_water", p, A(-sx + 0.4f, 1.0f), 0.5f, right);
                 break;
             }
             case "apothecary":
             {
                 var c = Place(AHStations.Cauldron(p, 5), h.At(0f, d * 0.6f), front); c.name = "AH_Cauldron";
                 Station(g, "brew", "Brewing cauldron", h.At(0f, d * 0.6f), 0.9f);
-                Prop("kk_dg_keg", p, h.At(-w / 2f + 0.7f, d - 0.8f), 1.0f, h.r);
-                Prop("kk_dg_candle_triple", p, h.At(w / 2f - 0.6f, d - 0.6f), 0.6f, -h.r);
-                Prop("kk_dg_barrel_large", p, h.At(w / 2f - 0.8f, 1.4f), 1.2f, -h.r);
-                Prop("kk_bucket_water", p, h.At(-w * 0.2f, d * 0.75f), 0.5f, front);
+                Shelf(p, A(-sx, d * 0.5f), right, 2.0f, "bottles", seed);
+                Shelf(p, A(sx, d * 0.5f), left, 2.0f, "bottles", seed + 1);
+                Table(p, A(-w * 0.28f, 1.6f), front, 1.5f, 0.8f); Candles(p, A(-w * 0.28f - 0.4f, 1.6f) + Vector3.up * 0.82f); Book(p, A(-w * 0.28f + 0.3f, 1.6f) + Vector3.up * 0.82f, front, new Color(0.3f, 0.5f, 0.3f));
+                Chair(p, A(-w * 0.28f, 2.3f), front);
+                Prop("kk_dg_keg", p, A(-sx + 0.4f, d - 0.7f), 1.0f, right);
+                Prop("kk_dg_barrel_large", p, A(sx - 0.6f, d - 0.8f), 1.2f, left);
+                Prop("kk_bucket_water", p, A(w * 0.2f, d * 0.78f), 0.5f, front);
+                Prop("kk_crate_B_small", p, A(sx - 0.5f, 1.1f), 0.7f, left);
                 break;
             }
             case "tannery":
             {
-                var lo = Place(AHStations.Loom(p, 7), h.At(-w * 0.18f, d * 0.6f), front); lo.name = "AH_Loom";
-                Station(g, "loom", "Loom", h.At(-w * 0.18f, d * 0.6f), 0.9f);
-                HideRack(p, h.At(w * 0.28f, d * 0.65f), front);
-                Prop("kk_barrel", p, h.At(w / 2f - 0.7f, 1.3f), 1.0f, -h.r);
-                Prop("kk_barrel", p, h.At(-w / 2f + 0.7f, d - 0.8f), 1.0f, h.r);
+                var lo = Place(AHStations.Loom(p, 7), h.At(-w * 0.2f, d * 0.62f), front); lo.name = "AH_Loom";
+                Station(g, "loom", "Loom", h.At(-w * 0.2f, d * 0.62f), 0.9f);
+                HideRack(p, A(w * 0.24f, d * 0.72f), front); HideRack(p, A(w * 0.24f, d * 0.42f), front);
+                Prop("kk_barrel", p, A(sx - 0.5f, d - 0.7f), 1.1f, left); Prop("kk_barrel", p, A(sx - 0.5f, 1.1f), 1.0f, left);
+                Prop("kk_barrel", p, A(-sx + 0.4f, d - 0.7f), 1.0f, right);
+                Shelf(p, A(-sx, d * 0.32f), right, 1.6f, "cloth", seed);
+                Bench(p, A(-w * 0.3f, 1.2f), front, 1.6f);
                 break;
             }
             case "jeweler":
             {
                 var j = Place(AHStations.JewelBench(p, 9), h.At(0f, d * 0.62f), front); j.name = "AH_JewelBench";
                 Station(g, "jewel", "Jeweler’s bench", h.At(0f, d * 0.62f), 0.9f);
-                Prop("kk_dg_chest_gold", p, h.At(w / 2f - 0.8f, d - 0.8f), 0.9f, -h.r);
-                Prop("kk_dg_coin_stack_large", p, h.At(-w / 2f + 0.7f, d - 0.7f), 0.6f, h.r);
-                Prop("kk_dg_candle_triple", p, h.At(-w * 0.25f, d - 0.5f), 0.55f, front);
+                Showcase(p, A(-sx + 0.15f, d * 0.45f), right, seed); Showcase(p, A(sx - 0.15f, d * 0.45f), left, seed + 1);
+                Prop("kk_dg_chest_gold", p, A(sx - 0.7f, d - 0.7f), 0.9f, left);
+                Prop("kk_dg_coin_stack_large", p, A(-sx + 0.5f, d - 0.6f), 0.6f, right);
+                Shelf(p, A(-w * 0.3f, d - 0.42f), front, 1.6f, "gems", seed + 2);
+                Chair(p, A(0f, d * 0.62f + 0.9f), front);
                 break;
             }
             case "bank":
             {
                 bankAt = h.At(0f, d * 0.68f); bankFace = front;   // the vault is moved in once it is built (Late)
-                Prop("kk_dg_chest_gold", p, h.At(-w / 2f + 0.8f, d - 0.8f), 1.0f, h.r);
-                Prop("kk_dg_chest_gold", p, h.At(w / 2f - 0.8f, d - 0.8f), 1.0f, -h.r);
-                Prop("kk_dg_coin_stack_large", p, h.At(-w / 2f + 0.7f, 1.4f), 0.6f, h.r);
+                Prop("kk_dg_chest_gold", p, A(-sx + 0.5f, d - 0.7f), 1.0f, right);
+                Prop("kk_dg_chest_gold", p, A(sx - 0.5f, d - 0.7f), 1.0f, left);
+                Prop("kk_dg_chest", p, A(-sx + 0.5f, d - 1.8f), 0.9f, right);
+                Table(p, A(sx - 0.5f, d * 0.45f), left, 1.6f, 0.8f); Coins(p, A(sx - 0.5f, d * 0.45f) + Vector3.up * 0.82f, seed);
+                Shelf(p, A(-sx, d * 0.42f), right, 1.8f, "books", seed);
+                Bench(p, A(-w * 0.28f, 1.1f), front, 1.8f); Bench(p, A(w * 0.28f, 1.1f), front, 1.8f);
+                Pillar(p, A(-w * 0.18f, d * 0.4f)); Pillar(p, A(w * 0.18f, d * 0.4f));
                 break;
             }
             case "store":
             {
-                Counter(p, h, d * 0.55f, w * 0.6f);
+                Counter(p, h, d * 0.55f, w * 0.55f);
                 shopAt = h.At(0f, d * 0.4f);
                 Npc(g, "Farmer Tobin", h, 0f, d * 0.75f);
-                Prop("kk_sack", p, h.At(-w / 2f + 0.6f, d - 0.6f), 0.9f, h.r);
-                Prop("kk_crate_A_big", p, h.At(w / 2f - 0.7f, d - 0.7f), 1.0f, -h.r);
-                Prop("kk_crate_B_small", p, h.At(w / 2f - 0.6f, 1.3f), 0.7f, -h.r);
-                Prop("kk_barrel", p, h.At(-w / 2f + 0.7f, 1.3f), 1.0f, h.r);
+                Shelf(p, A(-w * 0.2f, d - 0.42f), front, 2.0f, "goods", seed); Shelf(p, A(w * 0.2f, d - 0.42f), front, 2.0f, "jars", seed + 1);
+                Shelf(p, A(-sx, d * 0.32f), right, 1.6f, "goods", seed + 2); Shelf(p, A(sx, d * 0.32f), left, 1.6f, "goods", seed + 3);
+                Prop("kk_sack", p, A(-sx + 0.3f, 1.0f), 0.9f, right); Prop("kk_sack", p, A(-sx + 1.0f, 0.9f), 0.8f, right);
+                Prop("kk_barrel", p, A(sx - 0.4f, 1.0f), 1.0f, left); Prop("kk_crate_B_small", p, A(sx - 1.2f, 0.9f), 0.7f, left);
                 break;
             }
             case "guild":
             {
-                Counter(p, h, d * 0.55f, w * 0.45f);
-                Npc(g, "Guild Clerk Mina", h, 0f, d * 0.75f);
-                Prop("kk_dg_banner_blue", p, h.At(-w * 0.3f, d - 0.25f), 2.2f, front);
-                Prop("kk_dg_banner_blue", p, h.At(w * 0.3f, d - 0.25f), 2.2f, front);
-                Prop("kk_dg_candle_triple", p, h.At(-w / 2f + 0.6f, 1.2f), 0.6f, h.r);
-                Prop("kk_dg_trunk_medium_A", p, h.At(w / 2f - 0.8f, d - 0.9f), 1.0f, -h.r);
+                Counter(p, h, d * 0.58f, w * 0.4f);
+                Npc(g, "Guild Clerk Mina", h, 0f, d * 0.78f);
+                Prop("kk_dg_banner_blue", p, A(-w * 0.3f, d - 0.3f), 2.4f, front); Prop("kk_dg_banner_blue", p, A(w * 0.3f, d - 0.3f), 2.4f, front);
+                Table(p, A(-w * 0.28f, d * 0.32f), right, 2.0f, 1.0f);
+                foreach (var dz in new[] { -0.55f, 0.55f }) { Chair(p, A(-w * 0.28f - 0.75f, d * 0.32f + dz), right); Chair(p, A(-w * 0.28f + 0.75f, d * 0.32f + dz), left); }
+                Book(p, A(-w * 0.28f, d * 0.32f) + Vector3.up * 0.82f, front, new Color(0.25f, 0.35f, 0.6f)); Candles(p, A(-w * 0.28f, d * 0.32f + 0.6f) + Vector3.up * 0.82f);
+                Shelf(p, A(sx, d * 0.35f), left, 2.0f, "books", seed);
+                Prop("kk_dg_trunk_medium_A", p, A(sx - 0.6f, d - 0.8f), 1.0f, left);
                 break;
             }
             case "inn":
             {
-                var at = h.At(0f, d - 1.0f);
-                Hearth(p, at, front);
+                Hearth(p, h.At(0f, d - 0.9f), front);
                 var spot = new AHSpot { kind = "use", type = "inn_rest", name = "Rest by the inn's hearth", pos = h.At(0f, d - 2.2f), r = 0.6f, reach = 2.6f };
                 spot.use = () => Rest(g);
                 AHGather.Spots.Add(spot); mine.Add(spot);
-                Prop("kk_dg_keg", p, h.At(-w / 2f + 0.7f, d - 0.8f), 1.0f, h.r);
-                Prop("kk_dg_barrel_small_stack", p, h.At(w / 2f - 0.9f, d - 0.9f), 1.3f, -h.r);
-                Table(p, h.At(-w * 0.25f, d * 0.4f)); Table(p, h.At(w * 0.25f, d * 0.4f));
+                foreach (var x in new[] { -w * 0.27f, w * 0.27f })
+                {
+                    Table(p, A(x, d * 0.4f), front, 1.5f, 0.9f); Food(p, A(x, d * 0.4f) + Vector3.up * 0.82f, front, 1.2f, seed + (int)x);
+                    Chair(p, A(x, d * 0.4f - 0.75f), back); Chair(p, A(x, d * 0.4f + 0.75f), front);
+                    Chair(p, A(x - 1.0f, d * 0.4f), right); Chair(p, A(x + 1.0f, d * 0.4f), left);
+                }
+                Bed(p, A(-sx + 0.9f, d - 1.25f), right, new Color(0.55f, 0.2f, 0.18f)); Bed(p, A(sx - 0.9f, d - 1.25f), left, new Color(0.2f, 0.32f, 0.55f));
+                Prop("kk_dg_keg", p, A(-sx + 0.4f, 1.0f), 1.0f, right);
+                Prop("kk_dg_barrel_small_stack", p, A(sx - 0.7f, 1.1f), 1.3f, left);
                 break;
             }
             case "barracks":
             {
-                Npc(g, "Captain Mara", h, -w * 0.15f, d * 0.7f);
-                Npc(g, "Arena crier Bess", h, w * 0.18f, d * 0.6f);
-                Prop("kk_weaponrack", p, h.At(-w / 2f + 0.5f, d * 0.5f), 1.6f, h.r);
-                Prop("kk_weaponrack", p, h.At(w / 2f - 0.5f, d * 0.5f), 1.6f, -h.r);
-                Prop("kk_dg_banner_red", p, h.At(0f, d - 0.25f), 2.2f, front);
-                Prop("kk_dg_sword_shield_broken", p, h.At(w * 0.3f, d - 0.7f), 0.9f, front);
+                Npc(g, "Captain Mara", h, -w * 0.12f, d * 0.68f);
+                Npc(g, "Arena crier Bess", h, w * 0.14f, d * 0.55f);
+                Prop("kk_weaponrack", p, A(-sx + 0.05f, d * 0.4f), 1.7f, right); Prop("kk_weaponrack", p, A(sx - 0.05f, d * 0.4f), 1.7f, left);
+                Bed(p, A(-sx + 0.9f, d - 1.25f), right, new Color(0.45f, 0.15f, 0.15f)); Bed(p, A(sx - 0.9f, d - 1.25f), left, new Color(0.45f, 0.15f, 0.15f));
+                Prop("kk_dg_banner_red", p, A(0f, d - 0.3f), 2.4f, front);
+                Prop("kk_dg_sword_shield_broken", p, A(w * 0.3f, 1.2f), 0.9f, front);
+                Table(p, A(-w * 0.3f, 1.4f), front, 1.5f, 0.8f); Candles(p, A(-w * 0.3f, 1.4f) + Vector3.up * 0.82f); Chair(p, A(-w * 0.3f, 2.1f), front);
                 break;
             }
             case "auction":
             {
                 Counter(p, h, d * 0.55f, w * 0.5f);
                 Npc(g, "Auctioneer Wren", h, 0f, d * 0.75f);
-                Prop("kk_dg_crates_stacked", p, h.At(-w / 2f + 0.9f, d - 0.9f), 1.4f, h.r);
-                Prop("kk_dg_coin_stack_large", p, h.At(w / 2f - 0.7f, d - 0.7f), 0.6f, -h.r);
-                Prop("kk_dg_chest", p, h.At(w / 2f - 0.8f, 1.3f), 0.9f, -h.r);
+                Showcase(p, A(-sx + 0.15f, d * 0.4f), right, seed); Showcase(p, A(sx - 0.15f, d * 0.4f), left, seed + 3);
+                Prop("kk_dg_crates_stacked", p, A(-sx + 0.7f, d - 0.8f), 1.4f, right);
+                Prop("kk_dg_chest", p, A(sx - 0.7f, d - 0.7f), 0.9f, left);
+                Bench(p, A(-w * 0.28f, 1.1f), front, 1.8f); Bench(p, A(w * 0.28f, 1.1f), front, 1.8f);
                 break;
             }
             case "barber":
             {
-                Npc(g, "Barber Finn", h, 0f, d * 0.68f);
-                Mirror(p, h.At(-w * 0.3f, d - 0.2f), front);
-                Mirror(p, h.At(w * 0.3f, d - 0.2f), front);
-                Table(p, h.At(-w * 0.3f, d * 0.55f));
-                Prop("kk_dg_candle_triple", p, h.At(w / 2f - 0.6f, 1.2f), 0.55f, -h.r);
+                Npc(g, "Barber Finn", h, 0f, d * 0.6f);
+                foreach (var x in new[] { -w * 0.3f, w * 0.3f }) { Mirror(p, h.At(x, d - 0.22f), front); Chair(p, A(x, d - 1.0f), back); }
+                Shelf(p, A(-sx, d * 0.4f), right, 1.6f, "cloth", seed);
+                Bench(p, A(w * 0.3f, 1.1f), front, 1.6f);
+                Table(p, A(sx - 0.45f, d * 0.45f), left, 1.2f, 0.7f); Candles(p, A(sx - 0.45f, d * 0.45f) + Vector3.up * 0.82f);
                 break;
             }
             case "carver":
             {
-                Npc(g, "Woodcarver Ansel", h, w * 0.1f, d * 0.65f);
-                Prop("kk_resource_lumber", p, h.At(-w / 2f + 1.0f, d - 1.0f), 1.6f, h.r);
-                Prop("kk_resource_lumber", p, h.At(w / 2f - 1.0f, d - 1.0f), 1.6f, -h.r);
-                Prop("kk_wheelbarrow", p, h.At(-w * 0.25f, 1.6f), 1.3f, h.r);
-                Table(p, h.At(w * 0.2f, d * 0.45f));
+                Npc(g, "Woodcarver Ansel", h, w * 0.08f, d * 0.62f);
+                Workbench(p, A(w * 0.28f, d * 0.55f), left);
+                Prop("kk_resource_lumber", p, A(-sx + 0.8f, d - 0.9f), 1.6f, right);
+                Prop("kk_resource_lumber", p, A(sx - 0.8f, d - 0.9f), 1.6f, left);
+                Prop("kk_wheelbarrow", p, A(-w * 0.28f, 1.4f), 1.3f, right);
+                Shelf(p, A(-sx, d * 0.42f), right, 1.6f, "carvings", seed);
+                Sawhorse(p, A(w * 0.28f, 1.5f), front);
                 break;
             }
         }
     }
+
     static Vector3 bankAt, bankFace, shopAt;
     static void Station(AHGame g, string kind, string name, Vector3 at, float r)
     {
@@ -753,7 +939,18 @@ public static class AHHollow
         AHSound.Play("level");
     }
 
-    // small furniture built from boxes
+    // ---------- furniture, built from shaped parts (planked wood, cloth, iron) ----------
+    static Material Wood { get { return TexMat("hw_furn", new Color(0.7f, 0.5f, 0.32f), Planks, 0.22f); } }
+    static Material DarkWood { get { return TexMat("hw_furn_dark", new Color(0.46f, 0.31f, 0.19f), Planks, 0.22f); } }
+    static Material Cloth(Color c) { return Mat("hw_cloth_" + ColorUtility.ToHtmlStringRGB(c), c, 0.05f); }
+    static Material Glow(Color c, float k = 1.2f) { return Mat("hw_glow_" + ColorUtility.ToHtmlStringRGB(c), c, 0.7f, k); }
+    static Quaternion Face(Vector3 f) { f.y = 0f; return f.sqrMagnitude > 1e-4f ? Quaternion.LookRotation(f.normalized) : Quaternion.identity; }
+    static void Part(Kit k, Material m, Mesh mesh, Vector3 at, Quaternion q, Vector3 local, Vector3 size, Quaternion? rot = null)
+    {
+        k.Add(m, mesh, TRS(at + q * local, q * (rot ?? Quaternion.identity), size));
+    }
+    static void Done(Kit k, Transform p, string name) { foreach (var r in k.Build(p, name)) AHModel.SetShadows(r.gameObject); }
+
     static GameObject Cookpot(Transform parent, int seed)
     {
         var go = new GameObject("AH_Cookpot"); go.transform.SetParent(parent, false);
@@ -762,56 +959,275 @@ public static class AHHollow
         for (int i = 0; i < 3; i++)
         {
             float a = i * Mathf.PI * 2f / 3f; Vector3 foot = new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a)) * 0.75f;
-            kit.Box(iron, TRS(foot * 0.5f + Vector3.up * 0.75f, Quaternion.FromToRotation(Vector3.up, (Vector3.up * 1.5f - foot).normalized), new Vector3(0.05f, 1.6f, 0.05f)));
+            kit.Box(iron, TRS(foot * 0.5f + Vector3.up * 0.8f, Quaternion.FromToRotation(Vector3.up, (Vector3.up * 1.6f - foot).normalized), new Vector3(0.05f, 1.7f, 0.05f)));
         }
-        kit.Add(iron, CylMesh, TRS(Vector3.up * 0.75f, Quaternion.identity, new Vector3(0.6f, 0.22f, 0.6f)));
-        kit.Add(soup, CylMesh, TRS(Vector3.up * 0.98f, Quaternion.identity, new Vector3(0.52f, 0.01f, 0.52f)));
-        kit.Box(iron, TRS(Vector3.up * 1.42f, Quaternion.identity, new Vector3(0.04f, 0.5f, 0.04f)));
-        kit.Build(go.transform, "AH_Pot");
-        foreach (Transform c in go.transform) if (c.name.StartsWith("AH_Pot")) { c.localPosition = Vector3.zero; }
+        // a round-bellied pot hung from the tripod's head, with a rolled rim and a lid half off
+        kit.Add(iron, SphMesh, TRS(Vector3.up * 0.82f, Quaternion.identity, new Vector3(0.66f, 0.52f, 0.66f)));
+        kit.Add(iron, CylMesh, TRS(Vector3.up * 1.04f, Quaternion.identity, new Vector3(0.52f, 0.03f, 0.52f)));
+        kit.Add(soup, CylMesh, TRS(Vector3.up * 1.03f, Quaternion.identity, new Vector3(0.46f, 0.02f, 0.46f)));
+        kit.Add(iron, SphMesh, TRS(new Vector3(0.18f, 1.1f, 0f), Quaternion.Euler(0, 0, 18f), new Vector3(0.36f, 0.08f, 0.36f)));
+        kit.Box(iron, TRS(Vector3.up * 1.34f, Quaternion.identity, new Vector3(0.03f, 0.55f, 0.03f)));
+        kit.Box(iron, TRS(Vector3.up * 1.08f, Quaternion.Euler(0, 0, 90f), new Vector3(0.025f, 0.62f, 0.025f)));
+        foreach (var r in kit.Build(go.transform, "AH_Pot")) { r.transform.localPosition = Vector3.zero; AHModel.SetShadows(r.gameObject); }
         return go;
     }
     static void Counter(Transform p, Hall h, float z, float len)
     {
-        var kit = new Kit(); var Q = Quaternion.LookRotation(h.b);
-        kit.Box(Mat("hw_counter", new Color(0.42f, 0.28f, 0.16f)), TRS(h.At(0, z) + Vector3.up * 0.5f, Q, new Vector3(len, 1.0f, 0.7f)));
-        kit.Box(Mat("hw_counter_top", new Color(0.58f, 0.42f, 0.26f)), TRS(h.At(0, z) + Vector3.up * 1.03f, Q, new Vector3(len + 0.1f, 0.08f, 0.85f)));
-        kit.Build(p, "AH_Counter");
+        var kit = new Kit(); var q = Face(h.b); Vector3 at = h.At(0, z) + Vector3.up * 0.1f;
+        Part(kit, DarkWood, BoxMesh, at, q, new Vector3(0, 0.5f, 0), new Vector3(len, 1.0f, 0.6f));
+        Part(kit, Wood, BoxMesh, at, q, new Vector3(0, 1.04f, 0), new Vector3(len + 0.14f, 0.08f, 0.8f));
+        for (int i = 0; i <= 4; i++) Part(kit, Wood, BoxMesh, at, q, new Vector3(-len / 2f + i * len / 4f, 0.5f, -0.31f), new Vector3(0.1f, 0.96f, 0.04f));
+        Part(kit, Wood, BoxMesh, at, q, new Vector3(0, 0.06f, -0.31f), new Vector3(len, 0.12f, 0.06f));
+        Done(kit, p, "AH_Counter");
+        // a few things on the counter
+        var k2 = new Kit();
+        Part(k2, Mat("hw_brass", new Color(0.85f, 0.65f, 0.25f), 0.7f), CylMesh, at, q, new Vector3(len * 0.3f, 1.13f, 0.05f), new Vector3(0.22f, 0.02f, 0.22f));
+        Part(k2, Cloth(new Color(0.88f, 0.84f, 0.72f)), BoxMesh, at, q, new Vector3(-len * 0.25f, 1.1f, 0.0f), new Vector3(0.32f, 0.02f, 0.24f), Quaternion.Euler(0, 12f, 0));
+        Done(k2, p, "AH_CounterTop");
     }
-    static void Table(Transform p, Vector3 at)
+    static void Table(Transform p, Vector3 at, Vector3 face, float len, float dep)
     {
-        var kit = new Kit(); Material wd = Mat("hw_table", new Color(0.5f, 0.34f, 0.2f));
-        kit.Box(wd, TRS(at + Vector3.up * 0.78f, Quaternion.identity, new Vector3(1.6f, 0.08f, 0.9f)));
-        foreach (var x in new[] { -0.7f, 0.7f }) foreach (var z in new[] { -0.35f, 0.35f }) kit.Box(wd, TRS(at + new Vector3(x, 0.38f, z), Quaternion.identity, new Vector3(0.08f, 0.76f, 0.08f)));
-        kit.Build(p, "AH_Table");
+        var kit = new Kit(); var q = Face(face); Material wd = Wood;
+        Part(kit, wd, BoxMesh, at, q, new Vector3(0, 0.76f, 0), new Vector3(len, 0.07f, dep));
+        Part(kit, DarkWood, BoxMesh, at, q, new Vector3(0, 0.66f, 0), new Vector3(len - 0.2f, 0.12f, dep - 0.2f));
+        foreach (var x in new[] { -len / 2f + 0.1f, len / 2f - 0.1f }) foreach (var z in new[] { -dep / 2f + 0.1f, dep / 2f - 0.1f })
+                Part(kit, DarkWood, BoxMesh, at, q, new Vector3(x, 0.36f, z), new Vector3(0.09f, 0.72f, 0.09f));
+        Done(kit, p, "AH_Table");
+    }
+    static void Chair(Transform p, Vector3 at, Vector3 face)
+    {
+        var kit = new Kit(); var q = Face(face); Material wd = Wood;
+        Part(kit, wd, BoxMesh, at, q, new Vector3(0, 0.46f, 0), new Vector3(0.46f, 0.05f, 0.44f));
+        foreach (var x in new[] { -0.19f, 0.19f }) foreach (var z in new[] { -0.18f, 0.18f })
+                Part(kit, DarkWood, BoxMesh, at, q, new Vector3(x, 0.22f, z), new Vector3(0.05f, 0.44f, 0.05f));
+        foreach (var x in new[] { -0.19f, 0.19f }) Part(kit, DarkWood, BoxMesh, at, q, new Vector3(x, 0.75f, -0.19f), new Vector3(0.05f, 0.58f, 0.05f));
+        foreach (var y in new[] { 0.68f, 0.92f }) Part(kit, wd, BoxMesh, at, q, new Vector3(0, y, -0.19f), new Vector3(0.42f, 0.08f, 0.03f));
+        Done(kit, p, "AH_Chair");
+    }
+    static void Bench(Transform p, Vector3 at, Vector3 face, float len)
+    {
+        var kit = new Kit(); var q = Face(face);
+        Part(kit, Wood, BoxMesh, at, q, new Vector3(0, 0.44f, 0), new Vector3(len, 0.07f, 0.38f));
+        foreach (var x in new[] { -len / 2f + 0.15f, len / 2f - 0.15f }) Part(kit, DarkWood, BoxMesh, at, q, new Vector3(x, 0.2f, 0), new Vector3(0.07f, 0.4f, 0.32f));
+        Part(kit, DarkWood, BoxMesh, at, q, new Vector3(0, 0.16f, 0), new Vector3(len - 0.3f, 0.06f, 0.06f));
+        Done(kit, p, "AH_Bench");
+    }
+    static void Bed(Transform p, Vector3 at, Vector3 face, Color blanket)
+    {
+        // 'face' points from the headboard to the foot
+        var kit = new Kit(); var q = Face(face);
+        Part(kit, DarkWood, BoxMesh, at, q, new Vector3(0, 0.25f, 0), new Vector3(1.0f, 0.18f, 2.0f));
+        foreach (var x in new[] { -0.46f, 0.46f }) foreach (var z in new[] { -0.96f, 0.96f }) Part(kit, DarkWood, BoxMesh, at, q, new Vector3(x, 0.2f, z), new Vector3(0.08f, 0.4f, 0.08f));
+        Part(kit, Wood, BoxMesh, at, q, new Vector3(0, 0.62f, -0.98f), new Vector3(1.0f, 0.75f, 0.07f));
+        Part(kit, Wood, BoxMesh, at, q, new Vector3(0, 0.45f, 0.98f), new Vector3(1.0f, 0.4f, 0.06f));
+        Part(kit, Cloth(new Color(0.9f, 0.88f, 0.8f)), BoxMesh, at, q, new Vector3(0, 0.4f, 0), new Vector3(0.9f, 0.14f, 1.88f));
+        Part(kit, Cloth(new Color(0.95f, 0.93f, 0.88f)), SphMesh, at, q, new Vector3(0, 0.5f, -0.72f), new Vector3(0.7f, 0.16f, 0.32f));
+        Part(kit, Cloth(blanket), BoxMesh, at, q, new Vector3(0, 0.49f, 0.25f), new Vector3(0.96f, 0.06f, 1.3f));
+        Part(kit, Cloth(Color.Lerp(blanket, Color.white, 0.4f)), BoxMesh, at, q, new Vector3(0, 0.5f, -0.38f), new Vector3(0.96f, 0.065f, 0.12f));
+        Done(kit, p, "AH_Bed");
+    }
+    static void Rug(Transform p, Vector3 at, Vector3 face, float w, float d, Color c)
+    {
+        var kit = new Kit(); var q = Face(face);
+        Part(kit, Cloth(Color.Lerp(c, Color.black, 0.35f)), BoxMesh, at, q, new Vector3(0, 0.008f, 0), new Vector3(w, 0.016f, d));
+        Part(kit, Cloth(c), BoxMesh, at, q, new Vector3(0, 0.012f, 0), new Vector3(w - 0.3f, 0.016f, d - 0.3f));
+        Part(kit, Cloth(Color.Lerp(c, new Color(0.95f, 0.8f, 0.45f), 0.6f)), BoxMesh, at, q, new Vector3(0, 0.016f, 0), new Vector3(w * 0.35f, 0.016f, d * 0.55f), Quaternion.Euler(0, 45f, 0));
+        foreach (Renderer r in kit.Build(p, "AH_Rug")) r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+    }
+    // a standing set of shelves (1.9 m) with things on it
+    static void Shelf(Transform p, Vector3 at, Vector3 face, float len, string theme, int seed)
+    {
+        var kit = new Kit(); var q = Face(face); var rnd = new System.Random(seed); const float dep = 0.42f, H = 1.9f;
+        foreach (var x in new[] { -len / 2f, len / 2f }) Part(kit, DarkWood, BoxMesh, at, q, new Vector3(x, H / 2f, 0), new Vector3(0.06f, H, dep));
+        Part(kit, DarkWood, BoxMesh, at, q, new Vector3(0, H / 2f, -dep / 2f + 0.02f), new Vector3(len, H, 0.03f));
+        Part(kit, DarkWood, BoxMesh, at, q, new Vector3(0, H + 0.03f, 0), new Vector3(len + 0.12f, 0.06f, dep + 0.06f));
+        float[] ys = { 0.1f, 0.58f, 1.06f, 1.54f };
+        foreach (var y in ys) Part(kit, Wood, BoxMesh, at, q, new Vector3(0, y, 0), new Vector3(len - 0.06f, 0.04f, dep - 0.04f));
+        Color[] pal = { new Color(0.7f, 0.25f, 0.2f), new Color(0.25f, 0.45f, 0.7f), new Color(0.3f, 0.6f, 0.3f), new Color(0.8f, 0.65f, 0.25f), new Color(0.55f, 0.35f, 0.6f), new Color(0.85f, 0.85f, 0.8f) };
+        for (int s = 0; s < ys.Length; s++)
+        {
+            float y0 = ys[s] + 0.02f; float x = -len / 2f + 0.12f;
+            while (x < len / 2f - 0.15f)
+            {
+                Color c = pal[rnd.Next(pal.Length)]; float step;
+                switch (theme)
+                {
+                    case "bottles":
+                    {
+                        float hgt = 0.18f + (float)rnd.NextDouble() * 0.12f;
+                        Part(kit, Glow(c, 0.9f), CylMesh, at, q, new Vector3(x, y0 + hgt / 2f, 0.02f), new Vector3(0.1f, hgt / 2f, 0.1f));
+                        Part(kit, Glow(c, 0.9f), CylMesh, at, q, new Vector3(x, y0 + hgt + 0.04f, 0.02f), new Vector3(0.04f, 0.04f, 0.04f));
+                        Part(kit, DarkWood, CylMesh, at, q, new Vector3(x, y0 + hgt + 0.09f, 0.02f), new Vector3(0.045f, 0.015f, 0.045f));
+                        step = 0.16f; break;
+                    }
+                    case "jars":
+                    {
+                        float hgt = 0.16f + (float)rnd.NextDouble() * 0.08f;
+                        Part(kit, Mat("hw_clay", new Color(0.72f, 0.5f, 0.34f), 0.3f), SphMesh, at, q, new Vector3(x, y0 + hgt / 2f, 0.02f), new Vector3(0.18f, hgt, 0.18f));
+                        Part(kit, Cloth(c), CylMesh, at, q, new Vector3(x, y0 + hgt, 0.02f), new Vector3(0.12f, 0.02f, 0.12f));
+                        step = 0.22f; break;
+                    }
+                    case "books":
+                    {
+                        int n = 3 + rnd.Next(6); float bx = x;
+                        for (int i = 0; i < n && bx < len / 2f - 0.1f; i++) { float bh = 0.22f + (float)rnd.NextDouble() * 0.1f, bw = 0.04f + (float)rnd.NextDouble() * 0.03f; Part(kit, Cloth(pal[rnd.Next(pal.Length)]), BoxMesh, at, q, new Vector3(bx, y0 + bh / 2f, 0.02f), new Vector3(bw, bh, 0.24f)); bx += bw + 0.005f; }
+                        step = bx - x + 0.12f; break;
+                    }
+                    case "ingots":
+                    {
+                        Color[] metal = { new Color(0.72f, 0.45f, 0.25f), new Color(0.6f, 0.6f, 0.62f), new Color(0.85f, 0.7f, 0.3f), new Color(0.45f, 0.45f, 0.5f) };
+                        var mm = Mat("hw_metal_" + rnd.Next(4), metal[rnd.Next(4)], 0.6f);
+                        for (int i = 0; i < 3; i++) Part(kit, mm, BoxMesh, at, q, new Vector3(x, y0 + 0.03f + i * 0.055f, 0.02f + (i % 2) * 0.04f), new Vector3(0.22f, 0.05f, 0.1f));
+                        step = 0.3f; break;
+                    }
+                    case "gems":
+                    {
+                        Part(kit, Glow(c, 1.6f), SphMesh, at, q, new Vector3(x, y0 + 0.05f, 0.02f), Vector3.one * 0.08f);
+                        Part(kit, Cloth(new Color(0.3f, 0.12f, 0.15f)), BoxMesh, at, q, new Vector3(x, y0 + 0.01f, 0.02f), new Vector3(0.14f, 0.02f, 0.14f));
+                        step = 0.2f; break;
+                    }
+                    case "cloth":
+                    {
+                        int n = 2 + rnd.Next(3);
+                        for (int i = 0; i < n; i++) Part(kit, Cloth(pal[rnd.Next(pal.Length)]), BoxMesh, at, q, new Vector3(x + 0.12f, y0 + 0.04f + i * 0.07f, 0.02f), new Vector3(0.34f, 0.065f, 0.28f));
+                        step = 0.42f; break;
+                    }
+                    case "carvings":
+                    {
+                        if (rnd.Next(2) == 0) Part(kit, Wood, SphMesh, at, q, new Vector3(x, y0 + 0.1f, 0.02f), new Vector3(0.14f, 0.2f, 0.14f));
+                        else { Part(kit, Wood, BoxMesh, at, q, new Vector3(x, y0 + 0.08f, 0.02f), new Vector3(0.1f, 0.16f, 0.1f)); Part(kit, Wood, SphMesh, at, q, new Vector3(x, y0 + 0.2f, 0.02f), Vector3.one * 0.1f); }
+                        step = 0.22f; break;
+                    }
+                    default:   // goods: boxes and little sacks
+                    {
+                        if (rnd.Next(2) == 0) { float b = 0.16f + (float)rnd.NextDouble() * 0.08f; Part(kit, Wood, BoxMesh, at, q, new Vector3(x + 0.04f, y0 + b / 2f, 0.02f), new Vector3(b + 0.06f, b, 0.26f)); step = b + 0.14f; }
+                        else { Part(kit, Cloth(new Color(0.78f, 0.68f, 0.48f)), SphMesh, at, q, new Vector3(x + 0.04f, y0 + 0.11f, 0.02f), new Vector3(0.22f, 0.24f, 0.2f)); step = 0.28f; }
+                        break;
+                    }
+                }
+                x += step;
+            }
+        }
+        Done(kit, p, "AH_Shelf");
+    }
+    static void Showcase(Transform p, Vector3 at, Vector3 face, int seed)
+    {
+        // a glass-topped display table with gems and rings on velvet
+        var kit = new Kit(); var q = Face(face); var rnd = new System.Random(seed); const float len = 1.8f, dep = 0.6f;
+        Part(kit, DarkWood, BoxMesh, at, q, new Vector3(0, 0.42f, 0), new Vector3(len, 0.84f, dep));
+        Part(kit, Cloth(new Color(0.35f, 0.08f, 0.12f)), BoxMesh, at, q, new Vector3(0, 0.86f, 0), new Vector3(len - 0.1f, 0.03f, dep - 0.1f));
+        Color[] gem = { new Color(0.3f, 0.7f, 1f), new Color(1f, 0.25f, 0.3f), new Color(0.3f, 1f, 0.45f), new Color(0.9f, 0.5f, 1f), new Color(1f, 0.85f, 0.3f) };
+        for (int i = 0; i < 6; i++) Part(kit, Glow(gem[rnd.Next(gem.Length)], 1.6f), SphMesh, at, q, new Vector3(-len / 2f + 0.2f + i * 0.28f, 0.92f, (i % 2 - 0.5f) * 0.2f), Vector3.one * 0.07f);
+        Part(kit, Mat("hw_glass", new Color(0.75f, 0.9f, 1f), 0.95f, 0.05f), BoxMesh, at, q, new Vector3(0, 1.0f, 0), new Vector3(len, 0.02f, dep));
+        foreach (var x in new[] { -len / 2f, len / 2f }) foreach (var z in new[] { -dep / 2f, dep / 2f }) Part(kit, Mat("hw_brass", new Color(0.85f, 0.65f, 0.25f), 0.7f), BoxMesh, at, q, new Vector3(x, 0.93f, z), new Vector3(0.04f, 0.16f, 0.04f));
+        Done(kit, p, "AH_Showcase");
+    }
+    static void Food(Transform p, Vector3 at, Vector3 face, float len, int seed)
+    {
+        var kit = new Kit(); var q = Face(face); var rnd = new System.Random(seed);
+        Material bread = Mat("hw_bread", new Color(0.78f, 0.52f, 0.25f), 0.2f), plate = Mat("hw_plate", new Color(0.88f, 0.86f, 0.8f), 0.4f), apple = Mat("hw_apple", new Color(0.75f, 0.15f, 0.12f), 0.5f), cheese = Mat("hw_cheese", new Color(0.95f, 0.8f, 0.3f), 0.3f);
+        for (float x = -len / 2f + 0.2f; x < len / 2f - 0.15f; x += 0.42f)
+        {
+            Part(kit, plate, CylMesh, at, q, new Vector3(x, 0.01f, 0), new Vector3(0.26f, 0.01f, 0.26f));
+            int k = rnd.Next(3);
+            if (k == 0) Part(kit, bread, SphMesh, at, q, new Vector3(x, 0.07f, 0), new Vector3(0.24f, 0.11f, 0.15f));
+            else if (k == 1) for (int i = 0; i < 3; i++) Part(kit, apple, SphMesh, at, q, new Vector3(x + (i - 1) * 0.07f, 0.05f, (i % 2) * 0.05f), Vector3.one * 0.075f);
+            else Part(kit, cheese, CylMesh, at, q, new Vector3(x, 0.05f, 0), new Vector3(0.18f, 0.04f, 0.18f));
+        }
+        Part(kit, Mat("hw_clay", new Color(0.72f, 0.5f, 0.34f), 0.3f), SphMesh, at, q, new Vector3(len / 2f - 0.15f, 0.11f, 0.2f), new Vector3(0.16f, 0.22f, 0.16f));
+        Done(kit, p, "AH_Food");
+    }
+    static void Candles(Transform p, Vector3 at)
+    {
+        var kit = new Kit(); Material wax = Mat("hw_wax", new Color(0.95f, 0.92f, 0.82f), 0.3f), flame = Glow(new Color(1f, 0.75f, 0.35f), 3f);
+        for (int i = 0; i < 3; i++) { Vector3 o = new Vector3((i - 1) * 0.07f, 0, (i % 2) * 0.05f); float hgt = 0.12f + i * 0.04f; kit.Add(wax, CylMesh, TRS(at + o + Vector3.up * hgt / 2f, Quaternion.identity, new Vector3(0.04f, hgt / 2f, 0.04f))); kit.Add(flame, SphMesh, TRS(at + o + Vector3.up * (hgt + 0.025f), Quaternion.identity, new Vector3(0.025f, 0.05f, 0.025f))); }
+        Done(kit, p, "AH_Candles");
+    }
+    static void Book(Transform p, Vector3 at, Vector3 face, Color c)
+    {
+        var kit = new Kit(); var q = Face(face);
+        Part(kit, Cloth(c), BoxMesh, at, q, new Vector3(0, 0.025f, 0), new Vector3(0.34f, 0.05f, 0.26f), Quaternion.Euler(0, 15f, 0));
+        Part(kit, Cloth(new Color(0.93f, 0.9f, 0.8f)), BoxMesh, at, q, new Vector3(0, 0.03f, 0.005f), new Vector3(0.32f, 0.04f, 0.24f), Quaternion.Euler(0, 15f, 0));
+        Done(kit, p, "AH_Book");
+    }
+    static void Coins(Transform p, Vector3 at, int seed)
+    {
+        var kit = new Kit(); var rnd = new System.Random(seed); var gold = Mat("hw_gold", new Color(0.95f, 0.75f, 0.25f), 0.8f, 0.15f);
+        for (int s = 0; s < 4; s++) { Vector3 o = new Vector3((s - 1.5f) * 0.18f, 0, (s % 2) * 0.12f); int n = 3 + rnd.Next(6); for (int i = 0; i < n; i++) kit.Add(gold, CylMesh, TRS(at + o + Vector3.up * (0.012f + i * 0.022f), Quaternion.identity, new Vector3(0.1f, 0.01f, 0.1f))); }
+        Done(kit, p, "AH_Coins");
+    }
+    static void Pillar(Transform p, Vector3 at)
+    {
+        var kit = new Kit(); var st = TexMat("hw_base", new Color(0.7f, 0.66f, 0.6f), Bricks);
+        kit.Box(st, TRS(at + Vector3.up * 0.15f, Quaternion.identity, new Vector3(0.6f, 0.3f, 0.6f)));
+        kit.Box(st, TRS(at + Vector3.up * 1.7f, Quaternion.identity, new Vector3(0.4f, 2.8f, 0.4f)));
+        Done(kit, p, "AH_Pillar");
+    }
+    static void Trough(Transform p, Vector3 at, Vector3 face)
+    {
+        var kit = new Kit(); var q = Face(face);
+        Part(kit, DarkWood, BoxMesh, at, q, new Vector3(0, 0.3f, 0), new Vector3(1.3f, 0.6f, 0.6f));
+        Part(kit, Mat("hw_water", new Color(0.2f, 0.4f, 0.5f), 0.95f), BoxMesh, at, q, new Vector3(0, 0.58f, 0), new Vector3(1.15f, 0.04f, 0.45f));
+        Part(kit, Mat("hw_iron", new Color(0.15f, 0.15f, 0.17f), 0.4f), BoxMesh, at, q, new Vector3(0.3f, 0.75f, 0), new Vector3(0.05f, 0.4f, 0.05f), Quaternion.Euler(0, 0, 25f));
+        Done(kit, p, "AH_Trough");
+    }
+    static void CoalHeap(Transform p, Vector3 at)
+    {
+        var kit = new Kit(); var coal = Mat("hw_coal", new Color(0.09f, 0.08f, 0.08f), 0.3f); var rnd = new System.Random(5);
+        for (int i = 0; i < 14; i++) { float a = (float)rnd.NextDouble() * 6.28f, r = (float)rnd.NextDouble() * 0.35f; kit.Add(coal, SphMesh, TRS(at + new Vector3(Mathf.Cos(a) * r, 0.06f + (0.35f - r) * 0.4f, Mathf.Sin(a) * r), Quaternion.Euler(0, a * 57f, 0), new Vector3(0.16f, 0.12f, 0.14f))); }
+        Done(kit, p, "AH_Coal");
+    }
+    static void Workbench(Transform p, Vector3 at, Vector3 face)
+    {
+        Table(p, at, face, 2.0f, 0.9f);
+        var kit = new Kit(); var q = Face(face); Material iron = Mat("hw_iron", new Color(0.15f, 0.15f, 0.17f), 0.4f);
+        Part(kit, Wood, BoxMesh, at, q, new Vector3(-0.5f, 0.86f, 0), new Vector3(0.6f, 0.12f, 0.2f));     // a half-carved block
+        Part(kit, iron, BoxMesh, at, q, new Vector3(0.2f, 0.81f, 0.15f), new Vector3(0.3f, 0.02f, 0.05f), Quaternion.Euler(0, 30f, 0));   // chisel
+        Part(kit, DarkWood, BoxMesh, at, q, new Vector3(0.45f, 0.83f, -0.1f), new Vector3(0.08f, 0.06f, 0.35f));   // mallet handle
+        Part(kit, DarkWood, BoxMesh, at, q, new Vector3(0.45f, 0.86f, 0.08f), new Vector3(0.16f, 0.12f, 0.12f));
+        Part(kit, Mat("hw_shavings", new Color(0.92f, 0.78f, 0.55f), 0.1f), SphMesh, at, q, new Vector3(0f, 0.8f, -0.2f), new Vector3(0.3f, 0.03f, 0.2f));
+        Done(kit, p, "AH_Tools");
+    }
+    static void Sawhorse(Transform p, Vector3 at, Vector3 face)
+    {
+        var kit = new Kit(); var q = Face(face);
+        Part(kit, Wood, BoxMesh, at, q, new Vector3(0, 0.62f, 0), new Vector3(1.2f, 0.1f, 0.12f));
+        foreach (var x in new[] { -0.5f, 0.5f }) foreach (var s in new[] { -1f, 1f }) Part(kit, DarkWood, BoxMesh, at, q, new Vector3(x, 0.31f, s * 0.12f), new Vector3(0.07f, 0.66f, 0.07f), Quaternion.Euler(s * 18f, 0, 0));
+        Part(kit, Wood, BoxMesh, at, q, new Vector3(0.1f, 0.74f, 0), new Vector3(1.6f, 0.12f, 0.22f), Quaternion.Euler(0, 8f, 0));   // a plank across it
+        Done(kit, p, "AH_Sawhorse");
     }
     static void Mirror(Transform p, Vector3 at, Vector3 face)
     {
-        var kit = new Kit(); var Q = Quaternion.LookRotation(face);
-        kit.Box(Mat("hw_timber", new Color(0.30f, 0.20f, 0.12f)), TRS(at + Vector3.up * 1.5f, Q, new Vector3(1.0f, 1.4f, 0.08f)));
-        kit.Box(Mat("hw_mirror", new Color(0.75f, 0.85f, 0.95f), 0.95f, 0.15f), TRS(at + Vector3.up * 1.5f + face * 0.05f, Q, new Vector3(0.8f, 1.2f, 0.02f)));
-        kit.Build(p, "AH_Mirror");
+        var kit = new Kit(); var q = Face(face); at += Vector3.up * 0.1f;
+        Part(kit, DarkWood, BoxMesh, at, q, new Vector3(0, 0.45f, 0.1f), new Vector3(1.0f, 0.9f, 0.4f));   // a dresser under it
+        Part(kit, Wood, BoxMesh, at, q, new Vector3(0, 0.92f, 0.1f), new Vector3(1.06f, 0.05f, 0.44f));
+        Part(kit, DarkWood, BoxMesh, at, q, new Vector3(0, 1.55f, 0), new Vector3(0.84f, 1.2f, 0.06f));
+        Part(kit, Mat("hw_mirror", new Color(0.75f, 0.85f, 0.95f), 0.95f, 0.12f), BoxMesh, at, q, new Vector3(0, 1.55f, 0.035f), new Vector3(0.7f, 1.05f, 0.02f));
+        Done(kit, p, "AH_Mirror");
     }
     static void HideRack(Transform p, Vector3 at, Vector3 face)
     {
-        var kit = new Kit(); var Q = Quaternion.LookRotation(face); Vector3 side = Vector3.Cross(Vector3.up, face);
-        Material wd = Mat("hw_timber", new Color(0.30f, 0.20f, 0.12f)), hide = Mat("hw_hide", new Color(0.62f, 0.44f, 0.28f));
-        foreach (var x in new[] { -0.8f, 0.8f }) kit.Box(wd, TRS(at + side * x + Vector3.up * 0.9f, Q, new Vector3(0.1f, 1.8f, 0.1f)));
-        kit.Box(wd, TRS(at + Vector3.up * 1.75f, Q, new Vector3(1.7f, 0.1f, 0.1f)));
-        kit.Box(hide, TRS(at + Vector3.up * 1.05f, Q * Quaternion.Euler(0, 0, 4f), new Vector3(1.3f, 1.25f, 0.03f)));
-        kit.Build(p, "AH_HideRack");
+        var kit = new Kit(); var q = Face(face);
+        Material hide = Mat("hw_hide", new Color(0.62f, 0.44f, 0.28f), 0.2f), rope = Mat("hw_rope", new Color(0.8f, 0.7f, 0.5f));
+        foreach (var x in new[] { -0.85f, 0.85f }) Part(kit, DarkWood, BoxMesh, at, q, new Vector3(x, 0.95f, 0), new Vector3(0.1f, 1.9f, 0.1f));
+        foreach (var y in new[] { 0.35f, 1.8f }) Part(kit, DarkWood, BoxMesh, at, q, new Vector3(0, y, 0), new Vector3(1.8f, 0.09f, 0.09f));
+        Part(kit, hide, SphMesh, at, q, new Vector3(0, 1.07f, 0), new Vector3(1.35f, 1.2f, 0.05f));
+        for (int i = 0; i < 4; i++) Part(kit, rope, BoxMesh, at, q, new Vector3(-0.7f + i * 0.47f, 1.72f, 0), new Vector3(0.02f, 0.14f, 0.02f));
+        Done(kit, p, "AH_HideRack");
     }
     static void Hearth(Transform p, Vector3 at, Vector3 face)
     {
-        var kit = new Kit(); var Q = Quaternion.LookRotation(face); Vector3 side = Vector3.Cross(Vector3.up, face);
-        Material st = Mat("hw_base", new Color(0.52f, 0.49f, 0.45f)), soot = Mat("hw_soot", new Color(0.12f, 0.1f, 0.09f));
-        kit.Box(st, TRS(at + side * 0.9f + Vector3.up * 0.7f, Q, new Vector3(0.5f, 1.4f, 0.9f)));
-        kit.Box(st, TRS(at - side * 0.9f + Vector3.up * 0.7f, Q, new Vector3(0.5f, 1.4f, 0.9f)));
-        kit.Box(st, TRS(at + Vector3.up * 1.6f, Q, new Vector3(2.4f, 0.45f, 1.0f)));
-        kit.Box(soot, TRS(at - face * 0.3f + Vector3.up * 0.7f, Q, new Vector3(1.3f, 1.4f, 0.1f)));
-        kit.Box(st, TRS(at + face * 0.2f + Vector3.up * 0.06f, Q, new Vector3(2.6f, 0.12f, 1.4f)));
-        kit.Build(p, "AH_Hearth");
-        AHStations.Flames(p, at + Vector3.up * 0.15f, 0.55f, 4, new System.Random(3));
+        var kit = new Kit(); var q = Face(face); var st = TexMat("hw_base", new Color(0.7f, 0.66f, 0.6f), Bricks); var soot = Mat("hw_soot", new Color(0.12f, 0.1f, 0.09f));
+        Part(kit, st, BoxMesh, at, q, new Vector3(-0.95f, 0.75f, 0), new Vector3(0.55f, 1.5f, 0.9f));
+        Part(kit, st, BoxMesh, at, q, new Vector3(0.95f, 0.75f, 0), new Vector3(0.55f, 1.5f, 0.9f));
+        Part(kit, st, BoxMesh, at, q, new Vector3(0, 1.72f, 0), new Vector3(2.5f, 0.45f, 1.0f));
+        Part(kit, Wood, BoxMesh, at, q, new Vector3(0, 1.98f, 0.1f), new Vector3(2.7f, 0.1f, 0.8f));
+        Part(kit, soot, BoxMesh, at, q, new Vector3(0, 0.75f, -0.35f), new Vector3(1.4f, 1.5f, 0.1f));
+        Part(kit, st, BoxMesh, at, q, new Vector3(0, 0.06f, 0.25f), new Vector3(2.7f, 0.12f, 1.4f));
+        for (int i = 0; i < 3; i++) Part(kit, Mat("bark_hw", new Color(0.35f, 0.22f, 0.12f)), CylMesh, at, q, new Vector3((i - 1) * 0.25f, 0.22f, -0.05f), new Vector3(0.14f, 0.45f, 0.14f), Quaternion.Euler(0, 0, 90f));
+        Done(kit, p, "AH_Hearth");
+        AHStations.Flames(p, at + Vector3.up * 0.25f, 0.6f, 5, new System.Random(3));
+        Candles(p, at + q * new Vector3(-0.8f, 2.03f, 0.1f)); Candles(p, at + q * new Vector3(0.8f, 2.03f, 0.1f));
     }
 
     // ---------- lamps along the streets and round the square ----------

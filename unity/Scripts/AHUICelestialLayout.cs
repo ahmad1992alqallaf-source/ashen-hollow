@@ -200,12 +200,23 @@ public partial class AHUI
             Img("Rim", pb, ornRing, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(52, 52), Color.white);
             taps.Add(new TapBtn { rt = pb, act = OpenPass });
         }
-        slide.Clear(); slideHome.Clear(); slideHidden = false; if (slideBtn != null) { slideBtn.gameObject.SetActive(false); taps.RemoveAll(t => t.rt == slideBtn); }
+        // they slide away to the right behind the minimap (and back) with the little glass tab under them
+        slide.Clear(); slideHome.Clear();
         for (int i = 0; i < col.Length; i++)
         {
             var b = FindUI(col[i][0]); if (b == null) continue;
             CGRoundIcon(b, 49f, col[i][1], glassFace);
             Place(b, new Vector2(1, 1), new Vector2(0.5f, 0.5f), M(-(158 + 19), -(14 + 19 + i * 46)), new Vector2(49, 49));
+            slide.Add(b); slideHome[b] = b.anchoredPosition;
+        }
+        if (slideBtn != null)
+        {
+            slideBtn.gameObject.SetActive(true);
+            Place(slideBtn, new Vector2(1, 1), new Vector2(0.5f, 0.5f), M(-(158 + 19), -(14 + 19 + col.Length * 46 - 8)), new Vector2(40, 26));
+            var si = slideBtn.GetComponent<Image>(); si.sprite = cgPillGlass != null ? cgPillGlass : si.sprite; si.type = Image.Type.Sliced; si.color = Color.white;
+            var sr = slideBtn.Find("Rim"); if (sr != null) sr.gameObject.SetActive(false);
+            if (slideText != null) { slideText.fontSize = 14; slideText.color = new Color(0.93f, 0.96f, 1f); slideText.rectTransform.sizeDelta = new Vector2(40, 24); }
+            if (!taps.Exists(t => t.rt == slideBtn)) taps.Insert(0, new TapBtn { rt = slideBtn, act = () => { slideHidden = !slideHidden; try { AHPrefs.SetInt("ah_set_hud_tucked", slideHidden ? 1 : 0); } catch { } } });
         }
         // Daily and the event, plain words under the minimap
         int ci = 0;
