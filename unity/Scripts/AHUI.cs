@@ -93,6 +93,10 @@ public partial class AHUI : MonoBehaviour
         {
             float a = (float)Screen.width / Screen.height, m = Mathf.InverseLerp(1.3f, 1.75f, a);
             if (Mathf.Abs(sc.matchWidthOrHeight - m) > 0.001f) { sc.matchWidthOrHeight = m; safeNow = new Rect(-1, -1, 0, 0); }
+            // very wide phones (20:9 and longer) are short for their width: the HUD is drawn a little smaller there so
+            // the buttons on the right have room between them
+            float refH = a >= 2.05f ? 680f : a >= 1.9f ? 650f : 620f;
+            if (Mathf.Abs(sc.referenceResolution.y - refH) > 0.5f) { sc.referenceResolution = new Vector2(1100f, refH); safeNow = new Rect(-1, -1, 0, 0); }
         }
         Rect sa = Screen.safeArea; if (sa == safeNow || Screen.width <= 0 || Screen.height <= 0) return;
         safeNow = sa;

@@ -69,6 +69,7 @@ public partial class AHUI
     }
 
     static Vector2 M(float x, float y) { return new Vector2(x * K, y * K); }   // design px -> HUD units
+    public static Vector2 QuickRow(int i) { return new Vector2(-140f - i * 54f, 278f); }   // heal, mana, food, elixir
     static void Shade(Text t) { if (t == null || t.GetComponent<Shadow>() != null) return; var s = t.gameObject.AddComponent<Shadow>(); s.effectColor = new Color(0f, 0f, 0f, 0.75f); s.effectDistance = new Vector2(1f, -1.5f); }
     static void Place(RectTransform r, Vector2 anchor, Vector2 pivot, Vector2 pos, Vector2 size) { if (r == null) return; r.anchorMin = r.anchorMax = anchor; r.pivot = pivot; r.anchoredPosition = pos; r.sizeDelta = size; }
     Text CGText(Transform parent, string name, int size, TextAnchor a, Vector2 pos, Vector2 box, Color c) { var t = Label(parent, name, "", size, a, pos, box, c); t.font = MainFont; Shade(t); return t; }
@@ -206,17 +207,20 @@ public partial class AHUI
         for (int i = 0; i < col.Length; i++)
         {
             var b = FindUI(col[i][0]); if (b == null) continue;
-            CGRoundIcon(b, 49f, col[i][1], glassFace);
-            Place(b, new Vector2(1, 1), new Vector2(0.5f, 0.5f), M(-(158 + 19), -(14 + 19 + i * 46)), new Vector2(49, 49));
+            // a compact column (it used to run down into the potions on wide phones)
+            CGRoundIcon(b, 44f, col[i][1], glassFace);
+            Place(b, new Vector2(1, 1), new Vector2(0.5f, 0.5f), new Vector2(-228f, -42f - i * 50f), new Vector2(44, 44));
             slide.Add(b); slideHome[b] = b.anchoredPosition;
         }
         if (slideBtn != null)
         {
             slideBtn.gameObject.SetActive(true);
-            Place(slideBtn, new Vector2(1, 1), new Vector2(0.5f, 0.5f), M(-(158 + 19), -(14 + 19 + col.Length * 46 - 8)), new Vector2(40, 26));
+            // a small tab right under the column: the column slides up out of sight and the tab rises after it
+            Place(slideBtn, new Vector2(1, 1), new Vector2(0.5f, 0.5f), new Vector2(-228f, -42f - (col.Length - 1) * 50f - 37f), new Vector2(32, 16));
+            slideHome[slideBtn] = slideBtn.anchoredPosition;
             var si = slideBtn.GetComponent<Image>(); si.sprite = cgPillGlass != null ? cgPillGlass : si.sprite; si.type = Image.Type.Sliced; si.color = Color.white;
             var sr = slideBtn.Find("Rim"); if (sr != null) sr.gameObject.SetActive(false);
-            if (slideText != null) { slideText.fontSize = 14; slideText.color = new Color(0.93f, 0.96f, 1f); slideText.rectTransform.sizeDelta = new Vector2(40, 24); }
+            if (slideText != null) { slideText.fontSize = 10; slideText.color = new Color(0.93f, 0.96f, 1f); slideText.rectTransform.sizeDelta = new Vector2(32, 16); }
             if (!taps.Exists(t => t.rt == slideBtn)) taps.Insert(0, new TapBtn { rt = slideBtn, act = () => { slideHidden = !slideHidden; try { AHPrefs.SetInt("ah_set_hud_tucked", slideHidden ? 1 : 0); } catch { } } });
         }
         // Daily and the event, plain words under the minimap
@@ -268,13 +272,15 @@ public partial class AHUI
             if (sb.icon != null) sb.icon.rectTransform.sizeDelta = new Vector2(58, 58);
         }
         var dodge = dodgeBtn; if (dodge != null) { CGRoundIcon(dodge, 59f, "dodge", glassFace); Place(dodge, new Vector2(1, 0), new Vector2(0.5f, 0.5f), new Vector2(-290f, 40f), new Vector2(59, 59)); }
-        foreach (var kv in new[] { new object[] { "PotHeal", new Vector2(-186f, 268f), new Color(1f, 0.54f, 0.54f) }, new object[] { "PotMana", new Vector2(-245f, 243f), new Color(0.56f, 0.76f, 1f) } })
+        // potions and the quick buttons sit in one row over the skill arc (health nearest the thumb, then mana, food,
+        // elixir), clear of the skills and of the column under the minimap
+        foreach (var kv in new[] { new object[] { "PotHeal", QuickRow(0), new Color(1f, 0.54f, 0.54f) }, new object[] { "PotMana", QuickRow(1), new Color(0.56f, 0.76f, 1f) } })
         {
             var b = FindUI((string)kv[0]); if (b == null) continue;
-            b.sizeDelta = new Vector2(52, 52); b.anchoredPosition = (Vector2)kv[1];
+            b.sizeDelta = new Vector2(50, 50); b.anchoredPosition = (Vector2)kv[1];
             var im = b.GetComponent<Image>(); im.sprite = ornDisc; im.color = glassFace;
-            var r = b.Find("Rim") as RectTransform; if (r != null) r.sizeDelta = new Vector2(55, 55);
-            var cool = b.Find("Cool") as RectTransform; if (cool != null) cool.sizeDelta = new Vector2(48, 48);
+            var r = b.Find("Rim") as RectTransform; if (r != null) r.sizeDelta = new Vector2(53, 53);
+            var cool = b.Find("Cool") as RectTransform; if (cool != null) cool.sizeDelta = new Vector2(46, 46);
             var t = b.Find("T"); if (t != null) t.gameObject.SetActive(false);
             var ic = Img("CGIcon", b, CGIcon("potion"), new Vector2(0.5f, 0.5f), new Vector2(0, 3), new Vector2(24, 24), (Color)kv[2]); ic.GetComponent<Image>().preserveAspect = true;
             var nT = b.Find("N") as RectTransform; if (nT != null) { nT.anchoredPosition = new Vector2(14, -14); var tt = nT.GetComponent<Text>(); tt.fontSize = 13; tt.fontStyle = FontStyle.Bold; tt.color = Color.white; Shade(tt); }

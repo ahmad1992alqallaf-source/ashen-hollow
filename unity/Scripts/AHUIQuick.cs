@@ -65,13 +65,13 @@ public partial class AHUI
     void BuildQuick(Color glassFace)
     {
         if (quickBtns.Count > 0) return;
-        foreach (var def in new[] { new object[] { "food", "PotFood", new Vector2(-128f, 290f), new Color(1f, 0.78f, 0.45f) }, new object[] { "buff", "PotBuff", new Vector2(-303f, 210f), new Color(0.85f, 0.6f, 1f) } })
+        foreach (var def in new[] { new object[] { "food", "PotFood", QuickRow(2), new Color(1f, 0.78f, 0.45f) }, new object[] { "buff", "PotBuff", QuickRow(3), new Color(0.85f, 0.6f, 1f) } })
         {
             var q = new QuickBtn { slot = (string)def[0] };
-            q.rt = Img((string)def[1], transform, ornDisc != null ? ornDisc : circle, new Vector2(1, 0), (Vector2)def[2], new Vector2(52, 52), glassFace);
-            Img("Rim", q.rt, ring, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(55, 55), (Color)def[3]);
-            q.icon = Img("Icon", q.rt, white, new Vector2(0.5f, 0.5f), new Vector2(0, 2), new Vector2(34, 34), Color.white).GetComponent<Image>(); q.icon.preserveAspect = true;
-            q.cool = Img("Cool", q.rt, circle, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(48, 48), new Color(0f, 0f, 0f, 0.55f)).GetComponent<Image>();
+            q.rt = Img((string)def[1], transform, ornDisc != null ? ornDisc : circle, new Vector2(1, 0), (Vector2)def[2], new Vector2(50, 50), glassFace);
+            Img("Rim", q.rt, ring, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(53, 53), (Color)def[3]);
+            q.icon = Img("Icon", q.rt, white, new Vector2(0.5f, 0.5f), new Vector2(0, 2), new Vector2(32, 32), Color.white).GetComponent<Image>(); q.icon.preserveAspect = true;
+            q.cool = Img("Cool", q.rt, circle, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(46, 46), new Color(0f, 0f, 0f, 0.55f)).GetComponent<Image>();
             q.cool.type = Image.Type.Filled; q.cool.fillMethod = Image.FillMethod.Radial360; q.cool.fillOrigin = (int)Image.Origin360.Top; q.cool.fillClockwise = false; q.cool.fillAmount = 0f;
             q.n = Label(q.rt, "N", "0", 13, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(30, 18), Color.white); q.n.fontStyle = FontStyle.Bold; Shade(q.n);
             q.n.rectTransform.anchorMin = q.n.rectTransform.anchorMax = new Vector2(0.5f, 0.5f); q.n.rectTransform.anchoredPosition = new Vector2(14, -14);

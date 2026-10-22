@@ -367,8 +367,19 @@ public partial class AHUI
         // the top row slides away to the right (and back) with the arrow
         slideK = Mathf.MoveTowards(slideK, slideHidden ? 1f : 0f, Time.unscaledDeltaTime * 4f);
         float ease = slideK * slideK * (3f - 2f * slideK);
-        foreach (var r in slide) { Vector2 h; if (r != null && slideHome.TryGetValue(r, out h)) r.anchoredPosition = h + new Vector2(520f * ease, 0f); }
-        if (slideText != null) slideText.text = slideHidden ? "◀" : "▶";
+        Vector2 tabHome; bool up = slideBtn != null && slideHome.TryGetValue(slideBtn, out tabHome);
+        if (up)
+        {
+            // the column under the minimap slides up out of sight, and the little tab rises to the top edge after it
+            foreach (var r in slide) { Vector2 h; if (r != null && slideHome.TryGetValue(r, out h)) r.anchoredPosition = h + new Vector2(0f, 340f * ease); }
+            slideBtn.anchoredPosition = tabHome + new Vector2(0f, Mathf.Max(0f, -tabHome.y - 14f) * ease);
+            if (slideText != null) slideText.text = slideHidden ? "▼" : "▲";
+        }
+        else
+        {
+            foreach (var r in slide) { Vector2 h; if (r != null && slideHome.TryGetValue(r, out h)) r.anchoredPosition = h + new Vector2(520f * ease, 0f); }
+            if (slideText != null) slideText.text = slideHidden ? "◀" : "▶";
+        }
         if (AHAuto.On && autoText != null) autoText.color = Color.Lerp(new Color(0.6f, 1f, 0.6f), Color.white, 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 5f));
     }
 }
