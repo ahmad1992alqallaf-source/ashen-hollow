@@ -49,7 +49,7 @@ public partial class AHUI
 
     public void ShowWork(bool on)
     {
-        if (!on) { AHItemStudio.StopHero(); EndStorePreview(); }
+        if (!on) { AHItemStudio.StopHero(); EndStorePreview(); hubFrom = null; }
         if (wkRoot == null) return;
         if (on) { ShowBag(false); ShowDialog(false); }
         wkRoot.gameObject.SetActive(on);
@@ -64,6 +64,8 @@ public partial class AHUI
         if (!WorkOpen) return;
         // M closes the map again, B closes any window (Escape too)
         if ((wkMode == "map" && AHInput.MapKey()) || AHInput.BagKey()) { ShowWork(false); workShutFrame = Time.frameCount; return; }
+        if (AHInput.BackKey() && wkMode == "hubcat") { wkMode = "hub"; wkPageI = 0; RenderWork(); return; }
+        if (AHInput.BackKey() && hubFrom != null && wkMode != "hub") { hubCat = hubFrom; hubFrom = null; wkMode = "hubcat"; wkPageI = 0; RenderWork(); return; }
         if (AHInput.BackKey()) { if (wkMode == "prof" && wkProf != null) { wkProf = null; wkPageI = 0; RenderWork(); } else ShowWork(false); }
 #if ENABLE_INPUT_SYSTEM
         var kb = UnityEngine.InputSystem.Keyboard.current;
@@ -204,6 +206,7 @@ public partial class AHUI
         else if (wkMode == "orders") RenderOrders(p);
         else if (wkMode == "farm") RenderFarm(p);
         else if (wkMode == "hub") RenderHub(p);
+        else if (wkMode == "hubcat") RenderHubCat(p);
         else if (wkMode == "finder") RenderFinder(p);
         else if (wkMode == "board") RenderBoard(p);
         else if (wkMode == "rep") RenderRepList(p);
@@ -242,6 +245,7 @@ public partial class AHUI
         else if (wkMode == "loadouts") RenderLoadouts(p);
         else if (wkMode == "world") RenderRealm(p);
         else RenderProf(p);
+        HubBack();           // opened from the menu: a way back to its page
         Celestial(wkRoot);   // Celestial Glass
     }
 

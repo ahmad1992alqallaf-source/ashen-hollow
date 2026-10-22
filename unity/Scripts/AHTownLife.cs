@@ -654,6 +654,9 @@ public class AHTownLife : MonoBehaviour
         else if (what == "draft" && I.drafts.Count > 0) { var p = AHGame.I.player; Vector3 d = I.drafts[0]; p.transform.position = d + (C - d).normalized * 5f; }
         else if (what.StartsWith("race")) AHRace.Test(what.Substring(4).Trim());
         else if (what == "cards") AHTable.OpenCards(AHGame.I);
+        else if (what == "hub") AHGame.I.ui.OpenHub();
+        else if (what.StartsWith("hub:")) AHGame.I.ui.OpenHubCat(what.Substring(4));
+        else if (what.StartsWith("tile:")) AHGame.I.ui.TestTile(what.Substring(5));
         else if (what == "dice") AHTable.OpenDice(AHGame.I);
         else if (what == "arm") AHTable.OpenArm(AHGame.I);
         else if (what == "duel") AHRanked.Begin(AHGame.I, AHRanked.Challengers()[0], false);
