@@ -23,7 +23,8 @@ public class AHWingRig : MonoBehaviour
     Pace P;
     // spring state for each joint: [flap, lift, fold] angles and their velocities
     readonly float[] ang = new float[9], spd = new float[9];
-    public static float TestAir, TestRun; public static bool TestStretch;   // tests: force a flight, a run, a stretch
+    public static float TestAir, TestRun; public static bool TestStretch;
+    public static bool Gliding;   // the hero is riding an updraft (AHPlayer): wings spread   // tests: force a flight, a run, a stretch
     // a modelled wing (the crest wings): its wrist and tip are found on the mesh rather than assumed
     public bool fromMesh;
     // how this kind of wing moves: "feather" (the default), "membrane" (bat and dragon wings: slow, deep, a long wave
@@ -151,7 +152,7 @@ public class AHWingRig : MonoBehaviour
         walk = Mathf.Lerp(walk, mv && flat < 4.2f ? 1f : 0f, k);
         run = Mathf.Lerp(run, (mv && flat >= 4.2f) || TestRun > 0f ? 1f : 0f, k);
         air = Mathf.Lerp(air, !riding && Mathf.Abs(vel.y) > 2.6f ? 1f : 0f, 1f - Mathf.Exp(-dt * (Mathf.Abs(vel.y) > 2.6f ? 4f : 1.5f)));
-        if (TestAir > 0f) air = Mathf.Lerp(air, 1f, 1f - Mathf.Exp(-dt * 4f));   // (a slope walked up is not flight)
+        if (TestAir > 0f || Gliding) air = Mathf.Lerp(air, 1f, 1f - Mathf.Exp(-dt * 4f));   // (a slope walked up is not flight)
 
         // ---- what makes it alive rather than a machine ----
         // each kind of wing has its own build

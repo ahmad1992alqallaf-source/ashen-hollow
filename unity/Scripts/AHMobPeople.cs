@@ -29,6 +29,15 @@ public static class AHMobPeople
             kit = new[] { "raptor_hood", "verdant_mantle", "mossweave_chest", null, null, null, null } } },
         { "t_priest", new Look { body = "qMalePeasant", parts = new[] { "qHead_Male", "qHair_Beard", "qEyebrows_Regular" }, hair = 0x1a1410, wm = "Mage_t", main = "2H_Staff", off = null, caster = true,
             kit = new[] { "gold_crown", "sun_mantle", "sunpriest_chest", null, null, null, "desert_veil" } } },
+        // the ranked arena's rival heroes (AHRanked), one for each kind of fighter
+        { "rival_warrior", new Look { body = "qMaleRanger", parts = new[] { "qHead_Male", "qHair_Buzzed", "qEyebrows_Regular" }, hair = 0x3a2416, wm = "Knight_t", main = "1H_Sword", off = "Round_Shield",
+            kit = new[] { "steel_helm", "steel_pauldrons", "steel_plate", "iron_gauntlets", null, "steel_boots", "guild_cape" } } },
+        { "rival_mage", new Look { body = "qFemalePeasant", parts = new[] { "qHead_Female", "qHair_Long", "qEyebrows_Female" }, hair = 0xd8d0c4, wm = "Mage_t", main = "2H_Staff", off = null, caster = true,
+            kit = new[] { "silk_hood", "silk_mantle", "arcane_robe", null, null, "silk_boots", "frost_cloak" } } },
+        { "rival_rogue", new Look { body = "qMaleRanger", hood = true, parts = new[] { "qHead_Male", "qHair_SimpleParted", "qEyebrows_Regular" }, hair = 0x1e1612, wm = "Knight_t", main = "1H_Sword", off = "1H_Sword_Offhand",
+            kit = new[] { "wolf_hood", null, "leather_vest", "boar_gloves", null, "shadow_boots", "wolf_cloak" } } },
+        { "rival_priest", new Look { body = "qFemalePeasant", parts = new[] { "qHead_Female", "qHair_Buns", "qEyebrows_Female" }, hair = 0xc89a50, wm = "Mage_t", main = "1H_Wand", off = "Spellbook", caster = true,
+            kit = new[] { null, "sun_mantle", "holy_robe", null, null, "silk_boots", "sun_cape" } } },
     };
     static readonly string[] Slots = { "head", "shoulders", "chest", "hands", "legs", "feet", "cape" };
 

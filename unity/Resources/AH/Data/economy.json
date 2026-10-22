@@ -622,6 +622,22 @@
     "mount:destrier",
     "bread"
    ]
+  },
+  "road_merchant": {
+   "name": "The Wandering Cart",
+   "keeper": "A travelling merchant",
+   "role": "Rare goods from far away",
+   "theme": "bazaar",
+   "greet": "Goods from across the sea! Only while I am passing through.",
+   "stock": [
+    "elixir_might",
+    "elixir_swift",
+    "elixir_iron",
+    "big_potion",
+    "enh_stone",
+    "mystery_sack",
+    "dragon_draught"
+   ]
   }
  },
  "RECIPES": {

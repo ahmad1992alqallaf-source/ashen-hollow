@@ -57,6 +57,16 @@ public static class AHKQ
         g.Travel(Area, CX * AHDB.S, (CY + 200) * AHDB.S, -Mathf.PI / 2f);
     }
 
+    public static void Leave(AHGame g) { Back(g); }
+    public static Vector3 Spot(AHGame g, float dx, float dy) { return g.W((CX + dx) * AHDB.S, (CY + dy) * AHDB.S); }
+    public static void GoIn(AHGame g, string mode)
+    {
+        var p = g.player; Mode = mode; Vector2 at = g.ToWeb(p.transform.position);
+        AHPrefs.SetString("ah_kq", mode + "|" + AHGame.AreaId + "|" + at.x + "|" + at.y);
+        if (p.mounted) AHComp.Dismount(g, true);
+        g.SaveProgress();
+        g.Travel(Area, CX * AHDB.S, (CY + 200) * AHDB.S, -Mathf.PI / 2f);
+    }
     static void Back(AHGame g)
     {
         var s = AHPrefs.GetString("ah_kq", "").Split('|'); float x, z;
@@ -71,10 +81,11 @@ public static class AHKQ
         mine.Clear();
         if (AHGame.AreaId != Area) { AHPrefs.DeleteKey("ah_kq"); Mode = ""; return; }
         var s = AHPrefs.GetString("ah_kq", "").Split('|');
-        if (s.Length < 1 || (s[0] != "siege" && s[0] != "rush") || Mode != s[0]) { Mode = ""; g.ui.Toast("The arena is closed."); Back(g); return; }
+        if (s.Length < 1 || (s[0] != "siege" && s[0] != "rush" && s[0] != "duel" && s[0] != "team") || Mode != s[0]) { Mode = ""; g.ui.Toast("The arena is closed."); Back(g); return; }
         Mode = s[0]; t = 0; waveT = 0; spawnT = 3; wave = 0; score = 0; over = false;
         MakeTypes(g.player.level);
         Decor(g);
+        if (Mode == "duel" || Mode == "team") { AHRanked.Setup(g); return; }   // the ranked arena (AHRanked)
         foreach (var sp in AHGather.Spots) if (sp.kind == "gate" && sp.gate != null && sp.gate.label == "Leave the arena") sp.use = () => { if (!over) End(g, "quit"); else Back(g); };
         g.ui.Banner(Name(Mode), "Kingdom Quest · get ready!");
     }
@@ -112,7 +123,8 @@ public static class AHKQ
     // web kqTick
     public static void Tick(AHGame g, float dt)
     {
-        if (AHGame.AreaId != Area || Mode == "") { g.ui.SetKQText(null); return; }
+        if (AHGame.AreaId != Area || Mode == "") { if (AHRace.I == null || !AHRace.I.Busy) g.ui.SetKQText(null); return; }
+        if (Mode == "duel" || Mode == "team") { AHRanked.Tick(g, dt); return; }
         var p = g.player;
         t += dt; float left = Mathf.Max(0f, Length(Mode) - t);
         if (!over)

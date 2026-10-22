@@ -10,6 +10,7 @@ public static class AHAch
     static List<Deed> all;
     static long K(AHPlayer p, string t) { return AHProgress.Get(p.prog.kills, t); }
     static long Total(AHPlayer p) { long n = 0; foreach (var e in p.prog.kills) n += e.v; return n; }
+    static long St(AHPlayer p, string k) { return AHProgress.Get(p.prog.stats, k); }
     static bool Found(AHPlayer p, string area) { return p.prog.found.Contains(area); }
 
     public static List<Deed> All
@@ -31,6 +32,24 @@ public static class AHAch
             A("kingsbane", "Kingsbane", "Finish the story of the Ashen King.", "Kingsbane", p => p.prog.storyCh >= AHStory.Chapters.Length);
             A("deepwalker", "Deepwalker", "Clear all five floors of the Ashen Deep.", "the Deepwalker", p => AHDeep.Clears >= 1);
             A("rider", "Saddled Up", "Own a mount.", "the Rider", p => p.mounts.Count >= 1);
+            A("perfect", "Untouchable", "Make 25 perfect dodges.", "the Untouchable", p => St(p, "perfect") >= 25);
+            A("combos", "Elementalist", "Set off 50 element combos.", "the Elementalist", p => St(p, "combos") >= 50);
+            A("golden", "Midas", "Defeat a golden monster.", "the Golden", p => St(p, "golden") >= 1);
+            A("golden5", "Gold Rush", "Defeat 5 golden monsters.", "Goldhunter", p => St(p, "golden") >= 5);
+            A("road", "Friend of the Road", "Help on the road 10 times (ambushes, lost children, wounded knights).", "the Kind", p => St(p, "roadevents") >= 10);
+            A("arena1", "Silver Gladiator", "Reach Silver in the ranked arena.", "Silver Gladiator", p => St(p, "arena_peak") >= 1100);
+            A("arena2", "Gold Gladiator", "Reach Gold in the ranked arena.", "Gold Gladiator", p => St(p, "arena_peak") >= 1250);
+            A("arena3", "Platinum Gladiator", "Reach Platinum in the ranked arena.", "Platinum Gladiator", p => St(p, "arena_peak") >= 1400);
+            A("arena4", "Diamond Gladiator", "Reach Diamond in the ranked arena.", "Diamond Gladiator", p => St(p, "arena_peak") >= 1550);
+            A("arena5", "Arena Champion", "Reach Champion in the ranked arena.", "Arena Champion", p => St(p, "arena_peak") >= 1700);
+            A("cards", "Card Sharp", "Win 10 games of Beastcards.", "the Card Sharp", p => St(p, "cardwins") >= 10);
+            A("cardhigh", "High Roller", "Win at Wilma's high table.", "High Roller", p => St(p, "cardhigh") >= 1);
+            A("dice", "Lucky Bones", "Win 10 games of Bones.", "Lucky Bones", p => St(p, "dicewins") >= 10);
+            A("arm", "Iron Arm", "Beat Big Brann at arm-wrestling 5 times.", "Iron Arm", p => St(p, "armwins") >= 5);
+            A("glide", "Sky Rider", "Ride the updrafts 10 times.", "the Sky Rider", p => St(p, "glides") >= 10);
+            A("race1", "Bronze Rider", "Win a bronze medal in the Meadow race.", "Swift", p => St(p, "race_medal") >= 1);
+            A("race3", "Gold Rider", "Win a gold medal in the Meadow race.", "the Lightning", p => St(p, "race_medal") >= 3);
+            A("secrets", "Secret Keeper", "Find 20 secret spots.", "Secret Keeper", p => St(p, "secrets") >= 20);
             A("party", "Band of Heroes", "Travel with a full party.", "Captain", p => p.party.Count >= AHComp.PartyMax);
             A("rich", "Silver Tongue", "Hold 1 silver in your purse.", "the Wealthy", p => p.bag.money >= 1000000L);
             A("rich2", "Golden Touch", "Hold 1 gold in your purse.", "Tycoon", p => p.bag.money >= 1000000000L);

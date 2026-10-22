@@ -344,7 +344,7 @@ public class AHPlayer : MonoBehaviour
         {
             if (float.IsNaN(modelBaseY)) modelBaseY = model.transform.localPosition.y;
             deckY = Mathf.MoveTowards(deckY, AHScenery.DeckLift(transform.position), dt * 2.5f);   // up onto a bridge's planks
-            var lp = model.transform.localPosition; lp.y = modelBaseY - 0.4f * wadeDepth * (mounted ? 0.3f : 1f) + seatY + (mounted ? seatBob : 0f) + leapY + deckY; model.transform.localPosition = lp;
+            var lp = model.transform.localPosition; lp.y = modelBaseY - 0.4f * wadeDepth * (mounted ? 0.3f : 1f) + seatY + (mounted ? seatBob : 0f) + leapY + deckY + glideY; model.transform.localPosition = lp;
         }
         if (wd <= 0.02f) return;
         rippleT -= dt;
@@ -507,7 +507,19 @@ public class AHPlayer : MonoBehaviour
 
         Vector3 pos = transform.position;
         bool moving = false;
-        if (leapT > 0f)
+        if (glideUp > 0f || glideY > 0f)
+        {
+            if (glideUp > 0f) { float r = Mathf.Min(glideUp, 8f * dt); glideY += r; glideUp -= r; }
+            else glideY = Mathf.Max(0f, glideY - 1.35f * dt);
+            if (move.sqrMagnitude > 0.01f) glideDir = Vector3.Slerp(glideDir, move.normalized, 1f - Mathf.Exp(-dt * 2.5f));
+            pos += glideDir * speed * 1.9f * dt;
+            transform.rotation = Quaternion.Slerp(transform.rotation, g.Face(glideDir), 1f - Mathf.Exp(-dt * 6f));
+            if (Mathf.Repeat(Time.time, 0.12f) < dt) AHSpark.Trail(pos + Vector3.up * (glideY + 1f), new Color(0.85f, 0.95f, 1f, 0.5f), 0.1f, 1);
+            if (anim != null && !anim.Play("NinjaJump_Idle", true)) anim.Play("Running_A", true, 0.6f);
+            moving = true;
+            if (glideY <= 0f && glideUp <= 0f) { AHWingRig.Gliding = false; AHFx.Ring(transform.position, 0.2f, 1.6f, new Color(0.85f, 0.95f, 1f, 0.6f), 0.4f); if (anim != null) anim.Play("NinjaJump_Land", false, 1.3f, true); atkT = Mathf.Max(atkT, 0.2f); }
+        }
+        else if (leapT > 0f)
         {
             leapT -= dt; float f = 1f - Mathf.Clamp01(leapT / leapDur);
             leapY = Mathf.Sin(f * Mathf.PI) * 1.9f;
@@ -544,7 +556,8 @@ public class AHPlayer : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, g.Face(move), 1f - Mathf.Exp(-dt * 14f));
             moving = true;
         }
-        transform.position = g.Resolve(g.PushFromPeople(pos, Radius), Radius, AHGame.Wade);
+        if (glideY > 3f) { if (g.InArea(pos)) transform.position = pos; }   // high in the air: over walls and trees
+        else transform.position = g.Resolve(g.PushFromPeople(pos, Radius), Radius, AHGame.Wade);
         // footsteps, by what is underfoot
         if (moving && leapT <= 0f && dodgeT <= 0f && (stepT -= dt) <= 0f)
         {
@@ -611,6 +624,7 @@ public class AHPlayer : MonoBehaviour
         if (moving || atkT > 0f || Busy || emote != null || mounted) idleT = 0f; else idleT += dt;
         string idleClip = idleT > 10f && Mathf.Repeat(idleT - 10f, 22f) < 5f && anim != null && anim.Has("Idle_FoldArms_Loop") ? "Idle_FoldArms_Loop" : "Idle";
         if (anim != null && mounted) { }
+        else if (Gliding) { }
         else if (anim != null && dodgeT <= 0f && atkT <= 0f && whirlT <= 0f && poseT <= 0f && !Busy && emote == null) anim.Play(moving ? "Running_A" : idleClip, true);
     }
 
@@ -618,6 +632,19 @@ public class AHPlayer : MonoBehaviour
     int comboN; float lastSwing = -9f, comboMul = 1f, perfectCd, idleT, dustT, stepT;
     // lightfoot
     public const int LeapMax = 3; public const int LeapLevel = 5;
+    // gliding (AHGlide): an updraft lifts a hero who wears wings, and they glide down on them, faster than they run
+    [System.NonSerialized] public float glideY; float glideUp, wingCheckT; bool wingsOn; Vector3 glideDir;
+    public bool Gliding { get { return glideY > 0.01f || glideUp > 0f; } }
+    public bool HasWings { get { if (Time.time >= wingCheckT) { wingCheckT = Time.time + 1f; wingsOn = model != null && model.GetComponentInChildren<AHWingRig>(false) != null; } return wingsOn; } }
+    public bool Updraft(float height)
+    {
+        if (dead || Gliding) return false;
+        if (!HasWings) return false;
+        if (mounted) AHComp.Dismount(g, true);
+        glideUp = height; glideDir = transform.forward; glideDir.y = 0f; glideDir.Normalize(); StopEmote(); AHGather.Cancel();
+        AHSound.Play("whoosh"); AHWingRig.Gliding = true;
+        return true;
+    }
     [System.NonSerialized] public int leapCharges = LeapMax; float leapRegen, leapT, leapDur = 0.75f, leapY; Vector3 leapDir;
     public bool LeapUnlocked { get { return level >= LeapLevel; } }
     public bool Leaping { get { return leapT > 0f; } }
@@ -844,6 +871,7 @@ public class AHPlayer : MonoBehaviour
         if (m == null || m.dead) return;
         if (sp.mult > 0f) m.Hurt(Roll(sp.mult), this);
         if (sp.status != AHStatus.None) m.AddStatus(sp.status, sp.statusTime, Power * Mathf.Max(0.4f, sp.mult) * 0.35f, this);
+        if (!m.dead) m.ElementHit(AHSpellLook.Element(sp), this);   // element combos (wet + storm, burning + wind...)
     }
 
     // Pebble Throw: drag the enemy to your feet and make it fight you
@@ -1129,6 +1157,8 @@ public class AHPlayer : MonoBehaviour
             perfectCd = Time.time + 6f;
             if (g.ui != null) g.ui.Float(transform.position + Vector3.up * 2.4f, "Perfect dodge!", new Color(0.7f, 0.9f, 1f));
             dmgBuff = Mathf.Max(dmgBuff, 0.3f); dmgBuffT = Mathf.Max(dmgBuffT, 3f);
+            AHFx.Ring(transform.position, 0.3f, 2.6f, new Color(0.6f, 0.85f, 1f), 0.45f); AHSound.Play("whoosh");
+            prog.Bump("perfect");
             StartCoroutine(SlowMo());
             return;
         }

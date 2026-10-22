@@ -175,6 +175,9 @@ public static class AHRemote
                     if (f[0] == "bell" && AHHollow.BellAt != Vector3.zero) { at = AHHollow.BellAt + Vector3.up * 7f; Vector3 d = AHHollow.C - AHHollow.BellAt; d.y = 0; d.Normalize(); eye = AHHollow.BellAt + d * 16f + Vector3.Cross(Vector3.up, d) * 5f + Vector3.up * 5f; }
                     else if (f[0] == "plot" && AHHollow.Plot != null) { var h = AHHollow.Plot; at = h.At(0f, h.d * 0.5f) + Vector3.up * 1.5f; eye = h.At(0f, -9f) + h.r * 4f + Vector3.up * 6f; }
                     else if (f[0] == "gate") { int k = 0; if (f.Length > 1) int.TryParse(f[1], out k); if (k < AHHollow.Gates.Count) { var gt = AHHollow.Gates[k]; at = gt.at + Vector3.up * 3.5f; eye = gt.at - gt.dir * 15f + gt.tan * 4f + Vector3.up * 4f; } }
+                    else if (f[0] == "road" && AHRoadEvents.At != Vector3.zero) { at = AHRoadEvents.At + Vector3.up * 1f; Vector3 pp = AHGame.I.player.transform.position; Vector3 d = pp - AHRoadEvents.At; d.y = 0f; d = d.sqrMagnitude > 0.1f ? d.normalized : Vector3.forward; eye = AHRoadEvents.At + d * 9f + Vector3.up * 4.5f; }
+                    else if (f[0] == "arena") { at = AHKQ.Spot(AHGame.I, 0f, -60f); eye = AHKQ.Spot(AHGame.I, 0f, 420f) + Vector3.up * 9f; }
+                    else if (f[0] == "hero") { var pt = AHGame.I.player.transform; at = pt.position + Vector3.up * (1.2f + AHGame.I.player.glideY); eye = at - pt.forward * 8f + Vector3.up * 3f + pt.right * 3f; }
                     else if (f[0] == "square") { at = AHHollow.C; eye = AHHollow.C + Vector3.up * 26f - (AHGame.I.W(0f, 1f) - AHGame.I.W(0f, 0f)).normalized * 20f; }
                     if (eye == Vector3.zero) return "nothing there";
                     AHGame.FreePos = eye; AHGame.FreeRot = Quaternion.LookRotation(at - eye); AHGame.FreeCam = true; return "ok";

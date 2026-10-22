@@ -634,6 +634,17 @@ public static class AHHollow
     // a sign anywhere in the town (AHTownLife: your house's name)
     public static void TownSign(Transform parent, Vector3 at, Vector3 face, string text, string hex) { Sign(parent ?? root, at, face, text, Hex(hex), Mathf.Max(2.6f, text.Length * 0.32f), 0.65f, Mat("hw_sign", new Color(0.16f, 0.11f, 0.07f))); }
     public static GameObject TownProp(string id, Transform parent, Vector3 at, float size, Vector3 face) { return Prop(id, parent ?? root, at, size, face); }
+    // a planked display bench (your house's trophies stand on it; its top at 1.04 m): returns the bench's own frame
+    public static Transform DisplayStand(Transform parent, Vector3 at, Vector3 face, float len)
+    {
+        face.y = 0f; face.Normalize(); var q = Quaternion.LookRotation(face, Vector3.up); var side = Vector3.Cross(Vector3.up, face);
+        var t = new GameObject("AH_DisplayStand").transform; t.SetParent(parent ?? root, false); t.position = at; t.rotation = q;
+        var kit = new Kit(); var st = TexMat("hw_base", new Color(0.7f, 0.66f, 0.6f), Bricks);
+        kit.Box(st, TRS(at + Vector3.up * 0.48f, q, new Vector3(len, 0.96f, 0.62f)));
+        kit.Box(DarkWood, TRS(at + Vector3.up * 1.0f, q, new Vector3(len + 0.12f, 0.08f, 0.74f)));
+        foreach (Renderer r in kit.Build(t, "AH_DisplayBench")) AHModel.SetShadows(r.gameObject);
+        return t;
+    }
     public static string TownColour { get { string col; return AHCity.ColourOf(Area, out col) ? col : "green"; } }
 
     static void Banner(Vector3 at, Vector3 face)

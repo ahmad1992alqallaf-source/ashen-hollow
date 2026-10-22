@@ -100,6 +100,16 @@ public class AHTownLife : MonoBehaviour
                 n.onTalk = () => { g.ui.Toast(n.npcName + ": “" + tip + "”", 6f); g.ui.OpenProf(); return true; };
             }
         }
+        // ---------- 4b. the ranked arena's master, in the Barracks & Arena ----------
+        {
+            var h = Hall("barracks");
+            if (h != null)
+            {
+                var v = AHNpc.SpawnAt(g, "Arena master Varek", h.At(h.w * 0.3f, 2.4f), -h.b, new[] { "Think you can climb the ranks? Prove it." });
+                v.label = "Ranked arena"; v.SetSeq("Idle_FoldArms_Loop", "Idle_Loop");
+                v.onTalk = () => { g.ui.OpenRanked(); return true; };
+            }
+        }
         // ---------- 5. townsfolk by day, the watch round the ring street ----------
         {
             var folk = new[] {
@@ -133,8 +143,21 @@ public class AHTownLife : MonoBehaviour
                 bard = AHNpc.SpawnAt(g, "Bard Lyra", inn.At(inn.w * 0.13f, inn.d * 0.6f), -inn.b, new[] { "A song for a coin? Or for free, I like your face.", "Come back at night, that's when the inn sings." });
                 bard.SetSeq("Idle_Loop", "Idle_Talking_Loop");
                 bard.onTalk = () => { g.ui.Toast("Bard Lyra: “" + (night ? "This one's for the hero in the corner!" : "Come back after dark, that's when the inn sings.") + "”", 4f); if (night) { lute++; AHSound.Town("lute", 1f, lute); } return true; };
-                var spots = new[] { new Vector2(-0.27f, 0.4f), new Vector2(0.27f, 0.4f), new Vector2(0.27f, 0.4f) };
-                var offs = new[] { new Vector2(0f, -1.25f), new Vector2(0f, -1.25f), new Vector2(1.45f, 0.45f) };
+                var spots = new[] { new Vector2(-0.27f, 0.4f), new Vector2(0.27f, 0.4f), new Vector2(0f, 0.4f) };
+                var offs = new[] { new Vector2(0f, -1.25f), new Vector2(0f, -1.25f), new Vector2(0f, 0.3f) };
+                // the table games, day and night
+                var games = new[] {
+                    new { who = "Card sharp Wilma", x = -0.27f, dx = -1.6f, z = 0.4f, dz = 0f, label = "Beastcards", line = "Fancy a hand of Beastcards?", go = (System.Action)(() => AHTable.OpenCards(g)) },
+                    new { who = "Old Ottar", x = 0.27f, dx = 1.6f, z = 0.4f, dz = 0f, label = "Play dice", line = "Bones, friend? First to thirty.", go = (System.Action)(() => AHTable.OpenDice(g)) },
+                    new { who = "Big Brann", x = -0.12f, dx = 0f, z = 0.62f, dz = 0f, label = "Arm-wrestle", line = "Think you're strong? Sit down.", go = (System.Action)(() => AHTable.OpenArm(g)) },
+                };
+                foreach (var gm in games)
+                {
+                    var gg = gm; Vector3 at = inn.At(inn.w * gm.x + gm.dx, inn.d * gm.z + gm.dz);
+                    var n = AHNpc.SpawnAt(g, gm.who, at, Flat3(inn.At(0f, inn.d * 0.4f) - at), new[] { gm.line });
+                    n.label = gm.label; n.SetSeq("Idle_Loop", "Idle_Talking_Loop");
+                    n.onTalk = () => { AHLife.Speak(n, gg.line, gg.line, 3f); gg.go(); return true; };
+                }
                 var names = new[] { "Patron Ott", "Patron Inga", "Patron Nami" };
                 var said = new[] { new[] { "Another round! The bard's on fire tonight!" }, new[] { "Best stew in the Meadow, don't tell the cook I said so." }, new[] { "Sit, sit! The night is young." } };
                 for (int i = 0; i < 3; i++)
@@ -201,7 +224,8 @@ public class AHTownLife : MonoBehaviour
             }
         }
         // ---------- 11. the weather's touches ----------
-        Smoke(); Flies(); Puddles(); Birds();
+        Smoke(); Flies(); Puddles(); Birds(); Updrafts();
+        AHRace.Setup(g, this);
         SetNight(night, true);
         Debug.Log("Ashen Hollow: town life started (crier, " + AHHollow.Gates.Count + " gates, " + horses.Count + " horses)");
     }
@@ -273,6 +297,7 @@ public class AHTownLife : MonoBehaviour
         }
 
         Gates(dt, pp);
+        UpdraftTick(pp, now);
         BellAndClock(dt, pp, now);
         BirdsTick(dt);
         if (smoke != null && now >= nextPuff) { nextPuff = now + 0.35f; foreach (var c in AHHollow.Chimneys) { var e = new ParticleSystem.EmitParams { position = c + Random.insideUnitSphere * 0.15f, velocity = new Vector3(0.25f, Random.Range(0.6f, 0.9f), 0.1f), startSize = Random.Range(0.5f, 0.8f), startColor = new Color(0.62f, 0.6f, 0.58f, 0.45f), startLifetime = Random.Range(4f, 6f) }; smoke.Emit(e, 1); } }
@@ -397,6 +422,13 @@ public class AHTownLife : MonoBehaviour
         string who = g.player != null && !string.IsNullOrEmpty(g.player.heroName) ? g.player.heroName : "Your";
         AHHollow.TownSign(h.go, h.At(0f, 0.15f) + Vector3.up * 1.55f - h.b * 0.1f, -h.b, who == "Your" ? "Your House" : who + "’s House", "9fe07a");
         var c = h.At(0f, h.d * 0.56f); g.AddBlocker(new Vector3(c.x, 0f, c.z), Mathf.Min(h.w, h.d) * 0.36f);
+        // the garden shows off what you have done: your trophies on a bench, your best catch on a sign
+        try
+        {
+            if (AHTrophies.Count(g.player) > 0) { var st = AHHollow.DisplayStand(h.go, h.At(h.w / 2f - 0.75f, h.d * 0.52f), -h.r, 5.8f); AHTrophies.BuildStand(g, st); }
+            if (AHDerby.Best > 0f) AHHollow.TownSign(h.go, h.At(-h.w / 2f + 1.9f, 0.15f) + Vector3.up * 1.45f - h.b * 0.1f, -h.b, "Best catch " + AHDerby.Best.ToString("0.0") + " kg", "6fe7ff");
+        }
+        catch (System.Exception e) { Debug.LogWarning("Ashen Hollow: house garden (" + e.Message + ")"); }
         if (fresh)
         {
             AHSound.Play("level"); AHSpark.Burst(c + Vector3.up * 2f, new Color(1f, 0.9f, 0.5f, 0.9f), 30, 3f, 1f, 0.15f, 1.5f);
@@ -499,6 +531,55 @@ public class AHTownLife : MonoBehaviour
         foreach (var b in birds) if (b.t.gameObject.activeSelf != birdsOut) b.t.gameObject.SetActive(birdsOut);
     }
 
+    // ---------- updrafts: columns of rising wind round the town; with wings on your back, ride one up and glide ----------
+    readonly List<Vector3> drafts = new List<Vector3>(); float draftHintT;
+    void Updrafts()
+    {
+        var spots = new List<Vector3>();
+        if (AHHollow.BellAt != Vector3.zero) { Vector3 d = Flat3(C - AHHollow.BellAt).normalized; spots.Add(AHHollow.BellAt + d * 3.6f + Vector3.Cross(Vector3.up, d) * 2.6f); }
+        foreach (var a in new[] { 40f, 130f, 220f, 310f })
+            for (int k = 0; k < 12; k++)
+            {
+                Vector3 p = Ring(a + k * 7f, AHHollow.R + 16f + (k % 3) * 4f); p.y = C.y;
+                bool nearGate = false; foreach (var gt in AHHollow.Gates) if (Flat(gt.at - p) < 18f) nearGate = true;
+                if (nearGate || !g.InArea(p) || g.Blocked(p, 2.2f) || AHNav.IsDirt(g, p) || (AHHollow.Plot != null && AHHollow.Plot.Contains(p, 3f))) continue;
+                spots.Add(p); break;
+            }
+        foreach (var p in spots)
+        {
+            drafts.Add(p);
+            var ps = MakePS("AH_Updraft", true, 160); ps.transform.position = p;
+            var main = ps.main; main.startLifetime = new ParticleSystem.MinMaxCurve(2.2f, 3.2f); main.startSize = new ParticleSystem.MinMaxCurve(0.12f, 0.3f);
+            main.startColor = new ParticleSystem.MinMaxGradient(new Color(0.75f, 0.9f, 1f, 0.55f), new Color(1f, 1f, 1f, 0.35f));
+            var em = ps.emission; em.rateOverTime = 40f;
+            var shp = ps.shape; shp.enabled = true; shp.shapeType = ParticleSystemShapeType.Circle; shp.radius = 1.1f; shp.rotation = new Vector3(90f, 0f, 0f);
+            var vel = ps.velocityOverLifetime; vel.enabled = true; vel.space = ParticleSystemSimulationSpace.Local;
+            vel.orbitalY = new ParticleSystem.MinMaxCurve(2.2f); vel.x = new ParticleSystem.MinMaxCurve(0f); vel.y = new ParticleSystem.MinMaxCurve(0f); vel.z = new ParticleSystem.MinMaxCurve(0f);
+            vel.speedModifier = new ParticleSystem.MinMaxCurve(1f);
+            var lim = ps.velocityOverLifetime; lim.radial = new ParticleSystem.MinMaxCurve(0f);
+            var force = ps.forceOverLifetime; force.enabled = true; force.space = ParticleSystemSimulationSpace.World; force.x = new ParticleSystem.MinMaxCurve(0f); force.y = new ParticleSystem.MinMaxCurve(5f); force.z = new ParticleSystem.MinMaxCurve(0f);
+            var col = ps.colorOverLifetime; col.enabled = true;
+            var gr = new Gradient(); gr.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) }, new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.2f), new GradientAlphaKey(0f, 1f) });
+            col.color = gr;
+            ps.Play();
+            AHFx.Ring(p, 1.2f, 1.4f, new Color(0.75f, 0.9f, 1f, 0.5f), 99999f);
+        }
+    }
+    void UpdraftTick(Vector3 pp, float now)
+    {
+        var p = g.player; if (p.Gliding) return;
+        foreach (var d in drafts)
+        {
+            if (Flat(d - pp) > 1.5f) continue;
+            if (!p.Updraft(16f))
+            {
+                if (now >= draftHintT) { draftHintT = now + 12f; g.ui.Toast("A rising wind. With wings on your back you could ride it up and glide.", 4f); }
+            }
+            else { g.ui.Toast("The wind lifts you! Steer as you glide down.", 3f); p.prog.Bump("glides"); }
+            return;
+        }
+    }
+
     // a few birds wheeling over the roofs by day: a small dark body with two beating wings
     class Bird { public Transform t, wl, wr; public float a, r, h, sp, ph; }
     readonly List<Bird> birds = new List<Bird>();
@@ -544,6 +625,17 @@ public class AHTownLife : MonoBehaviour
         }
     }
 
+    // a golden beast was seen: the crier calls it out at once (when you are in town to hear)
+    public static void Golden(string name)
+    {
+        if (I == null || I.crier == null || I.g == null || I.g.player == null) return;
+        if (!AHHollow.Inside(I.g.player.transform.position, 10f)) return;
+        string n = name.ToLowerInvariant();
+        I.crier.hold = 5f; AHSound.Town("handbell", 0.8f);
+        AHLife.Speak(I.crier, "Hear ye! A golden " + n + " roams the Meadow! Gold to whoever brings it down!", "اسمعوا! " + name + " ذهبي يجوب المرج! الذهب لمن يصطاده!", 5f);
+        I.nextCry = Time.time + 25f;
+    }
+
     // test tools (AHRemote "town ..."): ring the bell now, cry now, toggle the gates' night, build the house
     public static void Test(string what)
     {
@@ -554,7 +646,24 @@ public class AHTownLife : MonoBehaviour
         else if (what == "house") { PlotState = 2; I.BuildHouse(true); I.PlotLabel(); }
         else if (what == "plotreset") { PlotState = 0; }
         else if (what == "jobs") AHGame.I.ui.OpenJobs();
-        else if (what == "close") AHGame.I.ui.ShowWork(false);
+        else if (what == "close") { AHGame.I.ui.ShowWork(false); AHTable.CloseAll(); }
+        else if (what == "deal") AHTable.TestDeal(AHGame.I);
+        else if (what.StartsWith("road")) { int k; int.TryParse(what.Substring(4), out k); AHRoadEvents.Start(AHGame.I, k); }
+        else if (what == "ranked") AHGame.I.ui.OpenRanked();
+        else if (what == "glide") { var p = AHGame.I.player; AHWingRig.TestAir = 0f; if (!p.Updraft(16f)) Debug.Log("Ashen Hollow: glide test: no wings on"); }
+        else if (what == "draft" && I.drafts.Count > 0) { var p = AHGame.I.player; Vector3 d = I.drafts[0]; p.transform.position = d + (C - d).normalized * 5f; }
+        else if (what.StartsWith("race")) AHRace.Test(what.Substring(4).Trim());
+        else if (what == "cards") AHTable.OpenCards(AHGame.I);
+        else if (what == "dice") AHTable.OpenDice(AHGame.I);
+        else if (what == "arm") AHTable.OpenArm(AHGame.I);
+        else if (what == "duel") AHRanked.Begin(AHGame.I, AHRanked.Challengers()[0], false);
+        else if (what == "golden")
+        {
+            // the nearest live beast turns golden now
+            var g = AHGame.I; AHMob best = null; float bd = 1e9f;
+            foreach (var m in g.mobs) { if (m == null || m.dead || m.golden) continue; float d = (m.transform.position - g.player.transform.position).sqrMagnitude; if (d < bd) { bd = d; best = m; } }
+            if (best != null) AHGolden.Roll(g, best, true);
+        }
         else if (what == "wish") { AHPrefs.SetString("ah_wish_day", ""); I.Wish(); }
     }
 }

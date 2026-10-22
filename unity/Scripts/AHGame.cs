@@ -976,7 +976,7 @@ public class AHGame : MonoBehaviour
         if (data == null || player == null) return;
         dayT = (dayT + Time.deltaTime) % dayLength;
         UpdateDay();
-        AHGather.Tick(this); AHFishing.WorldTick(this, Time.deltaTime); AHTorch.Tick(this, Time.deltaTime);
+        AHGather.Tick(this); AHFishing.WorldTick(this, Time.deltaTime); AHTorch.Tick(this, Time.deltaTime); AHGolden.Tick();
         ahT -= Time.unscaledDeltaTime; if (ahT <= 0f) { ahT = 5f; AHAuction.Tick(this); AHOrders.Tick(this); AHRequests.Tick(this); AHExpeditions.Tick(this); AHProfPets.Tick(this); AHLooters.Tick(this); AHTwoPart.Tick(this); AHCaravan.Tick(this); AHKitchen.Names(player); AHHome.Tick(this); AHMarket.Tick(this); }
         AHHome.RestTick(this, Time.deltaTime);
         AHFinder.Tick(this, Time.deltaTime);
@@ -985,7 +985,7 @@ public class AHGame : MonoBehaviour
         AHEvents.Tick(this, Time.deltaTime);
         AHWays.Tick(this, Time.deltaTime);
         AHKQ.Tick(this, Time.deltaTime);
-        AHGoblin.Tick(this, Time.deltaTime);
+        AHGoblin.Tick(this, Time.deltaTime); AHRoadEvents.Tick(this, Time.deltaTime);
         AHSecrets.Tick(this, Time.deltaTime);
         AHNight.Tick(this);
         AHWardrobe.Tick(this);
@@ -1025,7 +1025,7 @@ public class AHGame : MonoBehaviour
             camDistance = Mathf.Clamp(camDistance * ui.zoom, 3.5f, 14f);
         }
         if (cineT > 0f) { cineT -= Time.unscaledDeltaTime; camYaw += Time.unscaledDeltaTime * 150f; }   // the level-up swing
-        camTarget = Vector3.Lerp(camTarget, player.transform.position, 1f - Mathf.Exp(-Time.deltaTime * 10f));
+        camTarget = Vector3.Lerp(camTarget, player.transform.position + Vector3.up * player.glideY, 1f - Mathf.Exp(-Time.deltaTime * 10f));
         // making your hero: a close shot with the hero on the left, facing you, clear of the creator panel
         // drag the hero to turn them round; pinch (or the mouse wheel) to zoom in on the face
         if (creating)

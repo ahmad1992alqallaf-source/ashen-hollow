@@ -145,6 +145,8 @@ public static class AHSecrets
         else if (r < 0.55f) { string[] gs = { "ruby", "sapphire", "emerald" }; rw.items.Add(new KeyValuePair<string, int>(gs[Random.Range(0, 3)], 1)); }
         if (Random.value < 0.15f) rw.items.Add(new KeyValuePair<string, int>(AHRareRecipes.ScrollId, 1));
         AHDaily.Grant(g, rw); AHSound.Play("coin");
+        p.prog.Bump("secrets");
+        if (FoundHere() >= PerLand && g.ui != null) g.ui.Toast("Every secret in " + (g.data != null ? g.data.region : "this land") + " found! (" + AHProgress.Get(p.prog.stats, "secrets") + " secrets in all)", 5f);
         if (g.ui != null) g.ui.Banner("Secret found! (" + FoundHere() + " / " + spots.Count + " in this land)", AHDaily.Text(rw));
     }
 

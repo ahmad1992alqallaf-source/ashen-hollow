@@ -15,6 +15,8 @@ public class AHMob : MonoBehaviour
     public bool Chasing { get { return !dead && state == State.Chase; } }
     public bool enraged;            // a boss below 30%: moves faster
     public Vector3 Home { get { return home; } }
+    public GameObject Model { get { return model; } }
+    [System.NonSerialized] public bool golden;   // AHGolden: a rare golden one
     public float height;            // how tall the model stands (metres), for the camera
     // a special attack: stand still while the warning circle fills
     public void Windup(float t) { windup = t; lungeHit = false; atkCd = Mathf.Max(atkCd, t); }
@@ -130,6 +132,7 @@ public class AHMob : MonoBehaviour
         m.wanderWait = Random.Range(0.5f, 4f);
         go.transform.rotation = Quaternion.Euler(0, Random.Range(0f, 360f), 0);
         if (t.night && !game.IsNight) m.GoAway(float.PositiveInfinity);   // web: shadow wolves only come out at night
+        else AHGolden.Roll(game, m);
         return m;
     }
 
@@ -306,7 +309,7 @@ public class AHMob : MonoBehaviour
         }
     }
 
-    public string Label { get { return type.name + " · lv " + type.lvl; } }
+    public string Label { get { return (golden ? "Golden " + type.name.ToLowerInvariant() : type.name) + " · lv " + type.lvl; } }
     public bool Stunned { get { return stunT > 0f; } }
 
     public void Hurt(int dmg, AHPlayer by, bool quiet = false)
@@ -325,6 +328,60 @@ public class AHMob : MonoBehaviour
         if (type.flee) { state = State.Flee; fleeT = 3f; }
         else if (state != State.Return) { state = State.Chase; calmT = 0f; }
         if (!quiet && hasClips && windup <= 0f) anim.Play("HitReact", false, 1.3f, true);
+    }
+
+    // ---------- element combos: what a spell's element does to a beast already marked by another ----------
+    //  Wet (rain outdoors, or a frost or nature spell) + storm = Overcharge (a jolt that jumps to two more beasts)
+    //  Wet + fire = Steam burst (scalded and blinded: it stumbles back in fear)
+    //  Burning + wind = Firestorm (the flames leap to the beasts around it)
+    //  Burning + frost = Quench (a crack of cold on hot hide)
+    //  Chilled + earth = Shatterquake (stunned where it stands)
+    float wetT, comboCd;
+    public bool Wet { get { return wetT > 0f || (AHWeather.Now == AHWeather.Kind.Rain && !AHDungeon.IsDungeon(AHGame.AreaId) && !AHGame.I.InTown(transform.position)); } }
+    public void ElementHit(SpellEl el, AHPlayer by)
+    {
+        if (dead || by == null) return;
+        var g = AHGame.I; float pw = by.Power;
+        string react = null; Color c = Color.white; int bonus = 0;
+        if (Time.time >= comboCd)
+        {
+            if (el == SpellEl.Storm && Wet)
+            {
+                react = "Overcharge!"; c = new Color(0.55f, 0.8f, 1f); bonus = Mathf.RoundToInt(pw * 1.3f); wetT = 0f;
+                int n = 0;
+                foreach (var o in g.mobs)
+                {
+                    if (o == null || o == this || o.dead || n >= 2) continue;
+                    Vector3 d = o.transform.position - transform.position; d.y = 0f; if (d.magnitude > 6f) continue;
+                    AHFx.Ring(o.transform.position + Vector3.up * 1f, 0.2f, 0.8f, c, 0.35f); o.Hurt(Mathf.RoundToInt(pw * 0.8f), by); n++;
+                }
+            }
+            else if (el == SpellEl.Fire && Wet) { react = "Steam burst!"; c = new Color(0.9f, 0.95f, 1f); bonus = Mathf.RoundToInt(pw * 0.8f); wetT = 0f; AddStatus(AHStatus.Fear, 1.6f, 0f, by); }
+            else if (el == SpellEl.Wind && burnT > 0f)
+            {
+                react = "Firestorm!"; c = new Color(1f, 0.55f, 0.2f); bonus = Mathf.RoundToInt(pw * 0.9f);
+                foreach (var o in g.mobs)
+                {
+                    if (o == null || o == this || o.dead) continue;
+                    Vector3 d = o.transform.position - transform.position; d.y = 0f; if (d.magnitude > 5f) continue;
+                    o.AddStatus(AHStatus.Burn, 4f, Mathf.Max(burnDps, pw * 0.25f), by);
+                }
+            }
+            else if (el == SpellEl.Frost && burnT > 0f) { react = "Quench!"; c = new Color(0.7f, 0.9f, 1f); bonus = Mathf.RoundToInt(pw * 1.1f); burnT = 0f; burnDps = 0f; }
+            else if (el == SpellEl.Earth && slowT > 0f) { react = "Shatterquake!"; c = new Color(0.8f, 0.65f, 0.45f); bonus = Mathf.RoundToInt(pw * 0.7f); slowT = 0f; AddStatus(AHStatus.Stun, 1.2f, 0f, by); }
+        }
+        if (react != null)
+        {
+            comboCd = Time.time + 1.2f;
+            if (g.ui != null) g.ui.Float(transform.position + Vector3.up * 2.8f, react, c);
+            AHFx.Ring(transform.position, 0.3f, type.radius + 2.2f, c, 0.45f);
+            AHSound.Play("boom");
+            by.prog.Bump("combos");
+            if (bonus > 0 && !dead) Hurt(bonus, by);
+            return;
+        }
+        // marks for the next spell: frost and nature leave it wet
+        if (el == SpellEl.Frost || el == SpellEl.Nature) { if (wetT <= 0f) AHFx.Pop(transform.position + Vector3.up * 1.2f, 0.8f, new Color(0.4f, 0.7f, 1f)); wetT = 7f; }
     }
 
     public void AddStatus(AHStatus s, float time, float dps, AHPlayer by)
@@ -401,6 +458,7 @@ public class AHMob : MonoBehaviour
         if (by != null) AHLoot.OnKill(g, this, by);
         if (by != null) AHTreasure.OnKill(g, this, by);
         if (by != null) AHGoblin.OnKill(g, this, by);
+        if (by != null) AHGolden.OnKill(g, this, by);
         if (by != null) AHTrophies.OnKill(g, this, by);
         if (by != null) AHWear.OnKill(g, by);
         AHDungeon.OnMobDown(g, this);
@@ -433,11 +491,12 @@ public class AHMob : MonoBehaviour
         model.transform.localRotation = Quaternion.Euler(0, g.ModelYaw + (type.model == "Wolf_t" ? g.wolfYawFix : AHMobPeople.Is(type.id) ? g.heroYawFix : yawOff), 0);
         model.transform.localPosition = baseLocal; if (baseScale != Vector3.zero) model.transform.localScale = baseScale;
         if (hasClips) anim.Play("Idle", true, 1f, true);
+        AHGolden.Roll(g, this);
     }
 
     void Conditions(float dt)
     {
-        burnT -= dt; poisonT -= dt; slowT -= dt; rootT -= dt; stunT -= dt; fearT -= dt; calmT -= dt;
+        burnT -= dt; poisonT -= dt; slowT -= dt; rootT -= dt; stunT -= dt; fearT -= dt; calmT -= dt; wetT -= dt;
         if (burnT <= 0f) burnDps = 0f;
         if (poisonT <= 0f) poisonDps = 0f;
         if (burnDps + poisonDps <= 0f) return;
