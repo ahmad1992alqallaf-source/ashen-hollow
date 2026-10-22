@@ -186,6 +186,7 @@ public partial class AHUI
             };
             AHTreasure.MapMarks(p, (wp, nm) => rim(wp, new Color(0.95f, 0.55f, 0.15f), 13f));
             if (AHFun3.Hunted != null) rim(AHFun3.Hunted.transform.position, new Color(1f, 0.3f, 0.25f), 14f);
+            foreach (var pe in AHNet.Peers.Values) if (pe.seen > 0f) rim(pe.pos, AHNet.PartyHas(pe.actor) ? new Color(0.45f, 1f, 0.45f) : new Color(0.45f, 0.75f, 1f), 11f);   // other players (your party green)
             if (AHFun4.Legend != null) rim(AHFun4.Legend.transform.position, new Color(0.75f, 0.45f, 1f), 16f);
             if (AHFun4.Dragon != null) rim(AHFun4.Dragon.transform.position, new Color(1f, 0.55f, 0.15f), 16f);
             for (int i = mmUsed; i < mmPool.Count; i++) if (mmPool[i].gameObject.activeSelf) mmPool[i].gameObject.SetActive(false);

@@ -10,7 +10,7 @@ public partial class AHUI
     void FunTick()
     {
         AHFun3.Tick(g, Time.deltaTime);
-        StreakTick(); DeedTick(); WheelTick(); Fun4Tick();
+        StreakTick(); DeedTick(); WheelTick(); Fun4Tick(); NetTick();
     }
 
     public void TestBagNew() { bagTab = "new"; ShowBag(true); }

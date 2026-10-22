@@ -257,7 +257,7 @@ public class AHGame : MonoBehaviour
         SelectAtStart = false;
         camTarget = player.transform.position;
         travelLock = Time.time + 1.5f;
-        AHLoading.Ready(); AHFun3.LandReady(); StartCoroutine(AHLoading.TakeShot(this, AreaId));
+        AHLoading.Ready(); AHFun3.LandReady(); AHNet.LandReady(this); StartCoroutine(AHLoading.TakeShot(this, AreaId));
         if (arriving)
         {
             arriving = false;

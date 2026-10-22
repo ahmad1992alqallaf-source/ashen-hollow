@@ -117,10 +117,12 @@ public class AHAnim
     }
 
     // play a clip; restart forces it from the beginning even if it is already playing
+    public string LastName; public bool LastLoop; public float LastSpeed = 1f;   // what was last asked for (online play copies it)
     public bool Play(string name, bool loop, float speed = 1f, bool restart = false)
     {
         int i = Find(name);
         if (i < 0) return false;
+        LastName = name; LastLoop = loop; LastSpeed = speed;
         if (legacy == null && i >= t0s.Count) return false;
         if (legacy != null)
         {

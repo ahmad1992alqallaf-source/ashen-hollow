@@ -181,7 +181,7 @@ public class AHPlayer : MonoBehaviour
     bool critNext;
 
     AHGame g;
-    AHAnim anim;
+    AHAnim anim; public AHAnim Anim { get { return anim; } }   // (online play reads what the hero is doing)
     GameObject model, targetRing, shieldOrb;
     float atkCd, atkT, hitAt, dodgeCd, dodgeT, iframe, deadT, lastHurt = -99f, whirlT, whirlTick;
     Vector3 dodgeDir;
@@ -658,6 +658,7 @@ public class AHPlayer : MonoBehaviour
     public void Emote(string id)
     {
         var e = AHEmote.Find(id); if (e == null || dead) return;
+        AHNet.SendEmote(id);
         if (mounted) { if (g.ui != null) g.ui.Toast("Get off your mount first."); return; }
         if (Busy) return;
         StopEmote();

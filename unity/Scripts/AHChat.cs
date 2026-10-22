@@ -70,6 +70,7 @@ public static class AHChat
         if (text.StartsWith("/")) { Command(g, text.Substring(1).ToLowerInvariant()); return; }
         string me = string.IsNullOrEmpty(p.heroName) ? "You" : p.heroName;
         Add("you", me + ": " + text);
+        AHNet.SendChat(text);   // everyone online in this land reads it
         if (g.ui != null) g.ui.SayBubble(text);
         // someone close by answers with their own words
         var n = AHNpc.Nearest(p.transform.position);

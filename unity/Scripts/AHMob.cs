@@ -323,6 +323,7 @@ public class AHMob : MonoBehaviour
         if (by != null) dmg = Mathf.Max(1, Mathf.RoundToInt(dmg * AHChallenge.MobTakenK() * AHChallenge.YouDealK()));   // the weekly challenge
         if (by != null && !quiet && AHPlayer.elFrame == Time.frameCount) dmg = Mathf.Max(1, Mathf.RoundToInt(dmg * AHWeather.ElementK(AHPlayer.hitEl)));   // a storm makes lightning hit harder
         hp -= dmg;
+        if (by != null && !quiet && by == g.player) AHNet.LocalHit(this, dmg);   // your party's copy of this beast takes the blow too
         if (by != null) { AHEvo.Leech(by, dmg); if (!quiet) { AHSound.Play("hit"); Voice("hurt", 0.5f); AHSpark.Burst(transform.position + Vector3.up * Mathf.Max(0.6f, type.radius * 0.8f), new Color(1f, 0.75f, 0.4f), 7, 3.2f, 0.35f, 0.1f, 0.8f); AHLooks.OnHit(by, transform.position + Vector3.up * Mathf.Max(0.6f, type.radius * 0.8f)); } }
         if (g.ui != null)
         {

@@ -214,6 +214,8 @@ public partial class AHUI
         else if (wkMode == "album") RenderAlbum(p);
         else if (wkMode == "fishj") RenderFishJournal(p);
         else if (wkMode == "legend") RenderLegend(p);
+        else if (wkMode == "online") RenderOnline(p);
+        else if (wkMode == "trade") RenderTrade(p);
         else if (wkMode == "finder") RenderFinder(p);
         else if (wkMode == "board") RenderBoard(p);
         else if (wkMode == "rep") RenderRepList(p);
