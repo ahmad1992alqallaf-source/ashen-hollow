@@ -229,7 +229,7 @@ public class AHTable : MonoBehaviour
         Head("Beastcards · " + s.name, "Tap one of your cards, then an empty square. Higher edge beats lower: the card turns your colour.");
         for (int i = 0; i < 9; i++)
         {
-            int k = i; var cell = Box(panel, new Vector2(-250 + (i % 3) * 250, 210 - (i / 3) * 290), new Vector2(236, 284), new Color(1f, 1f, 1f, 0.07f), true);
+            int k = i; var cell = Box(panel, new Vector2(-205 + (i % 3) * 205, 195 - (i / 3) * 245), new Vector2(196, 236), new Color(1f, 1f, 1f, 0.07f), true);
             var b = cell.gameObject.AddComponent<UnityEngine.UI.Button>(); b.onClick.AddListener(() => PlaceMine(k)); cells[i] = cell;
         }
         // their five, from the stake's range of beasts
@@ -241,13 +241,13 @@ public class AHTable : MonoBehaviour
         for (int i = 0; i < 40 && them.Count < 5; i++) { string id = s.maxLvl >= 999 ? pool[Mathf.Min(them.Count + UnityEngine.Random.Range(0, 3), pool.Count - 1)] : pool[UnityEngine.Random.Range(0, pool.Count)]; if (!them.Contains(id)) them.Add(id); }
         while (them.Count < 5) them.Add(Starter[them.Count]);
         mine = new List<Card>(); theirs = new List<Card>();
-        for (int i = 0; i < 5; i++) mine.Add(DrawCard(panel, hand[i], new Vector2(-640, 300 - i * 150), 0, 0.6f));
-        for (int i = 0; i < 5; i++) { var c = DrawCard(panel, them[i], new Vector2(640, 300 - i * 150), 1, 0.6f); theirs.Add(c); }
+        for (int i = 0; i < 5; i++) mine.Add(DrawCard(panel, hand[i], new Vector2(i % 2 == 0 ? -610 : -470, 250 - i * 135), 0, 0.58f));
+        for (int i = 0; i < 5; i++) { var c = DrawCard(panel, them[i], new Vector2(i % 2 == 0 ? 610 : 470, 250 - i * 135), 1, 0.58f); theirs.Add(c); }
         foreach (var c in mine) { var cc = c; var b = c.rt.gameObject.AddComponent<UnityEngine.UI.Button>(); b.onClick.AddListener(() => Hold(cc)); }
-        score = Label(panel, "", new Vector2(0, -455), new Vector2(900, 50), 30, Color.white, true);
+        score = Label(panel, "", new Vector2(0, -448), new Vector2(1000, 50), 32, Color.white, true);
         myTurn = UnityEngine.Random.value < 0.5f; Score();
-        Label(panel, "You", new Vector2(-640, 400), new Vector2(200, 40), 28, new Color(0.6f, 0.8f, 1f), true);
-        Label(panel, "Wilma", new Vector2(640, 400), new Vector2(200, 40), 28, new Color(1f, 0.6f, 0.55f), true);
+        Label(panel, "Your hand", new Vector2(-540, 326), new Vector2(300, 40), 28, new Color(0.6f, 0.8f, 1f), true);
+        Label(panel, "Wilma's hand", new Vector2(540, 326), new Vector2(300, 40), 28, new Color(1f, 0.6f, 0.55f), true);
         if (!myTurn) StartCoroutine(TheirTurn());
     }
     void Hold(Card c)
@@ -269,7 +269,7 @@ public class AHTable : MonoBehaviour
     {
         board[cell] = c; c.owner = owner;
         Destroy(c.rt.gameObject);
-        var n = DrawCard(panel, c.id, cells[cell].anchoredPosition, owner, 1f); c.rt = n.rt; c.bg = n.bg;
+        var n = DrawCard(panel, c.id, cells[cell].anchoredPosition, owner, 0.84f); c.rt = n.rt; c.bg = n.bg;
         AHSound.Play("step");
         int[] dx = { 0, 1, 0, -1 }, dy = { -1, 0, 1, 0 };   // top, right, bottom, left
         int x = cell % 3, y = cell / 3;

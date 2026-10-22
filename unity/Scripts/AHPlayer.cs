@@ -510,9 +510,10 @@ public class AHPlayer : MonoBehaviour
         if (glideUp > 0f || glideY > 0f)
         {
             if (glideUp > 0f) { float r = Mathf.Min(glideUp, 8f * dt); glideY += r; glideUp -= r; }
-            else glideY = Mathf.Max(0f, glideY - 1.35f * dt);
+            else glideY = Mathf.Max(0f, glideY - 2.0f * dt);
             if (move.sqrMagnitude > 0.01f) glideDir = Vector3.Slerp(glideDir, move.normalized, 1f - Mathf.Exp(-dt * 2.5f));
-            pos += glideDir * speed * 1.9f * dt;
+            pos += glideDir * speed * 1.7f * dt;
+            if (glideArea != AHGame.AreaId) { glideY = 0f; glideUp = 0f; AHWingRig.Gliding = false; }   // (a new land: on your feet)
             transform.rotation = Quaternion.Slerp(transform.rotation, g.Face(glideDir), 1f - Mathf.Exp(-dt * 6f));
             if (Mathf.Repeat(Time.time, 0.12f) < dt) AHSpark.Trail(pos + Vector3.up * (glideY + 1f), new Color(0.85f, 0.95f, 1f, 0.5f), 0.1f, 1);
             if (anim != null && !anim.Play("NinjaJump_Idle", true)) anim.Play("Running_A", true, 0.6f);
@@ -633,7 +634,7 @@ public class AHPlayer : MonoBehaviour
     // lightfoot
     public const int LeapMax = 3; public const int LeapLevel = 5;
     // gliding (AHGlide): an updraft lifts a hero who wears wings, and they glide down on them, faster than they run
-    [System.NonSerialized] public float glideY; float glideUp, wingCheckT; bool wingsOn; Vector3 glideDir;
+    [System.NonSerialized] public float glideY; float glideUp, wingCheckT; bool wingsOn; Vector3 glideDir; string glideArea;
     public bool Gliding { get { return glideY > 0.01f || glideUp > 0f; } }
     public bool HasWings { get { if (Time.time >= wingCheckT) { wingCheckT = Time.time + 1f; wingsOn = model != null && model.GetComponentInChildren<AHWingRig>(false) != null; } return wingsOn; } }
     public bool Updraft(float height)
@@ -641,7 +642,7 @@ public class AHPlayer : MonoBehaviour
         if (dead || Gliding) return false;
         if (!HasWings) return false;
         if (mounted) AHComp.Dismount(g, true);
-        glideUp = height; glideDir = transform.forward; glideDir.y = 0f; glideDir.Normalize(); StopEmote(); AHGather.Cancel();
+        glideUp = height; glideArea = AHGame.AreaId; glideDir = transform.forward; glideDir.y = 0f; glideDir.Normalize(); StopEmote(); AHGather.Cancel();
         AHSound.Play("whoosh"); AHWingRig.Gliding = true;
         return true;
     }

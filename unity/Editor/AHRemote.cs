@@ -167,6 +167,7 @@ public static class AHRemote
                     return "ok";
                 }
             case "town": AHTownLife.Test(a); return "ok";
+            case "info": return a == "race" ? AHRace.Info : a == "area" ? AHGame.AreaId + (AHTownLife.I != null ? " (town life on)" : "") : "?";
             case "trash": return AssetDatabase.MoveAssetToTrash(a) ? "ok" : "could not trash " + a;
             case "view":
                 {

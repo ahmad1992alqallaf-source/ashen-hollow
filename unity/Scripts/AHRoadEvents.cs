@@ -47,6 +47,8 @@ public static class AHRoadEvents
                 float a = (pass == 0 ? Random.Range(-70f, 70f) : Random.Range(0f, 360f)), d = Random.Range(20f, 34f);
                 Vector3 q = me + Quaternion.Euler(0, a, 0) * fw * d; q.y = y;
                 if (!g.InArea(q) || g.InTown(q) || g.Blocked(q, 2.2f)) continue;
+                if (AHHollow.Plot != null && AHHollow.Plot.Contains(q, 4f)) continue;
+                bool crowd = false; foreach (var n in AHNpc.All) if (n != null && n.DistTo(q) < 6f) { crowd = true; break; } if (crowd) continue;
                 if (pass == 0 && !AHNav.IsDirt(g, q)) continue;
                 at = q; return true;
             }

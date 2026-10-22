@@ -11,6 +11,9 @@ public class AHRace : MonoBehaviour
 {
     public static AHRace I;
     public bool Busy { get { return running || counting; } }
+    public static string Info { get { if (I == null) return "no race"; var p = AHGame.I.player.transform.position; return I.cps.Count + " rings, " + Mathf.RoundToInt(I.len) + " m" + (I.why != null ? " (" + I.why + ")" : "") + " · counting " + I.counting + " running " + I.running + " next " + I.next + " t " + I.t.ToString("0.0") + " · hero " + p + " · start " + (I.cps.Count > 0 ? I.cps[0].ToString() : "-") + " · enabled " + I.isActiveAndEnabled + " · upd " + I.upd; } }
+    int upd;
+    string why;
     AHGame g;
     readonly List<Vector3> cps = new List<Vector3>();
     readonly List<Transform> rings = new List<Transform>();
@@ -24,33 +27,29 @@ public class AHRace : MonoBehaviour
     {
         if (AHHollow.Gates.Count == 0) return;
         I = host.gameObject.AddComponent<AHRace>(); I.g = g;
-        try { I.Build(); } catch (System.Exception e) { Debug.LogWarning("Ashen Hollow: race course not built (" + e.Message + ")"); }
+        try { I.Build(); } catch (System.Exception e) { I.why = e.Message; Debug.LogWarning("Ashen Hollow: race course not built (" + e.Message + ")\n" + e.StackTrace); }
     }
     static Vector3 Flat(Vector3 v) { v.y = 0f; return v; }
 
     void Build()
     {
-        // the course: out of the first gate and along the road as far as it goes
+        // the course: a lap round the outside of the town walls, from the first gate back to it
         var gt = AHHollow.Gates[0]; float y = AHHollow.C.y;
-        Vector3 cur = gt.at + gt.dir * 16f; cur.y = y; Vector3 head = gt.dir;
-        cps.Add(cur);
-        for (int i = 0; i < 9; i++)
+        Vector3 E = g.W(1f, 0f) - g.W(0f, 0f), S = g.W(0f, 1f) - g.W(0f, 0f); E.y = 0f; S.y = 0f; E.Normalize(); S.Normalize();
+        float a0 = Mathf.Atan2(Vector3.Dot(gt.dir, S), Vector3.Dot(gt.dir, E)) * Mathf.Rad2Deg;
+        float R = AHHollow.R;
+        for (int i = 0; i <= 12; i++)
         {
-            Vector3 best = Vector3.zero; float bestTurn = 999f;
-            for (int pass = 0; pass < 2 && best == Vector3.zero; pass++)
-                for (float a = 0f; a <= 80f; a += 8f)
-                    foreach (var sd in new[] { 1f, -1f })
-                    {
-                        Vector3 q = cur + Quaternion.Euler(0, a * sd, 0) * head * 26f; q.y = y;
-                        if (!g.InArea(q) || g.Blocked(q, 1.6f) || AHHollow.Inside(q, 6f)) continue;
-                        if (pass == 0 && !AHNav.IsDirt(g, q)) continue;
-                        bool back = false; foreach (var c in cps) if (Flat(c - q).magnitude < 18f) back = true; if (back) continue;
-                        if (a < bestTurn) { bestTurn = a; best = q; }
-                    }
-            if (best == Vector3.zero) break;
-            head = Flat(best - cur).normalized; cur = best; cps.Add(cur);
+            float a = (a0 + (i == 12 ? 352f : i * 30f)) * Mathf.Deg2Rad; Vector3 dir = E * Mathf.Cos(a) + S * Mathf.Sin(a);
+            foreach (var r in new[] { R + 13f, R + 17f, R + 10f, R + 21f, R + 25f })
+            {
+                Vector3 q = AHHollow.C + dir * r; q.y = y;
+                if (!g.InArea(q) || g.Blocked(q, 2.0f)) continue;
+                if (AHHollow.Plot != null && AHHollow.Plot.Contains(q, 3f)) continue;
+                cps.Add(q); break;
+            }
         }
-        if (cps.Count < 4) { Debug.LogWarning("Ashen Hollow: race course too short"); cps.Clear(); return; }
+        if (cps.Count < 4) { why = "too short: " + cps.Count; Debug.LogWarning("Ashen Hollow: race course too short"); cps.Clear(); return; }
         for (int i = 1; i < cps.Count; i++) len += Flat(cps[i] - cps[i - 1]).magnitude;
         len += 16f;
         bright = Glow(new Color(1f, 0.8f, 0.3f), 2.2f); dim = Glow(new Color(0.75f, 0.62f, 0.4f), 0.15f);
@@ -138,6 +137,7 @@ public class AHRace : MonoBehaviour
 
     void Update()
     {
+        upd++;
         if (g == null || g.player == null) return;
         var p = g.player; float now = Time.time;
         if (counting)

@@ -571,7 +571,7 @@ public class AHTownLife : MonoBehaviour
         foreach (var d in drafts)
         {
             if (Flat(d - pp) > 1.5f) continue;
-            if (!p.Updraft(16f))
+            if (!p.Updraft(12f))
             {
                 if (now >= draftHintT) { draftHintT = now + 12f; g.ui.Toast("A rising wind. With wings on your back you could ride it up and glide.", 4f); }
             }
@@ -650,7 +650,7 @@ public class AHTownLife : MonoBehaviour
         else if (what == "deal") AHTable.TestDeal(AHGame.I);
         else if (what.StartsWith("road")) { int k; int.TryParse(what.Substring(4), out k); AHRoadEvents.Start(AHGame.I, k); }
         else if (what == "ranked") AHGame.I.ui.OpenRanked();
-        else if (what == "glide") { var p = AHGame.I.player; AHWingRig.TestAir = 0f; if (!p.Updraft(16f)) Debug.Log("Ashen Hollow: glide test: no wings on"); }
+        else if (what == "glide") { var p = AHGame.I.player; AHWingRig.TestAir = 0f; if (!p.Updraft(12f)) Debug.Log("Ashen Hollow: glide test: no wings on"); }
         else if (what == "draft" && I.drafts.Count > 0) { var p = AHGame.I.player; Vector3 d = I.drafts[0]; p.transform.position = d + (C - d).normalized * 5f; }
         else if (what.StartsWith("race")) AHRace.Test(what.Substring(4).Trim());
         else if (what == "cards") AHTable.OpenCards(AHGame.I);
