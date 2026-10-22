@@ -979,6 +979,7 @@ public partial class AHUI : MonoBehaviour
         {
             bagFiltered = new List<int>();
             for (int oi = 0; oi < bag.order.Count; oi++) { var fid = bag.order[oi]; if (fid != null && TabHas(AHItems.Get(fid))) bagFiltered.Add(oi); }
+            if (bagTab == "new") bagFiltered.Sort((x, y) => AHFun3.RecentIndex(bag.order[x]).CompareTo(AHFun3.RecentIndex(bag.order[y])));   // newest first
         }
         for (int i = 0; i < bagSlots.Length; i++)
         {

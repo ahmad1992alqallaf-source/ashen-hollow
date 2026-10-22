@@ -154,6 +154,7 @@ public partial class AHUI
         QuickTick();
         MailTick();
         TipTick();
+        FunTick();
         if (menuBadge != null && (badgeT -= Time.unscaledDeltaTime) <= 0f && g.player != null && g.player.cls != null)
         {
             badgeT = 2f; int n = 0;
@@ -487,6 +488,9 @@ public partial class AHUI
         if (rwRoot != null) rwRoot.gameObject.SetActive(false);
         if (hudEdit) { hudEdit = false; if (hudEditRoot != null) hudEditRoot.gameObject.SetActive(false); }
         if (tbRoot != null) tbRoot.gameObject.SetActive(false);
+        if (awayRoot != null) Destroy(awayRoot.gameObject);
+        if (PhotoOn) PhotoMode(false);
+        if (wheelRoot != null) wheelRoot.gameObject.SetActive(false);
     }
     void MirrorWork()
     {

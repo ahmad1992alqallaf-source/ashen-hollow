@@ -34,6 +34,7 @@ public class AHTownLife : MonoBehaviour
         if (root == null || g == null) return;
         var tl = root.gameObject.AddComponent<AHTownLife>(); tl.g = g; I = tl;
         try { tl.Build(); } catch (System.Exception e) { Debug.LogWarning("Ashen Hollow: town life could not start fully (" + e.Message + ")\n" + e.StackTrace); }
+        try { root.gameObject.AddComponent<AHNightFun>().Init(g); } catch (System.Exception e) { Debug.LogWarning("Ashen Hollow: the night's extras could not start (" + e.Message + ")"); }
     }
 
     static Vector3 C { get { return AHHollow.C; } }
@@ -239,7 +240,7 @@ public class AHTownLife : MonoBehaviour
         var p = g.player; string hero = p != null && !string.IsNullOrEmpty(p.heroName) ? p.heroName : "a hero";
         var list = new List<string[]>();
         list.Add(new[] { "Hear ye! It is " + g.TimeText() + " in Hollow Meadow, and all is well!", "اسمعوا! الساعة " + g.TimeText() + " في هولو ميدو، وكل شيء بخير!" });
-        if (AHWeather.Now == AHWeather.Kind.Rain) list.Add(new[] { "Rain over the Meadow! The fish are biting and the herbs are open!", "مطر فوق المرج! السمك يأكل والأعشاب متفتحة!" });
+        if (AHWeather.Raining) list.Add(new[] { "Rain over the Meadow! The fish are biting and the herbs are open!", "مطر فوق المرج! السمك يأكل والأعشاب متفتحة!" });
         else if (AHWeather.Now == AHWeather.Kind.Fog) list.Add(new[] { "Fog on the roads! Beasts see less, and so do you. Walk carefully!", "ضباب على الطرق! الوحوش ترى أقل، وأنت كذلك. امشِ بحذر!" });
         else list.Add(new[] { "Fair skies over the Meadow! A good day for the road!", "سماء صافية فوق المرج! يوم جميل للسفر!" });
         if (p != null) list.Add(new[] { "Hear ye! " + hero + " the " + (p.cls != null ? p.cls.name : "hero") + " has reached level " + p.level + "!", "اسمعوا! " + hero + " وصل إلى المستوى " + p.level + "!" });
@@ -519,7 +520,7 @@ public class AHTownLife : MonoBehaviour
     readonly List<Vector3> puddleSize = new List<Vector3>();
     void WeatherTick()
     {
-        bool rain = AHWeather.Now == AHWeather.Kind.Rain;
+        bool rain = AHWeather.Raining;
         puddleK = Mathf.MoveTowards(puddleK, rain ? 1f : 0f, 1.5f / 40f);
         if (puddleSize.Count != puddles.Count) { puddleSize.Clear(); foreach (var p in puddles) puddleSize.Add(p.localScale); }
         for (int i = 0; i < puddles.Count; i++)
@@ -646,7 +647,7 @@ public class AHTownLife : MonoBehaviour
         else if (what == "house") { PlotState = 2; I.BuildHouse(true); I.PlotLabel(); }
         else if (what == "plotreset") { PlotState = 0; }
         else if (what == "jobs") AHGame.I.ui.OpenJobs();
-        else if (what == "close") { AHGame.I.ui.ShowWork(false); AHGame.I.ui.CloseOverlays(); AHTable.CloseAll(); }
+        else if (what == "close") { AHGame.I.ui.ShowWork(false); AHGame.I.ui.ShowBag(false); AHGame.I.ui.CloseOverlays(); AHTable.CloseAll(); }
         else if (what == "deal") AHTable.TestDeal(AHGame.I);
         else if (what.StartsWith("road")) { int k; int.TryParse(what.Substring(4), out k); AHRoadEvents.Start(AHGame.I, k); }
         else if (what == "ranked") AHGame.I.ui.OpenRanked();
@@ -656,6 +657,20 @@ public class AHTownLife : MonoBehaviour
         else if (what == "cards") AHTable.OpenCards(AHGame.I);
         else if (what == "hub") AHGame.I.ui.OpenHub();
         else if (what == "char") AHGame.I.ui.OpenChar();
+        else if (what == "bounty") AHGame.I.ui.OpenBounty();
+        else if (what == "bagnew") AHGame.I.ui.TestBagNew();
+        else if (what == "bountyreset") AHPrefs.SetString("ah_bounty", "");
+        else if (what == "hunthere") AHFun3.TestHere(AHGame.I.player);
+        else if (what == "logout") AHGame.I.Logout();
+        else if (what == "hunt") { var h = AHFun3.Hunted; if (h != null) { var pl = AHGame.I.player; pl.transform.position = h.transform.position + (pl.transform.position - h.transform.position).normalized * 7f; pl.target = h; } }
+        else if (what == "album") AHGame.I.ui.OpenAlbum();
+        else if (what == "wheel") AHGame.I.ui.SendMessage("ToggleEmoteWheel");
+        else if (what == "away") AHGame.I.ui.AwayCard(3 * 3600 + 25 * 60, new System.Collections.Generic.List<string> { "2 letters wait in your mail", "3 daily goals to claim", "3 bounties on the board today" });
+        else if (what == "deed") AHGame.I.ui.DeedPop(AHAch.All[0]);
+        else if (what == "storm") { for (int i = 0; i < 6 && AHWeather.Now != AHWeather.Kind.Storm; i++) AHWeather.TestNext(); }
+        else if (what == "photoshot") { AHGame.I.ui.PhotoMode(true); AHGame.I.ui.SendMessage("Snap"); }
+        else if (what == "seen") AHPrefs.SetString("ah_seen", (AHFun3.NowS - 5 * 3600).ToString());
+        else if (what == "lanterns") { var nf = Object.FindFirstObjectByType<AHNightFun>(); if (nf != null) nf.SendMessage("ForceFestival"); }
         else if (what == "mailtest") { AHMail.Send(AHGame.I, "Caravan master of Ashen Hollow", "Your goods sold well in Ashen Hollow. Here is your coin.", 340); AHMail.Send(AHGame.I, "The Winter Fair", "A gift for you, with the season's warmest wishes.", 630, new AHStack { id = "ruby", n = 1 }); }
         else if (what == "mail") AHGame.I.ui.OpenMail();
         else if (what == "loading") { AHLoading.Show("mill"); AHLoading.Ready(); }

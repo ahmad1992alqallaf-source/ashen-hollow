@@ -36,6 +36,15 @@ public static class AHTrophies
         if (g.ui != null) g.ui.Banner("Trophy won: " + m.type.name, by.home != null && by.home.comf.Contains("trophies") ? "It now stands on your Trophy stand at home" : "Build a Trophy stand at your homestead to show it off");
     }
 
+    // other great moments stand on the stand too: a golden beast (its golden statue) and a legendary fish (a cup)
+    public static void AddSpecial(AHGame g, AHPlayer by, string key, string name, string model, string where)
+    {
+        if (by == null || by.prog == null || Has(by, key)) return;
+        by.prog.trophies.Add(new AHKS { k = key, v = name + "|" + (model ?? "") });
+        g.MarkDirty();
+        if (g.ui != null) g.ui.Banner(AHLoc.T("Trophy won: ", "كأس جديدة: ") + name, by.home != null && by.home.comf.Contains("trophies") ? AHLoc.T("It now stands on your Trophy stand at home", "تقف الآن على منصة الكؤوس في بيتك") : AHLoc.T("Build a Trophy stand at your homestead to show it off", "ابنِ منصة كؤوس في مزرعتك لتعرضها"));
+    }
+
     // bosses beaten before trophies came to the realm count too (from your kill record)
     public static void Backfill(AHPlayer p)
     {
@@ -103,7 +112,7 @@ public static class AHTrophies
             plinth.transform.SetParent(stand, false); plinth.transform.localPosition = new Vector3(x, 1.08f, 0f); plinth.transform.localScale = new Vector3(0.42f, 0.08f, 0.42f);
             plinth.GetComponent<Renderer>().sharedMaterial = Mat(0x3a2a1c);
             var holder = new GameObject("Trophy_" + t.k).transform; holder.SetParent(stand, false); holder.localPosition = new Vector3(x, 1.16f, 0f);
-            if (!Statue(g, holder, t)) Cup(holder, Gold);
+            if (t.k.StartsWith("fish:") || !Statue(g, holder, t)) Cup(holder, t.k.StartsWith("fish:") ? 0x6ec8e8 : Gold);   // a legendary fish: a sea-blue cup
         }
     }
 
@@ -128,7 +137,8 @@ public static class AHTrophies
     {
         try
         {
-            var tp = new AHMobType { id = t.k, name = Name(t), model = Model(t), hp = 1, radius = 0.5f, speed = 0f, aggro = 0f, respawn = 1e9f, noSkin = true };
+            string tid = t.k.StartsWith("golden:") ? t.k.Substring(7) : t.k;
+            var tp = new AHMobType { id = tid, name = Name(t), model = Model(t), hp = 1, radius = 0.5f, speed = 0f, aggro = 0f, respawn = 1e9f, noSkin = true };
             var m = AHMob.Create(g, tp, h.position);
             if (m == null) return false;
             var go = m.gameObject; m.enabled = false; Object.Destroy(m);

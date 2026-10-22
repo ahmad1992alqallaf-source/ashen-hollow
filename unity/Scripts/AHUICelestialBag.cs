@@ -27,6 +27,7 @@ public partial class AHUI
         bool rec = d.id == AHRareRecipes.ScrollId || AHRecipeDrops.IsScroll(d.id) || AHFashion.IsPattern(d.id);
         switch (bagTab)
         {
+            case "new": return AHFun3.IsRecent(d.id);
             case "gear": return d.IsGear;
             case "food": return d.IsFood || d.potion;
             case "rec": return rec;
@@ -103,8 +104,8 @@ public partial class AHUI
         // ---- the header ----
         var title = bagWin.Find("Title") as RectTransform;
         if (title != null) { var tt = title.GetComponent<Text>(); tt.font = TitleFont; tt.fontStyle = FontStyle.Normal; tt.fontSize = 31; tt.color = Color.white; foreach (var o in title.GetComponents<Shadow>()) Destroy(o); title.anchoredPosition = new Vector2(20, -8); title.sizeDelta = new Vector2(100, 44); }
-        var tabBack = Img("Tabs", bagWin, cgPillGlass, new Vector2(0.5f, 0.5f), BC(110 + 238, 30), new Vector2(476, 42), Color.white); tabBack.GetComponent<Image>().type = Image.Type.Sliced;
-        string[][] tabs = { new[] { "all", "All", "54" }, new[] { "gear", "Gear", "72" }, new[] { "mat", "Materials", "104" }, new[] { "food", "Food & potions", "138" }, new[] { "rec", "Recipes", "92" } };
+        var tabBack = Img("Tabs", bagWin, cgPillGlass, new Vector2(0.5f, 0.5f), BC(110 + 268, 30), new Vector2(536, 42), Color.white); tabBack.GetComponent<Image>().type = Image.Type.Sliced;
+        string[][] tabs = { new[] { "all", "All", "54" }, new[] { "new", "New", "56" }, new[] { "gear", "Gear", "72" }, new[] { "mat", "Materials", "104" }, new[] { "food", "Food & potions", "138" }, new[] { "rec", "Recipes", "92" } };
         float tx = 116; bagTabs.Clear();
         foreach (var t in tabs)
         {

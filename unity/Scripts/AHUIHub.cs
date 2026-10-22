@@ -57,6 +57,7 @@ public partial class AHUI
         E("hero", "Emotes", "Wave, bow, dance, sit…", "cg:emote", W, false, true, OpenEmotes);
         // ---- adventure ----
         E("adv", "Story", AHStory.Done(p) ? "Done · Kingsbane" : "Chapter " + (p.prog.storyCh + 1) + " of " + AHStory.Chapters.Length, "fossil_map", new Color(1f, 0.75f, 0.4f), !AHStory.Done(p), true, OpenStory);
+        { int br = AHFun3.Ready(p); E("adv", "Bounty board", br > 0 ? "<color=#9be37a>" + br + " to claim</color>" : "Three named beasts a day", "card_wolf", new Color(1f, 0.7f, 0.4f), br > 0, true, OpenBounty); }
         E("adv", "Daily goals", (AHDaily.Ready(p) > 0 ? "<color=#9be37a>" + AHDaily.Ready(p) + " to claim</color> · " : "") + p.prog.daily.marks + " marks · login calendar", "mystery_sack", new Color(1f, 0.85f, 0.5f), AHDaily.Ready(p) > 0, true, OpenDaily);
         E("adv", "Dungeon Finder", AHFinder.Runs + " group runs", "iron_mace", W, false, true, OpenFinder);
         if (AHDeep.InRun) E("adv", "The Ashen Deep", "Floor " + AHDeep.Floor + " of " + AHDeep.Floors + " · " + AHDeep.Clock(AHDeep.Elapsed), "dragon_scale", new Color(0.75f, 0.55f, 1f), false, true, OpenDeepHall);
@@ -69,6 +70,7 @@ public partial class AHUI
         if (AHFinder.Run != "") E("adv", "Leave the group", AHFinder.NameOf(AHFinder.Run) + " · " + AHFinder.RoleName(AHFinder.Role), "cg:close", new Color(1f, 0.55f, 0.45f), false, true, () => { ShowWork(false); AHFinder.Leave(g); });
         // ---- events & fun ----
         { var F = AHFest.Now(); if (F != null) E("fun", F.name, "Tokens: " + AHFest.State(p, F).tok, "lucky_charm", F.col, true, true, OpenFest); }
+        E("fun", "Photo album", AHFun3.Album(p).Count + " photos · fine views to snap", "fossil_map", new Color(0.7f, 0.85f, 1f), false, true, OpenAlbum);
         E("fun", "Fishing derby", AHDerby.Best > 0f ? "Your best: " + AHDerby.Best.ToString("0.00") + " kg" : "Every fish is weighed", "tuna", W, false, true, OpenDerby);
         E("fun", "Cook-off", AHCookOff.Score + " points · streak " + AHCookOff.Streak, "stew", W, false, true, OpenCookOff);
         E("fun", "Library & tournament", "Lore pages · weekend tournament · helpers", "logs", W, false, true, () => OpenWorld());

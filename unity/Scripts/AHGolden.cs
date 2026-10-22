@@ -28,7 +28,7 @@ public static class AHGolden
     // each time a beast (re)appears: golden or not
     public static void Roll(AHGame g, AHMob m, bool force = false)
     {
-        bool want = Can(g, m) && (force || Random.value < Chance);
+        bool want = Can(g, m) && (force || Random.value < Chance * AHWeather.GoldenK);
         if (want == m.golden) return;
         if (want) Make(g, m); else Unmake(m);
     }
@@ -98,6 +98,7 @@ public static class AHGolden
     public static void OnKill(AHGame g, AHMob m, AHPlayer by)
     {
         if (m == null || !m.golden || by == null) return;
+        AHTrophies.AddSpecial(g, by, "golden:" + m.type.id, "Golden " + m.type.name.ToLowerInvariant(), m.type.model, "golden");
         int L = Mathf.Max(1, by.level);
         long coins = (long)(60 + L * 30 + Random.Range(0, 40 + L * 10)) * AHDB.CU;
         by.AddMoney(coins, m.transform.position);

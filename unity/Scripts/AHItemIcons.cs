@@ -22,7 +22,8 @@ public static class AHItemIcons
     public static Sprite Own(ItemDef d)
     {
         if (d == null) return null;
-        Sprite s; if (idCache.TryGetValue(d.id, out s)) return s;
+        if (idTried && (object)idAtlas != null && idAtlas == null) { idTried = false; idCache.Clear(); }   // the atlas was unloaded (the editor playing again without a reload)
+        Sprite s; if (idCache.TryGetValue(d.id, out s) && ((object)s == null || s != null)) return s;
         if (!idTried)
         {
             idTried = true;

@@ -50,7 +50,7 @@ public static class AHItems
     public static ItemDef Get(string id)
     {
         if (id == null) return null;
-        if (cache == null) { cache = new Dictionary<string, ItemDef>(); AHGrades.Inject(); AHFish.Inject(); AHRecipeDrops.Inject(); AHTorch.Inject(); AHMastery.Inject(); }
+        if (cache == null) { cache = new Dictionary<string, ItemDef>(); AHGrades.Inject(); AHFish.Inject(); AHRecipeDrops.Inject(); AHTorch.Inject(); AHFun3.Inject(); AHMastery.Inject(); }
         ItemDef d;
         if (cache.TryGetValue(id, out d)) return d;
         var items = AHDB.Items;
@@ -196,6 +196,7 @@ public class AHBag
     public readonly Dictionary<string, string> gear = new Dictionary<string, string>();
     public long money;                                                 // bronze
     public event Action Changed;
+    public static Action<string, int> Added;   // anything new in a bag (AHFun3: the "New" tab)
     public static Func<string, int, bool> CosHook;
     public string lastWarn;
 
@@ -232,6 +233,7 @@ public class AHBag
         inv[id] = Count(id) + n;
         if (!order.Contains(id)) order.Add(id);
         Touch();
+        if (Added != null) Added(id, n);
         return true;
     }
 

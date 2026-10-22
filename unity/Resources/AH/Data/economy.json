@@ -623,7 +623,7 @@
     "bread"
    ]
   },
-  "road_merchant": {
+  "ghost_peddler": {"name": "The Pale Peddler", "keeper": "The Pale Peddler", "role": "Odd things, by moonlight", "theme": "curio", "greet": "Old maps, odd luck, a fish that glows. Gone by dawn.", "stock": ["tmap_meadow", "mystery_sack", "lucky_charm", "enh_stone", "dragon_draught", "glowfin"]}, "road_merchant": {
    "name": "The Wandering Cart",
    "keeper": "A travelling merchant",
    "role": "Rare goods from far away",

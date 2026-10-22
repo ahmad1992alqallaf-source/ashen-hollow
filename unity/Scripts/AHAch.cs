@@ -122,8 +122,7 @@ public static class AHAch
             if (!p.prog.ach.Contains(a.id) && a.test(p))
             {
                 p.prog.ach.Add(a.id);
-                g.ui.Banner(a.name, "Achievement unlocked");
-                g.ui.Toast("New title unlocked: “" + a.title + "”. Pick it in Menu → Deeds.", 4f);
+                g.ui.DeedPop(a);   // the gold card slides down from the top (with its sound)
                 g.SaveProgress();
                 break;
             }

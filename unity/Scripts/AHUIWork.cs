@@ -210,6 +210,8 @@ public partial class AHUI
         else if (wkMode == "char") RenderChar(p);
         else if (wkMode == "quick") RenderQuick(p);
         else if (wkMode == "mail") RenderMail(p);
+        else if (wkMode == "bounty") RenderBounty(p);
+        else if (wkMode == "album") RenderAlbum(p);
         else if (wkMode == "finder") RenderFinder(p);
         else if (wkMode == "board") RenderBoard(p);
         else if (wkMode == "rep") RenderRepList(p);

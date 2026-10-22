@@ -108,7 +108,7 @@ public class AHLife : MonoBehaviour
         var G = Get("greet"); var p = g.player; string role = Role(n);
         var keys = new List<string>();
         if (role != "any" && Random.value < 0.45f) keys.Add(role);
-        if (AHWeather.Now == AHWeather.Kind.Rain && Random.value < 0.5f) keys.Add("rain");
+        if (AHWeather.Raining && Random.value < 0.5f) keys.Add("rain");
         if (AHWeather.Now == AHWeather.Kind.Snow && Random.value < 0.5f) keys.Add("snow");
         if (AHWeather.Now == AHWeather.Kind.Fog && Random.value < 0.4f) keys.Add("fog");
         if (p.cls != null && Random.value < 0.35f) keys.Add(p.cls.id);
@@ -232,7 +232,14 @@ public class AHLife : MonoBehaviour
             if (b.rt.gameObject.activeSelf != show) b.rt.gameObject.SetActive(show);
             if (!show) continue;
             b.rt.anchoredPosition = Vector2.zero; b.rt.anchorMin = b.rt.anchorMax = Vector2.zero;
-            b.rt.anchoredPosition = new Vector2(s.x, s.y) * k;
+            // kept clear of the hero card and quest card (top left) and the minimap and its buttons (top right):
+            // a bubble that would sit on them drops just below
+            Vector2 at = new Vector2(s.x, s.y) * k, sz = b.rt.sizeDelta;
+            float W = Screen.width * k, H = Screen.height * k;
+            at.x = Mathf.Clamp(at.x, sz.x * 0.5f + 6f, W - sz.x * 0.5f - 6f);
+            float top = at.y + sz.y, l = at.x - sz.x * 0.5f, r = at.x + sz.x * 0.5f;
+            if (top > H - 250f && (l < 420f || r > W - 340f)) at.y = Mathf.Min(at.y, H - 250f - sz.y);
+            b.rt.anchoredPosition = at;
             float fade = Mathf.Clamp01((b.until - Time.time) * 3f);
             b.bg.color = new Color(0.08f, 0.07f, 0.06f, 0.78f * fade); var tc = b.txt.color; tc.a = fade; b.txt.color = tc;
         }

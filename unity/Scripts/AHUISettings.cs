@@ -154,7 +154,7 @@ public partial class AHUI
         emoteBtn = Img("EmoteBtn", transform, circle, new Vector2(1, 0), new Vector2(-58, 402), new Vector2(64, 64), new Color(0.3f, 0.2f, 0.32f, 0.92f));
         Img("Rim", emoteBtn, ring, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(64, 64), new Color(1f, 0.8f, 0.45f, 1f));
         Center(Label(emoteBtn, "T", "EMOTE", 13, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(64, 24), Color.white));
-        taps.Add(new TapBtn { rt = emoteBtn, act = OpenEmotes });
+        taps.Add(new TapBtn { rt = emoteBtn, act = ToggleEmoteWheel });   // a wheel of emotes (its middle: the full list)
     }
     // the lightfoot button (unlocked at level 5): three pips show the leaps you have
     RectTransform leapBtn; Image[] leapPips;

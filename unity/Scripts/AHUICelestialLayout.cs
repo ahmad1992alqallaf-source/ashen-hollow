@@ -23,7 +23,8 @@ public partial class AHUI
 
     public static Sprite CGIcon(string n)
     {
-        Sprite s; if (cgIcons.TryGetValue(n, out s)) return s;
+        // (a cached sprite whose picture Unity has since unloaded - the editor playing again without a reload - is made anew)
+        Sprite s; if (cgIcons.TryGetValue(n, out s) && ((object)s == null || s != null)) return s;
         var t = Resources.Load<Texture2D>("AH/UI/CG/cg_" + n);
         s = t != null ? Sprite.Create(t, new Rect(0, 0, t.width, t.height), new Vector2(0.5f, 0.5f), 100f) : null;
         cgIcons[n] = s; return s;
@@ -323,7 +324,7 @@ public partial class AHUI
         if (cgXp != null) cgXp.text = "XP " + Mathf.FloorToInt(p.XpFrac * 100f) + "%";
         if (hpText != null && !hpText.text.StartsWith("HP")) { string ht = hpText.text; int cut = ht.IndexOf("  ("); if (cut > 0) ht = ht.Substring(0, cut); hpText.text = "HP " + ht; }
         if (clockText != null && goldText != null) goldText.rectTransform.anchoredPosition = new Vector2(8 + clockText.preferredWidth + 12f, -102);
-        if (cgMapStrip != null) cgMapStrip.text = (g.data != null ? g.data.region : "") + " · " + System.DateTime.Now.ToString("HH:mm");
+        if (cgMapStrip != null) cgMapStrip.text = (g.data != null ? g.data.region : "") + " · " + System.DateTime.Now.ToString("HH:mm") + (AHWeather.Now != AHWeather.Kind.Clear && !AHDungeon.IsDungeon(AHGame.AreaId) ? " · " + AHWeather.Name : "");
         // the seal: a sword when it attacks, the word when it does something else
         if (cgSword != null && atkLabelText != null)
         {

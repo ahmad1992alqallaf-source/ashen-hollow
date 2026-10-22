@@ -164,6 +164,10 @@ public static class AHFishing
     {
         var h = hooked; hooked = null;
         if (h != null && !AHGather.GrantFish(p, spot, h.id, h.xp, hookedTier)) return;
+        var gg = AHGame.I;
+        if (h != null && hookedTier >= 4) { var fd = AHItems.Get(h.id); AHTrophies.AddSpecial(gg, p, "fish:" + h.id, fd != null ? fd.name : h.id, "", "fish"); }
+        // after dark a glowfin may come up with the catch, shining like the moon
+        if (h != null && gg != null && gg.IsNight && Random.value < 0.12f && p.bag.Add(AHFun3.Glowfin)) gg.ui.Float(p.transform.position + Vector3.up * 2.4f, AHLoc.T("+ Glowfin!", "+ سمكة مضيئة!"), new Color(0.5f, 0.9f, 1f));
         if (AHGather.CanDo(p, spot, false)) Cast(p); else AHGather.Cancel();
     }
 

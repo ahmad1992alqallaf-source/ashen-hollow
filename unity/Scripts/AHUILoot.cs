@@ -13,7 +13,7 @@ public partial class AHUI
     // a big Take all under the right thumb (where the attack seal sits), while the loot window is open
     void LootAllTick()
     {
-        bool on = WorkOpen && wkMode == "loot" && lootMob != null && lootMob.HasLoot;
+        bool on = false;   // the loot window's own Take all is enough (this one sat loose over the window's edge)
         if (lootAllBtn == null)
         {
             if (!on) return;

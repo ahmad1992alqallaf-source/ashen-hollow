@@ -22,10 +22,11 @@ public class AHWorldState
 // ---------- weather ----------
 public class AHWeather : MonoBehaviour
 {
-    public enum Kind { Clear, Cloudy, Rain, Fog, Snow }
+    public enum Kind { Clear, Cloudy, Rain, Fog, Snow, Storm }
+    public static bool Raining { get { return Now == Kind.Rain || Now == Kind.Storm; } }
     public static Kind Now = Kind.Clear;
     static AHWeather inst;
-    ParticleSystem fall; float nextT, sunK = 1f, fogK = 1f, wantSun = 1f, wantFog = 1f;
+    ParticleSystem fall; float nextT, sunK = 1f, fogK = 1f, wantSun = 1f, wantFog = 1f, flashT = 8f, flash; Kind shown = Kind.Clear;
 
     public static void Setup(AHGame g)
     {
@@ -34,11 +35,39 @@ public class AHWeather : MonoBehaviour
         if (AHDungeon.IsDungeon(AHGame.AreaId) || AHGame.AreaId == AHDeep.Area || AHGame.AreaId == AHAbyss.Area) { Now = Kind.Clear; inst.Apply(); }   // no weather underground (the Deep too)
     }
     // test tools: step to the next kind of weather (and snap to it, without the slow change)
-    public static void TestNext() { if (inst == null) return; Now = (Kind)(((int)Now + 1) % 5); inst.nextT = 900f; inst.Apply(); inst.sunK = inst.wantSun; inst.fogK = inst.wantFog; }
-    public static string Name { get { return Now == Kind.Rain ? "Rain" : Now == Kind.Fog ? "Fog" : Now == Kind.Snow ? "Snow" : Now == Kind.Cloudy ? "Clouds" : "Clear"; } }
+    public static void TestNext() { if (inst == null) return; Now = (Kind)(((int)Now + 1) % 6); inst.nextT = 900f; inst.Apply(); inst.sunK = inst.wantSun; inst.fogK = inst.wantFog; }
+    public static string Name { get { return Now == Kind.Storm ? AHLoc.T("Storm", "عاصفة") : Now == Kind.Rain ? AHLoc.T("Rain", "مطر") : Now == Kind.Fog ? AHLoc.T("Fog", "ضباب") : Now == Kind.Snow ? AHLoc.T("Snow", "ثلج") : Now == Kind.Cloudy ? AHLoc.T("Clouds", "غيوم") : AHLoc.T("Clear", "صافٍ"); } }
+    // what the weather does, in one line (the toast when it turns, the minimap's strip, the Library)
+    public static string Effect
+    {
+        get
+        {
+            switch (Now)
+            {
+                case Kind.Storm: return AHLoc.T("lightning spells hit 25% harder, fish bite faster", "تعاويذ البرق أقوى ٢٥٪، والسمك يأكل أسرع");
+                case Kind.Rain: return AHLoc.T("fish bite faster, herbs open, lightning spells +10%", "السمك يأكل أسرع، الأعشاب تتفتح، البرق +١٠٪");
+                case Kind.Fog: return AHLoc.T("beasts notice you later, golden beasts show twice as often", "الوحوش تلاحظك متأخرة، والوحوش الذهبية تظهر ضعف المعتاد");
+                case Kind.Snow: return AHLoc.T("frost spells +15%, fire spells -10%", "تعاويذ الصقيع +١٥٪، والنار -١٠٪");
+            }
+            return "";
+        }
+    }
+    // spells in the weather (AHMob.Hurt)
+    public static float ElementK(SpellEl e)
+    {
+        if (AHDungeon.IsDungeon(AHGame.AreaId)) return 1f;
+        switch (Now)
+        {
+            case Kind.Storm: return e == SpellEl.Storm ? 1.25f : 1f;
+            case Kind.Rain: return e == SpellEl.Storm ? 1.1f : e == SpellEl.Fire ? 0.9f : 1f;
+            case Kind.Snow: return e == SpellEl.Frost ? 1.15f : e == SpellEl.Fire ? 0.9f : 1f;
+        }
+        return 1f;
+    }
+    public static float GoldenK { get { return Now == Kind.Fog ? 2f : 1f; } }
     // gathering in the weather: rain brings fish to the surface and opens the herbs
-    public static float GatherK(string kind) { return Now == Kind.Rain ? (kind == "fish" ? 1.25f : kind == "herb" ? 1.15f : 1f) : 1f; }
-    public static float AggroK { get { return Now == Kind.Fog ? 0.6f : Now == Kind.Rain ? 0.85f : 1f; } }   // fog and rain: beasts notice you later
+    public static float GatherK(string kind) { return Raining ? (kind == "fish" ? 1.25f : kind == "herb" && Now == Kind.Rain ? 1.15f : 1f) : 1f; }
+    public static float AggroK { get { return Now == Kind.Fog ? 0.6f : Raining ? 0.85f : 1f; } }   // fog and rain: beasts notice you later
 
     static bool Cold(string a) { return a.Contains("frost"); }
     static bool Dry(string a) { return a.Contains("sand") || a.Contains("ember") || a.Contains("cinder"); }
@@ -50,21 +79,25 @@ public class AHWeather : MonoBehaviour
         if (AHDungeon.IsDungeon(a) || a == AHDeep.Area || a == AHAbyss.Area) Now = Kind.Clear;
         else if (Cold(a)) Now = r < 0.45f ? Kind.Snow : r < 0.7f ? Kind.Cloudy : Kind.Clear;
         else if (Dry(a)) Now = r < 0.2f ? Kind.Cloudy : Kind.Clear;
-        else Now = r < 0.2f ? Kind.Rain : r < 0.32f ? Kind.Fog : r < 0.55f ? Kind.Cloudy : Kind.Clear;
+        else Now = r < 0.07f ? Kind.Storm : r < 0.24f ? Kind.Rain : r < 0.36f ? Kind.Fog : r < 0.57f ? Kind.Cloudy : Kind.Clear;
         nextT = UnityEngine.Random.Range(240f, 480f);
-        Apply();
+        var was = shown; Apply(); shown = Now;
+        // say what changed (and what it means), once the land is up
+        var g = AHGame.I;
+        if (Now != was && g != null && g.ui != null && !AHLoading.Showing && Time.timeSinceLevelLoad > 8f && Effect != "") g.ui.Toast(Name + ": " + Effect + ".", 4f);
     }
 
     void Apply()
     {
-        wantSun = Now == Kind.Rain ? 0.6f : Now == Kind.Cloudy ? 0.82f : Now == Kind.Fog ? 0.75f : Now == Kind.Snow ? 0.85f : 1f;
-        wantFog = Now == Kind.Fog ? 0.38f : Now == Kind.Rain ? 0.7f : Now == Kind.Snow ? 0.75f : 1f;
-        bool falls = Now == Kind.Rain || Now == Kind.Snow;
+        wantSun = Now == Kind.Storm ? 0.42f : Now == Kind.Rain ? 0.6f : Now == Kind.Cloudy ? 0.82f : Now == Kind.Fog ? 0.75f : Now == Kind.Snow ? 0.85f : 1f;
+        wantFog = Now == Kind.Fog ? 0.38f : Now == Kind.Storm ? 0.62f : Now == Kind.Rain ? 0.7f : Now == Kind.Snow ? 0.75f : 1f;
+        bool falls = Raining || Now == Kind.Snow;
         if (falls && fall == null) fall = MakeFall();
         if (fall != null)
         {
             var main = fall.main; var em = fall.emission; var rr = fall.GetComponent<ParticleSystemRenderer>();
-            if (Now == Kind.Rain) { main.startSpeed = 18f; main.startLifetime = 1.1f; main.startSize = 0.05f; main.startColor = new Color(0.75f, 0.82f, 0.95f, 0.45f); em.rateOverTime = 1500f; rr.renderMode = ParticleSystemRenderMode.Stretch; rr.velocityScale = 0.06f; rr.lengthScale = 1f; }
+            if (Now == Kind.Storm) { main.startSpeed = 24f; main.startLifetime = 0.9f; main.startSize = 0.055f; main.startColor = new Color(0.72f, 0.78f, 0.92f, 0.5f); em.rateOverTime = 2600f; rr.renderMode = ParticleSystemRenderMode.Stretch; rr.velocityScale = 0.07f; rr.lengthScale = 1f; }
+            else if (Now == Kind.Rain) { main.startSpeed = 18f; main.startLifetime = 1.1f; main.startSize = 0.05f; main.startColor = new Color(0.75f, 0.82f, 0.95f, 0.45f); em.rateOverTime = 1500f; rr.renderMode = ParticleSystemRenderMode.Stretch; rr.velocityScale = 0.06f; rr.lengthScale = 1f; }
             else if (Now == Kind.Snow) { main.startSpeed = 1.6f; main.startLifetime = 7f; main.startSize = 0.09f; main.startColor = new Color(1f, 1f, 1f, 0.85f); em.rateOverTime = 420f; rr.renderMode = ParticleSystemRenderMode.Billboard; }
             if (falls) { if (!fall.isPlaying) fall.Play(); } else fall.Stop(true, ParticleSystemStopBehavior.StopEmitting);
         }
@@ -92,6 +125,9 @@ public class AHWeather : MonoBehaviour
         fogK = Mathf.MoveTowards(fogK, wantFog, Time.deltaTime * 0.08f);
         // the day cycle sets the light every frame; the weather dims it after
         if (RenderSettings.sun != null) RenderSettings.sun.intensity *= sunK;
+        // a storm: lightning now and then, a white flash over the land
+        if (Now == Kind.Storm && !AHDungeon.IsDungeon(AHGame.AreaId)) { flashT -= Time.deltaTime; if (flashT <= 0f) { flashT = UnityEngine.Random.Range(6f, 16f); flash = 1f; } }
+        if (flash > 0f) { flash = Mathf.MoveTowards(flash, 0f, Time.deltaTime * 3.5f); float f = flash * (0.6f + 0.4f * Mathf.PerlinNoise(Time.time * 30f, 0f)); if (RenderSettings.sun != null) RenderSettings.sun.intensity += f * 2.2f; }
         if (!AHDungeon.IsDungeon(AHGame.AreaId)) { float reach = AHSettings.Reach; RenderSettings.fogStartDistance = reach * 0.36f * fogK; RenderSettings.fogEndDistance = (reach - 5f) * Mathf.Max(0.45f, fogK); }
         if (fall != null) fall.transform.position = g.cam.transform.position + Vector3.up * 14f;
     }
@@ -224,7 +260,7 @@ public partial class AHUI
     {
         var st = AHWorld.St(p); AHWorld.Refresh(p);
         wkTitle.text = "The realm";
-        wkHint.text = "Weather here: " + AHWeather.Name + (AHWeather.Now == AHWeather.Kind.Rain ? " (fish bite faster, herbs open)" : AHWeather.Now == AHWeather.Kind.Fog ? " (beasts notice you later)" : "");
+        wkHint.text = "Weather here: " + AHWeather.Name + (AHWeather.Effect != "" ? " (" + AHWeather.Effect + ")" : "");
         var rows = new List<Action<int>>();
         rows.Add(s => Row(s, "", Color.white, "", "",
             new WkBtn { label = "Library", on = true, col = worldTab == "lore" ? Go : Plain, act = () => { worldTab = "lore"; wkPageI = 0; RenderWork(); } },

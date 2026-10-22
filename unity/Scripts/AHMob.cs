@@ -321,6 +321,7 @@ public class AHMob : MonoBehaviour
         if (by != null && !quiet && (stunT > 0f || rootT > 0f) && AHEvo.Pass(by, "frozen") > 0f) dmg = Mathf.RoundToInt(dmg * (1f + AHEvo.Pass(by, "frozen")));
         if (by != null && !quiet) { dmg = Mathf.RoundToInt(dmg * AHJuice.ComboK); AHJuice.OnHit(g, this, dmg); }   // combo bonus, hit-stop and shake
         if (by != null) dmg = Mathf.Max(1, Mathf.RoundToInt(dmg * AHChallenge.MobTakenK() * AHChallenge.YouDealK()));   // the weekly challenge
+        if (by != null && !quiet && AHPlayer.elFrame == Time.frameCount) dmg = Mathf.Max(1, Mathf.RoundToInt(dmg * AHWeather.ElementK(AHPlayer.hitEl)));   // a storm makes lightning hit harder
         hp -= dmg;
         if (by != null) { AHEvo.Leech(by, dmg); if (!quiet) { AHSound.Play("hit"); Voice("hurt", 0.5f); AHSpark.Burst(transform.position + Vector3.up * Mathf.Max(0.6f, type.radius * 0.8f), new Color(1f, 0.75f, 0.4f), 7, 3.2f, 0.35f, 0.1f, 0.8f); AHLooks.OnHit(by, transform.position + Vector3.up * Mathf.Max(0.6f, type.radius * 0.8f)); } }
         if (g.ui != null)
@@ -345,7 +346,7 @@ public class AHMob : MonoBehaviour
     //  Burning + frost = Quench (a crack of cold on hot hide)
     //  Chilled + earth = Shatterquake (stunned where it stands)
     float wetT, comboCd;
-    public bool Wet { get { return wetT > 0f || (AHWeather.Now == AHWeather.Kind.Rain && !AHDungeon.IsDungeon(AHGame.AreaId) && !AHGame.I.InTown(transform.position)); } }
+    public bool Wet { get { return wetT > 0f || (AHWeather.Raining && !AHDungeon.IsDungeon(AHGame.AreaId) && !AHGame.I.InTown(transform.position)); } }
     public void ElementHit(SpellEl el, AHPlayer by)
     {
         if (dead || by == null) return;

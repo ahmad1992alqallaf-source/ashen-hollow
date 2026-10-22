@@ -176,6 +176,16 @@ public partial class AHUI
                 var dot = MmDot(far ? arrowSp : star, far ? 17f : 16f, new Color(1f, 0.85f, 0.35f)); dot.anchoredPosition = v2;
                 dot.localEulerAngles = far ? new Vector3(0, 0, Mathf.Atan2(v2.y, v2.x) * Mathf.Rad2Deg - 90f) : new Vector3(0, 0, -yaw);
             }
+            // a treasure X you have read (orange), and today's bounty beast when it is out (red), held at the rim when far
+            System.Action<Vector3, Color, float> rim = (wp, c, sz) =>
+            {
+                Vector3 d = wp - pp; d.y = 0f; Vector2 v2 = new Vector2(d.x, d.z) * ppm; bool far = v2.magnitude > MmD * 0.45f;
+                if (far) v2 = v2.normalized * MmD * 0.43f;
+                var dot = MmDot(far ? arrowSp : diamond, far ? 15f : sz, c); dot.anchoredPosition = v2;
+                dot.localEulerAngles = far ? new Vector3(0, 0, Mathf.Atan2(v2.y, v2.x) * Mathf.Rad2Deg - 90f) : new Vector3(0, 0, 45f);
+            };
+            AHTreasure.MapMarks(p, (wp, nm) => rim(wp, new Color(0.95f, 0.55f, 0.15f), 13f));
+            if (AHFun3.Hunted != null) rim(AHFun3.Hunted.transform.position, new Color(1f, 0.3f, 0.25f), 14f);
             for (int i = mmUsed; i < mmPool.Count; i++) if (mmPool[i].gameObject.activeSelf) mmPool[i].gameObject.SetActive(false);
         }
         // the guide: chevrons on the ground a few steps ahead of the hero, turned toward the goal

@@ -280,8 +280,10 @@ public partial class AHUI
     System.Collections.IEnumerator SnapLater(string name)
     {
         yield return new WaitForEndOfFrame();
+        Texture2D albumShot = null; if (AHFun3.NearSpot(g) != null) { try { albumShot = ScreenCapture.CaptureScreenshotAsTexture(); } catch { } }
         ScreenCapture.CaptureScreenshot(name);
         yield return null;
+        if (albumShot != null) AHFun3.OnSnap(g, albumShot);
         photoBar.gameObject.SetActive(true);
         AHSound.Play("coin");
         Debug.Log("Ashen Hollow: photo saved as " + System.IO.Path.Combine(Application.persistentDataPath, name));

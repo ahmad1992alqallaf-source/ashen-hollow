@@ -270,6 +270,8 @@ public static class AHComp
 public class AHPetFollow : MonoBehaviour
 {
     AHGame g; string kind; bool fly, perch; GameObject model; float phase, guardT = 2f, mendT = 8f; AHAnim anim;
+    // a guard bite or a fetch: the pet darts out to the beast (or the body) and back
+    AHMob dartAt; float dartT, dartLen = 0.45f; Vector3 dartHome; float fetchT = 4f;
     static readonly HashSet<string> Perchers = new HashSet<string> { "parrot", "owl", "lantern_owl", "drake" };
     public static float PerchH = 0.27f, PerchUp = 0.21f, PerchOut = 0.03f, PerchBack = 0.02f;
     Vector3 feetOff; Transform shoulder, upperArm; Vector3 perchVel, perchPos; float lookYaw, lookTo, lookAt, hopT = -1f, nextHop;
@@ -353,8 +355,26 @@ public class AHPetFollow : MonoBehaviour
 
     // perched: sits on top of the shoulder, turning its head about, now and then shuffling its feet or hopping on the
     // spot; it sways with your steps and leans as you run
+    void Dart(AHMob m, float len)
+    {
+        if (perch || model == null || m == null || dartT > 0f) return;
+        if ((m.transform.position - transform.position).magnitude > 12f) return;   // too far to run there and back in a blink
+        dartAt = m; dartLen = len; dartT = len; dartHome = model.transform.localPosition;
+    }
+    void DartTick()
+    {
+        if (dartT <= 0f || model == null) return;
+        dartT -= Time.deltaTime;
+        if (dartT <= 0f || dartAt == null) { dartT = 0f; model.transform.localPosition = dartHome; return; }
+        float k = Mathf.Sin(Mathf.Clamp01(1f - dartT / dartLen) * Mathf.PI);
+        Vector3 to = dartAt.transform.position - transform.position; to.y = 0f;
+        float reach = Mathf.Max(0f, to.magnitude - Mathf.Max(0.4f, dartAt.type != null ? dartAt.type.radius : 0.5f));
+        model.transform.position = transform.TransformPoint(dartHome) + to.normalized * reach * k + Vector3.up * 0.35f * k;
+    }
+
     void LateUpdate()
     {
+        DartTick();
         if (!perch || g == null || g.player == null || model == null) return;
         var p = g.player; float dt = Time.deltaTime; if (dt <= 0f) return;
         if (upperArm == null || shoulder == null) FindShoulder(p);
@@ -454,8 +474,23 @@ public class AHPetFollow : MonoBehaviour
             {
                 AHMob best = null; float bd = 260f * AHDB.S;
                 foreach (var m in g.mobs) { if (m.dead || !m.Chasing) continue; float dm = (m.transform.position - transform.position).magnitude; if (dm < bd) { bd = dm; best = m; } }
-                if (best != null) { best.Hurt(Mathf.Max(1, Mathf.RoundToInt(p.Damage() * 0.22f * (AHComp.PetLv(p, kind) / 10f) * k)), null, true); AHFx.Pop(best.transform.position + Vector3.up, 1f, new Color(1f, 0.82f, 0.5f)); }
+                if (best != null) { best.Hurt(Mathf.Max(1, Mathf.RoundToInt(p.Damage() * 0.22f * (AHComp.PetLv(p, kind) / 10f) * k)), null, true); AHFx.Pop(best.transform.position + Vector3.up, 1f, new Color(1f, 0.82f, 0.5f)); Dart(best, 0.45f); }
             }
+        }
+        // Fetch: out of a fight, the pet runs to a body nearby that still holds coins and brings them to you
+        fetchT -= dt;
+        if (fetchT <= 0f)
+        {
+            fetchT = 3f;
+            if (AHComp.PetK(p, "fetch") > 0f && !p.InFight)
+                foreach (var m in g.mobs)
+                {
+                    if (m == null || !m.HasLoot || m.lootMoney <= 0) continue;
+                    float dm = (m.transform.position - p.transform.position).magnitude; if (dm > 14f) continue;
+                    Dart(m, 0.9f); long c = m.lootMoney; AHLoot.TakeMoney(g, p, m);
+                    if (g.ui != null) g.ui.Float(transform.position + Vector3.up * 1.2f, AHLoc.T("Fetched ", "جلب ") + AHItems.MoneyText(c, 1), new Color(1f, 0.85f, 0.4f));
+                    break;
+                }
         }
         // Mend: a little healing every 8 s while you fight
         mendT -= dt;

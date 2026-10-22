@@ -521,6 +521,11 @@ public class AHQOutfitAuto : MonoBehaviour
     public string spec; public Color tint = Color.white; public float tintK;
     public string crest; public float crestSize; public bool bare;
     GameObject worn; int frames;
+    // until the outfit is on, the body underneath is not drawn (no flash of the hero in plain clothes after a journey)
+    readonly System.Collections.Generic.List<Renderer> held = new System.Collections.Generic.List<Renderer>();
+    void Hold() { foreach (var r in GetComponentsInChildren<Renderer>(false)) if (r.enabled && !(r is ParticleSystemRenderer)) { r.enabled = false; held.Add(r); } }
+    void Release() { foreach (var r in held) if (r != null) r.enabled = true; held.Clear(); }
+    void OnDisable() { Release(); }
 
     void Update()
     {
@@ -528,7 +533,8 @@ public class AHQOutfitAuto : MonoBehaviour
         frames++;
         var link = GetComponent<AHVRoidLink>();
         bool ready = link != null && link.Body != null && frames >= 3;
-        if (!ready && frames < 30) return;
+        if (!ready && frames < 30) { Hold(); return; }
+        Release();   // shown again before the outfit goes on (it may hide some of the body itself, e.g. hair under a helm)
         worn = AHQOutfit.Wear(gameObject, spec, bare);
         if (worn != null && tintK > 0f) Tint(worn, tint, tintK);
         if (worn != null) AHQOutfit.Line(worn);
@@ -582,7 +588,7 @@ public class AHQOutfitAuto : MonoBehaviour
         fm.SetColor("_EmissionColor", new Color(0.25f, 0.18f, 0.1f)); fm.SetTexture("_EmissionMap", tex); fm.EnableKeyword("_EMISSION");
         var fr = face.GetComponent<Renderer>(); fr.sharedMaterial = fm; face.layer = layer;
     }
-    void OnDestroy() { if (worn != null) Destroy(worn); }
+    void OnDestroy() { Release(); if (worn != null) Destroy(worn); }
 
     // the gear's own colour, lightly over the outfit's
     static void Tint(GameObject go, Color c, float k)
