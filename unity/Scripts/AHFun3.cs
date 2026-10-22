@@ -68,7 +68,8 @@ public static class AHFun3
                 var f = part.Split('~'); if (f.Length < 5) continue;
                 today.Add(new Bounty { area = f[0], name = f[1], story = f[2], done = f[3] == "1", paid = f[4] == "1" });
             }
-            if (today.Count > 0) return today;
+            if (today.Count > 0 && !today.Exists(b => AHDungeon.IsDungeon(b.area))) return today;
+            today.Clear();
         }
         // three of the lands you know, near your level (Hollow Meadow when you know few)
         var rnd = new System.Random(d.GetHashCode() ^ (p.heroName ?? "").GetHashCode());
@@ -76,7 +77,7 @@ public static class AHFun3
         foreach (var o in AHDB.List("world", "REGIONS") ?? new List<object>())
         {
             string id = AHJson.S(o, "id"), lv = AHJson.S(o, "lv", "");
-            if (id == null || lv == "safe" || !p.prog.found.Contains(id)) continue;
+            if (id == null || lv == "safe" || !p.prog.found.Contains(id) || AHDungeon.IsDungeon(id) || id == AHDeep.Area || id == AHAbyss.Area) continue;   // out in the open lands only
             int lo, hi; if (!Range(lv, out lo, out hi)) continue;
             if (p.level + 3 >= lo && p.level - 14 <= hi) lands.Add(id);
         }
@@ -127,19 +128,26 @@ public static class AHFun3
             }
             return;
         }
-        if ((spawnT -= dt) > 0f || g.mobs.Count == 0 || AHHollow.Active && g.InTown(p.transform.position)) return;
+        if ((spawnT -= dt) > 0f || g.mobs.Count == 0) return;
         spawnT = 20f;
         foreach (var b in Today(p))
         {
             if (b.done || b.area != AHGame.AreaId) continue;
             // the strongest ordinary beast of this land, grown into a named one
-            AHMob like = null; foreach (var m in g.mobs) if (m != null && !m.dead && m.type != null && !m.type.elite && !m.golden && (like == null || m.type.lvl > like.type.lvl)) like = m;
+            AHMob like = null;
+            foreach (var m in g.mobs)
+            {
+                if (m == null || m.dead || m.type == null || m.type.elite || m.golden || m.type.hp <= 0 || m.type.hp > 20000 || m.type.respawn > 1e6f) continue;   // no training golems, no stand-ins
+                if (m.type.id.StartsWith("kq_") || m.type.id.Contains("golem") || m.type.id.Contains("dummy")) continue;
+                if (like == null || m.type.lvl > like.type.lvl) like = m;
+            }
             if (like == null) return;
             Vector3 at = like.transform.position; float best = 0f;
             foreach (var m in g.mobs) { if (m == null || m.dead) continue; float d = (m.transform.position - p.transform.position).magnitude; if (d > 25f && d < 90f && (best == 0f || Mathf.Abs(d - 45f) < Mathf.Abs(best - 45f))) { best = d; at = m.transform.position; } }
             var t = like.type;
             var bt = new AHMobType { id = t.id, name = b.name, model = t.model, lvl = t.lvl + 3, hp = t.hp * 7, dmg = Mathf.RoundToInt(t.dmg * 1.5f), xp = t.xp * 6, speed = t.speed, radius = t.radius, aggro = t.aggro, atkCd = t.atkCd, respawn = 1e9f, elite = true, drops = t.drops, gold = t.gold * 4 };
             hunted = AHMob.Create(g, bt, at); g.mobs.Add(hunted); huntedB = b;
+            Debug.Log("Ashen Hollow: bounty " + b.name + " (" + t.id + ") is out in " + AHGame.AreaId);
             if (hunted.Model != null) hunted.Model.transform.localScale *= 1.3f;
             g.ui.Banner(b.name, AHLoc.T("Your bounty prowls nearby · the red mark on the minimap", "طريدتك قريبة · العلامة الحمراء على الخريطة"));
             return;
