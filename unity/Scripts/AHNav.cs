@@ -51,10 +51,24 @@ public static class AHNav
         Object.Destroy(tex);
     }
 
+    // a dirt road under this point (by the ground's colour; not sand, not paving, not a bridge)
+    public static bool IsDirt(AHGame g, Vector3 p)
+    {
+        if (groundArea != AHGame.AreaId) LoadGround(g);
+        if (px == null || gm == null) return false;
+        Vector2 w = g.ToWeb(p);
+        float u = (w.x - gm.x0) / gm.w, v = (w.y - gm.z0) / gm.h;
+        if (u < 0f || v < 0f || u >= 1f || v >= 1f) return false;
+        var col = px[(ph - 1 - Mathf.Min(ph - 1, (int)(v * ph))) * pw + Mathf.Min(pw - 1, (int)(u * pw))];
+        int r = col.r, gg = col.g, bb = col.b;
+        return r >= 105 && r <= 178 && r - gg >= 18 && gg - bb >= 12 && r - bb >= 40;
+    }
+
     // a road, town paving or a bridge under this point (by the ground's colour)
     public static bool IsRoad(AHGame g, Vector3 p)
     {
         if (AHScenery.DeckLift(p) > 0.05f) return true;   // on a bridge
+        if (AHHollow.Inside(p, 1f)) return true;          // Hollow Meadow's cobbled town
         if (groundArea != AHGame.AreaId) LoadGround(g);
         if (px == null) return false;
         Vector2 w = g.ToWeb(p);

@@ -175,6 +175,7 @@ public static class AHSolidify
         if (n > 0) Debug.Log("Ashen Hollow: " + n + " solid things given blockers (you could walk through them)");
         Trunks(g, gy);
         AHSolidGrid.Build(g);   // and everything else standing, from its own shape
+        AHNav.Forget();         // AUTO finds its ways round all of it
     }
 
     static bool Standable(AHGame g, Vector3 at, float reach, float gy)

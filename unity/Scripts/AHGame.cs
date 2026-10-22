@@ -169,6 +169,7 @@ public class AHGame : MonoBehaviour
         // trees, rocks, herbs, fishing spots and the town's work stations
         AHFishing.Clear(); AHGather.Build(this, world);
         AHBag.MatHook = AHMastery.IsMaterial; AHBag.RoomHook = () => AHMastery.SatchelRoom(I != null ? I.player : null);   // the Gatherer's satchel
+        AHHollow.Setup(this, world);   // Hollow Meadow: the round walled town with its workshops (before the village and the trees)
         AHVillage.Setup(this, world);  // a ring of buildings around the starter village's square (before the trees)
         AHForest.Setup(this, world);   // the new trees on the same spots
         AHStations.Setup(this, world);  // campfires, furnaces and anvils rebuilt
@@ -247,6 +248,7 @@ public class AHGame : MonoBehaviour
         grass = AHGrass.Create(this);
         AHSettings.Apply(this);
         AHWeather.Setup(this);
+        AHHollow.Late(this);      // Hollow Meadow: the old pieces inside the walls go, the townsfolk to their buildings, lamps on the roads
         StartCoroutine(AHSolidify.Later(this));   // whatever you could still walk through gets a blocker
         AHCrownFade.Ensure(this);   // a tree crown the camera ends up in is not drawn
         if (saved == "") ui.OpenCreator();
@@ -382,6 +384,14 @@ public class AHGame : MonoBehaviour
         for (int i = cPos.Count - 1; i >= 0; i--) if (r.Contains(new Vector2(cPos[i].x, cPos[i].z))) { cPos.RemoveAt(i); cRad.RemoveAt(i); n++; }
         return n;
     }
+    // takes away the round and box blockers standing within r of c
+    public int RemoveBlockersNear(Vector3 c, float r)
+    {
+        int n = 0;
+        for (int i = cPos.Count - 1; i >= 0; i--) { float dx = cPos[i].x - c.x, dz = cPos[i].z - c.z; if (dx * dx + dz * dz < r * r) { cPos.RemoveAt(i); cRad.RemoveAt(i); n++; } }
+        return n;
+    }
+    public int RemoveBoxesNear(Vector3 c, float r) { return rects.RemoveAll(b => (b.center - new Vector2(c.x, c.z)).sqrMagnitude < r * r); }
     public void AddFloor(Rect r) { floors.Add(r); }   // a floor built in code (the Ashen Deep): only floors are walkable once there is one
     // a solid box on the ground (a market stall, a booth), from its world bounds, shrunk a little so you can still reach the counter
     public void AddBlockBox(Bounds b, float shrink = 0.25f)
@@ -404,6 +414,7 @@ public class AHGame : MonoBehaviour
             if (ts != null) foreach (var t in ts) l.Add(new Rect((float)AHJson.N(t, "x"), (float)AHJson.N(t, "y"), (float)AHJson.N(t, "w"), (float)AHJson.N(t, "h")));
             towns = l.ToArray();
         }
+        if (AHHollow.Inside(p)) return true;
         Vector2 w = ToWeb(p) / AHDB.S;
         foreach (var r in towns) if (w.x > r.xMin && w.x < r.xMax && w.y > r.yMin && w.y < r.yMax) return true;
         return false;
@@ -992,9 +1003,12 @@ public class AHGame : MonoBehaviour
         if (autoT <= 0f) { autoT = 15f; SaveProgress(); }
     }
 
+    // (editor tests) a camera held at a fixed place, for looking over a town from above
+    public static bool FreeCam; public static Vector3 FreePos; public static Quaternion FreeRot = Quaternion.identity;
     void LateUpdate()
     {
         if (player == null || cam == null) return;
+        if (FreeCam) { cam.transform.SetPositionAndRotation(FreePos, FreeRot); return; }
         // a near-square screen (an unfolded phone, a tablet) gets a taller view so it shows as much side to side
         // as a normal phone instead of looking zoomed in
         float aspect = Screen.height > 0 ? (float)Screen.width / Screen.height : 1.78f;
@@ -1096,6 +1110,7 @@ public class AHGame : MonoBehaviour
             if (b.size.y < 2.2f || lo < 1.0f || hi > 45f) continue;
             var root = r.transform.root; string rn = root.name;
             if (rn == "Forest" || rn.StartsWith("Grass") || root == transform) continue;
+            if (r.name.StartsWith("AH_Hall")) continue;   // Hollow Meadow's buildings: the solid grid knows their walls, and their roofs lift away inside
             if (r.GetComponentInParent<AHMob>() != null || r.GetComponentInParent<AHNpc>() != null || r.GetComponentInParent<AHPlayer>() != null) continue;
             b.extents = new Vector3(b.extents.x * 0.85f, b.extents.y, b.extents.z * 0.85f);   // rocks are rounder than their box
             occ.Add(b);

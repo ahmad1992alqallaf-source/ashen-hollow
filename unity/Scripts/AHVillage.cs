@@ -43,6 +43,7 @@ public static class AHVillage
     public static void Setup(AHGame g, Transform world)
     {
         Lots.Clear(); Paved = new Rect();
+        if (AHHollow.Active) return;   // Hollow Meadow is a walled town now (AHHollow.cs)
         Plan[] plans; if (world == null || !Plans.TryGetValue(AHGame.AreaId, out plans)) return;
         string col; if (!AHCity.ColourOf(AHGame.AreaId, out col)) col = "green";
         Rect[] roads; Roads.TryGetValue(AHGame.AreaId, out roads);
@@ -134,6 +135,7 @@ public static class AHVillage
 
     public static bool InLots(Vector3 p)
     {
+        if (AHHollow.Inside(p, 4f)) return true;
         foreach (var b in Lots) if (p.x > b.min.x && p.x < b.max.x && p.z > b.min.z && p.z < b.max.z) return true;
         return false;
     }

@@ -18,6 +18,8 @@ Shader "AshenHollow/Ground"
         _PaveRect ("Paved area (x0, z0, x1, z1)", Vector) = (0, 0, 0, 0)
         _PaveGrass ("Pave over grass too", Range(0, 1)) = 0
         _PaveWater ("Pave over blue (icy) ground too", Range(0, 1)) = 0
+        _PaveCircle ("Paved circle (x, z, radius; radius 0 = use the rect)", Vector) = (0, 0, 0, 0)
+        _PaveCol ("Stone colour (alpha 0 = the map's own colour)", Color) = (0.56, 0.53, 0.48, 0)
     }
     SubShader
     {
@@ -58,6 +60,8 @@ Shader "AshenHollow/Ground"
                 float4 _PaveRect;
                 half _PaveGrass;
                 half _PaveWater;
+                float4 _PaveCircle;
+                half4 _PaveCol;
             CBUFFER_END
             half _AHSnow, _AHLeaves;   // globals, 0..1
 
@@ -89,6 +93,15 @@ Shader "AshenHollow/Ground"
             {
                 float2 p = i.positionWS.xz;
                 float3 albedo = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv).rgb * _Tint.rgb;
+                // a round walled town: the old square's paving that still showed outside its wall is grass again
+                if (_PaveCircle.z > 0.0)
+                {
+                    float dd = length(p - _PaveCircle.xy);
+                    float sat = max(albedo.r, max(albedo.g, albedo.b)) - min(albedo.r, min(albedo.g, albedo.b));
+                    float lum = dot(albedo, float3(0.3, 0.5, 0.2));
+                    float grey = step(sat, 0.07) * step(0.08, lum) * step(_PaveCircle.z + 0.5, dd) * step(dd, _PaveCircle.z + 16.0);
+                    albedo = lerp(albedo, float3(0.122, 0.231, 0.047) * _Tint.rgb, grey);
+                }
                 // large patches, a hint of warmer and cooler earth, and grain
                 float macro = Fbm(p * 0.045);
                 float hue = Noise(p * 0.11 + 5.3);
@@ -97,6 +110,8 @@ Shader "AshenHollow/Ground"
                 // cobblestones: inside the walls, not on grass or water
                 float3 a0 = albedo;
                 float inRect = step(_PaveRect.x, p.x) * step(p.x, _PaveRect.z) * step(_PaveRect.y, p.y) * step(p.y, _PaveRect.w);
+                if (_PaveCircle.z > 0.0) { float2 dc = p - _PaveCircle.xy; inRect = step(dot(dc, dc), _PaveCircle.z * _PaveCircle.z); }
+                a0 = lerp(a0, _PaveCol.rgb, _PaveCol.a * inRect * _PaveAmt);   // a town's own stone, not the grass it is laid over
                 float green = saturate((a0.g - max(a0.r, a0.b)) * 14.0), blue = saturate((a0.b - a0.r - 0.06) * 8.0);
                 float pm = _PaveAmt * inRect * lerp(1.0 - green, 1.0, _PaveGrass) * (1.0 - blue * (1.0 - _PaveWater));   // _PaveWater 1 (the dungeons): icy blue floors paved too
                 float2 g = 0;
@@ -188,6 +203,8 @@ Shader "AshenHollow/Ground"
                 float4 _PaveRect;
                 half _PaveGrass;
                 half _PaveWater;
+                float4 _PaveCircle;
+                half4 _PaveCol;
             CBUFFER_END
             struct Attributes { float4 positionOS : POSITION; };
             struct Varyings { float4 positionCS : SV_POSITION; };
@@ -214,6 +231,8 @@ Shader "AshenHollow/Ground"
                 float4 _PaveRect;
                 half _PaveGrass;
                 half _PaveWater;
+                float4 _PaveCircle;
+                half4 _PaveCol;
             CBUFFER_END
             struct Attributes { float4 positionOS : POSITION; float3 normalOS : NORMAL; };
             struct Varyings { float4 positionCS : SV_POSITION; float3 normalWS : TEXCOORD0; };

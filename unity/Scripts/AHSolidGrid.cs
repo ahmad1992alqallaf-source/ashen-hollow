@@ -296,7 +296,12 @@ public static class AHSolidGrid
         for (float s = 0.6f; s <= dist; s += 0.25f)
         {
             Vector3 q = from + dir * s; int i = Idx(q.x, q.z);
-            if (i >= 0 && solid[i] && q.y < top[i] + 0.3f) return Mathf.Max(0f, s - 0.4f);
+            if (i >= 0 && solid[i] && q.y < top[i] + 0.3f)
+            {
+                // the building the hero stands in has its upper walls lifted away: the camera looks in over the rest
+                var inn = AHHallFade.In; if (inn != null && inn.Contains(q, 1.2f) && q.y > 1.5f) continue;
+                return Mathf.Max(0f, s - 0.4f);
+            }
         }
         return dist;
     }

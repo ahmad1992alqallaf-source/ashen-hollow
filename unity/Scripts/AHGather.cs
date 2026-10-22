@@ -220,7 +220,7 @@ public static class AHGather
             Vector3 h = homes[Random.Range(0, homes.Count)];
             float a = Random.value * Mathf.PI * 2f, r = Random.Range(3f, 24f);
             Vector3 c = new Vector3(h.x + Mathf.Cos(a) * r, s.pos.y, h.z + Mathf.Sin(a) * r);
-            if (!game.InArea(c) || game.InTown(c) || game.Blocked(c, 1.3f) || AHNav.IsRoad(game, c) || AHSea.Sea(c, 1.5f)) continue;
+            if (!game.InArea(c) || game.InTown(c) || AHHollow.Inside(c, 6f) || game.Blocked(c, 1.3f) || AHNav.IsRoad(game, c) || AHSea.Sea(c, 1.5f)) continue;
             Vector3 dh = c - hero; dh.y = 0f; if (dh.sqrMagnitude < 14f * 14f) continue;
             bool clear = true;
             foreach (var o in Spots) { if (o == s) continue; Vector3 d = o.pos - c; d.y = 0f; if (d.sqrMagnitude < (o.kind == "chop" ? 3f * 3f : 6f * 6f)) { clear = false; break; } }

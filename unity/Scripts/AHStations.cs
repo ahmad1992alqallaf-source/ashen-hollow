@@ -610,7 +610,7 @@ public static class AHStations
     public static void Setup(AHGame g, Transform world)
     {
         if (world == null) return;
-        var spots = new List<AHSpot>(); foreach (var s in AHGather.Spots) if (!s.temp && (s.kind == "fire" || s.kind == "furnace" || s.kind == "anvil")) spots.Add(s);
+        var spots = new List<AHSpot>(); foreach (var s in AHGather.Spots) if (!s.temp && !AHHollow.Inside(s.pos, 2f) && (s.kind == "fire" || s.kind == "furnace" || s.kind == "anvil")) spots.Add(s);
         if (spots.Count == 0) return;
         var rs = new List<Renderer>(); foreach (var r in world.GetComponentsInChildren<Renderer>(true)) { if (!r.enabled || r.name.StartsWith("AH_")) continue; var b = r.bounds; if (Mathf.Max(b.size.x, b.size.z) > 3f || b.size.y > 4f) continue; rs.Add(r); }
         var root = new GameObject("Stations").transform; int n = 0;

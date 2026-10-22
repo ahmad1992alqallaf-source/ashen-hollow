@@ -289,6 +289,14 @@ public class AHNpc : MonoBehaviour
         return Resources.Load<GameObject>("AH/Models/Outfits/" + path) != null ? path : null;
     }
 
+    // a new place to stand (the walled town puts its people in their own buildings), facing 'look'
+    public void MoveHome(Vector3 p, Vector3 look)
+    {
+        p.y = transform.position.y;
+        home = target = p; transform.position = p;
+        look.y = 0f;
+        if (look.sqrMagnitude > 1e-4f) { Vector2 a = g.ToWeb(p + look.normalized) - g.ToWeb(p); face = Mathf.Atan2(a.y, a.x); transform.rotation = g.Face(WebDir(face)); }
+    }
     Vector3 WebDir(float a) { return g.W(Mathf.Cos(a), Mathf.Sin(a)) - g.W(0f, 0f); }
 
     // web qAssemble: outfit + head + hair/eyebrows on the outfit's skeleton

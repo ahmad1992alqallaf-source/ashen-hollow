@@ -19,7 +19,7 @@ public static class AHTownFill
     public static void Run(AHGame g)
     {
         Last = 0;
-        if (g == null || Towns.Count == 0) return;
+        if (g == null || Towns.Count == 0 || AHHollow.Active) return;
         string st; Style.TryGetValue(AHGame.AreaId, out st);
         var root = new GameObject("Town houses").transform;
         float gy = g.W(0f, 0f).y;
