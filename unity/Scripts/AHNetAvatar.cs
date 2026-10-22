@@ -45,7 +45,7 @@ public class AHNetAvatar : MonoBehaviour
         }
         // the name plate: name, level and title (party members in green)
         var cv = new GameObject("Plate", typeof(RectTransform)); cv.transform.SetParent(transform, false); cv.transform.localPosition = Vector3.up * 2.35f;
-        var canvas = cv.AddComponent<Canvas>(); canvas.renderMode = RenderMode.WorldSpace; ((RectTransform)cv.transform).sizeDelta = new Vector2(400, 120); cv.transform.localScale = Vector3.one * 0.006f;
+        var canvas = cv.AddComponent<Canvas>(); canvas.renderMode = RenderMode.WorldSpace; ((RectTransform)cv.transform).sizeDelta = new Vector2(400, 120); cv.transform.localScale = Vector3.one * 0.0038f;
         nameT = MakeText(cv.transform, new Vector2(0, 20), 46, Color.white); nameT.fontStyle = FontStyle.Bold;
         sayBg = new GameObject("Say", typeof(RectTransform), typeof(Image)).GetComponent<RectTransform>(); sayBg.SetParent(cv.transform, false); sayBg.anchoredPosition = new Vector2(0, 110); sayBg.sizeDelta = new Vector2(380, 70);
         sayBg.GetComponent<Image>().color = new Color(0.06f, 0.05f, 0.05f, 0.8f); sayT = MakeText(sayBg, Vector2.zero, 34, new Color(1f, 0.95f, 0.85f)); sayBg.gameObject.SetActive(false);

@@ -491,6 +491,7 @@ public partial class AHUI
         if (awayRoot != null) Destroy(awayRoot.gameObject);
         if (PhotoOn) PhotoMode(false);
         if (wheelRoot != null) wheelRoot.gameObject.SetActive(false);
+        if (askRoot != null && askRoot.gameObject.activeSelf) { var no = askNo; askYes = askNo = null; askRoot.gameObject.SetActive(false); if (no != null) no(); }
     }
     void MirrorWork()
     {

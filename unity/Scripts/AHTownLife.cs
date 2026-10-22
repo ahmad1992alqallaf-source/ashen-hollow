@@ -663,6 +663,19 @@ public class AHTownLife : MonoBehaviour
         else if (what == "bountyreset") AHPrefs.SetString("ah_bounty", "");
         else if (what == "hunthere") AHFun3.TestHere(AHGame.I.player);
         else if (what == "logout") AHGame.I.Logout();
+        else if (what == "netstatus") { Debug.Log("Ashen Hollow: online status: " + AHNet.Status + " · in room " + AHNet.InRoom + " · peers " + AHNet.Peers.Count); AHGame.I.ui.OpenOnline(); }
+        else if (what == "netfake")
+        {
+            // a pretend second player beside you (to see how others are drawn), in your party
+            var pl = AHGame.I.player; var gear = new System.Collections.Generic.List<string>(); foreach (var sl in AHItems.GearSlots) gear.Add(AHWardrobe.Shown(pl, sl) ?? "");
+            var props = new System.Collections.Hashtable { { "c", "mage" }, { "lv", 18 }, { "lk", JsonUtility.ToJson(new AHLook { sex = "f", hair = "long" }) }, { "g", string.Join(",", gear.ToArray()) }, { "co", "" }, { "t", "the Brave" }, { "m", "" } };
+            AHNet.PeerIn(999, "Layla", props);
+            var pe = AHNet.Peers[999]; pe.pos = pl.transform.position + pl.transform.right * 2.5f; pe.yaw = pl.transform.eulerAngles.y; pe.clip = "Idle"; pe.seen = Time.time; pe.hp = 300; pe.maxHp = 420;
+            AHNet.Party.Clear(); AHNet.Party.Add(AHNet.MyActor); AHNet.Party.Add(999);
+        }
+        else if (what == "netsay") { AHNet.OnEvent(AHNet.EvChat, 999, "Hi Ahmad! Want to trade?"); var pe = AHNet.Peers.ContainsKey(999) ? AHNet.Peers[999] : null; if (pe != null) pe.seen = Time.time; }
+        else if (what == "netask") AHGame.I.ui.NetAsk("Layla invites you to their party.", () => AHGame.I.ui.Toast("yes", 2f), () => AHGame.I.ui.Toast("no", 2f));
+        else if (what == "nettrade") { AHNet.TradeWith = 999; AHNet.TheirOffer = new AHNet.Offer(); AHNet.TheirOffer.ids.Add("ruby"); AHNet.TheirOffer.ns.Add(2); AHNet.TheirOffer.money = 500; AHNet.TheirReady = true; AHGame.I.ui.OpenTrade(); }
         else if (what == "wheel2") AHGame.I.ui.OpenWheel();
         else if (what == "wheelreset") AHPrefs.SetString("ah_wheel_day", "");
         else if (what == "spin") AHGame.I.ui.SendMessage("StartSpin");

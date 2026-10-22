@@ -135,7 +135,7 @@ public partial class AHUI
         }
         SetPager(false); wkPage.text = "";
         wkHint.text = AHLoc.T("Both lock in, then both confirm. Any change unlocks both sides.", "كلاكما يثبّت ثم يؤكد. أي تغيير يلغي التثبيت.");
-        long step = Math.Max(100L, AHDB.CU * 10);
+        long step = Math.Max(100L, AHDB.CU * 100);
         Row(0, AHLoc.T("You give", "تعطي"), AHNet.MyReady ? new Color(0.55f, 1f, 0.55f) : Color.white, OfferText(AHNet.MyOffer), AHLoc.T("Your purse: ", "محفظتك: ") + AHItems.MoneyText(p.bag.money, 2),
             new WkBtn { label = AHLoc.T("Add items", "أضف أشياء"), on = !AHNet.MyConfirm, col = Go, act = () => { tradePick = true; wkPageI = 0; RenderWork(); } },
             new WkBtn { label = "+" + AHItems.MoneyText(step, 1), on = !AHNet.MyConfirm && p.bag.money > AHNet.MyOffer.money, col = Plain, act = () => AHNetTrade.Coins(g, step) },
