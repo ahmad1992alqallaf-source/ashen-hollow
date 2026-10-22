@@ -81,6 +81,8 @@ public partial class AHUI
         Color cS = new Color(0.8f, 0.8f, 1f), cG = new Color(0.61f, 0.89f, 1f), cC = new Color(1f, 0.8f, 0.45f), cA = new Color(1f, 0.6f, 0.75f);
         TesterRows(rows);   // send feedback, version and what's new
         // sound
+        rows.Add(s => Row(s, AHLoc.T("Edit HUD layout", "ترتيب أزرار الشاشة"), new Color(0.56f, 0.85f, 1f), AHLoc.T("Move the joystick, the fighting buttons and the rest; make the buttons bigger or smaller", "حرّك عصا التحكم وأزرار القتال وغيرها، وكبّر الأزرار أو صغّرها"), "",
+            new WkBtn { label = AHLoc.T("Edit", "تعديل"), on = true, col = Go, act = OpenHudEdit }));
         rows.Add(s => Row(s, "Sound", cS, AHSound.Muted ? "All sound is off" : "Music and effects are on", "",
             Opt("On", !AHSound.Muted, () => AHSound.Muted = false), Opt("Off", AHSound.Muted, () => AHSound.Muted = true)));
         rows.Add(s => Row(s, "Music  " + Mathf.RoundToInt(AHSound.MusicVol * 100) + "%", cS, "It follows where you are: town, wild, night, dungeon, battle.", "",

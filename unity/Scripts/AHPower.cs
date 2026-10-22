@@ -204,7 +204,8 @@ public partial class AHUI
         var st = p.stat; int fr = AHEvo.Points(p) - AHEvo.Spent(p);
         SetPager(false); wkPage.text = "";
         wkTitle.text = (p.heroName ?? "Hero") + " · " + AHEvo.Title(p) + " · level " + p.level;
-        wkHint.text = "Stats come from your gear, gems, sets and talents. Each has a cap so no build runs away.";
+        wkHint.text = "";
+        CharTabs("stats");
         // the hero
         var stand = Img("Stand", wkList, panel9 != null ? panel9 : white, new Vector2(0f, 1f), Vector2.zero, new Vector2(250, 420), new Color(0.16f, 0.12f, 0.09f, 1f));
         stand.pivot = new Vector2(0f, 1f); stand.anchoredPosition = new Vector2(0f, -4f); wkItems.Add(stand.gameObject);

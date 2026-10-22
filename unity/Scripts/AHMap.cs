@@ -219,6 +219,16 @@ public partial class AHUI
             foreach (var sp in AHSecrets.FoundSpots()) mark(sp, new Color(1f, 0.9f, 0.35f), 12f, true, null);
             Vector3 ev; if (AHSecrets.EventAt(out ev)) mark(ev, new Color(0.45f, 0.95f, 1f), 17f, true, "Event!");
             var pins = AHSecrets.Pins(); for (int pi = 0; pi < pins.Count; pi++) mark(pins[pi], new Color(0.9f, 0.2f, 0.55f), 15f, false, "Pin " + (pi + 1));
+            // the town's buildings in their own colours, and what is on today: road events, golden beasts, the race
+            if (AHHollow.Active)
+            {
+                foreach (var h in AHHollow.Halls) mark(h.At(0f, h.d * 0.5f), h.col, 9f, true, null);
+                if (AHHollow.BellAt != Vector3.zero) mark(AHHollow.BellAt, new Color(1f, 0.85f, 0.45f), 10f, true, null);
+                if (AHHollow.Plot != null) mark(AHHollow.Plot.At(0f, AHHollow.Plot.d * 0.5f), new Color(0.62f, 0.88f, 0.48f), 11f, true, "House plot");
+                var rs = AHNpc.Find("Race steward Fenna"); if (rs != null) mark(rs.transform.position, new Color(1f, 0.8f, 0.3f), 12f, false, "Race");
+            }
+            if (AHRoadEvents.At != Vector3.zero && AHRoadEvents.Active) mark(AHRoadEvents.At, new Color(1f, 0.55f, 0.25f), 15f, false, "Road event");
+            foreach (var gm in AHGolden.Live) if (gm != null && !gm.dead) mark(gm.transform.position, new Color(1f, 0.85f, 0.2f), 16f, false, "Golden " + gm.type.name.ToLowerInvariant());
             AHStory.MapMarks(p, (wp, nm) => mark(wp, new Color(1f, 0.72f, 0.2f), 18f, true, nm));   // whoever the story sends you to
             mark(p.transform.position, Color.white, 18f, false, "You");
         }

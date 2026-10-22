@@ -18,7 +18,8 @@ public static class AHRoadEvents
     static AHNpc npc;
     static bool following, done;
     static string area;
-    public static Vector3 At;   // where the current one is (tests)
+    public static Vector3 At;   // where the current one is (tests, the map)
+    public static bool Active { get { return cur != Kind.None; } }
 
     public static void Tick(AHGame g, float dt)
     {

@@ -16,7 +16,7 @@ public partial class AHUI
     AHSpot wkStation;
     string wkProf;            // profession shown in detail, or null for the list
     int wkPageI;
-    const float WkW = 820f, WkH = 580f, RowH = 66f;
+    const float WkW = 900f, WkH = 604f, RowH = 70f;
     const int RowsPerPage = 6;
     public bool WorkOpen { get { return wkRoot != null && wkRoot.gameObject.activeSelf; } }
 
@@ -140,9 +140,9 @@ public partial class AHUI
         // the words stop short of the buttons (long lines shrink to fit instead of running underneath them)
         float btnW = 0f; foreach (var b in btns) if (b != null) btnW += Mathf.Max(96f, b.label.Length * 11f + 24f) + 8f;
         float textW = Mathf.Max(160f, (WkW - 36f) - tx - btnW - 16f), lineW = btnW > 0f ? Mathf.Min(560 - (tx - 12f), textW) : textW;
-        var t = Label(bg, "Name", title, 19, TextAnchor.UpperLeft, new Vector2(tx, -4), new Vector2(Mathf.Min(520f, textW), 24), tc); t.fontStyle = FontStyle.Bold; Fit(t, 13);
-        if (!string.IsNullOrEmpty(line2)) Fit(Label(bg, "L2", line2, 15, TextAnchor.UpperLeft, new Vector2(tx, -26), new Vector2(lineW, 20), new Color(1f, 1f, 1f, 0.8f)), 12);
-        if (!string.IsNullOrEmpty(line3)) Fit(Label(bg, "L3", line3, 15, TextAnchor.UpperLeft, new Vector2(tx, -44), new Vector2(lineW, 20), new Color(1f, 1f, 1f, 0.65f)), 12);
+        var t = Label(bg, "Name", title, 20, TextAnchor.UpperLeft, new Vector2(tx, -4), new Vector2(Mathf.Min(560f, textW), 26), tc); t.fontStyle = FontStyle.Bold; Fit(t, 13);
+        if (!string.IsNullOrEmpty(line2)) Fit(Label(bg, "L2", line2, 16, TextAnchor.UpperLeft, new Vector2(tx, -28), new Vector2(lineW, 21), new Color(1f, 1f, 1f, 0.8f)), 12);
+        if (!string.IsNullOrEmpty(line3)) Fit(Label(bg, "L3", line3, 16, TextAnchor.UpperLeft, new Vector2(tx, -47), new Vector2(lineW, 21), new Color(1f, 1f, 1f, 0.65f)), 12);
         float x = -12f;
         for (int i = btns.Length - 1; i >= 0; i--)
         {
@@ -207,6 +207,8 @@ public partial class AHUI
         else if (wkMode == "farm") RenderFarm(p);
         else if (wkMode == "hub") RenderHub(p);
         else if (wkMode == "hubcat") RenderHubCat(p);
+        else if (wkMode == "char") RenderChar(p);
+        else if (wkMode == "quick") RenderQuick(p);
         else if (wkMode == "finder") RenderFinder(p);
         else if (wkMode == "board") RenderBoard(p);
         else if (wkMode == "rep") RenderRepList(p);
@@ -247,6 +249,7 @@ public partial class AHUI
         else RenderProf(p);
         HubBack();           // opened from the menu: a way back to its page
         Celestial(wkRoot);   // Celestial Glass
+        MirrorWork();        // Arabic: right to left
     }
 
     int Paged(int count)

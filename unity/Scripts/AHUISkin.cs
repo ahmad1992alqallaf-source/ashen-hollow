@@ -221,7 +221,7 @@ public partial class AHUI
             var lvT = top.Find("Level") as RectTransform; if (lvT != null) lvT.gameObject.SetActive(false);   // the level sits on the portrait now
             hpFill.color = new Color(0.86f, 0.16f, 0.14f); manaFill.color = new Color(0.22f, 0.5f, 1f); xpFill.color = new Color(0.62f, 0.42f, 1f);   // experience in violet
             // tap your portrait or name to see your stats
-            taps.Add(new TapBtn { rt = por, act = OpenStats });
+            taps.Add(new TapBtn { rt = por, act = OpenChar });
             taps.Add(new TapBtn { rt = nameText.rectTransform, act = OpenStats });
             // the whole corner a little smaller
             top.localScale = Vector3.one * 0.8f;

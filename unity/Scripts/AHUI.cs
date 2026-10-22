@@ -17,7 +17,7 @@ public partial class AHUI : MonoBehaviour
     public bool PickerOpen { get { return picker != null && picker.gameObject.activeSelf; } }
     public bool BagOpen { get { return bagRoot != null && bagRoot.gameObject.activeSelf; } }
     // which window is in front: 0 none (the game), 1 class picker, 2 bag, 3 talking, 4 making your hero, 5 crafting / professions
-    public int Modal { get { return AHTable.Open ? 10 : AHCine.Active ? 8 : ChatOpen ? 9 : InspectOpen ? 7 : SelectOpen ? 6 : CreatorOpen ? 4 : WorkOpen ? 5 : PickerOpen ? 1 : BagOpen ? 2 : DialogOpen ? 3 : 0; } }
+    public int Modal { get { return AHTable.Open ? 10 : RewardOpen ? 11 : hudEdit ? 12 : AHCine.Active ? 8 : ChatOpen ? 9 : InspectOpen ? 7 : SelectOpen ? 6 : CreatorOpen ? 4 : WorkOpen ? 5 : PickerOpen ? 1 : BagOpen ? 2 : DialogOpen ? 3 : 0; } }
 
     AHGame g;
     Canvas canvas;

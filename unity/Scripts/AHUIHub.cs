@@ -11,17 +11,17 @@ using UnityEngine.UI;
 public partial class AHUI
 {
     class HubE { public string cat, title, line, icon; public Color col = Color.white; public bool ready, on = true; public Action act; }
-    class HubCat { public string id, name, blurb, icon; public Color col; }
+    class HubCat { public string id, name, blurb, icon, ar, arB; public Color col; }
     static readonly HubCat[] HubCats =
     {
-        new HubCat { id = "hero", name = "Hero", blurb = "Stats · class & talents · gear · looks", icon = "steel_helm", col = new Color(1f, 0.8f, 0.45f) },
-        new HubCat { id = "adv", name = "Adventure", blurb = "Story · dungeons · the Deep · daily goals", icon = "steel_sword", col = new Color(1f, 0.6f, 0.4f) },
-        new HubCat { id = "fun", name = "Events & fun", blurb = "Derby · cook-off · tournament · festivals", icon = "lucky_charm", col = new Color(0.62f, 0.85f, 1f) },
-        new HubCat { id = "craft", name = "Crafting & trade", blurb = "Artisans · work orders · caravans · repairs", icon = "tool_pick_bronze", col = new Color(0.6f, 0.9f, 0.5f) },
-        new HubCat { id = "home", name = "Companions & home", blurb = "Pets & mounts · pet battles · homestead", icon = "reins_horse", col = new Color(1f, 0.62f, 0.3f) },
-        new HubCat { id = "coll", name = "Collections", blurb = "Deeds · monster book · cards · reputation", icon = "card_wolf", col = new Color(0.56f, 0.85f, 1f) },
-        new HubCat { id = "store", name = "Store & pass", blurb = "Looks-only store · Battle Pass · VIP", icon = "gold_crown", col = new Color(1f, 0.85f, 0.4f) },
-        new HubCat { id = "acct", name = "Friends & settings", blurb = "Friends & letters · settings · log out", icon = "cg:chat", col = new Color(1f, 0.6f, 0.75f) },
+        new HubCat { id = "hero", name = "Hero", ar = "بطلك", arB = "الإحصاءات · الفئة والمواهب · العتاد · المظهر", blurb = "Stats · class & talents · gear · looks", icon = "steel_helm", col = new Color(1f, 0.8f, 0.45f) },
+        new HubCat { id = "adv", name = "Adventure", ar = "المغامرة", arB = "القصة · الزنزانات · الأعماق · الأهداف اليومية", blurb = "Story · dungeons · the Deep · daily goals", icon = "steel_sword", col = new Color(1f, 0.6f, 0.4f) },
+        new HubCat { id = "fun", name = "Events & fun", ar = "الفعاليات والمرح", arB = "مسابقة الصيد · الطبخ · البطولة · المهرجانات", blurb = "Derby · cook-off · tournament · festivals", icon = "lucky_charm", col = new Color(0.62f, 0.85f, 1f) },
+        new HubCat { id = "craft", name = "Crafting & trade", ar = "الحِرف والتجارة", arB = "الحرفيون · أوامر العمل · القوافل · الإصلاح", blurb = "Artisans · work orders · caravans · repairs", icon = "tool_pick_bronze", col = new Color(0.6f, 0.9f, 0.5f) },
+        new HubCat { id = "home", name = "Companions & home", ar = "الرفاق والمنزل", arB = "الحيوانات والمطايا · معارك الحيوانات · المزرعة", blurb = "Pets & mounts · pet battles · homestead", icon = "reins_horse", col = new Color(1f, 0.62f, 0.3f) },
+        new HubCat { id = "coll", name = "Collections", ar = "المجموعات", arB = "الإنجازات · كتاب الوحوش · البطاقات · السمعة", blurb = "Deeds · monster book · cards · reputation", icon = "card_wolf", col = new Color(0.56f, 0.85f, 1f) },
+        new HubCat { id = "store", name = "Store & pass", ar = "المتجر والتذكرة", arB = "متجر المظهر فقط · تذكرة المعركة · كبار الشخصيات", blurb = "Looks-only store · Battle Pass · VIP", icon = "gold_crown", col = new Color(1f, 0.85f, 0.4f) },
+        new HubCat { id = "acct", name = "Friends & settings", ar = "الأصدقاء والإعدادات", arB = "الأصدقاء والرسائل · الإعدادات · الخروج", blurb = "Friends & letters · settings · log out", icon = "cg:chat", col = new Color(1f, 0.6f, 0.75f) },
     };
     string hubCat, hubFrom;   // hubFrom: the category a window was opened from (its "◀ Back" returns there)
     // a window opened from the menu: a "◀ Back" at its bottom left, back to the category
@@ -30,7 +30,7 @@ public partial class AHUI
         if (hubFrom == null || wkMode == "hub" || wkMode == "hubcat") return;
         var back = Img("Back", wkPanel, white, new Vector2(0f, 0f), new Vector2(92f, 38f), new Vector2(150, 50), new Color(0.22f, 0.16f, 0.11f, 1f));
         wkItems.Add(back.gameObject);
-        Center(Label(back, "T", "◀ Back", 20, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(150, 36), Color.white));
+        Center(Label(back, "T", AHLoc.T("◀ Back", "رجوع ▶"), 20, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(150, 36), Color.white));
         string cat = hubFrom;
         taps.Add(new TapBtn { rt = back, layer = 5, group = "work", act = () => { hubCat = cat; hubFrom = null; wkMode = "hubcat"; wkPageI = 0; ShowWork(true); RenderWork(); } });
     }
@@ -44,7 +44,8 @@ public partial class AHUI
         Color W = Color.white;
         // ---- hero ----
         int free = AHEvo.Points(p) - AHEvo.Spent(p); bool evoDue = (p.level >= 30 && AHEvo.CP(p).path == null) || (p.level >= 60 && AHEvo.CP(p).form == null);
-        E("hero", "Stats", "Damage, crit, evasion, speed", "steel_plate", W, false, true, OpenStats);
+        E("hero", "Character", "Your gear on your hero · gear score", "steel_plate", new Color(1f, 0.8f, 0.45f), false, true, OpenChar);
+        E("hero", "Stats", "Damage, crit, evasion, speed", "iron_sword", W, false, true, OpenStats);
         E("hero", "Class & talents", AHEvo.Title(p) + (free > 0 ? " · <color=#9be37a>" + free + " talent points</color>" : " · evolution · spellbook"), "runed_staff", p.cls.color, free > 0 || evoDue, true, () => OpenClassWin());
         E("hero", "Talent sets", "Save up to 3 talent sets", "blessed_mace", W, false, true, OpenTalSets);
         E("hero", "Change class", "Now: " + p.cls.name, "silk_mantle", p.cls.color, false, true, () => { ShowWork(false); ShowPicker(true); });
@@ -56,7 +57,7 @@ public partial class AHUI
         E("hero", "Emotes", "Wave, bow, dance, sit…", "cg:emote", W, false, true, OpenEmotes);
         // ---- adventure ----
         E("adv", "Story", AHStory.Done(p) ? "Done · Kingsbane" : "Chapter " + (p.prog.storyCh + 1) + " of " + AHStory.Chapters.Length, "fossil_map", new Color(1f, 0.75f, 0.4f), !AHStory.Done(p), true, OpenStory);
-        E("adv", "Daily goals", p.prog.daily.marks + " marks · goals · login calendar", "mystery_sack", new Color(1f, 0.85f, 0.5f), false, true, OpenDaily);
+        E("adv", "Daily goals", (AHDaily.Ready(p) > 0 ? "<color=#9be37a>" + AHDaily.Ready(p) + " to claim</color> · " : "") + p.prog.daily.marks + " marks · login calendar", "mystery_sack", new Color(1f, 0.85f, 0.5f), AHDaily.Ready(p) > 0, true, OpenDaily);
         E("adv", "Dungeon Finder", AHFinder.Runs + " group runs", "iron_mace", W, false, true, OpenFinder);
         if (AHDeep.InRun) E("adv", "The Ashen Deep", "Floor " + AHDeep.Floor + " of " + AHDeep.Floors + " · " + AHDeep.Clock(AHDeep.Elapsed), "dragon_scale", new Color(0.75f, 0.55f, 1f), false, true, OpenDeepHall);
         else E("adv", "Enter the Ashen Deep", "This week: " + AHDeep.WeekBoss.name, "dragon_scale", new Color(0.75f, 0.55f, 1f), !AHDeep.BossLooted && p.level >= AHDeep.MinLevel, p.level >= AHDeep.MinLevel && !AHFinder.In, () => { ShowWork(false); AHDeep.Start(g); });
@@ -116,7 +117,7 @@ public partial class AHUI
     void RenderHub(AHPlayer p)
     {
         hubCat = null;
-        wkTitle.text = "Menu";
+        wkTitle.text = AHLoc.T("Menu", "القائمة");
         wkHint.text = (string.IsNullOrEmpty(p.heroName) ? "" : p.heroName + " · ") + "level " + p.level + " " + p.cls.name + " · " + AHItems.MoneyText(p.bag.money) + (AHFinder.In ? " · in a group run of " + AHFinder.NameOf(AHFinder.Run) : "");
         wkPage.text = ""; SetPager(false);
         var all = HubEntries(p);
@@ -130,9 +131,9 @@ public partial class AHUI
             var ring = Img("Ring", bg, circle, new Vector2(0.5f, 1f), new Vector2(0f, -60f), new Vector2(96, 96), new Color(c.col.r * 0.35f, c.col.g * 0.35f, c.col.b * 0.35f, 0.95f));
             Img("Rim", ring, this.ring != null ? this.ring : circle, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(100, 100), new Color(c.col.r, c.col.g, c.col.b, 0.8f));
             var sp = HubIcon(c.icon); if (sp != null) { var ic = Img("Icon", ring, sp, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(70, 70), Color.white); ic.GetComponent<Image>().preserveAspect = true; }
-            var t = Label(bg, "Name", c.name, 20, TextAnchor.MiddleCenter, new Vector2(0f, -122f), new Vector2(tw - 12f, 28), c.col); t.fontStyle = FontStyle.Bold; Fit(t, 14);
+            var t = Label(bg, "Name", AHLoc.T(c.name, c.ar), 20, TextAnchor.MiddleCenter, new Vector2(0f, -122f), new Vector2(tw - 12f, 28), c.col); t.fontStyle = FontStyle.Bold; Fit(t, 14);
             t.rectTransform.anchorMin = t.rectTransform.anchorMax = new Vector2(0.5f, 1f); t.rectTransform.pivot = new Vector2(0.5f, 0.5f); t.rectTransform.anchoredPosition = new Vector2(0f, -124f);
-            var b2 = Label(bg, "Blurb", c.blurb, 13, TextAnchor.UpperCenter, new Vector2(0f, -150f), new Vector2(tw - 18f, 38), new Color(1f, 1f, 1f, 0.7f));
+            var b2 = Label(bg, "Blurb", AHLoc.T(c.blurb, c.arB), 13, TextAnchor.UpperCenter, new Vector2(0f, -150f), new Vector2(tw - 18f, 38), new Color(1f, 1f, 1f, 0.7f));
             b2.rectTransform.anchorMin = b2.rectTransform.anchorMax = new Vector2(0.5f, 1f); b2.rectTransform.pivot = new Vector2(0.5f, 1f); b2.rectTransform.anchoredPosition = new Vector2(0f, -140f);
             b2.horizontalOverflow = HorizontalWrapMode.Wrap;
             if (ready > 0) Badge(bg, ready, new Vector2(-18f, -18f));
@@ -150,8 +151,8 @@ public partial class AHUI
     void RenderHubCat(AHPlayer p)
     {
         var c = Array.Find(HubCats, x => x.id == hubCat); if (c == null) { wkMode = "hub"; RenderHub(p); return; }
-        wkTitle.text = c.name;
-        wkHint.text = c.blurb;
+        wkTitle.text = AHLoc.T(c.name, c.ar);
+        wkHint.text = AHLoc.T(c.blurb, c.arB);
         var list = HubEntries(p).FindAll(e => e.cat == c.id);
         const int cols = 3, rows = 4, per = cols * rows;
         int pages = Mathf.Max(1, (list.Count + per - 1) / per); wkPageI = Mathf.Clamp(wkPageI, 0, pages - 1);
@@ -175,7 +176,7 @@ public partial class AHUI
         // back to the eight
         var back = Img("Back", wkPanel, white, new Vector2(0f, 0f), new Vector2(92f, 38f), new Vector2(150, 50), new Color(0.22f, 0.16f, 0.11f, 1f));
         wkItems.Add(back.gameObject);
-        Center(Label(back, "T", "◀ Menu", 20, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(150, 36), Color.white));
+        Center(Label(back, "T", AHLoc.T("◀ Menu", "القائمة ▶"), 20, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(150, 36), Color.white));
         taps.Add(new TapBtn { rt = back, layer = 5, group = "work", act = () => { wkMode = "hub"; wkPageI = 0; RenderWork(); } });
     }
 }

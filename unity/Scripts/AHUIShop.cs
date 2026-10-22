@@ -118,6 +118,16 @@ public partial class AHUI
         RenderWork();
     }
 
+    // gear in a shop against what you wear in that slot: a green arrow up if it is better, a red one down if worse
+    static string Compare(AHPlayer p, ItemDef it)
+    {
+        var worn = AHItems.Get(p.bag.Worn(it.slot));
+        if (worn == null) return "<color=#7be07a>▲ your " + it.slot + " slot is empty</color>";
+        if (worn.id == it.id) return "<color=#c8d4e8>= what you wear</color>";
+        float d = GearScore(it) - GearScore(worn);
+        if (Mathf.Abs(d) < 0.5f) return "<color=#c8d4e8>≈ about the same as your " + worn.name + "</color>";
+        return d > 0f ? "<color=#7be07a>▲ better than your " + worn.name + " (+" + Mathf.RoundToInt(d) + ")</color>" : "<color=#ff8a7a>▼ worse than your " + worn.name + " (" + Mathf.RoundToInt(d) + ")</color>";
+    }
     void RenderShop(AHPlayer p)
     {
         var sh = AHJson.O(AHShops.Shops, shopId);
@@ -148,7 +158,8 @@ public partial class AHUI
                     else if (id == "svc:rest") { name = "Rest at the inn"; l2 = "A warm bed: full HP and hunger"; }
                     else { var it = AHItems.Get(id); if (it == null) continue; name = it.name; c = AHItems.Quality(it); owned = it.cosmetic && AHWardrobe.Has(p, id); l2 = it.slot != null ? AHItems.StatLine(it) + " · " + Bad(AHItems.WhoUses(id), AHItems.CanUse(id, p.cls.id)) : (it.note ?? ""); }
                     string iid = id; var rit = id.Contains(":") ? null : AHItems.Get(id);
-                    rows.Add(slot => { rowItem = rit; Row(slot, name + (owned ? "  <color=#9be37a>owned</color>" : ""), c, l2, "",
+                    string cmp = rit != null && rit.slot != null && AHItems.CanUse(id, p.cls.id) ? Compare(p, rit) : "";
+                    rows.Add(slot => { rowItem = rit; Row(slot, name + (owned ? "  <color=#9be37a>owned</color>" : ""), c, l2, cmp,
                         id.StartsWith("merc:") && owned
                             ? new WkBtn { label = "Dismiss", on = true, col = new Color(0.45f, 0.22f, 0.17f, 1f), act = () => { p.party.Remove(iid.Substring(5)); AHComp.SpawnAllies(g); Toast(AHComp.MercName(iid.Substring(5)) + " leaves your party."); g.MarkDirty(); RenderWork(); } }
                             : new WkBtn { label = owned ? "Owned" : (iid.StartsWith("merc:") ? "Hire · " : "") + AHItems.MoneyText(pr, 2), on = !owned && p.bag.money >= pr, col = Go, act = () => Buy(p, iid, pr) }); });

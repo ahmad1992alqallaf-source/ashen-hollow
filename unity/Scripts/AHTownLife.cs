@@ -50,7 +50,7 @@ public class AHTownLife : MonoBehaviour
             var route = new List<Vector3>(); for (int i = 0; i < 12; i++) route.Add(Ring(i * 30f + 15f, 5.6f));
             crier = AHNpc.SpawnAt(g, "Town crier Odo", route[0], route[1] - route[0], new[] { "Hear ye! News at every bell.", "If it happened in Hollow Meadow, I have shouted it." });
             crier.route = route.ToArray(); crier.routeSpeed = 1.0f; crier.SetSeq("Idle_Talking_Loop", "Idle_Loop"); crier.label = "Hear the news";
-            crier.onTalk = () => { var n = News(); AHLife.Speak(crier, n[0], n[1], 5f); g.ui.Toast("Town crier Odo: “" + (AHLoc.Arabic ? n[1] : n[0]) + "”", 5f); return true; };
+            crier.onTalk = () => { var n = News(); AHLife.Speak(crier, n[0], n[1], 5f); g.ui.TalkLine(crier, AHLoc.Arabic ? AHLoc.Shape(n[1]) : n[0]); return true; };
             nextCry = Time.time + 8f;
         }
         // ---------- 2. keepers at the market stalls ----------
@@ -142,7 +142,7 @@ public class AHTownLife : MonoBehaviour
             {
                 bard = AHNpc.SpawnAt(g, "Bard Lyra", inn.At(inn.w * 0.13f, inn.d * 0.6f), -inn.b, new[] { "A song for a coin? Or for free, I like your face.", "Come back at night, that's when the inn sings." });
                 bard.SetSeq("Idle_Loop", "Idle_Talking_Loop");
-                bard.onTalk = () => { g.ui.Toast("Bard Lyra: “" + (night ? "This one's for the hero in the corner!" : "Come back after dark, that's when the inn sings.") + "”", 4f); if (night) { lute++; AHSound.Town("lute", 1f, lute); } return true; };
+                bard.onTalk = () => { g.ui.TalkLine(bard, night ? "This one's for the hero in the corner!" : "Come back after dark, that's when the inn sings."); if (night) { lute++; AHSound.Town("lute", 1f, lute); } return true; };
                 var spots = new[] { new Vector2(-0.27f, 0.4f), new Vector2(0.27f, 0.4f), new Vector2(0f, 0.4f) };
                 var offs = new[] { new Vector2(0f, -1.25f), new Vector2(0f, -1.25f), new Vector2(0f, 0.3f) };
                 // the table games, day and night
@@ -646,7 +646,7 @@ public class AHTownLife : MonoBehaviour
         else if (what == "house") { PlotState = 2; I.BuildHouse(true); I.PlotLabel(); }
         else if (what == "plotreset") { PlotState = 0; }
         else if (what == "jobs") AHGame.I.ui.OpenJobs();
-        else if (what == "close") { AHGame.I.ui.ShowWork(false); AHTable.CloseAll(); }
+        else if (what == "close") { AHGame.I.ui.ShowWork(false); AHGame.I.ui.CloseOverlays(); AHTable.CloseAll(); }
         else if (what == "deal") AHTable.TestDeal(AHGame.I);
         else if (what.StartsWith("road")) { int k; int.TryParse(what.Substring(4), out k); AHRoadEvents.Start(AHGame.I, k); }
         else if (what == "ranked") AHGame.I.ui.OpenRanked();
@@ -655,6 +655,29 @@ public class AHTownLife : MonoBehaviour
         else if (what.StartsWith("race")) AHRace.Test(what.Substring(4).Trim());
         else if (what == "cards") AHTable.OpenCards(AHGame.I);
         else if (what == "hub") AHGame.I.ui.OpenHub();
+        else if (what == "char") AHGame.I.ui.OpenChar();
+        else if (what == "givefood") { var b = AHGame.I.player.bag; b.Add("bread", 4); b.Add("stew", 2); b.Add("salmon", 3); b.Touch(); }
+        else if (what.StartsWith("quick:")) AHGame.I.ui.OpenQuick(what.Substring(6));
+        else if (what == "eat") AHGame.I.ui.SendMessage("QuickEat");
+        else if (what == "map") AHGame.I.ui.OpenMap();
+        else if (what.StartsWith("talk:")) { var n = AHNpc.Find(what.Substring(5)); if (n != null) { AHGame.I.player.transform.position = n.transform.position + n.transform.forward * 2.2f; AHGame.I.TalkTo(n); } }
+        else if (what == "reward") AHGame.I.ui.RewardChest("Login calendar · day 3", 120, 800, 15, new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, int>> { new System.Collections.Generic.KeyValuePair<string, int>("big_potion", 2), new System.Collections.Generic.KeyValuePair<string, int>("ruby", 1) });
+        else if (what == "hudedit") AHGame.I.ui.OpenHudEdit();
+        else if (what == "hudreset") { foreach (var id in new[] { "joy", "fight", "top", "quest", "chat", "ride" }) { AHPrefs.SetFloat("ah_hud_" + id + "_x", 0f); AHPrefs.SetFloat("ah_hud_" + id + "_y", 0f); } AHPrefs.SetFloat("ah_hud_scale", 1f); }
+        else if (what == "ar") AHLoc.Lang = "ar";
+        else if (what == "en") AHLoc.Lang = "en";
+        else if (what == "bosstest")
+        {
+            var g = AHGame.I; AHMobType t = null;
+            foreach (var m in g.mobs) if (m != null && !m.dead && m.type != null) { t = m.type; break; }
+            if (t != null)
+            {
+                var pt = g.player.transform; Vector3 fw = pt.forward; fw.y = 0f; fw.Normalize();
+                var et = new AHMobType { id = t.id, name = "Old Tusk the Hollow King", model = t.model, lvl = t.lvl + 4, hp = t.hp * 8, dmg = t.dmg, xp = t.xp * 5, speed = t.speed, radius = t.radius, aggro = t.aggro, atkCd = t.atkCd, respawn = 9999f, elite = true, drops = t.drops };
+                var b = AHMob.Create(g, et, pt.position + fw * 7f); g.mobs.Add(b);
+                g.player.target = b; b.hp = et.hp * 0.62f;
+            }
+        }
         else if (what.StartsWith("hub:")) AHGame.I.ui.OpenHubCat(what.Substring(4));
         else if (what.StartsWith("tile:")) AHGame.I.ui.TestTile(what.Substring(5));
         else if (what == "dice") AHTable.OpenDice(AHGame.I);

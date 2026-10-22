@@ -454,7 +454,7 @@ public class AHGame : MonoBehaviour
         if (n.agent && !giver) { if (line != null) ui.Toast(line, 3f); quests.Event("talk", n.npcName, 1, this); ui.OpenFarmAgent(); return; }
         if (n.auction && !giver) { if (line != null) ui.Toast(line, 3f); quests.Event("talk", n.npcName, 1, this); ui.OpenAH(); return; }
         if (!giver && !n.guild && AHFriends.Is(n.npcName)) { quests.Event("talk", n.npcName, 1, this); ui.OpenFriend(n.npcName, line); return; }
-        if (line != null && !giver) ui.Toast(line + (note != null ? "\n" + note : ""), 5f);
+        if (line != null && !giver) ui.TalkLine(n, line + (note != null ? " " + note : ""));   // the talk box (AHUIPlus)
         quests.Event("talk", n.npcName, 1, this);
         if (n.guild) quests.RoadEvent("talkguild", null, 1, this);
         if (giver) ui.OpenQuest();

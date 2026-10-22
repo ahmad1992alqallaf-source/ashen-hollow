@@ -307,11 +307,12 @@ public partial class AHUI
         lootPill.gameObject.SetActive(false);
         CelestialBag();   // the bag as the design (AHUICelestialBag)
         CelestialWindows();   // the windows' frames
+        PlusLayout();         // the quest card, the timer pill, the menu badge, the layout editor (AHUIPlus)
     }
     AHMob lootPillMob;
 
     // after the HUD's own update each frame, so its words are the last ones written
-    void LateUpdate() { CelestialTick(); CelestialBagTick(); LootAllTick(); }
+    void LateUpdate() { CelestialTick(); CelestialBagTick(); LootAllTick(); PlusTick(); }
 
     // every frame: the words that follow the game, the loot pill, the attack seal's sword
     void CelestialTick()

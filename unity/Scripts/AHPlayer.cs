@@ -430,6 +430,7 @@ public class AHPlayer : MonoBehaviour
     public void QuickPotion(bool manaPot)
     {
         if (dead) return;
+        string pick = AHUI.QuickPick(manaPot ? "mana" : "heal"); if (!string.IsNullOrEmpty(pick) && bag.Count(pick) > 0) { Drink(pick); return; }
         foreach (var k in manaPot ? ManaOrder : HealOrder) if (bag.Count(k) > 0) { Drink(k); return; }
         if (g.ui != null) g.ui.Toast(manaPot ? "No mana potions. Alchemists sell them, or brew them from herbs." : "No health potions. General stores and alchemists sell them.");
     }

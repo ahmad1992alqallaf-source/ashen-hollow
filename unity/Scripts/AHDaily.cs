@@ -184,6 +184,7 @@ public static class AHDaily
         if (r.marks > 0) { p.prog.daily.marks += r.marks; AHExtras.AddXp(p, r.marks); }   // the marks your goals pay also fill the season track
         foreach (var kv in r.items) p.bag.Add(kv.Key, kv.Value);
         g.SaveProgress();
+        if (g.ui != null) g.ui.RewardChest(string.IsNullOrEmpty(r.name) ? "Your reward" : r.name, r.money, r.xp, r.marks, r.items);   // the chest (AHUIPlus)
     }
 
     // web MARKS_SHOP: [id, count, marks]

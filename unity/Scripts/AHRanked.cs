@@ -53,7 +53,8 @@ public static class AHRanked
         if (t >= 2 && p.bag.Add("mystery_sack", t - 1)) got += " · " + (t - 1) + " mystery sack" + (t > 2 ? "s" : "");
         if (t >= 4 && p.bag.Add("lucky_charm")) got += " · a Lucky charm";
         AHPrefs.SetInt("ah_rk_chest", 0);
-        AHSound.Play("loot"); g.ui.Banner(Tiers[t] + " season chest", got); p.bag.Touch(); g.MarkDirty();
+        var its = new List<KeyValuePair<string, int>>(); if (t >= 1) its.Add(new KeyValuePair<string, int>("enh_stone", 2 + t * 2)); if (t >= 2) its.Add(new KeyValuePair<string, int>("mystery_sack", t - 1)); if (t >= 4) its.Add(new KeyValuePair<string, int>("lucky_charm", 1));
+        g.ui.RewardChest(Tiers[t] + " season chest", coins / AHDB.CU, 0, 0, its); p.bag.Touch(); g.MarkDirty();
     }
 
     // today's challengers, near your rating
