@@ -55,6 +55,44 @@ public class AHSound : MonoBehaviour
     void Noise(float dur, float vol, Filt ft, float fq0, float fq1 = 0f, float q = 1f, int bus = 0, float delay = 0f)
     { Add(new Voice { w = Wave.Noise, ft = ft, fq0 = fq0, fq1 = fq1 > 0 ? fq1 : fq0, q = q, len = dur, att = 0.004, vol = vol, bus = bus }, delay); }
 
+    // the walled town (AHTownLife): sounds that fade with distance (k: 0..1)
+    public static void Town(string n, float k, int note = 0)
+    {
+        var s = I; if (s == null || Muted || k <= 0.01f) return;
+        k = Mathf.Clamp01(k);
+        switch (n)
+        {
+            case "bell":   // a big bronze bell: a struck hum with its overtones dying away
+            {
+                float[] f = { 1f, 2f, 2.4f, 3f, 4.2f }, d = { 3.2f, 2.4f, 1.9f, 1.4f, 1.0f }, v = { 0.22f, 0.1f, 0.075f, 0.05f, 0.03f };
+                for (int i = 0; i < 5; i++) s.Tone(Wave.Sine, 196f * f[i], 196f * f[i] * 0.998f, d[i], v[i] * k, 0, 0f, 0.004f);
+                s.Noise(0.06f, 0.12f * k, Filt.Band, 1800, 900, 2f);
+                break;
+            }
+            case "handbell":   // the crier's hand bell: three quick rings
+                for (int i = 0; i < 3; i++) { s.Tone(Wave.Sine, 1320, 1318, 0.5f, 0.07f * k, 0, i * 0.2f); s.Tone(Wave.Sine, 3560, 3550, 0.25f, 0.025f * k, 0, i * 0.2f); }
+                break;
+            case "lute":   // a little phrase on the bard's lute (note: which phrase)
+            {
+                float[] scale = { 294, 330, 392, 440, 494, 587, 659, 784 };
+                var r = new System.Random(note); int len = 4 + r.Next(3); float t = 0f; int at = r.Next(4);
+                for (int i = 0; i < len; i++)
+                {
+                    at = Mathf.Clamp(at + r.Next(5) - 2, 0, scale.Length - 1);
+                    float f = scale[at], dur = i == len - 1 ? 0.9f : 0.32f + (float)r.NextDouble() * 0.2f;
+                    s.Tone(Wave.Triangle, f, f * 0.999f, dur + 0.3f, 0.07f * k, 0, t, 0.003f);
+                    s.Tone(Wave.Sine, f * 2f, 0, dur * 0.5f, 0.02f * k, 0, t, 0.003f);
+                    if (i % 2 == 0) s.Tone(Wave.Triangle, scale[at % 3] / 2f, 0, 0.7f, 0.04f * k, 0, t, 0.005f);
+                    t += dur * 0.62f;
+                }
+                break;
+            }
+            case "snort": s.Noise(0.35f, 0.08f * k, Filt.Band, 500, 260, 1.4f); s.Noise(0.25f, 0.05f * k, Filt.Band, 700, 350, 1.4f, 0, 0.45f); break;
+            case "gate": s.Tone(Wave.Saw, 90, 70, 1.2f, 0.03f * k); s.Noise(1.2f, 0.07f * k, Filt.Low, 500, 300); for (int i = 0; i < 8; i++) s.Noise(0.03f, 0.05f * k, Filt.High, 3000, 0, 1, 0, i * 0.14f); break;
+            case "wish": { float[] f = { 1568, 2093, 2637, 3136 }; for (int i = 0; i < 4; i++) s.Tone(Wave.Sine, f[i], 0, 0.6f, 0.05f * k, 0, 0.45f + i * 0.09f); s.Noise(0.35f, 0.25f * k, Filt.Band, 1400, 400, 0.8f, 0, 0.3f); } break;
+        }
+    }
+
     // web SFX
     public static void Play(string n)
     {

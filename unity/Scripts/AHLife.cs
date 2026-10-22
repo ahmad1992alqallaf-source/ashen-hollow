@@ -151,6 +151,12 @@ public class AHLife : MonoBehaviour
 
     // ---------- speaking: a bubble and, when recorded, the voice ----------
     static readonly Dictionary<string, AudioClip> clips = new Dictionary<string, AudioClip>();
+    // a line written in code (AHTownLife: the crier's news, the stall keepers), in English and Arabic
+    public static void Speak(AHNpc n, string en, string ar, float time)
+    {
+        if (inst == null || n == null) return;
+        inst.Say(n, new Dictionary<string, object> { { "en", en }, { "ar", ar ?? en } }, time);
+    }
     void Say(AHNpc n, object line, float time)
     {
         busy[n] = Mathf.Max(busy.ContainsKey(n) ? busy[n] : 0f, Time.time + time);

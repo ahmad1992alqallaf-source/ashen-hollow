@@ -560,6 +560,68 @@
    "theme": "tavern",
    "greet": "",
    "stock": []
+  },
+  "hm_grocer": {
+   "name": "Hilde’s Market Stall",
+   "keeper": "Grocer Hilde",
+   "role": "Bread, cheese and fresh food",
+   "theme": "wood",
+   "greet": "Fresh from the farms and the ovens! Bread, chops, pies and a hot stew.",
+   "stock": [
+    "bread",
+    "meat",
+    "pie",
+    "stew"
+   ]
+  },
+  "hm_fish": {
+   "name": "Bram’s Fish Stall",
+   "keeper": "Fishmonger Bram",
+   "role": "Fish from the river",
+   "theme": "tavern",
+   "greet": "Grilled this morning, still smells of the river. That’s a good thing.",
+   "stock": [
+    "trout",
+    "tuna"
+   ]
+  },
+  "hm_herbs": {
+   "name": "Nia’s Herb Stall",
+   "keeper": "Herbwife Nia",
+   "role": "Herbs and potions",
+   "theme": "alchemy",
+   "greet": "A potion for every ache, and a bigger one for the bigger aches.",
+   "stock": [
+    "hp_potion",
+    "mana_potion",
+    "big_potion"
+   ]
+  },
+  "hm_peddler": {
+   "name": "Jory’s Odds and Ends",
+   "keeper": "Peddler Jory",
+   "role": "Bags, tools and trinkets",
+   "theme": "curio",
+   "greet": "Bags, picks, axes, a lantern hood. Everything a hero forgets to pack.",
+   "stock": [
+    "bag_pouch",
+    "bag_satchel",
+    "tool_pick_bronze",
+    "tool_axe_bronze",
+    "lantern_hood"
+   ]
+  },
+  "hm_stable": {
+   "name": "Hollow Stables",
+   "keeper": "Stablemaster Rook",
+   "role": "Mounts",
+   "theme": "stable",
+   "greet": "A good horse is the best friend a hero can buy. Pick one, then press Ride.",
+   "stock": [
+    "mount:horse",
+    "mount:destrier",
+    "bread"
+   ]
   }
  },
  "RECIPES": {

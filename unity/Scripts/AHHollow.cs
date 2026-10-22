@@ -36,6 +36,15 @@ public static class AHHollow
         public Vector3 Door { get { return O - b * 2.2f; } }
     }
     public static readonly List<Hall> Halls = new List<Hall>();
+    // for the town's life (AHTownLife): the gates and their portcullis, the chimneys, the bell, the house plot
+    public class Gate { public Vector3 at, dir, tan; public float hw; public Transform grid; }
+    public static readonly List<Gate> Gates = new List<Gate>();
+    public static readonly List<Vector3> Chimneys = new List<Vector3>();
+    public static Transform Root { get { return root; } }
+    public static Transform Bell, ClockHour, ClockMin;
+    public static Vector3 BellAt, FountainAt;
+    public static Hall Plot; static bool PlotOutside;
+    public static GameObject PlotForSale;
     struct Street { public float a, hw; public bool gate; public string label; }
     static readonly List<Street> streets = new List<Street>();
     static readonly List<Vector3> keep = new List<Vector3>();
@@ -58,6 +67,7 @@ public static class AHHollow
         new Def("auction", "Auction House", "c59bff", 11f, 8f, true),
         new Def("barber", "Barber & Wardrobe", "ff8acf", 10f, 7.5f, true),
         new Def("carver", "Woodcarver", "ffe7b0", 10f, 7.5f, true),
+        new Def("stable", "Hollow Stables", "d8a860", 12f, 8f, true),
     };
 
     static Vector3 L(float x, float z) { return C + E * x + S * z; }
@@ -70,6 +80,7 @@ public static class AHHollow
     // while the land is built (before the trees, the stations and the props)
     public static void Setup(AHGame g, Transform world)
     {
+        StableHall = null; Gates.Clear(); Chimneys.Clear(); Bell = ClockHour = ClockMin = null; BellAt = FountainAt = Vector3.zero; Plot = null; PlotForSale = null; PlotOutside = false;
         Active = false; bankAt = Vector3.zero; shopAt = Vector3.zero; pendingNpc.Clear(); pendingFace.Clear(); Halls.Clear(); streets.Clear(); keep.Clear(); mine.Clear(); root = null;
         if (world != null)   // (a ground material shared with another land carries no town circle)
             foreach (var r in world.GetComponentsInChildren<Renderer>(true))
@@ -82,7 +93,7 @@ public static class AHHollow
         gy = world.position.y;
         foreach (var r in world.GetComponentsInChildren<Renderer>(true)) if (r.name.StartsWith("AH_GROUND")) { gy = r.bounds.max.y; break; }
         C.y = gy;
-        root = new GameObject("AH_Hollow town").transform;
+        root = new GameObject("AH_Hollow town").transform; g0 = g;
 
         // nothing to gather inside the walls: the rocks, herbs and trees there go (they grow outside)
         AHGather.Spots.RemoveAll(s => (s.kind == "mine" || s.kind == "herb" || s.kind == "chop") && Inside(s.pos, 4f));
@@ -398,6 +409,17 @@ public static class AHHollow
                 float off = (k - 2) * (s.hw * 2f + 1.2f) / 5f;
                 kit.Box(stone, TRS(at + tan * off + dir * 0.4f + Vector3.up * (WallH + 2.15f), q, new Vector3(0.5f, 0.7f, 0.9f)));
             }
+            // a gatehouse storey over the arch (the portcullis rises into it), with arrow slits and battlements
+            kit.Box(stone, TRS(at + Vector3.up * (WallH + 3.0f), q, new Vector3(WallT + 0.2f, 2.4f, s.hw * 2f + 1.2f)));
+            kit.Box(stone2, TRS(at + Vector3.up * (WallH + 4.25f), q, new Vector3(WallT + 0.5f, 0.25f, s.hw * 2f + 1.5f)));
+            for (int k = 0; k < 7; k++)
+            {
+                float off = (k - 3) * (s.hw * 2f + 1.0f) / 7f;
+                foreach (var sd in new[] { -1f, 1f }) kit.Box(stone, TRS(at + tan * off + dir * sd * (WallT / 2f) + Vector3.up * (WallH + 4.7f), q, new Vector3(0.35f, 0.7f, 0.85f)));
+            }
+            var slit = Mat("hw_slit", new Color(0.06f, 0.05f, 0.05f));
+            foreach (var sd in new[] { -1f, 1f }) foreach (var off in new[] { -s.hw * 0.55f, s.hw * 0.55f }) kit.Box(slit, TRS(at + tan * off + dir * sd * (WallT / 2f + 0.11f) + Vector3.up * (WallH + 3.1f), q, new Vector3(0.04f, 1.0f, 0.22f)));
+            Portcullis(s, at, dir, tan);
             // the town's name over the road in, and which gate it is over the road out
             Sign(root, at - dir * (WallT / 2f + 0.3f) + Vector3.up * (WallH + 0.9f), -dir, s.label, Hex("ffd27a"), s.hw * 2f, 1.1f, Mat("hw_sign", new Color(0.16f, 0.11f, 0.07f)));
             Sign(root, at + dir * (WallT / 2f + 0.3f) + Vector3.up * (WallH + 0.9f), dir, "Hollow Meadow", Hex("ffd27a"), s.hw * 2f, 1.1f, Mat("hw_sign", new Color(0.16f, 0.11f, 0.07f)));
@@ -420,6 +442,200 @@ public static class AHHollow
         foreach (var s in streets) if (s.gate && Mathf.Abs(Mathf.DeltaAngle(s.a * Mathf.Rad2Deg, a * Mathf.Rad2Deg)) * Mathf.Deg2Rad * R < s.hw + pad) return true;
         return false;
     }
+    // an iron portcullis filling the gateway, built standing on the road; it hangs raised (AHTownLife lowers it at night)
+    static void Portcullis(Street s, Vector3 at, Vector3 dir, Vector3 tan)
+    {
+        var gate = new Gate { at = at, dir = dir, tan = tan, hw = s.hw };
+        var gp = new GameObject("AH_Portcullis").transform; gp.SetParent(root, false); gp.position = Vector3.zero;
+        var kit = new Kit(); var iron = Mat("hw_portcullis", new Color(0.2f, 0.19f, 0.19f), 0.45f); var rust = Mat("hw_rivet", new Color(0.32f, 0.22f, 0.15f), 0.3f);
+        var q = Quaternion.LookRotation(dir, Vector3.up);   // local x: across the road, z: through the wall
+        float W = s.hw * 2f + 0.2f, Hh = WallH - 0.25f;
+        int nb = Mathf.RoundToInt(W / 0.55f);
+        for (int i = 0; i <= nb; i++)
+        {
+            float x = -W / 2f + i * W / nb;
+            kit.Box(iron, TRS(at + tan * x + Vector3.up * (0.3f + (Hh - 0.3f) / 2f), q, new Vector3(0.1f, Hh - 0.3f, 0.12f)));
+            kit.Add(iron, Cone, TRS(at + tan * x + Vector3.up * 0.32f, q * Quaternion.Euler(180f, 0, 0), new Vector3(0.13f, 0.32f, 0.13f)));
+        }
+        foreach (var y in new[] { 0.55f, 1.45f, 2.35f, 3.25f, Hh - 0.2f })
+        {
+            kit.Box(iron, TRS(at + Vector3.up * y, q, new Vector3(W, 0.11f, 0.16f)));
+            for (int i = 0; i <= nb; i++) kit.Add(rust, SphMesh, TRS(at + tan * (-W / 2f + i * W / nb) + Vector3.up * y, q, new Vector3(0.11f, 0.11f, 0.2f)));
+        }
+        foreach (var r in kit.Build(gp, "AH_PortcullisGrid")) AHModel.SetShadows(r.gameObject);
+        gp.position = Vector3.up * (Hh - 0.35f);   // raised: only its spikes show under the arch
+        gate.grid = gp; Gates.Add(gate);
+    }
+
+    // the bell tower: a stone tower with a clock and an open belfry; the bell swings and rings the hours (AHTownLife)
+    static void BellTower(Slot s)
+    {
+        var go = new GameObject("AH_Bell tower").transform; go.SetParent(root, false);
+        Vector3 c = s.O + s.b * (s.d * 0.5f); c.y = gy; BellAt = c;
+        Vector3 f = -s.b, rgt = Vector3.Cross(Vector3.up, f);
+        var q = Quaternion.LookRotation(f, Vector3.up);
+        Material stone = TexMat("hw_stone", new Color(0.78f, 0.73f, 0.66f), Bricks), stone2 = TexMat("hw_stone_dark", new Color(0.6f, 0.57f, 0.52f), Bricks),
+                 timber = TexMat("hw_timber", new Color(0.42f, 0.28f, 0.17f), Planks), roof = TexMat("hw_roof_bell", new Color(0.42f, 0.2f, 0.16f), Shingles, 0.18f),
+                 dark = Mat("hw_slit", new Color(0.06f, 0.05f, 0.05f)), bronze = Mat("hw_bronze", new Color(0.78f, 0.55f, 0.28f), 0.65f), gold = Mat("hw_gold", new Color(1f, 0.8f, 0.35f), 0.7f, 0.25f),
+                 face = Mat("hw_clockface", new Color(0.95f, 0.92f, 0.84f), 0.3f);
+        const float Wd = 3.8f, Sh = 9f, Bel = 3.0f;
+        var kit = new Kit();
+        kit.Box(stone2, TRS(c + Vector3.up * 0.4f, q, new Vector3(Wd + 0.6f, 0.8f, Wd + 0.6f)));
+        kit.Box(stone, TRS(c + Vector3.up * Sh / 2f, q, new Vector3(Wd, Sh, Wd)));
+        kit.Box(stone2, TRS(c + Vector3.up * (Sh + 0.15f), q, new Vector3(Wd + 0.4f, 0.3f, Wd + 0.4f)));
+        // the door, and windows up the shaft
+        kit.Box(timber, TRS(c + f * (Wd / 2f + 0.02f) + Vector3.up * 1.15f, q, new Vector3(1.3f, 2.3f, 0.06f)));
+        kit.Box(stone2, TRS(c + f * (Wd / 2f + 0.05f) + Vector3.up * 2.4f, q, new Vector3(1.7f, 0.25f, 0.12f)));
+        foreach (var y in new[] { 4.2f }) foreach (var dd in new[] { rgt, -rgt, -f }) kit.Box(dark, TRS(c + dd * (Wd / 2f + 0.02f) + Vector3.up * y, Quaternion.LookRotation(dd), new Vector3(0.5f, 1.1f, 0.04f)));
+        // the open belfry: four corner piers, a rail, the beam the bell hangs from
+        foreach (var x in new[] { -1f, 1f }) foreach (var z in new[] { -1f, 1f })
+                kit.Box(stone, TRS(c + rgt * x * (Wd / 2f - 0.3f) + f * z * (Wd / 2f - 0.3f) + Vector3.up * (Sh + 0.3f + Bel / 2f), q, new Vector3(0.6f, Bel, 0.6f)));
+        foreach (var dd in new[] { f, -f, rgt, -rgt }) kit.Box(timber, TRS(c + dd * (Wd / 2f - 0.3f) + Vector3.up * (Sh + 1.2f), Quaternion.LookRotation(dd), new Vector3(Wd - 1.0f, 0.12f, 0.12f)));
+        kit.Box(timber, TRS(c + Vector3.up * (Sh + Bel - 0.1f), q, new Vector3(Wd - 0.4f, 0.3f, 0.3f)));
+        kit.Box(stone2, TRS(c + Vector3.up * (Sh + 0.3f + Bel + 0.15f), q, new Vector3(Wd + 0.3f, 0.3f, Wd + 0.3f)));
+        // a pointed roof with a gold finial
+        kit.Add(roof, Pyramid, TRS(c + Vector3.up * (Sh + 0.3f + Bel + 0.3f), q, new Vector3(Wd + 0.8f, 3.2f, Wd + 0.8f)));
+        kit.Add(gold, SphMesh, TRS(c + Vector3.up * (Sh + Bel + 3.85f), q, Vector3.one * 0.32f));
+        kit.Box(gold, TRS(c + Vector3.up * (Sh + Bel + 4.25f), q, new Vector3(0.06f, 0.7f, 0.06f)));
+        // the clock face over the door
+        Vector3 cc = c + f * (Wd / 2f + 0.06f) + Vector3.up * 7.2f;
+        kit.Add(face, SphMesh, TRS(cc, q, new Vector3(1.8f, 1.8f, 0.08f)));
+        kit.Add(gold, SphMesh, TRS(cc - f * 0.015f, q, new Vector3(1.95f, 1.95f, 0.05f)));
+        for (int i = 0; i < 12; i++) { float a = i * Mathf.PI / 6f; kit.Box(dark, TRS(cc + f * 0.05f + (rgt * Mathf.Sin(a) + Vector3.up * Mathf.Cos(a)) * 0.74f, q * Quaternion.Euler(0, 0, -a * Mathf.Rad2Deg), new Vector3(0.05f, i % 3 == 0 ? 0.2f : 0.1f, 0.02f))); }
+        foreach (var r in kit.Build(go, "AH_BellTower")) AHModel.SetShadows(r.gameObject);
+        Sign(go, c + f * (Wd / 2f + 0.12f) + Vector3.up * 2.9f, f, "Bell Tower", Hex("ffd27a"), Wd - 0.4f, 0.7f, Mat("hw_sign", new Color(0.16f, 0.11f, 0.07f)));
+        // the hands, each on its own pivot at the middle of the face
+        foreach (var hand in new[] { 0, 1 })
+        {
+            var pv = new GameObject(hand == 0 ? "Clock hour" : "Clock minute").transform; pv.SetParent(go, false); pv.position = cc + f * 0.07f; pv.rotation = q;
+            var hk = new Kit(); float len = hand == 0 ? 0.45f : 0.68f;
+            hk.Box(dark, TRS(cc + f * 0.07f + Vector3.up * len / 2f, q, new Vector3(hand == 0 ? 0.08f : 0.05f, len, 0.03f)));
+            var hp = new GameObject("hand").transform; hp.SetParent(pv, true); hp.position = Vector3.zero; hp.rotation = Quaternion.identity;
+            hk.Build(hp, "AH_ClockHand");
+            if (hand == 0) ClockHour = pv; else ClockMin = pv;
+        }
+        // the bell, hung on its own pivot so it can swing
+        var bp = new GameObject("Bell pivot").transform; bp.SetParent(go, false); bp.position = c + Vector3.up * (Sh + Bel - 0.25f); bp.rotation = q;
+        var bk = new Kit();
+        bk.Add(bronze, BellMesh, TRS(bp.position - Vector3.up * 1.25f, q, new Vector3(1.3f, 1.2f, 1.3f)));
+        bk.Box(timber, TRS(bp.position - Vector3.up * 0.06f, q, new Vector3(0.9f, 0.16f, 0.22f)));
+        bk.Add(bronze, SphMesh, TRS(bp.position - Vector3.up * 1.2f, q, new Vector3(0.16f, 0.16f, 0.16f)));   // the clapper
+        bk.Box(Mat("hw_iron", new Color(0.15f, 0.15f, 0.17f), 0.4f), TRS(bp.position - Vector3.up * 0.75f, q, new Vector3(0.04f, 0.8f, 0.04f)));
+        var bh = new GameObject("bell").transform; bh.SetParent(bp, true); bh.position = Vector3.zero; bh.rotation = Quaternion.identity;
+        foreach (var r in bk.Build(bh, "AH_Bell")) AHModel.SetShadows(r.gameObject);
+        Bell = bp;
+        g0.AddBlocker(new Vector3(c.x, 0f, c.z), Wd * 0.62f);
+    }
+    static AHGame g0;
+    // a bell's shape turned on a lathe: open at the mouth, a lip that flares out, a rounded crown
+    static Mesh bellM;
+    static Mesh BellMesh
+    {
+        get
+        {
+            if (bellM != null) return bellM;
+            Vector2[] pr = { new Vector2(0f, 1f), new Vector2(0.16f, 0.99f), new Vector2(0.27f, 0.93f), new Vector2(0.31f, 0.8f), new Vector2(0.33f, 0.6f), new Vector2(0.37f, 0.4f), new Vector2(0.44f, 0.2f), new Vector2(0.5f, 0.07f), new Vector2(0.52f, 0.02f), new Vector2(0.47f, 0f), new Vector2(0.42f, 0.06f), new Vector2(0.3f, 0.35f), new Vector2(0.25f, 0.8f), new Vector2(0f, 0.9f) };
+            int n = 24; var v = new List<Vector3>(); var t = new List<int>();
+            for (int j = 0; j < pr.Length; j++) for (int i = 0; i <= n; i++) { float a = i * Mathf.PI * 2f / n; v.Add(new Vector3(Mathf.Cos(a) * pr[j].x, pr[j].y, Mathf.Sin(a) * pr[j].x)); }
+            for (int j = 0; j < pr.Length - 1; j++) for (int i = 0; i < n; i++)
+                {
+                    int a = j * (n + 1) + i, b = a + 1, c2 = a + n + 1, d2 = c2 + 1;
+                    t.Add(a); t.Add(b); t.Add(c2); t.Add(b); t.Add(d2); t.Add(c2);
+                }
+            bellM = new Mesh { name = "Bell" }; bellM.SetVertices(v); bellM.SetTriangles(t, 0); bellM.RecalculateNormals(); bellM.RecalculateBounds();
+            return bellM;
+        }
+    }
+    static Mesh pyrM;
+    static Mesh Pyramid   // 1 wide, 1 deep, 1 high to the point, standing on y = 0
+    {
+        get
+        {
+            if (pyrM != null) return pyrM;
+            var v = new List<Vector3>(); var t = new List<int>(); Vector3 top = new Vector3(0, 1, 0);
+            Vector3[] b = { new Vector3(-0.5f, 0, -0.5f), new Vector3(0.5f, 0, -0.5f), new Vector3(0.5f, 0, 0.5f), new Vector3(-0.5f, 0, 0.5f) };
+            for (int i = 0; i < 4; i++) { int k = v.Count; v.Add(b[i]); v.Add(top); v.Add(b[(i + 1) % 4]); t.Add(k); t.Add(k + 1); t.Add(k + 2); }
+            { int k = v.Count; v.Add(b[0]); v.Add(b[1]); v.Add(b[2]); v.Add(b[3]); t.Add(k); t.Add(k + 1); t.Add(k + 2); t.Add(k); t.Add(k + 2); t.Add(k + 3); }
+            pyrM = new Mesh { name = "Pyramid" }; pyrM.SetVertices(v); pyrM.SetTriangles(t, 0); pyrM.RecalculateNormals(); pyrM.RecalculateBounds();
+            return pyrM;
+        }
+    }
+
+    // a house plot for sale: a fenced patch of dug earth with a sign (AHTownLife builds your house on it)
+    static void HousePlot(Slot s)
+    {
+        var h = new Hall { id = "plot", name = "House plot", col = Hex("9fe07a"), O = s.O, b = s.b, r = s.r, w = s.w, d = s.d };
+        h.O.y = gy; Plot = h;
+        var go = new GameObject("AH_House plot").transform; go.SetParent(root, false); h.go = go;
+        var kit = new Kit(); var q = Quaternion.LookRotation(h.b, Vector3.up);
+        Material soil = TexMat("hw_soilplot", new Color(0.42f, 0.3f, 0.2f), Planks, 0.05f), post = DarkWood, rail = Wood, grass = Mat("hw_plotgrass", new Color(0.36f, 0.52f, 0.26f), 0.05f);
+        kit.Box(soil, TRS(h.At(0, h.d / 2f) + Vector3.up * 0.03f, q, new Vector3(h.w - 0.4f, 0.06f, h.d - 0.4f)));
+        var rnd = new System.Random(77);
+        for (int i = 0; i < 22; i++) kit.Add(grass, SphMesh, TRS(h.At(((float)rnd.NextDouble() - 0.5f) * (h.w - 1f), 0.3f + (float)rnd.NextDouble() * (h.d - 0.8f)) + Vector3.up * 0.05f, q, new Vector3(0.35f, 0.12f, 0.3f)));
+        // the fence: posts every two metres with two rails, open in the front middle
+        System.Action<Vector3, Vector3> Run = (a, b) =>
+        {
+            float len = Vector3.Distance(a, b); int n = Mathf.Max(1, Mathf.RoundToInt(len / 2f)); Vector3 u = (b - a).normalized; var rq = Quaternion.LookRotation(u, Vector3.up);
+            for (int i = 0; i <= n; i++) { kit.Box(post, TRS(a + u * (len * i / n) + Vector3.up * 0.55f, rq, new Vector3(0.14f, 1.1f, 0.14f))); kit.Box(post, TRS(a + u * (len * i / n) + Vector3.up * 1.13f, rq, new Vector3(0.18f, 0.06f, 0.18f))); }
+            foreach (var y in new[] { 0.45f, 0.9f }) kit.Box(rail, TRS((a + b) / 2f + Vector3.up * y, rq, new Vector3(0.07f, 0.1f, len)));
+        };
+        float hw = h.w / 2f - 0.15f, dd = h.d - 0.15f;
+        Run(h.At(-hw, 0.15f), h.At(-1.6f, 0.15f)); Run(h.At(1.6f, 0.15f), h.At(hw, 0.15f));
+        Run(h.At(-hw, 0.15f), h.At(-hw, dd)); Run(h.At(hw, 0.15f), h.At(hw, dd)); Run(h.At(-hw, dd), h.At(hw, dd));
+        foreach (var r in kit.Build(go, "AH_PlotFence")) AHModel.SetShadows(r.gameObject);
+        // the sign on two posts, in the middle of the plot
+        var sg = new GameObject("AH_ForSale").transform; sg.SetParent(go, false);
+        var sk = new Kit(); Vector3 sp = h.At(0, h.d * 0.45f);
+        foreach (var x in new[] { -0.9f, 0.9f }) sk.Box(post, TRS(sp + h.r * x * 1.3f + Vector3.up * 1.0f, q, new Vector3(0.12f, 2.0f, 0.12f)));
+        foreach (var r in sk.Build(sg, "AH_ForSalePosts")) AHModel.SetShadows(r.gameObject);
+        Sign(sg, sp + Vector3.up * 1.75f - h.b * 0.08f, -h.b, "Plot for sale", Hex("9fe07a"), 3.2f, 0.85f, Mat("hw_sign", new Color(0.16f, 0.11f, 0.07f)));
+        PlotForSale = sg.gameObject;
+    }
+    // a clear spot on the square near a compass bearing (off the streets, away from stalls, people, the fountain, the boards)
+    public static Vector3 FreeSpot(float deg, float r, float clear)
+    {
+        var busy = new List<Vector3>();
+        foreach (Transform t in root) if (t.name == "AH_Stall" || t.name == "AH_JobsBoard") busy.Add(t.position);
+        var bb = GameObject.Find("BountyBoard"); if (bb != null) busy.Add(bb.transform.position);
+        if (FountainAt != Vector3.zero) busy.Add(FountainAt);
+        foreach (var n in AHNpc.All) if (n != null) busy.Add(n.transform.position);
+        for (int i = 0; i <= 30; i++)
+        {
+            float a = (deg + (i % 2 == 0 ? 1 : -1) * (i / 2) * 6f) * Mathf.Deg2Rad; Vector3 p = C + Dir(a) * r;
+            if (OnStreet(p, 1.0f) || NearKeep(p, 1.2f)) continue;
+            bool bad = false; foreach (var q in busy) { Vector3 dd = q - p; dd.y = 0f; if (dd.magnitude < clear + (q == FountainAt ? 1.6f : 0f)) { bad = true; break; } }
+            if (!bad) return p;
+        }
+        return C + Dir(deg * Mathf.Deg2Rad) * r;
+    }
+    // the town jobs board: two posts, a planked board under a little roof, notes pinned on it
+    public static GameObject JobsBoard(Vector3 at, Vector3 face)
+    {
+        face.y = 0f; face.Normalize(); var q = Quaternion.LookRotation(face, Vector3.up); var rgt = Vector3.Cross(Vector3.up, face);
+        var go = new GameObject("AH_JobsBoard"); go.transform.SetParent(root, false); go.transform.position = at;
+        var kit = new Kit(); Material paper = Mat("hw_paper", new Color(0.95f, 0.91f, 0.8f), 0.1f), pin = Mat("hw_pin", new Color(0.8f, 0.2f, 0.15f), 0.5f),
+                 roof = TexMat("hw_roof_jobs", new Color(0.3f, 0.42f, 0.28f), Shingles, 0.18f);
+        foreach (var x in new[] { -0.95f, 0.95f }) kit.Box(DarkWood, TRS(at + rgt * x + Vector3.up * 1.25f, q, new Vector3(0.14f, 2.5f, 0.14f)));
+        kit.Box(Wood, TRS(at + Vector3.up * 1.45f, q, new Vector3(1.85f, 1.15f, 0.08f)));
+        kit.Box(DarkWood, TRS(at + Vector3.up * 0.86f, q, new Vector3(1.95f, 0.08f, 0.16f)));
+        kit.Add(roof, Prism, TRS(at + Vector3.up * 2.42f, q * Quaternion.Euler(0, 90f, 0), new Vector3(2.3f, 0.45f, 0.75f)));
+        var rnd = new System.Random(11);
+        for (int i = 0; i < 6; i++)
+        {
+            float x = -0.6f + (i % 3) * 0.6f + ((float)rnd.NextDouble() - 0.5f) * 0.12f, y = 1.72f - (i / 3) * 0.52f;
+            kit.Box(paper, TRS(at + rgt * x + Vector3.up * y + face * 0.046f, q * Quaternion.Euler(0, 0, ((float)rnd.NextDouble() - 0.5f) * 10f), new Vector3(0.42f, 0.4f, 0.01f)));
+            kit.Add(pin, SphMesh, TRS(at + rgt * x + Vector3.up * (y + 0.15f) + face * 0.065f, q, Vector3.one * 0.05f));
+        }
+        foreach (var r in kit.Build(go.transform, "AH_JobsBoardParts")) AHModel.SetShadows(r.gameObject);
+        Sign(go.transform, at + Vector3.up * 2.12f + face * 0.06f, face, "Town Jobs", Hex("9fe07a"), 1.7f, 0.32f, Mat("hw_sign", new Color(0.16f, 0.11f, 0.07f)));
+        g0.AddBlocker(new Vector3(at.x, 0f, at.z), 0.9f);
+        return go;
+    }
+    // a sign anywhere in the town (AHTownLife: your house's name)
+    public static void TownSign(Transform parent, Vector3 at, Vector3 face, string text, string hex) { Sign(parent ?? root, at, face, text, Hex(hex), Mathf.Max(2.6f, text.Length * 0.32f), 0.65f, Mat("hw_sign", new Color(0.16f, 0.11f, 0.07f))); }
+    public static GameObject TownProp(string id, Transform parent, Vector3 at, float size, Vector3 face) { return Prop(id, parent ?? root, at, size, face); }
+    public static string TownColour { get { string col; return AHCity.ColourOf(Area, out col) ? col : "green"; } }
+
     static void Banner(Vector3 at, Vector3 face)
     {
         var go = Prop("kk_dg_banner_blue", root, at + Vector3.up * 3.2f, 2.6f, face);
@@ -495,7 +711,7 @@ public static class AHHollow
     {
         // the fountain where the old well stood, north of the middle
         var f = AHStations.Fountain(root, 2.6f); Place(f, L(0f, -8f), S);
-        f.name = "AH_Fountain";
+        f.name = "AH_Fountain"; FountainAt = L(0f, -8f);
         // market stalls round the square, clear of the streets and the people who stand there
         int k = 0;
         foreach (float deg in new[] { 200f, 225f, 340f, 125f, 100f, 20f })
@@ -595,10 +811,61 @@ public static class AHHollow
         // spare lots: a pair of market stalls each, with a lamp
         var spare = new List<Slot>(); for (; ii < inner.Count; ii++) spare.Add(inner[ii]); for (; oi < outer.Count; oi++) spare.Add(outer[oi]);
         int n = 0;
+        spare.RemoveAll(s => { foreach (var h in Halls) if (h.Contains(s.O + s.b * (s.d / 2f), 1f)) return true; return false; });
+        // the bell tower on a lot by the square, the house plot out on the ring street
+        Slot bell = spare.Find(s => !s.outer) ?? (spare.Count > 0 ? spare[0] : null);
+        if (bell != null) { spare.Remove(bell); BellTower(bell); }
+        else
+        {
+            // no lot left: the tower stands on the square (clear of the middle, where heroes arrive), its clock facing the middle
+            var stalls = new List<Vector3>(); foreach (Transform t in root) if (t.name == "AH_Stall") stalls.Add(t.position);
+            Vector3 at = Vector3.zero;
+            int nStreet = 0, nStall = 0, nPeople = 0;
+            foreach (var rad in new[] { 9.5f, 10.5f, 8.5f, 11.5f })
+                for (int i = 0; i < 72 && at == Vector3.zero; i++)
+                {
+                    float deg = 90f + (i % 2 == 0 ? 1 : -1) * (i / 2) * 5f, a = deg * Mathf.Deg2Rad;
+                    if (Mathf.Abs(Mathf.DeltaAngle(deg, 160f)) < 18f || Mathf.Abs(Mathf.DeltaAngle(deg, 235f)) < 18f || Mathf.Abs(Mathf.DeltaAngle(deg, 315f)) < 18f) { nPeople++; continue; }   // Tess, the Warden, the bounty board
+                    Vector3 p = C + Dir(a) * rad;
+                    if (OnStreet(p, 2.3f) || Vector3.Distance(p, L(0f, -8f)) < 4.6f) { nStreet++; continue; }
+                    bool bad = false; foreach (var q in stalls) { Vector3 dd = q - p; dd.y = 0f; if (dd.magnitude < 3.3f) { bad = true; break; } }
+                    if (bad) { nStall++; continue; }
+                    at = p;
+                }
+            if (at == Vector3.zero) Debug.LogWarning("Ashen Hollow: bell tower: no room (streets " + nStreet + ", stalls " + nStall + ", people " + nPeople + ")");
+            if (at != Vector3.zero)
+            {
+                Vector3 f = C - at; f.y = 0f; f.Normalize();
+                var sq = new Slot { O = at + f * 1.9f, b = -f, r = Vector3.Cross(Vector3.up, -f), w = 3.8f, d = 3.8f, outer = false };
+                BellTower(sq);
+            }
+            else Debug.LogWarning("Ashen Hollow: no room for the bell tower");
+        }
+        Slot plot = spare.Find(s => s.outer) ?? (spare.Count > 0 ? spare[0] : null);
+        if (plot != null) { spare.Remove(plot); HousePlot(plot); }
+        else
+        {
+            // no lot left inside: a plot just outside a gate, beside the road out
+            Slot best = null;
+            foreach (var st in streets)
+            {
+                if (!st.gate || best != null) continue;
+                Vector3 dir = Dir(st.a), tan = Vector3.Cross(Vector3.up, dir);
+                foreach (var side in new[] { 1f, -1f })
+                    foreach (var rr in new[] { R + 8f, R + 12f, R + 16f })
+                    {
+                        if (best != null) break;
+                        var sl = new Slot { b = tan * side, w = 10f, d = 8f, outer = true };
+                        sl.r = Vector3.Cross(Vector3.up, sl.b); sl.O = C + dir * rr + tan * side * (st.hw + 3.5f); sl.O.y = gy;
+                        bool ok = true;
+                        foreach (var cp in Corners(sl, 0.5f)) if (AHNav.IsDirt(g, cp) || Inside(cp, 3f)) { ok = false; break; }
+                        if (ok) best = sl;
+                    }
+            }
+            if (best != null) { HousePlot(best); PlotOutside = true; } else Debug.LogWarning("Ashen Hollow: no room for the house plot");
+        }
         foreach (var s in spare)
         {
-            bool taken = false; foreach (var h in Halls) if (h.Contains(s.O + s.b * (s.d / 2f), 1f)) taken = true;
-            if (taken) continue;
             for (int k = -1; k <= 1; k += 2)
             {
                 var st = AHStations.Stall(root, 2.2f, 1.5f, 40 + n++);
@@ -722,6 +989,7 @@ public static class AHHollow
         {
             top.Box(stoneB, TRS(P(-w * 0.28f, H + Rise * 0.7f, d * 0.78f), Q, new Vector3(0.9f, Rise * 1.4f + 1f, 0.9f)));
             top.Box(Mat("hw_soot", new Color(0.12f, 0.1f, 0.09f)), TRS(P(-w * 0.28f, H + Rise * 1.4f + 0.52f, d * 0.78f), Q, new Vector3(0.6f, 0.06f, 0.6f)));
+            Chimneys.Add(P(-w * 0.28f, H + Rise * 1.4f + 0.7f, d * 0.78f));
         }
         var lowR = low.Build(go, "AH_HallLow"); var upR = up.Build(go, "AH_HallUpper"); var topR = top.Build(go, "AH_HallRoof");
         foreach (var r in lowR) AHModel.SetShadows(r.gameObject);
@@ -909,6 +1177,37 @@ public static class AHHollow
                 Table(p, A(sx - 0.45f, d * 0.45f), left, 1.2f, 0.7f); Candles(p, A(sx - 0.45f, d * 0.45f) + Vector3.up * 0.82f);
                 break;
             }
+            case "stable":
+            {
+                // three stalls along the back with plank half-walls, straw on the floor, a trough in each
+                var kit = new Kit(); var q = Face(front); Material straw = Mat("hw_straw", new Color(0.86f, 0.72f, 0.4f), 0.05f), hay = TexMat("hw_hay", new Color(0.9f, 0.76f, 0.42f), Planks, 0.05f);
+                foreach (var x in new[] { -w / 6f, w / 6f }) Part(kit, Wood, BoxMesh, h.At(x, d * 0.73f), q, new Vector3(0, 0.75f, 0), new Vector3(0.12f, 1.3f, d * 0.5f));
+                foreach (var x in new[] { -w / 6f, w / 6f }) Part(kit, DarkWood, BoxMesh, h.At(x, d * 0.48f), q, new Vector3(0, 0.75f, 0), new Vector3(0.2f, 1.5f, 0.2f));
+                Part(kit, straw, BoxMesh, h.At(0, d * 0.72f), q, new Vector3(0, 0.12f, 0), new Vector3(w - 0.8f, 0.03f, d * 0.5f));
+                foreach (var x in new[] { -w / 3f, 0f, w / 3f })
+                {
+                    var rnd = new System.Random((int)(x * 10f) + 9);
+                    for (int i = 0; i < 6; i++) Part(kit, straw, SphMesh, h.At(x + ((float)rnd.NextDouble() - 0.5f) * 2.4f, d * 0.55f + (float)rnd.NextDouble() * d * 0.35f), q, new Vector3(0, 0.15f, 0), new Vector3(0.6f, 0.08f, 0.45f));
+                }
+                // hay bales stacked by the door, a saddle on its stand, feed sacks
+                foreach (var b in new[] { new Vector3(-sx + 0.5f, 0.35f, 1.3f), new Vector3(-sx + 0.5f, 0.35f, 2.05f), new Vector3(-sx + 0.5f, 0.95f, 1.65f) })
+                {
+                    Part(kit, hay, BoxMesh, h.At(b.x, b.z), Face(right), new Vector3(0, b.y + 0.1f, 0), new Vector3(1.0f, 0.55f, 0.7f));
+                    foreach (var t2 in new[] { -0.25f, 0.25f }) Part(kit, Mat("hw_twine", new Color(0.55f, 0.42f, 0.25f)), BoxMesh, h.At(b.x, b.z), Face(right), new Vector3(t2, b.y + 0.1f, 0), new Vector3(0.04f, 0.57f, 0.72f));
+                }
+                Done(kit, p, "AH_StableFit");
+                foreach (var x in new[] { -w / 3f, 0f, w / 3f }) Trough(p, A(x, d - 0.55f), front);
+                Sawhorse(p, A(sx - 0.7f, 1.6f), right);
+                var sad = new Kit(); var sq = Face(right); Material leather = Mat("hw_saddle", new Color(0.45f, 0.22f, 0.12f), 0.35f);
+                Part(sad, leather, SphMesh, A(sx - 0.7f, 1.6f), sq, new Vector3(0, 0.82f, 0), new Vector3(0.7f, 0.22f, 0.5f));
+                Part(sad, leather, BoxMesh, A(sx - 0.7f, 1.6f), sq, new Vector3(0, 0.62f, 0), new Vector3(0.6f, 0.4f, 0.04f));
+                Part(sad, leather, BoxMesh, A(sx - 0.7f, 1.6f), sq, new Vector3(0, 0.62f, 0.26f), new Vector3(0.5f, 0.4f, 0.04f));
+                Done(sad, p, "AH_Saddle");
+                Prop("kk_sack", p, A(sx - 0.45f, 2.7f), 0.8f, left); Prop("kk_sack", p, A(sx - 0.9f, 2.9f), 0.7f, left);
+                Prop("kk_bucket_water", p, A(w * 0.08f, 1.2f), 0.5f, front);
+                StableHall = h;
+                break;
+            }
             case "carver":
             {
                 Npc(g, "Woodcarver Ansel", h, w * 0.08f, d * 0.62f);
@@ -924,6 +1223,7 @@ public static class AHHollow
     }
 
     static Vector3 bankAt, bankFace, shopAt;
+    public static Hall StableHall;
     static void Station(AHGame g, string kind, string name, Vector3 at, float r)
     {
         var s = new AHSpot { kind = kind, type = kind, name = name, pos = at, r = r, reach = 2.9f };
@@ -1278,7 +1578,7 @@ public static class AHHollow
                 {
                     if (r.name.StartsWith("AH_") || !r.enabled) continue;
                     var b = r.bounds; if (Mathf.Max(b.size.x, b.size.z) > 30f) continue;
-                    if (Inside(b.center, 2.5f)) { r.enabled = false; hidden++; }
+                    if (Inside(b.center, 2.5f) || OnPlot(b.center)) { r.enabled = false; hidden++; }
                 }
             }
         foreach (var rn in new[] { "Village", "Stations", "Rebuilt props", "Rebuilt boxes", "Forest", "DreamScatter", "Ore rocks", "Ore", "Herbs", "Flowers", "Stalls and wells", "Ruins", "Crystals", "Wilds", "Tents", "Graves", "Mountains", "Town houses" })
@@ -1290,7 +1590,7 @@ public static class AHHollow
                 var rs = c.GetComponentsInChildren<Renderer>(); if (rs.Length == 0) continue;
                 Bounds b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
                 Vector3 at = rn == "Forest" ? c.position : b.center;
-                if (Inside(at, 3f)) { c.gameObject.SetActive(false); hidden++; }
+                if (Inside(at, 3f) || OnPlot(at)) { c.gameObject.SetActive(false); hidden++; }
             }
         }
         // gathering spots that slipped in, and their looks
@@ -1299,6 +1599,11 @@ public static class AHHollow
             if (mine.Contains(s) || !Inside(s.pos, 3f)) continue;
             if (s.kind == "mine" || s.kind == "herb" || s.kind == "chop" || s.kind == "fire" || s.kind == "furnace" || s.kind == "anvil" || s.kind == "loom" || s.kind == "brew" || s.kind == "jewel")
             { HideSpot(s); AHGather.Spots.Remove(s); }
+        }
+        if (PlotOutside)
+        {
+            foreach (var sp in AHGather.Spots.ToArray()) if (OnPlot(sp.pos) && (sp.kind == "mine" || sp.kind == "herb" || sp.kind == "chop")) { HideSpot(sp); AHGather.Spots.Remove(sp); }
+            var pc = Plot.At(0f, Plot.d / 2f); g.RemoveBlockersNear(pc, 6.5f); g.RemoveBoxesNear(pc, 6.5f);
         }
         // the townsfolk to their own buildings
         foreach (var kv in pendingNpc)
@@ -1352,8 +1657,10 @@ public static class AHHollow
         RoadLamps(g);
         AHNav.Forget();
         pendingNpc.Clear(); pendingFace.Clear();
+        AHTownLife.Setup(g, root);   // the crier, the stall keepers, the watch, the bell, the night at the inn
         Debug.Log("Ashen Hollow: town cleared of " + hidden + " old pieces");
     }
+    static bool OnPlot(Vector3 p) { return PlotOutside && Plot != null && Plot.Contains(p, 1.5f); }
     static void HideSpot(AHSpot s)
     {
         if (s.look != null) s.look.gameObject.SetActive(false);

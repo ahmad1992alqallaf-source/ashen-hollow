@@ -196,6 +196,7 @@ public partial class AHUI
         else if (wkMode == "loot") RenderLoot(p);
         else if (wkMode == "appr") RenderApprentice(p);
         else if (wkMode == "town") RenderTown(p);
+        else if (wkMode == "jobs") RenderJobs(p);
         else if (wkMode == "caravan") RenderCaravans(p);
         else if (wkMode == "kitchen") RenderKitchen(p);
         else if (wkMode == "ah") RenderAH(p);

@@ -25,6 +25,21 @@ public class AHNpc : MonoBehaviour
     string[] seq;
 
     public static readonly List<AHNpc> All = new List<AHNpc>();
+    // the walled town's own people (AHTownLife): a walk they keep to, a pause on it, what talking to them does
+    public Vector3[] route; int ri; public float routeSpeed = 1.25f, hold;
+    [System.NonSerialized] public System.Func<bool> onTalk;   // true: the talk is handled
+    public string label;                                      // what the action button says (null: the usual)
+    public void SetSeq(params string[] s) { seq = s; seqStep = 0; seqT = 0f; }
+    public static AHNpc SpawnAt(AHGame game, string name, Vector3 at, Vector3 look, string[] lines = null, bool guard = false)
+    {
+        var raw = new Dictionary<string, object> { { "town", "ashen" }, { "x", (double)Mathf.Abs(at.x * 7f + at.z * 3f) } };
+        if (guard) raw["guard"] = true;
+        var n = Create(game, name, 0f, 0f, Mathf.PI / 2f, 14f, raw);
+        n.transform.position = at; n.MoveHome(at, look);
+        if (lines != null) n.lines = lines;
+        n.reach = 70f * AHDB.S;
+        return n;
+    }
 
     // who wears what (web NL_PEOPLE outfits; the web's own townsfolk are block figures)
     class Outfit { public string body; public string[] hair; public uint hairC; public bool hideHood; public float h = 1.8f; public string[] seq; public string[] kit; public string wm, main, off; public string beast; }
@@ -386,6 +401,7 @@ public class AHNpc : MonoBehaviour
     {
         get
         {
+            if (label != null) return label;
             if (isCaptain) return "Talk";
             if (sail != null) return "Sail";
             if (market) return "Market"; if (kq) return "Kingdom Quests"; if (agent) return "Land & seeds";
@@ -415,6 +431,23 @@ public class AHNpc : MonoBehaviour
         Vector3 want = WebDir(face);
         bool chatting = chat != null && chatT > Time.time && talkT <= Time.time;
         if (chatting) { want = chat.transform.position - transform.position; near = true; }
+        else if (route != null && route.Length > 0 && talkT <= Time.time)
+        {
+            // keeping to their walk (the crier round the square, the watch round the ring street); a pause on the way
+            if (hold > 0f) { hold -= dt; if (pd < 6f) want = pp - transform.position; }
+            else
+            {
+                Vector3 to = route[ri % route.Length] - transform.position; to.y = 0f;
+                if (to.magnitude < 0.45f) ri = (ri + 1) % route.Length;
+                else
+                {
+                    Vector3 np = transform.position + to.normalized * Mathf.Min(to.magnitude, routeSpeed * dt);
+                    if (!g.Blocked(np, 0.25f)) { transform.position = np; moving = true; want = to; }
+                    else { ri = (ri + 1) % route.Length; }
+                }
+            }
+            near = false;
+        }
         else if (near) want = pp - transform.position;
         else if (wander)
         {
@@ -451,6 +484,7 @@ public class AHNpc : MonoBehaviour
         string qn = g != null && g.quests != null ? g.quests.NpcName : null;
         foreach (var n in All)
         {
+            if (n == null || !n.isActiveAndEnabled) continue;   // (the town's day and night folk take turns)
             float d = n.DistTo(p); if (d >= n.reach) continue;
             float score = d;
             Vector3 to = n.transform.position - p; to.y = 0;

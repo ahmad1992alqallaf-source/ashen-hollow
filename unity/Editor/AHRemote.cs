@@ -107,7 +107,7 @@ public static class AHRemote
             case "freecam": AHGame.FreeCam = false; return "ok";
             case "beast":
                 {
-                    // beast <id> [old]: that monster stood still 4 m in front of the hero, and the camera on it (old: as before the clean-up)
+                    // beast <id>: that monster stood still 4 m in front of the hero, and the camera on it
                     var g = AHGame.I; if (!Application.isPlaying || g == null) return "not playing";
                     var f = a.Split(' '); string id = f[0];
                     foreach (var o in GameObject.FindObjectsByType<AHMob>(FindObjectsSortMode.None)) if (o.name.StartsWith("ShowBeast")) Object.Destroy(o.gameObject);
@@ -120,10 +120,8 @@ public static class AHRemote
                         if (t != null) break;
                     }
                     if (t == null) return "no such monster";
-                    AHBeastClean.Off = f.Length > 1 && f[1] == "old";
                     var p = g.player.transform; Vector3 fw = p.forward; fw.y = 0; fw.Normalize();
                     var m = AHMob.Create(g, t, p.position + fw * 4.5f); m.enabled = false; m.name = "ShowBeast " + id;
-                    AHBeastClean.Off = false;
                     m.transform.rotation = Quaternion.LookRotation(Quaternion.Euler(0, 60f, 0) * -fw);
                     if (m.anim != null && m.anim.HasClips) { m.anim.Play("Idle", true); m.anim.Tick(0.5f); }
                     float h = Mathf.Max(1f, m.height); Vector3 cen = m.transform.position + Vector3.up * h * 0.5f;
@@ -166,6 +164,37 @@ public static class AHRemote
                     bool inside = f.Length > 1 && f[1] == "in";
                     Vector3 to = inside ? hall.At(0f, hall.d * 0.3f) : hall.Door - hall.b * 3f; to.y = g.player.transform.position.y;
                     g.player.transform.position = to; g.camYaw = Quaternion.LookRotation(hall.b).eulerAngles.y; AHGame.FreeCam = false;
+                    return "ok";
+                }
+            case "town": AHTownLife.Test(a); return "ok";
+            case "trash": return AssetDatabase.MoveAssetToTrash(a) ? "ok" : "could not trash " + a;
+            case "view":
+                {
+                    // view <bell|plot|gate N|square>: the free camera framing it
+                    var f = a.Split(' '); Vector3 eye = Vector3.zero, at = Vector3.zero;
+                    if (f[0] == "bell" && AHHollow.BellAt != Vector3.zero) { at = AHHollow.BellAt + Vector3.up * 7f; Vector3 d = AHHollow.C - AHHollow.BellAt; d.y = 0; d.Normalize(); eye = AHHollow.BellAt + d * 16f + Vector3.Cross(Vector3.up, d) * 5f + Vector3.up * 5f; }
+                    else if (f[0] == "plot" && AHHollow.Plot != null) { var h = AHHollow.Plot; at = h.At(0f, h.d * 0.5f) + Vector3.up * 1.5f; eye = h.At(0f, -9f) + h.r * 4f + Vector3.up * 6f; }
+                    else if (f[0] == "gate") { int k = 0; if (f.Length > 1) int.TryParse(f[1], out k); if (k < AHHollow.Gates.Count) { var gt = AHHollow.Gates[k]; at = gt.at + Vector3.up * 3.5f; eye = gt.at - gt.dir * 15f + gt.tan * 4f + Vector3.up * 4f; } }
+                    else if (f[0] == "square") { at = AHHollow.C; eye = AHHollow.C + Vector3.up * 26f - (AHGame.I.W(0f, 1f) - AHGame.I.W(0f, 0f)).normalized * 20f; }
+                    if (eye == Vector3.zero) return "nothing there";
+                    AHGame.FreePos = eye; AHGame.FreeRot = Quaternion.LookRotation(at - eye); AHGame.FreeCam = true; return "ok";
+                }
+            case "spot":
+                {
+                    // spot <bell|plot|fountain|jobs|crier|gate N>: the hero a few steps from it, looking at it
+                    var g = AHGame.I; if (!Application.isPlaying || g == null) return "not playing";
+                    var f = a.Split(' '); Vector3 at = Vector3.zero; float back = 6f;
+                    if (f[0] == "bell") { at = AHHollow.BellAt; back = 13f; }
+                    else if (f[0] == "plot" && AHHollow.Plot != null) { at = AHHollow.Plot.At(0f, AHHollow.Plot.d * 0.5f); back = 11f; }
+                    else if (f[0] == "fountain") at = AHHollow.FountainAt;
+                    else if (f[0] == "jobs") { var jb = GameObject.Find("AH_JobsBoard"); if (jb != null) at = jb.transform.position; back = 4.5f; }
+                    else if (f[0] == "crier") { var n = AHNpc.Find("Town crier Odo"); if (n != null) at = n.transform.position; back = 4f; }
+                    else if (f[0] == "npc") { var n = AHNpc.Find(a.Substring(4)); if (n != null) at = n.transform.position; back = 3.5f; }
+                    else if (f[0] == "gate") { int k = 0; if (f.Length > 1) int.TryParse(f[1], out k); if (k < AHHollow.Gates.Count) { var gt = AHHollow.Gates[k]; at = gt.at; back = 11f; } }
+                    if (at == Vector3.zero) return "nothing there";
+                    Vector3 d = AHHollow.C - at; d.y = 0f; if (d.sqrMagnitude < 0.01f) d = Vector3.forward; d.Normalize();
+                    Vector3 to = at + d * back; to.y = g.player.transform.position.y;
+                    g.player.transform.position = to; g.camYaw = Quaternion.LookRotation(-d).eulerAngles.y; AHGame.FreeCam = false;
                     return "ok";
                 }
             case "look":

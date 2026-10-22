@@ -426,6 +426,7 @@ public class AHGame : MonoBehaviour
         if (n == null || player == null || player.dead) return;
         if (AHTales.Talk(this, n)) return;   // a townsfolk tale takes the conversation
         if (AHTraining.Talk(this, n)) return;   // Guide Elara and Ferryman Oskar on Dawnrest Isle
+        if (n.onTalk != null && n.onTalk()) { quests.Event("talk", n.npcName, 1, this); return; }   // the walled town's own people (AHTownLife)
         string line = n.Talk();
         if (n.sail != null)
         {
@@ -1182,6 +1183,7 @@ public class AHGame : MonoBehaviour
 
     public float DayLight { get; private set; }
     public bool IsNight { get { return DayLight < 0.2f; } }
+    public float DayFrac { get { return dayLength > 0f ? Mathf.Repeat(dayT / dayLength, 1f) : 0f; } }   // 0..1 round the clock (x 24: the hour)
     // the hour of the Hollow's day, as a clock (for the chat's /time)
     public string TimeText() { float f = dayLength > 0f ? Mathf.Repeat(dayT / dayLength, 1f) : 0f; int m = Mathf.FloorToInt(f * 24f * 60f); return (m / 60).ToString("00") + ":" + (m % 60).ToString("00"); }
 
