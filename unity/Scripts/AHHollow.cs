@@ -189,10 +189,12 @@ public static class AHHollow
         }
     }
     static readonly Dictionary<string, Mesh> baked = new Dictionary<string, Mesh>();
+    static readonly Dictionary<Mesh, int> meshIds = new Dictionary<Mesh, int>();
     static Mesh Bake(Mesh src, Vector3 sc)
     {
         sc = new Vector3(Mathf.Abs(sc.x), Mathf.Abs(sc.y), Mathf.Abs(sc.z));
-        string key = src.GetInstanceID() + ":" + Mathf.RoundToInt(sc.x * 200) + "," + Mathf.RoundToInt(sc.y * 200) + "," + Mathf.RoundToInt(sc.z * 200);
+        int sid; if (!meshIds.TryGetValue(src, out sid)) { sid = meshIds.Count; meshIds[src] = sid; }
+        string key = sid + ":" + Mathf.RoundToInt(sc.x * 200) + "," + Mathf.RoundToInt(sc.y * 200) + "," + Mathf.RoundToInt(sc.z * 200);
         Mesh m; if (baked.TryGetValue(key, out m) && m != null) return m;
         var v = src.vertices; var n = src.normals; var t = src.triangles;
         var nv = new Vector3[v.Length]; var nn = new Vector3[v.Length]; var uv = new Vector2[v.Length];
@@ -706,8 +708,8 @@ public static class AHHollow
         foreach (var sx in new[] { -1f, 1f })
         {
             Vector3 hinge = P(sx * DoorW / 2f, DoorH / 2f, T + 0.04f);
-            low.Box(timber, TRS(hinge + h.b * 0.72f - h.r * sx * 0.06f, Q, new Vector3(0.07f, DoorH - 0.05f, 1.42f)));
-            foreach (var yy in new[] { 0.5f, DoorH - 0.5f }) low.Box(iron, TRS(P(sx * DoorW / 2f - sx * 0.1f, yy, T + 0.76f), Q, new Vector3(0.09f, 0.07f, 1.2f)));
+            up.Box(timber, TRS(hinge + h.b * 0.72f - h.r * sx * 0.06f, Q, new Vector3(0.07f, DoorH - 0.05f, 1.42f)));
+            foreach (var yy in new[] { 0.5f, DoorH - 0.5f }) up.Box(iron, TRS(P(sx * DoorW / 2f - sx * 0.1f, yy, T + 0.76f), Q, new Vector3(0.09f, 0.07f, 1.2f)));
         }
         // the roof: two slopes and the gable ends, the ridge across the frontage
         float over = 0.55f, hd = d / 2f + over, ang = Mathf.Atan2(Rise, hd) * Mathf.Rad2Deg, sl = Mathf.Sqrt(hd * hd + Rise * Rise);
@@ -1118,7 +1120,6 @@ public static class AHHollow
         Part(kit, Cloth(new Color(0.35f, 0.08f, 0.12f)), BoxMesh, at, q, new Vector3(0, 0.86f, 0), new Vector3(len - 0.1f, 0.03f, dep - 0.1f));
         Color[] gem = { new Color(0.3f, 0.7f, 1f), new Color(1f, 0.25f, 0.3f), new Color(0.3f, 1f, 0.45f), new Color(0.9f, 0.5f, 1f), new Color(1f, 0.85f, 0.3f) };
         for (int i = 0; i < 6; i++) Part(kit, Glow(gem[rnd.Next(gem.Length)], 1.6f), SphMesh, at, q, new Vector3(-len / 2f + 0.2f + i * 0.28f, 0.92f, (i % 2 - 0.5f) * 0.2f), Vector3.one * 0.07f);
-        Part(kit, Mat("hw_glass", new Color(0.75f, 0.9f, 1f), 0.95f, 0.05f), BoxMesh, at, q, new Vector3(0, 1.0f, 0), new Vector3(len, 0.02f, dep));
         foreach (var x in new[] { -len / 2f, len / 2f }) foreach (var z in new[] { -dep / 2f, dep / 2f }) Part(kit, Mat("hw_brass", new Color(0.85f, 0.65f, 0.25f), 0.7f), BoxMesh, at, q, new Vector3(x, 0.93f, z), new Vector3(0.04f, 0.16f, 0.04f));
         Done(kit, p, "AH_Showcase");
     }
