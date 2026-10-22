@@ -10,7 +10,7 @@ public partial class AHUI
     void FunTick()
     {
         AHFun3.Tick(g, Time.deltaTime);
-        StreakTick(); DeedTick(); WheelTick();
+        StreakTick(); DeedTick(); WheelTick(); Fun4Tick();
     }
 
     public void TestBagNew() { bagTab = "new"; ShowBag(true); }
@@ -190,6 +190,11 @@ public partial class AHUI
             if (cgPillSky != null) ph.GetComponent<Image>().type = Image.Type.Sliced;
             Center(Label(ph, "T", AHLoc.T("Photo", "تصوير"), 15, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(116, 30), Color.white));
             taps.Insert(0, new TapBtn { rt = ph, act = () => { wheelRoot.gameObject.SetActive(false); PhotoMode(true); } });
+            ph.anchoredPosition = new Vector2(-66f, -172f);
+            var ou = Img("Outfits", wheelRoot, cgPillSky != null ? cgPillSky : white, new Vector2(0.5f, 0.5f), new Vector2(66f, -172f), new Vector2(120, 38), Color.white);
+            if (cgPillSky != null) ou.GetComponent<Image>().type = Image.Type.Sliced;
+            Center(Label(ou, "T", AHLoc.T("Outfits", "الأزياء"), 15, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(116, 30), Color.white));
+            taps.Insert(0, new TapBtn { rt = ou, act = () => { wheelRoot.gameObject.SetActive(false); OpenWardrobe(); } });
         }
         wheelRoot.gameObject.SetActive(true); wheelRoot.SetAsLastSibling(); wheelT = 6f;
     }

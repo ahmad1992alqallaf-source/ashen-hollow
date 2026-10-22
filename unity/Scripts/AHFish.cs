@@ -64,6 +64,7 @@ public static class AHFish
         }
     }
 
+    public static IEnumerable<string> Lands { get { Build(); return byLand.Keys; } }   // (the fishing journal)
     public static Fish[] Of(string land)
     {
         Build();

@@ -28,10 +28,13 @@ public static class AHFun3
 
     // ===================================== recently picked up =====================================
     static readonly List<string> recent = new List<string>();
+    static readonly Dictionary<string, float> addedAt = new Dictionary<string, float>();
+    public static float AddedAgo(string id) { float t; return addedAt.TryGetValue(id, out t) ? Time.time - t : 1e9f; }   // (fresh food for the inn)
     static float readyAt;
     public static void OnAdded(string id, int n)
     {
         if (AHGame.I == null || AHGame.I.player == null || AHLoading.Showing || Time.time < readyAt) return;
+        addedAt[id] = Time.time;
         recent.Remove(id); recent.Insert(0, id); while (recent.Count > 10) recent.RemoveAt(recent.Count - 1);
     }
     public static bool IsRecent(string id) { return recent.Contains(id); }
@@ -133,25 +136,32 @@ public static class AHFun3
         foreach (var b in Today(p))
         {
             if (b.done || b.area != AHGame.AreaId) continue;
-            // the strongest ordinary beast of this land, grown into a named one
-            AHMob like = null;
-            foreach (var m in g.mobs)
-            {
-                if (m == null || m.dead || m.type == null || m.type.elite || m.golden || m.type.hp <= 0 || m.type.hp > 20000 || m.type.respawn > 1e6f) continue;   // no training golems, no stand-ins
-                if (m.type.id.StartsWith("kq_") || m.type.id.Contains("golem") || m.type.id.Contains("dummy")) continue;
-                if (like == null || m.type.lvl > like.type.lvl) like = m;
-            }
-            if (like == null) return;
-            Vector3 at = like.transform.position; float best = 0f;
-            foreach (var m in g.mobs) { if (m == null || m.dead) continue; float d = (m.transform.position - p.transform.position).magnitude; if (d > 25f && d < 90f && (best == 0f || Mathf.Abs(d - 45f) < Mathf.Abs(best - 45f))) { best = d; at = m.transform.position; } }
-            var t = like.type;
-            var bt = new AHMobType { id = t.id, name = b.name, model = t.model, lvl = t.lvl + 3, hp = t.hp * 7, dmg = Mathf.RoundToInt(t.dmg * 1.5f), xp = t.xp * 6, speed = t.speed, radius = t.radius, aggro = t.aggro, atkCd = t.atkCd, respawn = 1e9f, elite = true, drops = t.drops, gold = t.gold * 4 };
-            hunted = AHMob.Create(g, bt, at); g.mobs.Add(hunted); huntedB = b;
-            Debug.Log("Ashen Hollow: bounty " + b.name + " (" + t.id + ") is out in " + AHGame.AreaId);
-            if (hunted.Model != null) hunted.Model.transform.localScale *= 1.3f;
+            hunted = SpawnNamed(g, b.name, 7, 3, 1.3f, 1.5f, 6, 4); if (hunted == null) return; huntedB = b;
             g.ui.Banner(b.name, AHLoc.T("Your bounty prowls nearby · the red mark on the minimap", "طريدتك قريبة · العلامة الحمراء على الخريطة"));
             return;
         }
+    }
+
+    // the strongest ordinary beast of this land, grown into a named one, a fair way off from the hero
+    // (hpK, lvlAdd, size, dmgK, xpK, goldK: how much bigger than the beast it grows from)
+    public static AHMob SpawnNamed(AHGame g, string name, int hpK, int lvlAdd, float size, float dmgK, int xpK, int goldK)
+    {
+        var p = g.player; AHMob like = null;
+        foreach (var m in g.mobs)
+        {
+            if (m == null || m.dead || m.type == null || m.type.elite || m.golden || m.type.hp <= 0 || m.type.hp > 20000 || m.type.respawn > 1e6f) continue;   // no training golems, no stand-ins
+            if (m.type.id.StartsWith("kq_") || m.type.id.Contains("golem") || m.type.id.Contains("dummy")) continue;
+            if (like == null || m.type.lvl > like.type.lvl) like = m;
+        }
+        if (like == null) return null;
+        Vector3 at = like.transform.position; float best = 0f;
+        foreach (var m in g.mobs) { if (m == null || m.dead) continue; float d = (m.transform.position - p.transform.position).magnitude; if (d > 25f && d < 90f && (best == 0f || Mathf.Abs(d - 45f) < Mathf.Abs(best - 45f))) { best = d; at = m.transform.position; } }
+        var t = like.type;
+        var bt = new AHMobType { id = t.id, name = name, model = t.model, lvl = t.lvl + lvlAdd, hp = t.hp * hpK, dmg = Mathf.RoundToInt(t.dmg * dmgK), xp = t.xp * xpK, speed = t.speed, radius = t.radius, aggro = t.aggro, atkCd = t.atkCd, respawn = 1e9f, elite = true, drops = t.drops, gold = t.gold * goldK };
+        var made = AHMob.Create(g, bt, at); g.mobs.Add(made);
+        if (made.Model != null) made.Model.transform.localScale *= size;
+        Debug.Log("Ashen Hollow: " + name + " (" + t.id + ") is out in " + AHGame.AreaId);
+        return made;
     }
 
     // ===================================== photo spots =====================================
@@ -228,6 +238,7 @@ public static class AHFun3
         }
         int back = 0; foreach (var e in AHExpeditions.L(p)) if (AHExpeditions.Back(e)) back++;
         if (back > 0) l.Add(AHLoc.T(back + " pets are back from their expeditions", back + " حيوانات عادت من رحلاتها"));
+        if (AHFun4.WheelReady) l.Add(AHLoc.T("A free spin on the daily wheel", "دورة مجانية في عجلة اليوم"));
         int bn = 0; foreach (var b in Today(p)) if (!b.done) bn++;
         if (bn > 0) l.Add(AHLoc.T(bn + " bounties on the board today", bn + " مكافآت على اللوحة اليوم"));
         if (l.Count == 0) l.Add(AHLoc.T("All quiet. The realm waited for you.", "كل شيء هادئ. المملكة انتظرتك."));

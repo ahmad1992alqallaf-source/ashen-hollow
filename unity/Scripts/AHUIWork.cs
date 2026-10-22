@@ -212,6 +212,8 @@ public partial class AHUI
         else if (wkMode == "mail") RenderMail(p);
         else if (wkMode == "bounty") RenderBounty(p);
         else if (wkMode == "album") RenderAlbum(p);
+        else if (wkMode == "fishj") RenderFishJournal(p);
+        else if (wkMode == "legend") RenderLegend(p);
         else if (wkMode == "finder") RenderFinder(p);
         else if (wkMode == "board") RenderBoard(p);
         else if (wkMode == "rep") RenderRepList(p);

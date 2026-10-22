@@ -806,6 +806,7 @@ public static class AHGather
             ui.Toast("Careful work: you saved 1 " + AHItems.Get(k).name.ToLowerInvariant() + ".");
         }
         p.GainXp(r.skill, Mathf.Max(1, Mathf.RoundToInt(r.xp * DiffXp(Diff(p, r)))), false);
+        if (!mw && !it0.meal) AHFun4.OnCrafted(g, p, outId);   // practice stars: the same piece made often comes out better now and then
         AHArtisan.OnCraft(p, outId, n);
         AHTwoPart.OnMade(g, outId);
         g.quests.Event("craft", kind, 1, g);

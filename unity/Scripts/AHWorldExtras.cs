@@ -23,6 +23,7 @@ public class AHWorldState
 public class AHWeather : MonoBehaviour
 {
     public enum Kind { Clear, Cloudy, Rain, Fog, Snow, Storm }
+    public static int Thunder;   // counts the flashes (AHSound rumbles after each)
     public static bool Raining { get { return Now == Kind.Rain || Now == Kind.Storm; } }
     public static Kind Now = Kind.Clear;
     static AHWeather inst;
@@ -126,7 +127,7 @@ public class AHWeather : MonoBehaviour
         // the day cycle sets the light every frame; the weather dims it after
         if (RenderSettings.sun != null) RenderSettings.sun.intensity *= sunK;
         // a storm: lightning now and then, a white flash over the land
-        if (Now == Kind.Storm && !AHDungeon.IsDungeon(AHGame.AreaId)) { flashT -= Time.deltaTime; if (flashT <= 0f) { flashT = UnityEngine.Random.Range(6f, 16f); flash = 1f; } }
+        if (Now == Kind.Storm && !AHDungeon.IsDungeon(AHGame.AreaId)) { flashT -= Time.deltaTime; if (flashT <= 0f) { flashT = UnityEngine.Random.Range(6f, 16f); flash = 1f; Thunder++; } }
         if (flash > 0f) { flash = Mathf.MoveTowards(flash, 0f, Time.deltaTime * 3.5f); float f = flash * (0.6f + 0.4f * Mathf.PerlinNoise(Time.time * 30f, 0f)); if (RenderSettings.sun != null) RenderSettings.sun.intensity += f * 2.2f; }
         if (!AHDungeon.IsDungeon(AHGame.AreaId)) { float reach = AHSettings.Reach; RenderSettings.fogStartDistance = reach * 0.36f * fogK; RenderSettings.fogEndDistance = (reach - 5f) * Mathf.Max(0.45f, fogK); }
         if (fall != null) fall.transform.position = g.cam.transform.position + Vector3.up * 14f;

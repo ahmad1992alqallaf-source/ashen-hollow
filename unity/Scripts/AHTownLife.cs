@@ -34,6 +34,7 @@ public class AHTownLife : MonoBehaviour
         if (root == null || g == null) return;
         var tl = root.gameObject.AddComponent<AHTownLife>(); tl.g = g; I = tl;
         try { tl.Build(); } catch (System.Exception e) { Debug.LogWarning("Ashen Hollow: town life could not start fully (" + e.Message + ")\n" + e.StackTrace); }
+        try { root.gameObject.AddComponent<AHTownMore>().Init(g); } catch (System.Exception e) { Debug.LogWarning("Ashen Hollow: more town life could not start (" + e.Message + ")"); }
         try { root.gameObject.AddComponent<AHNightFun>().Init(g); } catch (System.Exception e) { Debug.LogWarning("Ashen Hollow: the night's extras could not start (" + e.Message + ")"); }
     }
 
@@ -662,6 +663,20 @@ public class AHTownLife : MonoBehaviour
         else if (what == "bountyreset") AHPrefs.SetString("ah_bounty", "");
         else if (what == "hunthere") AHFun3.TestHere(AHGame.I.player);
         else if (what == "logout") AHGame.I.Logout();
+        else if (what == "wheel2") AHGame.I.ui.OpenWheel();
+        else if (what == "wheelreset") AHPrefs.SetString("ah_wheel_day", "");
+        else if (what == "spin") AHGame.I.ui.SendMessage("StartSpin");
+        else if (what == "fishj") AHGame.I.ui.OpenFishJournal();
+        else if (what == "legend") AHGame.I.ui.OpenLegend();
+        else if (what == "legendhere") AHFun4.TestLegendHere(AHGame.I.player);
+        else if (what == "fightlegend") { var h = AHFun4.Legend; if (h != null) { var pl = AHGame.I.player; pl.transform.position = h.transform.position + (pl.transform.position - h.transform.position).normalized * 6f; pl.target = h; } }
+        else if (what == "dragon") AHFun4.SummonDragon(AHGame.I);
+        else if (what == "lookdragon") { var d = AHFun4.Dragon; if (d != null) { Vector3 c = d.transform.position; AHGame.FreePos = c + new Vector3(14f, 6f, 14f); AHGame.FreeRot = Quaternion.LookRotation(c - AHGame.FreePos); AHGame.FreeCam = true; } }
+        else if (what == "godragon") { var d = AHFun4.Dragon; if (d != null) { var pl = AHGame.I.player; pl.transform.position = d.transform.position + new Vector3(8f, 0f, 8f); } }
+        else if (what == "gallop") { var pl = AHGame.I.player; if (pl.mountSel != null) pl.mountXp[pl.mountSel] = 100000000; if (!pl.mounted) AHComp.ToggleRide(AHGame.I); }
+        else if (what == "craftstar") { for (int i = 0; i < 25; i++) AHFun4.OnCrafted(AHGame.I, AHGame.I.player, "bronze_helm"); }
+        else if (what == "giverosa") { AHGame.I.player.bag.Add("stew", 1); AHGame.I.player.bag.Add("trout", 1); AHGame.I.player.bag.Add("salmon", 1); AHGame.I.player.bag.Add("meat", 1); AHGame.I.player.bag.Add("pie", 1); }
+        else if (what == "pip" || what == "pipfind" || what == "rosa" || what.StartsWith("season:")) AHTownMore.Test(what);
         else if (what == "hunt") { var h = AHFun3.Hunted; if (h != null) { var pl = AHGame.I.player; pl.transform.position = h.transform.position + (pl.transform.position - h.transform.position).normalized * 7f; pl.target = h; } }
         else if (what == "album") AHGame.I.ui.OpenAlbum();
         else if (what == "wheel") AHGame.I.ui.SendMessage("ToggleEmoteWheel");

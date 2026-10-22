@@ -152,6 +152,9 @@ public static class AHFishing
         float[] w = { 60f, 25f, 10f, 4f, 1f };
         float k = (School(spot) ? 2f : 1f) * (p.prog.lureUntil > Now() ? 1.5f : 1f) * (p.path == "artisan" ? 1.25f : 1f) * (1f + 0.5f * rank) * (p.Spec("fisher", "angler") ? 1.2f : 1f);
         for (int i = 2; i < 5; i++) w[i] *= k;
+        // the fishing journal's lore, true: rare fish rise in the rain, legendary ones bite better after dark
+        if (AHWeather.Raining) w[2] *= 1.4f;
+        if (AHGame.I != null && AHGame.I.IsNight) w[4] *= 2f;
         w[1] *= 1f + 0.25f * rank;
         float sum = 0f; for (int i = 0; i < 5; i++) sum += w[i];
         if (sum <= 0f) return 0;

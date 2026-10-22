@@ -32,7 +32,7 @@ public static class AHComp
     public static int PetLv(AHPlayer p, string k) { long x; p.petXp.TryGetValue(k ?? "", out x); return LvFrom(x, PetAt, PetMax); }
     public static int MountLv(AHPlayer p, string k) { long x; p.mountXp.TryGetValue(k ?? "", out x); return LvFrom(x, MountAt, MountMax); }
     public static float MountBonus(AHPlayer p, string k) { int L = MountLv(p, k); return 1f + 0.015f * (L - 1) + (L >= MountMax ? 0.05f : 0f); }
-    public static float MountSpeed(AHPlayer p) { return p.mounted && p.mountSel != null ? (float)AHJson.N(AHJson.O(Mounts, p.mountSel), "speed", 1.5) * MountBonus(p, p.mountSel) : 1f; }
+    public static float MountSpeed(AHPlayer p) { return p.mounted && p.mountSel != null ? (float)AHJson.N(AHJson.O(Mounts, p.mountSel), "speed", 1.5) * MountBonus(p, p.mountSel) * AHFun4.GallopK : 1f; }   // (a gallop: AHFun4)
     public static float Seat(string k) { return (float)AHJson.N(AHDB.Table("companions", "SEAT"), k, 0.64); }
     public static string PetName(string k) { return AHJson.S(AHJson.O(AllPets, k), "name", k); }
     public static string MountName(string k) { return AHJson.S(AHJson.O(Mounts, k), "name", k); }

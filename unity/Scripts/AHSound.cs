@@ -260,6 +260,8 @@ public class AHSound : MonoBehaviour
         { "night", new Mood { bpm = 66, root = 146.83f, prog = new[] { new[] { 0, 3, 7 }, new[] { -4, 0, 3 }, new[] { 3, 7, 10 }, new[] { -2, 2, 5 } }, scale = new[] { 0, 2, 3, 7, 8 }, arp = null, lead = 0.16f, bass = 1, perc = 0, wave = Wave.Sine } },
         { "dungeon", new Mood { bpm = 70, root = 164.81f, prog = new[] { new[] { 0, 3, 7 }, new[] { -4, 0, 3 }, new[] { -7, -4, 0 }, new[] { -5, -1, 2 } }, scale = new[] { 0, 1, 3, 7, 8 }, arp = new[] { 0, 1, 2, 1 }, arpEvery = 4, lead = 0.1f, bass = 2, perc = 0, wave = Wave.Triangle, drone = true } },
         { "combat", new Mood { bpm = 132, root = 220, prog = new[] { new[] { 0, 3, 7 }, new[] { -4, 0, 3 }, new[] { -2, 2, 5 }, new[] { -5, -1, 2 } }, scale = new[] { 0, 2, 3, 5, 7, 8, 10 }, arp = new[] { 0, 1, 2, 1, 2, 1, 0, 1 }, arpEvery = 1, lead = 0.2f, bass = 3, perc = 2, wave = Wave.Square } },
+        // lantern night in Hollow Meadow: a bright dance in three, the bard's tune
+        { "festival", new Mood { bpm = 112, root = 293.66f, prog = new[] { new[] { 0, 4, 7 }, new[] { 5, 9, 12 }, new[] { -5, -1, 2 }, new[] { 0, 4, 7 } }, scale = new[] { 0, 2, 4, 7, 9 }, arp = new[] { 0, 1, 2, 1, 2, 1 }, arpEvery = 1, lead = 0.4f, bass = 1, perc = 1, wave = Wave.Triangle } },
         { "boss", new Mood { bpm = 144, root = 146.83f, prog = new[] { new[] { 0, 3, 7 }, new[] { -4, 0, 3 }, new[] { -7, -4, 0 }, new[] { -5, -1, 2 } }, scale = new[] { 0, 1, 3, 5, 7, 8, 10 }, arp = new[] { 0, 2, 1, 2, 0, 2, 1, 2 }, arpEvery = 1, lead = 0.12f, bass = 3, perc = 3, wave = Wave.Saw, stab = true } },
     };
     public string musicMode = "wild", ambMode = "day";
@@ -288,7 +290,7 @@ public class AHSound : MonoBehaviour
         if (M.stab && within % 8 == 0) foreach (var n in ch) MNote(Wave.Saw, Hz(M.root, n), at, sd * 1.2f, 0.025f, 0.005f);
     }
 
-    float ambT, stepT;
+    float ambT, stepT; int thunderSeen;
     volatile float cSfx = 0.8f, cMus = 0.5f; volatile bool cMuted;   // read by the audio thread (PlayerPrefs is main-thread only)
     void Update()
     {
@@ -298,7 +300,8 @@ public class AHSound : MonoBehaviour
         // the mood: where you are and what you are doing (web musicFor)
         bool boss = false, fight = false;
         foreach (var m in g.mobs) if (m != null && m.Chasing && (m.transform.position - p.transform.position).sqrMagnitude < 900f) { fight = true; if (m.type.elite && m.type.hp > 3000) boss = true; }
-        musicMode = boss ? "boss" : fight ? "combat" : g.Dark ? "dungeon" : g.InTown(p.transform.position) ? "town" : g.IsNight ? "night" : "wild";
+        bool town = g.InTown(p.transform.position);
+        musicMode = boss ? "boss" : fight ? "combat" : g.Dark ? "dungeon" : town && AHNightFun.Festival(g) ? "festival" : town ? "town" : g.IsNight ? "night" : "wild";
         ambMode = g.Dark ? "dungeon" : g.IsNight ? "night" : "day";
         windTarget = ambMode == "dungeon" ? 150f : 400f;
         if (Muted) { mNext = Now + 0.2; return; }
@@ -315,6 +318,11 @@ public class AHSound : MonoBehaviour
             if (ambMode == "day" && UnityEngine.Random.value < 0.35f) { float b = 2200 + UnityEngine.Random.value * 1500; for (int i = 0; i < 3; i++) Tone(Wave.Sine, b, b * 1.3f, 0.08f, 0.04f, 2, i * 0.11f); }
             if (ambMode == "night" && UnityEngine.Random.value < 0.7f) for (int i = 0; i < 4; i++) Tone(Wave.Square, 4200, 4100, 0.03f, 0.012f, 2, i * 0.06f);
             if (ambMode == "dungeon" && UnityEngine.Random.value < 0.3f) Tone(Wave.Sine, 55, 45, 1.2f, 0.1f, 2);
+            // rain: a soft hiss under everything (a storm louder)
+            if (ambMode != "dungeon" && AHWeather.Raining) Add(new Voice { w = Wave.Noise, ft = Filt.Band, fq0 = 2400, fq1 = 2600, q = 0.6f, len = 0.9, att = 0.3, vol = AHWeather.Now == AHWeather.Kind.Storm ? 0.05f : 0.03f, bus = 2 }, 0f);
+        }
+        // thunder after a lightning flash: a long low rumble a moment later
+        if (thunderSeen != AHWeather.Thunder) { thunderSeen = AHWeather.Thunder; float d = UnityEngine.Random.Range(0.4f, 1.6f); Add(new Voice { w = Wave.Noise, ft = Filt.Low, fq0 = 260, fq1 = 60, q = 0.7f, len = 2.8, att = 0.08, vol = 0.32f, bus = 2 }, d); Add(new Voice { w = Wave.Sine, f0 = 48, f1 = 32, len = 2.2, att = 0.05, vol = 0.18f, bus = 2 }, d);
         }
         // footsteps
         stepT -= Time.deltaTime;
