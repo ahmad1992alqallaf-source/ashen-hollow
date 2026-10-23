@@ -62,6 +62,20 @@ public partial class AHUI
         if (slot == "food") p.Eat(id); else p.Drink(id);
     }
 
+    // no mana (a rogue, a warrior): food and the elixir close up the gap the mana potion leaves in the row
+    bool rowMana = true;
+    void QuickRowFit(bool mana)
+    {
+        if (mana == rowMana || quickBtns.Count == 0) return;
+        rowMana = mana; float dx = mana ? -54f : 54f;
+        foreach (var n in new[] { "PotFood", "PotBuff" })
+        {
+            var rt = FindUI(n); if (rt == null) continue;
+            rt.anchoredPosition += new Vector2(dx, 0f);
+            foreach (var gr in hudGroups) { Vector2 h; if (gr.home.TryGetValue(rt, out h)) gr.home[rt] = h + new Vector2(dx, 0f); }
+        }
+    }
+
     void BuildQuick(Color glassFace)
     {
         if (quickBtns.Count > 0) return;

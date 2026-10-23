@@ -367,7 +367,7 @@ public partial class AHUI
         // the top row slides away to the right (and back) with the arrow
         slideK = Mathf.MoveTowards(slideK, slideHidden ? 1f : 0f, Time.unscaledDeltaTime * 4f);
         float ease = slideK * slideK * (3f - 2f * slideK);
-        Vector2 tabHome; bool up = slideBtn != null && slideHome.TryGetValue(slideBtn, out tabHome);
+        Vector2 tabHome = Vector2.zero; bool up = slideBtn != null && slideHome.TryGetValue(slideBtn, out tabHome);
         if (up)
         {
             // the column under the minimap slides up out of sight, and the little tab rises to the top edge after it

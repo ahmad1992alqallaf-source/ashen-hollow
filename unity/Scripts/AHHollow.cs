@@ -923,7 +923,14 @@ public static class AHHollow
         foreach (var yy in new[] { Low, H - 0.1f })
         {
             var k = yy < 2f ? low : up;
-            k.Box(timber, TRS(P(0, yy, -0.02f), Q, new Vector3(w + 0.1f, 0.16f, 0.1f)));
+            // (the front beam at the knee stops at the door frame: it used to run straight across the doorway, a dark
+            // bar at knee height that nobody could walk past)
+            if (yy < DoorH)
+            {
+                float seg = (w + 0.1f - DoorW) / 2f;
+                foreach (var sx in new[] { -1f, 1f }) k.Box(timber, TRS(P(sx * (DoorW / 2f + seg / 2f), yy, -0.02f), Q, new Vector3(seg, 0.16f, 0.1f)));
+            }
+            else k.Box(timber, TRS(P(0, yy, -0.02f), Q, new Vector3(w + 0.1f, 0.16f, 0.1f)));
             k.Box(timber, TRS(P(0, yy, d + 0.02f), Q, new Vector3(w + 0.1f, 0.16f, 0.1f)));
             k.Box(timber, TRS(P(-w / 2f - 0.02f, yy, d / 2f), Q, new Vector3(0.1f, 0.16f, d + 0.1f)));
             k.Box(timber, TRS(P(w / 2f + 0.02f, yy, d / 2f), Q, new Vector3(0.1f, 0.16f, d + 0.1f)));

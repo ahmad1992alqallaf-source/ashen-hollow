@@ -166,6 +166,33 @@ public static class AHRemote
                     g.player.transform.position = to; g.camYaw = Quaternion.LookRotation(hall.b).eulerAngles.y; AHGame.FreeCam = false;
                     return "ok";
                 }
+            case "doors":
+                {
+                    // doors: walk the line from in front of each building's door to its middle; say what stops you
+                    var g = AHGame.I; if (!Application.isPlaying || g == null) return "not playing";
+                    var sb = new StringBuilder();
+                    foreach (var h in AHHollow.Halls)
+                    {
+                        string hit = null;
+                        for (float z = -1.5f; z <= h.d * 0.5f && hit == null; z += 0.25f)
+                        {
+                            Vector3 q = h.At(0f, z); string w = g.WhyBlocked(q, 0.35f);
+                            if (w != null)
+                            {
+                                hit = "z=" + z.ToString("0.00") + " " + w;
+                                for (float x = -0.5f; x <= 0.51f; x += 0.5f) for (float zz = z - 0.5f; zz <= z + 1.01f; zz += 0.5f) hit += "\n      (" + x + "," + zz.ToString("0.00") + ") " + AHSolidGrid.Who(h.At(x, zz));
+                                if (false) foreach (var mr in Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None))
+                                {
+                                    var b = mr.bounds; if (!mr.enabled || !mr.gameObject.activeInHierarchy) continue;
+                                    if (q.x > b.min.x - 0.4f && q.x < b.max.x + 0.4f && q.z > b.min.z - 0.4f && q.z < b.max.z + 0.4f && b.min.y < q.y + 1.7f && b.max.y > q.y + 0.5f && b.size.magnitude < 30f)
+                                    { var t = mr.transform; string path = t.name; for (var pa = t.parent; pa != null; pa = pa.parent) path = pa.name + "/" + path; hit += " | " + path; }
+                                }
+                            }
+                        }
+                        sb.Append("\n  " + h.id + ": " + (hit ?? "open"));
+                    }
+                    return sb.ToString();
+                }
             case "town": AHTownLife.Test(a); return "ok";
             case "info": return a == "race" ? AHRace.Info : a == "area" ? AHGame.AreaId + (AHTownLife.I != null ? " (town life on)" : "") : "?";
             case "trash": return AssetDatabase.MoveAssetToTrash(a) ? "ok" : "could not trash " + a;

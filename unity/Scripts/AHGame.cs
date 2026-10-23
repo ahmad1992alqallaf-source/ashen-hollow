@@ -603,6 +603,18 @@ public class AHGame : MonoBehaviour
     }
 
     // is this spot inside a tree, wall or lake?
+    // (tests) what stops you here: a round blocker, a box, a door, the zone tiles, a wall's shape, no floor, a lake
+    public string WhyBlocked(Vector3 p, float r)
+    {
+        for (int i = 0; i < cPos.Count; i++) { float dx = p.x - cPos[i].x, dz = p.z - cPos[i].z, rr = cRad[i] * 0.7f + r; if (dx * dx + dz * dz < rr * rr) return "blocker#" + i + " r" + cRad[i].ToString("0.0") + " at " + cPos[i].x.ToString("0.0") + "," + cPos[i].z.ToString("0.0"); }
+        foreach (var b in rects) if (p.x > b.xMin - r && p.x < b.xMax + r && p.z > b.yMin - r && p.z < b.yMax + r) return "box " + b;
+        foreach (var b in doors) if (p.x > b.xMin - r && p.x < b.xMax + r && p.z > b.yMin - r && p.z < b.yMax + r) return "door " + b;
+        if (!TilesOk(p, r)) return "tiles";
+        if (AHSolidGrid.Blocked(p, r)) return "grid";
+        if (floors.Count > 0) { bool on = false; foreach (var b in floors) if (p.x > b.xMin + r && p.x < b.xMax - r && p.z > b.yMin + r && p.z < b.yMax - r) { on = true; break; } if (!on) return "nofloor"; }
+        foreach (var l in lakes) { float u = (p.x - l.x) / (l.z + r), v = (p.z - l.y) / (l.w + r); if (u * u + v * v < 1f) return "lake"; }
+        return null;
+    }
     public bool Blocked(Vector3 p, float r)
     {
         for (int i = 0; i < cPos.Count; i++)

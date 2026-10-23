@@ -49,7 +49,7 @@ public static class AHSolidGrid
         var R = g.WalkArea; if (R.width <= 1f || R.height <= 1f) return;
         x0 = R.xMin - 4f; z0 = R.yMin - 4f; nx = Mathf.CeilToInt((R.width + 8f) / Cell); nz = Mathf.CeilToInt((R.height + 8f) / Cell);
         if (nx * nz > 4000000) return;
-        var wall = new bool[nx * nz]; top = new float[nx * nz];
+        var wall = new bool[nx * nz]; top = new float[nx * nz]; who = Application.isEditor ? new string[nx * nz] : null; curName = null;
         float lo = gy + BandLo, hi = gy + BandHi;
         var area = new Bounds(new Vector3(R.center.x, gy, R.center.y), new Vector3(R.width + 8f, 400f, R.height + 8f));
         var verts = new List<Vector3>(); var tris = new List<int>(); var big = new List<KeyValuePair<int, string>>();
@@ -69,6 +69,7 @@ public static class AHSolidGrid
                 markN = 0; Oval(b, wall); if (markN > 0) Things++;
                 continue;
             }
+            curName = Application.isEditor ? Path(mr.transform) : null;
             var M = mr.transform.localToWorldMatrix;
             m.GetVertices(verts);
             var wv = new Vector3[verts.Count]; for (int i = 0; i < verts.Count; i++) wv[i] = M.MultiplyPoint3x4(verts[i]);
@@ -154,7 +155,8 @@ public static class AHSolidGrid
         Debug.Log("Ashen Hollow: solid ground map " + nx + "x" + nz + ": " + Things + " things, " + (Cells * Cell * Cell).ToString("F0") + " m² you cannot walk into" + (Unread > 0 ? ", " + Unread + " meshes unreadable" : "") + " (" + ((Time.realtimeSinceStartup - t0) * 1000f).ToString("F0") + " ms)");
     }
 
-    static int markN;
+    static int markN; static string curName; static string[] who;   // (tests, in the editor) what made each cell a wall
+    public static string Who(Vector3 p) { int i = Idx(p.x, p.z); if (i < 0 || solid == null) return "off"; return (solid[i] ? "solid " : "open ") + (who != null && who[i] != null ? who[i] : "(enclosed)"); }
     static string Path(Transform t) { string s = t.name; for (var a = t.parent; a != null && s.Length < 140; a = a.parent) s = a.name + "/" + s; return s; }
     static void Oval(Bounds b, bool[] wall)
     {
@@ -194,7 +196,7 @@ public static class AHSolidGrid
                 {
                     float px = x0 + (x + 0.5f) * Cell, pz = z0 + (z + 0.5f) * Cell;
                     if (!Inside(polyA, px, pz)) continue;
-                    int i = z * nx + x; if (!wall[i]) markN++; wall[i] = true; top[i] = Mathf.Max(top[i], ymax); any = true;
+                    int i = z * nx + x; if (!wall[i]) { markN++; if (who != null) who[i] = curName; } wall[i] = true; top[i] = Mathf.Max(top[i], ymax); any = true;
                 }
         return any;
     }
@@ -229,7 +231,7 @@ public static class AHSolidGrid
             float t = k / (float)steps; float px = a.x + (b.x - a.x) * t, pz = a.z + (b.z - a.z) * t;
             int x = Mathf.FloorToInt((px - x0) / Cell), z = Mathf.FloorToInt((pz - z0) / Cell);
             if (x < 0 || z < 0 || x >= nx || z >= nz) continue;
-            int i = z * nx + x; if (!wall[i]) markN++; wall[i] = true; top[i] = Mathf.Max(top[i], h); any = true;
+            int i = z * nx + x; if (!wall[i]) { markN++; if (who != null) who[i] = curName; } wall[i] = true; top[i] = Mathf.Max(top[i], h); any = true;
         }
         return any;
     }

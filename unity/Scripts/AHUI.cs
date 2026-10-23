@@ -1143,6 +1143,7 @@ public partial class AHUI : MonoBehaviour
         potManaCool.fillAmount = Mathf.Clamp01((p.manaCd - now) / 15f);
         bool um = p.maxMana > 0f;
         if (potMana.gameObject.activeSelf != um) potMana.gameObject.SetActive(um);
+        QuickRowFit(um);
         var sb = new System.Text.StringBuilder();
         foreach (var kv in p.elix) if (kv.Value > now) { if (sb.Length > 0) sb.Append("  ·  "); sb.Append(ElixName(kv.Key)).Append(' ').Append(Mathf.CeilToInt((kv.Value - now) / 60f)).Append('m'); }
         if (AHMeal.Active(p)) { if (sb.Length > 0) sb.Append("  ·  "); sb.Append(p.meal.name).Append(" ").Append(Mathf.CeilToInt((p.meal.until - AHMeal.Now) / 60000f)).Append("m"); }
